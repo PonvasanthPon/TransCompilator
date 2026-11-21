@@ -286,10 +286,49 @@ impl<'a> Parser<'a> {
     fn parse_comparison(&mut self) -> Result<AstExpr> {
         let mut left = self.parse_bitwise()?;
         loop {
+            let saved = self.position;
+            if self.eat_word("has") {
+                let no_address = self.eat_word("no") && self.eat_word("address");
+                let an_address = self.eat_word("an") && self.eat_word("address");
+                if no_address || an_address {
+                    let null = AstExpr::ConstNull(AstType::ptr(AstType::U8));
+                    let address = AstExpr::Cast {
+                        val: Box::new(left),
+                        to: AstType::ptr(AstType::U8),
+                    };
+                    left = binary(
+                        if no_address { BinOp::Eq } else { BinOp::Ne },
+                        address,
+                        null,
+                    );
+                    continue;
+                }
+                self.position = saved;
+            }
             if self.eat_word("is") {
                 if self.eat_word("between") {
                     self.position -= 1;
                     left = self.parse_between(left)?;
+                    continue;
+                }
+                let null_check = if self.eat_word("empty") {
+                    Some(true)
+                } else {
+                    let saved_not = self.position;
+                    if self.eat_word("not") && self.eat_word("empty") {
+                        Some(false)
+                    } else {
+                        self.position = saved_not;
+                        None
+                    }
+                };
+                if let Some(is_empty) = null_check {
+                    let null = AstExpr::ConstNull(AstType::ptr(AstType::U8));
+                    let address = AstExpr::Cast {
+                        val: Box::new(left),
+                        to: AstType::ptr(AstType::U8),
+                    };
+                    left = binary(if is_empty { BinOp::Eq } else { BinOp::Ne }, address, null);
                     continue;
                 }
                 if let Some(operator) = self.comparison_operator() {
@@ -344,6 +383,36 @@ impl<'a> Parser<'a> {
     fn parse_additive(&mut self) -> Result<AstExpr> {
         let mut left = self.parse_multiplicative()?;
         loop {
+            if self.words_are(&["bytes", "after"]) || self.words_are(&["bytes", "before"]) {
+                let before = self.words_are(&["bytes", "before"]);
+                self.position += 2;
+                let pointer = self.parse_unary()?;
+                let target = if self.eat_word("as") {
+                    self.parse_type()?
+                } else if let Some(pointer_type @ AstType::Ptr(_)) = self.env.expr_type(&pointer) {
+                    pointer_type
+                } else {
+                    AstType::ptr(AstType::U8)
+                };
+                let address = AstExpr::Cast {
+                    val: Box::new(pointer),
+                    to: AstType::U64,
+                };
+                let offset = AstExpr::Cast {
+                    val: Box::new(left),
+                    to: AstType::U64,
+                };
+                let sum = binary(
+                    if before { BinOp::Sub } else { BinOp::Add },
+                    address,
+                    offset,
+                );
+                left = AstExpr::Cast {
+                    val: Box::new(sum),
+                    to: target,
+                };
+                continue;
+            }
             let operator = if self.eat_symbol("+") || self.eat_word("plus") {
                 Some(BinOp::Add)
             } else if self.eat_symbol("-") || self.eat_word("minus") {
@@ -367,8 +436,14 @@ impl<'a> Parser<'a> {
             let mut percent = false;
             let mut operator = if self.eat_symbol("*") || self.eat_word("times") {
                 Some(BinOp::Mul)
-            } else if self.eat_symbol("/") || self.eat_word("over") || self.eat_word("mod") {
-                if self.tokens[self.position - 1].is("mod") {
+            } else if self.eat_symbol("/")
+                || self.eat_word("over")
+                || self.eat_word("mod")
+                || self.eat_word("modulo")
+            {
+                if self.tokens[self.position - 1].is("mod")
+                    || self.tokens[self.position - 1].is("modulo")
+                {
                     Some(BinOp::Mod)
                 } else {
                     Some(BinOp::Div)
@@ -407,6 +482,17 @@ impl<'a> Parser<'a> {
 
     fn parse_unary(&mut self) -> Result<AstExpr> {
         self.charge()?;
+        if self.eat_word("apply") {
+            let callee = self.parse_unary()?;
+            self.expect_word("to")?;
+            let first = self.parse_unary()?;
+            self.expect_word("with")?;
+            let second = self.parse_unary()?;
+            return Ok(AstExpr::IndirectCall {
+                callee: Box::new(callee),
+                args: vec![first, second],
+            });
+        }
         if self.eat_word("convert") {
             let value = self.parse_unary()?;
             self.expect_word("to")?;
@@ -428,9 +514,18 @@ impl<'a> Parser<'a> {
         }
         if self.words_are(&["memory", "location", "of"]) {
             self.position += 3;
-            let value = self.parse_unary()?;
-            return explicit_address(&value, self.env)
-                .ok_or_else(|| "memory location requires an addressable value".to_string());
+            let (value, place) = self.parse_primary()?;
+            let address = explicit_address(&value, self.env)
+                .or(place)
+                .ok_or_else(|| "memory location requires an addressable value".to_string())?;
+            if self.eat_word("as") {
+                let to = self.parse_type()?;
+                return Ok(AstExpr::Cast {
+                    val: Box::new(address),
+                    to,
+                });
+            }
+            return Ok(address);
         }
         if self.words_are(&["value", "at"]) {
             self.position += 2;

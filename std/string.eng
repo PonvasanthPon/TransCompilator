@@ -4,87 +4,75 @@ Use alloc, core, and io.
 
 A public record TcString has a data as a pointer to byte, a len as an unsigned number, and a cap as an unsigned number.
 
-Publicly, to str_new returning TcString.
-    Define local s as TcString.
-    Give back s.
-Done.
+Publicly, to create an empty text, named str_new, returning TcString.
+Let s be TcString.
+Give back s.
 
-Publicly, to str_from_bytes given p as a pointer to byte, n as an unsigned number, returning TcString.
-    Define local s as TcString.
-    Set s.len to n.
-    Set s.cap to n + 1.
-    Set s.data to heap_alloc(s.cap).
-    If n > 0:
-        Copy n bytes from p to s.data.
-    Set item n of s.data to 0.
-    Give back s.
-Done.
+Publicly, to create text from a pointer to byte p of length an unsigned number n, named str_from_bytes, returning TcString.
+Call this as "create text from <p> of length <n>".
+Let s be TcString.
+Set s's len to n.
+Set s's cap to n plus 1.
+Let allocated be allocate s's cap bytes.
+Set s's data to allocated.
+If n is more than 0, copy n bytes from p to s's data.
+Set item n of s's data to 0.
+Give back s.
 
-Publicly, to str_push_bytes given s as a pointer to TcString, p as a pointer to byte, n as an unsigned number, returning nothing.
-    If n == 0:
-        Give back.
-    Define local needed as an unsigned number.
-    Set needed to s.len + n + 1.
-    If needed > s.cap:
-        Define local new_cap as an unsigned number.
-        Set new_cap to s.cap * 2.
-        If new_cap < needed:
-            Set new_cap to needed.
-        If new_cap < 16:
-            Set new_cap to 16 as an unsigned number.
-        Define local old_cap as an unsigned number.
-        Set old_cap to s.cap.
-        Set s.data to heap_realloc(s.data, old_cap, new_cap).
-        Set s.cap to new_cap.
-    Copy n bytes from p to (s.data as an unsigned number + s.len) as a pointer to byte.
-    Set s.len to s.len + n.
-    Set item s.len of s.data to 0.
-Done.
+Publicly, to append to a string given s as a pointer to TcString, p as a pointer to byte, n as an unsigned number, named str_push_bytes, returning nothing.
+Call this as "append <p> with length <n> to <s>".
+If n equals 0, give back.
+Let needed be s's len plus n plus 1.
+If needed is more than s's cap.
+Let new_cap be s's cap times 2.
+If new_cap is less than needed, make new_cap needed.
+If new_cap is less than 16, make new_cap 16 as an unsigned number.
+Let old_cap be s's cap.
+Let resized be resize memory at s's data from old_cap to new_cap.
+Set s's data to resized.
+Set s's cap to new_cap.
+End the condition.
+Copy n bytes from p to (s's data as an unsigned number plus s's len) as a pointer to byte.
+Set s's len to s's len plus n.
+Set item s's len of s's data to 0.
 
-Publicly, to str_concat given a as a pointer to TcString, b as a pointer to TcString, returning TcString.
-    Call this as "join <a> and <b>".
-    Define local joined as TcString.
-    Set joined to str_from_bytes(a.data, a.len).
-    str_push_bytes(address of joined, b.data, b.len).
-    Give back joined.
-Done.
+Publicly, to join a pointer to TcString a and a pointer to TcString b, named str_concat, returning TcString.
+Call this as "join <a> and <b>".
+Let joined be create text from a's data of length a's len.
+append b's data with length b's len to address of joined.
+Give back joined.
 
-Publicly, to str_eq given a as a pointer to TcString, b as a pointer to TcString, returning a truth value.
-    If a.len != b.len:
-        Give back false.
-    Give back mem_eq(a.data, b.data, a.len).
-Done.
+Publicly, to check whether a pointer to TcString a matches a pointer to TcString b, named str_eq, returning a truth value.
+Call this as "text <a> matches text <b>".
+If a's len is not equal to b's len, give back false.
+Let i be 0 as an unsigned number.
+While i is less than a's len.
+If item i of a's data is not equal to item i of b's data, give back false.
+Add 1 to i.
+End the loop.
+Give back true.
 
-Publicly, to str_len given s as a pointer to TcString, returning an unsigned number.
-    Call this as "length of <s>".
-    Give back s.len.
-Done.
+Publicly, to find the length of a pointer to TcString s, named str_len, returning an unsigned number.
+Call this as "length of <s>".
+Give back s's len.
 
-Publicly, to str_clone given s as a pointer to TcString, returning TcString.
-    Give back str_from_bytes(s.data, s.len).
-Done.
+Publicly, to copy a pointer to TcString s, named str_clone, returning TcString.
+Call this as "copy text <s>".
+Give back create text from s's data of length s's len.
 
-Publicly, to str_clear given s as a pointer to TcString, returning nothing.
-    Set s.len to 0 as an unsigned number.
-    If s.data as an unsigned number != 0:
-        Set item 0 of s.data to 0.
-Done.
+Publicly, to clear a pointer to TcString s, named str_clear, returning nothing.
+Call this as "clear text <s>".
+Set s's len to 0 as an unsigned number.
+If s's data is not empty, set item 0 of s's data to 0.
 
-Publicly, to str_free given s as a pointer to TcString, returning nothing.
-    If s.data as an unsigned number != 0:
-        heap_free(s.data).
-    Set s.data to no address.
-    Set s.len to 0 as an unsigned number.
-    Set s.cap to 0 as an unsigned number.
-Done.
+Publicly, to free a pointer to TcString s, named str_free, returning nothing.
+Call this as "free text <s>".
+If s's data is not empty, release memory at s's data.
+Set s's data to no address.
+Set s's len to 0 as an unsigned number.
+Set s's cap to 0 as an unsigned number.
 
-To newline returning nothing.
-    Ask Linux kernel 1 with 1, "\n", and 1.
-Done.
-
-Publicly, to print_str given s as a pointer to TcString, returning nothing.
-    You can call this as "say <s>", "show <s>", "print <s>", or "display <s>".
-    If s.len > 0:
-        Ask Linux kernel 1 with 1, s.data, and s.len.
-    newline().
-Done.
+Publicly, to print a pointer to TcString s, named print_str, returning nothing.
+You can call this as "say <s>", "show <s>", "print <s>", or "display <s>".
+If s's len is more than 0, ask Linux kernel 1 with 1, s's data, and s's len.
+Ask Linux kernel 1 with 1, "\n", and 1.

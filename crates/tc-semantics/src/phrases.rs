@@ -73,7 +73,7 @@ fn next_word_index(tokens: &[Token], start: usize) -> Option<usize> {
                 _ => {}
             }
         }
-        if depth == 0 && token.kind == TokenKind::Word {
+        if depth == 0 && matches!(token.kind, TokenKind::Word | TokenKind::Number) {
             return Some(index);
         }
     }
@@ -108,7 +108,7 @@ fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Optio
         match &parts[part_index] {
             PhrasePart::Word(word) => {
                 let token = tokens.get(token_index)?;
-                if token.kind != TokenKind::Word || !token.is(word) {
+                if !matches!(token.kind, TokenKind::Word | TokenKind::Number) || !token.is(word) {
                     return None;
                 }
                 token_index += 1;

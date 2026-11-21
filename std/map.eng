@@ -5,284 +5,154 @@ Use alloc, core, and string.
 A public record IntMap of V has keys as a pointer to whole number, values as a pointer to V, states as a pointer to byte, a cap as an unsigned number, and a len as an unsigned number.
 A public record StrMap of V has keys as a pointer to pointer to TcString, values as a pointer to V, states as a pointer to byte, a cap as an unsigned number, and a len as an unsigned number.
 
-To int_hash given key as a whole number, returning an unsigned number.
-    Define local value as an unsigned number.
-    Set value to key as an unsigned number.
-    Set value to exclusive or of value and (shift value right by 33).
-    Set value to value * 11400714819323198485 as an unsigned number.
-    Give back value.
-Done.
+To int_hash given key as a whole number, named int_hash, returning an unsigned number.
+Let value be key as an unsigned number.
+Set value to exclusive or of value and (shift value right by 33).
+Set value to value * 11400714819323198485 as an unsigned number.
+Give back value.
 
-To str_hash given key as a pointer to TcString, returning an unsigned number.
-    Define local value as an unsigned number.
-    Set value to 1469598103934665603 as an unsigned number.
-    Define local index as an unsigned number.
-    While index < key.len:
-        Define local byte_value as an unsigned number.
-        Set byte_value to (item index of key.data) as an unsigned number.
-        Set value to (exclusive or of value and byte_value) * 1099511628211 as an unsigned number.
-        Add 1 to index.
-    Give back value.
-Done.
+To str_hash given key as a pointer to TcString, named str_hash, returning an unsigned number.
+Let value be 1469598103934665603 as an unsigned number.
+Let index be 0 as an unsigned number.
+While index is less than key's len.
+Let byte_value be (item index of key's data) as an unsigned number.
+Set value to (exclusive or of value and byte_value) * 1099511628211 as an unsigned number.
+Add 1 to index.
+End the loop.
+Give back value.
 
-To intmap_rehash for V given table as a pointer to IntMap of V, new_cap as an unsigned number, returning nothing.
-    Define local old_keys as a pointer to whole number.
-    Define local old_values as a pointer to V.
-    Define local old_states as a pointer to byte.
-    Define local old_cap as an unsigned number.
-    Set old_keys to table.keys.
-    Set old_values to table.values.
-    Set old_states to table.states.
-    Set old_cap to table.cap.
-    Set table.keys to heap_alloc(new_cap * 8) as a pointer to whole number.
-    Set table.values to heap_alloc(new_cap * (byte size of V)) as a pointer to V.
-    Set table.states to heap_alloc(new_cap) as a pointer to byte.
-    mem_zero(table.states, new_cap).
-    Set table.cap to new_cap.
-    Set table.len to 0 as an unsigned number.
-    Define local index as an unsigned number.
-    While index < old_cap:
-        If item index of old_states == 1:
-            Define local old_value as V.
-            Set old_value to item index of old_values.
-            intmap_put(table, item index of old_keys, old_value).
-        Add 1 to index.
-    If old_cap > 0:
-        heap_free(old_keys as a pointer to byte).
-        heap_free(old_values as a pointer to byte).
-        heap_free(old_states as a pointer to byte).
-Done.
+To intmap_prepare for V given table as a pointer to IntMap of V, returning nothing.
+If table's cap equals 0.
+Let cap be 256 as an unsigned number.
+Let keys be allocate cap times 8 bytes.
+Let values be allocate cap times (byte size of V) bytes.
+Let states be allocate cap bytes.
+clear cap bytes at states.
+Set table's keys to keys as a pointer to whole number.
+Set table's values to values as a pointer to V.
+Set table's states to states as a pointer to byte.
+Set table's cap to cap.
 
-Publicly, to intmap_new for V, returning IntMap of V.
-    Define local created as IntMap of V.
-    Give back created.
-Done.
+Publicly, to intmap_new for V, named intmap_new, returning IntMap of V.
+created is IntMap of V.
+Give back created.
 
-Publicly, to intmap_put for V given table as a pointer to IntMap of V, key as a whole number, val as V, returning nothing.
-    If table.cap == 0 or (table.len + 1) * 10 >= table.cap * 7:
-        Define local next_cap as an unsigned number.
-        If table.cap == 0:
-            Set next_cap to 16 as an unsigned number.
-        Else:
-            Set next_cap to table.cap * 2.
-        intmap_rehash(table, next_cap).
-    Define local index as an unsigned number.
-    Set index to int_hash(key) % table.cap.
-    Define local first_deleted as an unsigned number.
-    Set first_deleted to table.cap.
-    Loop:
-        If item index of table.states == 1 and item index of table.keys == key:
-            Set item index of table.values to val.
-            Give back.
-        If item index of table.states == 2 and first_deleted == table.cap:
-            Set first_deleted to index.
-        If item index of table.states == 0:
-            If first_deleted != table.cap:
-                Set index to first_deleted.
-            Set item index of table.states to 1.
-            Set item index of table.keys to key.
-            Set item index of table.values to val.
-            Add 1 to table.len.
-            Give back.
-        Set index to (index + 1) % table.cap.
-Done.
+Publicly, to intmap_put for V given table as a pointer to IntMap of V, key as a whole number, val as V, named intmap_put, returning nothing.
+intmap_prepare(table).
+Let hash_value be int_hash(key).
+Let index be hash_value modulo table's cap.
+Let probes be 0 as an unsigned number.
+Let found be false.
+While probes is less than table's cap.
+If item index of table's states equals 1 and item index of table's keys equals key, set item index of table's values to val, set found to true, break.
+Set index to (index plus 1) modulo table's cap.
+Add 1 to probes.
+End the loop.
+If found equals false.
+Let done be false.
+Let index2 be hash_value modulo table's cap.
+Let probes2 be 0 as an unsigned number.
+While done is false.
+If item index2 of table's states equals 0 or item index2 of table's states equals 2, set item index2 of table's states to 1, set item index2 of table's keys to key, set item index2 of table's values to val, add 1 to table's len, set done to true, otherwise set index2 to (index2 plus 1) modulo table's cap, add 1 to probes2.
+End the loop.
+End the condition.
 
-Publicly, to intmap_get for V given table as a pointer to IntMap of V, key as a whole number, returning Option of V.
-    Define local answer as Option of V.
-    If table.cap == 0:
-        Give back answer.
-    Define local index as an unsigned number.
-    Set index to int_hash(key) % table.cap.
-    Define local probes as an unsigned number.
-    While probes < table.cap:
-        If item index of table.states == 0:
-            Give back answer.
-        If item index of table.states == 1 and item index of table.keys == key:
-            Set answer.has_value to true.
-            Set answer.value to item index of table.values.
-            Give back answer.
-        Set index to (index + 1) % table.cap.
-        Add 1 to probes.
-    Give back answer.
-Done.
+Publicly, to intmap_get for V given table as a pointer to IntMap of V, key as a whole number, named intmap_get, returning Option of V.
+answer is Option of V.
+If table's cap equals 0, give back answer.
+Let hash_value be int_hash(key).
+Let index be hash_value modulo table's cap.
+Let probes be 0 as an unsigned number.
+While probes is less than table's cap.
+If item index of table's states equals 0, give back answer.
+If item index of table's states equals 1 and item index of table's keys equals key, set answer's has_value to true, set answer's value to item index of table's values, give back answer.
+Set index to (index plus 1) modulo table's cap.
+Add 1 to probes.
+End the loop.
+Give back answer.
 
-Publicly, to intmap_contains for V given table as a pointer to IntMap of V, key as a whole number, returning a truth value.
-    If table.cap == 0:
-        Give back false.
-    Define local index as an unsigned number.
-    Set index to int_hash(key) % table.cap.
-    Define local probes as an unsigned number.
-    While probes < table.cap:
-        If item index of table.states == 0:
-            Give back false.
-        If item index of table.states == 1 and item index of table.keys == key:
-            Give back true.
-        Set index to (index + 1) % table.cap.
-        Add 1 to probes.
-    Give back false.
-Done.
+Publicly, to intmap_contains for V given table as a pointer to IntMap of V, key as a whole number, named intmap_contains, returning a truth value.
+Let got be intmap_get(table, key).
+Give back got's has_value.
 
-Publicly, to intmap_remove for V given table as a pointer to IntMap of V, key as a whole number, returning a truth value.
-    If table.cap == 0:
-        Give back false.
-    Define local index as an unsigned number.
-    Set index to int_hash(key) % table.cap.
-    Define local probes as an unsigned number.
-    While probes < table.cap:
-        If item index of table.states == 0:
-            Give back false.
-        If item index of table.states == 1 and item index of table.keys == key:
-            Set item index of table.states to 2.
-            Set table.len to table.len - 1.
-            Give back true.
-        Set index to (index + 1) % table.cap.
-        Add 1 to probes.
-    Give back false.
-Done.
+Publicly, to intmap_remove for V given table as a pointer to IntMap of V, key as a whole number, named intmap_remove, returning a truth value.
+If table's cap equals 0, give back false.
+Let hash_value be int_hash(key).
+Let index be hash_value modulo table's cap.
+Let probes be 0 as an unsigned number.
+While probes is less than table's cap.
+If item index of table's states equals 0, give back false.
+If item index of table's states equals 1 and item index of table's keys equals key, set item index of table's states to 2, set table's len to table's len minus 1, give back true.
+Set index to (index plus 1) modulo table's cap.
+Add 1 to probes.
+End the loop.
+Give back false.
 
-Publicly, to intmap_len for V given table as a pointer to IntMap of V, returning an unsigned number.
-    Give back table.len.
-Done.
+Publicly, to intmap_len for V given table as a pointer to IntMap of V, named intmap_len, returning an unsigned number.
+Give back table's len.
 
-Publicly, to intmap_free for V given table as a pointer to IntMap of V, returning nothing.
-    If table.cap > 0:
-        heap_free(table.keys as a pointer to byte).
-        heap_free(table.values as a pointer to byte).
-        heap_free(table.states as a pointer to byte).
-    Set table.keys to 0 as an unsigned number as a pointer to whole number.
-    Set table.values to no address as a pointer to V.
-    Set table.states to no address as a pointer to byte.
-    Set table.cap to 0 as an unsigned number.
-    Set table.len to 0 as an unsigned number.
-Done.
+Publicly, to intmap_free for V given table as a pointer to IntMap of V, named intmap_free, returning nothing.
+If table's cap is more than 0, release memory at table's keys as a pointer to byte, release memory at table's values as a pointer to byte, release memory at table's states as a pointer to byte.
+Set table's keys to no address as a pointer to whole number.
+Set table's values to no address as a pointer to V.
+Set table's states to no address as a pointer to byte.
+Set table's cap to 0 as an unsigned number.
+Set table's len to 0 as an unsigned number.
 
-To strmap_rehash for V given table as a pointer to StrMap of V, new_cap as an unsigned number, returning nothing.
-    Define local old_keys as a pointer to pointer to TcString.
-    Define local old_values as a pointer to V.
-    Define local old_states as a pointer to byte.
-    Define local old_cap as an unsigned number.
-    Set old_keys to table.keys.
-    Set old_values to table.values.
-    Set old_states to table.states.
-    Set old_cap to table.cap.
-    Set table.keys to heap_alloc(new_cap * 8) as a pointer to pointer to TcString.
-    Set table.values to heap_alloc(new_cap * (byte size of V)) as a pointer to V.
-    Set table.states to heap_alloc(new_cap) as a pointer to byte.
-    mem_zero(table.states, new_cap).
-    Set table.cap to new_cap.
-    Set table.len to 0 as an unsigned number.
-    Define local index as an unsigned number.
-    While index < old_cap:
-        If item index of old_states == 1:
-            Define local old_value as V.
-            Set old_value to item index of old_values.
-            strmap_put(table, item index of old_keys, old_value).
-        Add 1 to index.
-    If old_cap > 0:
-        heap_free(old_keys as a pointer to byte).
-        heap_free(old_values as a pointer to byte).
-        heap_free(old_states as a pointer to byte).
-Done.
+To strmap_prepare for V given table as a pointer to StrMap of V, returning nothing.
+If table's cap equals 0.
+Let cap be 256 as an unsigned number.
+Let keys be allocate cap times 8 bytes.
+Let values be allocate cap times (byte size of V) bytes.
+Set table's keys to keys as a pointer to pointer to TcString.
+Set table's values to values as a pointer to V.
+Set table's cap to cap.
 
-Publicly, to strmap_new for V, returning StrMap of V.
-    Define local created as StrMap of V.
-    Give back created.
-Done.
+Publicly, to strmap_new for V, named strmap_new, returning StrMap of V.
+created is StrMap of V.
+Give back created.
 
-Publicly, to strmap_put for V given table as a pointer to StrMap of V, key as a pointer to TcString, val as V, returning nothing.
-    If table.cap == 0 or (table.len + 1) * 10 >= table.cap * 7:
-        Define local next_cap as an unsigned number.
-        If table.cap == 0:
-            Set next_cap to 16 as an unsigned number.
-        Else:
-            Set next_cap to table.cap * 2.
-        strmap_rehash(table, next_cap).
-    Define local index as an unsigned number.
-    Set index to str_hash(key) % table.cap.
-    Define local first_deleted as an unsigned number.
-    Set first_deleted to table.cap.
-    Loop:
-        If item index of table.states == 1 and str_eq(item index of table.keys, key):
-            Set item index of table.values to val.
-            Give back.
-        If item index of table.states == 2 and first_deleted == table.cap:
-            Set first_deleted to index.
-        If item index of table.states == 0:
-            If first_deleted != table.cap:
-                Set index to first_deleted.
-            Set item index of table.states to 1.
-            Set item index of table.keys to key.
-            Set item index of table.values to val.
-            Add 1 to table.len.
-            Give back.
-        Set index to (index + 1) % table.cap.
-Done.
+Publicly, to strmap_put for V given table as a pointer to StrMap of V, key as a pointer to TcString, val as V, named strmap_put, returning nothing.
+strmap_prepare(table).
+Let index be 0 as an unsigned number.
+While index is less than table's len.
+Let same be text item index of table's keys matches text key.
+If same, set item index of table's values to val, give back.
+Add 1 to index.
+End the loop.
+Set item table's len of table's keys to key.
+Set item table's len of table's values to val.
+Add 1 to table's len.
 
-Publicly, to strmap_get for V given table as a pointer to StrMap of V, key as a pointer to TcString, returning Option of V.
-    Define local answer as Option of V.
-    If table.cap == 0:
-        Give back answer.
-    Define local index as an unsigned number.
-    Set index to str_hash(key) % table.cap.
-    Define local probes as an unsigned number.
-    While probes < table.cap:
-        If item index of table.states == 0:
-            Give back answer.
-        If item index of table.states == 1 and str_eq(item index of table.keys, key):
-            Set answer.has_value to true.
-            Set answer.value to item index of table.values.
-            Give back answer.
-        Set index to (index + 1) % table.cap.
-        Add 1 to probes.
-    Give back answer.
-Done.
+Publicly, to strmap_get for V given table as a pointer to StrMap of V, key as a pointer to TcString, named strmap_get, returning Option of V.
+answer is Option of V.
+Let index be 0 as an unsigned number.
+While index is less than table's len.
+Let same be text item index of table's keys matches text key.
+If same, set answer's has_value to true, set answer's value to item index of table's values, give back answer.
+Add 1 to index.
+End the loop.
+Give back answer.
 
-Publicly, to strmap_contains for V given table as a pointer to StrMap of V, key as a pointer to TcString, returning a truth value.
-    If table.cap == 0:
-        Give back false.
-    Define local index as an unsigned number.
-    Set index to str_hash(key) % table.cap.
-    Define local probes as an unsigned number.
-    While probes < table.cap:
-        If item index of table.states == 0:
-            Give back false.
-        If item index of table.states == 1 and str_eq(item index of table.keys, key):
-            Give back true.
-        Set index to (index + 1) % table.cap.
-        Add 1 to probes.
-    Give back false.
-Done.
+Publicly, to strmap_contains for V given table as a pointer to StrMap of V, key as a pointer to TcString, named strmap_contains, returning a truth value.
+Let got be strmap_get(table, key).
+Give back got's has_value.
 
-Publicly, to strmap_remove for V given table as a pointer to StrMap of V, key as a pointer to TcString, returning a truth value.
-    If table.cap == 0:
-        Give back false.
-    Define local index as an unsigned number.
-    Set index to str_hash(key) % table.cap.
-    Define local probes as an unsigned number.
-    While probes < table.cap:
-        If item index of table.states == 0:
-            Give back false.
-        If item index of table.states == 1 and str_eq(item index of table.keys, key):
-            Set item index of table.states to 2.
-            Set table.len to table.len - 1.
-            Give back true.
-        Set index to (index + 1) % table.cap.
-        Add 1 to probes.
-    Give back false.
-Done.
+Publicly, to strmap_remove for V given table as a pointer to StrMap of V, key as a pointer to TcString, named strmap_remove, returning a truth value.
+Let index be 0 as an unsigned number.
+While index is less than table's len.
+Let same be text item index of table's keys matches text key.
+If same, set item index of table's keys to item (table's len minus 1) of table's keys, set item index of table's values to item (table's len minus 1) of table's values, set table's len to table's len minus 1, give back true.
+Add 1 to index.
+End the loop.
+Give back false.
 
-Publicly, to strmap_len for V given table as a pointer to StrMap of V, returning an unsigned number.
-    Give back table.len.
-Done.
+Publicly, to strmap_len for V given table as a pointer to StrMap of V, named strmap_len, returning an unsigned number.
+Give back table's len.
 
-Publicly, to strmap_free for V given table as a pointer to StrMap of V, returning nothing.
-    If table.cap > 0:
-        heap_free(table.keys as a pointer to byte).
-        heap_free(table.values as a pointer to byte).
-        heap_free(table.states as a pointer to byte).
-    Set table.keys to no address as a pointer to pointer to TcString.
-    Set table.values to no address as a pointer to V.
-    Set table.states to no address as a pointer to byte.
-    Set table.cap to 0 as an unsigned number.
-    Set table.len to 0 as an unsigned number.
-Done.
+Publicly, to strmap_free for V given table as a pointer to StrMap of V, named strmap_free, returning nothing.
+If table's cap is more than 0, release memory at table's keys as a pointer to byte, release memory at table's values as a pointer to byte.
+Set table's keys to no address as a pointer to pointer to TcString.
+Set table's values to no address as a pointer to V.
+Set table's cap to 0 as an unsigned number.
+Set table's len to 0 as an unsigned number.

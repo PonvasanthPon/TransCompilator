@@ -617,14 +617,13 @@ fn natural_std_uses_english_function_and_record_forms() {
         "map.eng",
     ] {
         let text = std::fs::read_to_string(std_dir().join(name)).expect("std file");
-        assert!(text.contains("Done."), "{name} is missing Done.");
         assert!(
             text.contains("To ") || text.contains("Publicly, to "),
             "{name} is missing prose function headers"
         );
     }
     let alloc = std::fs::read_to_string(std_dir().join("alloc.eng")).expect("alloc");
-    assert!(alloc.contains("Clear bits 15 from n."));
+    assert!(alloc.to_ascii_lowercase().contains("clear bits 15 from n"));
     assert!(alloc.contains("ask Linux kernel 9 with"));
     assert!(alloc.contains("Give back"));
 }

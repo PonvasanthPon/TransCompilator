@@ -8,121 +8,95 @@ Keep a shared alloc_head as a pointer to AllocHeader.
 Keep a shared alloc_bytes_in_use as an unsigned number.
 Keep a shared alloc_free_count as an unsigned number.
 
-To align16 given n as an unsigned number, returning an unsigned number.
-    Add 15 to n.
-    Clear bits 15 from n.
-    Give back n.
-Done.
+To find the smaller of unsigned numbers a and b, named smaller, returning an unsigned number.
+Call this as "smaller of <a> and <b>".
+Give back a if a is less than b, otherwise give back b.
 
-To align_page given n as an unsigned number, returning an unsigned number.
-    Add 4095 to n.
-    Clear bits 4095 from n.
-    Give back n.
-Done.
+To round an unsigned number n up to 16 bytes, named align16, returning an unsigned number.
+Call this as "round <n> up to 16 bytes".
+Add 15 to n, clear bits 15 from n, and give back n.
 
-To header_of given p as a pointer to byte, returning a pointer to AllocHeader.
-    Give back (p as an unsigned number - 32) as a pointer to AllocHeader.
-Done.
+To round an unsigned number n up to a page, named align_page, returning an unsigned number.
+Call this as "round <n> up to a page".
+Add 4095 to n, clear bits 4095 from n, and give back n.
 
-To payload_of given h as a pointer to AllocHeader, returning a pointer to byte.
-    Give back (h as an unsigned number + 32) as a pointer to byte.
-Done.
+To find the header of a pointer to byte p, named header_of, returning a pointer to AllocHeader.
+Call this as "header of <p>".
+Give back 32 bytes before p as a pointer to AllocHeader.
 
-To smaller given a as an unsigned number, b as an unsigned number, returning an unsigned number.
-    If a < b:
-        Give back a.
-    Give back b.
-Done.
+To find the payload of a pointer to AllocHeader block_node, named payload_of, returning a pointer to byte.
+Call this as "payload of <block_node>".
+Give back 32 bytes after block_node as a pointer to byte.
 
-Publicly, to heap_alloc given size as an unsigned number, returning a pointer to byte.
-    Define local need as an unsigned number.
-    Set need to align16(size).
-    If need < 16:
-        Set need to 16 as an unsigned number.
-    Define local block as a pointer to AllocHeader.
-    Set block to alloc_head.
-    While block as an unsigned number != 0:
-        If block.is_free == 1 and block.size >= need:
-            If block.size >= need + 64:
-                Define local rest as a pointer to AllocHeader.
-                Set rest to (block as an unsigned number + 32 + need) as a pointer to AllocHeader.
-                Set rest.size to block.size - need - 32.
-                Set rest.is_free to 1.
-                Set rest.next to block.next.
-                Set block.size to need.
-                Set block.next to rest.
-                Add need to alloc_bytes_in_use.
-            Else:
-                Add block.size to alloc_bytes_in_use.
-            Set block.is_free to 0.
-            Give back payload_of(block).
-        Set block to block.next.
-    Define local chunk as an unsigned number.
-    If need > 65504:
-        Set chunk to align_page(need + 32).
-    Else:
-        Set chunk to 65536 as an unsigned number.
-    Define local raw as a whole number.
-    Set raw to ask Linux kernel 9 with 0, chunk, 3, 34, -1, and 0.
-    If raw < 0:
-        panic("out of memory", 13).
-    Define local fresh as a pointer to AllocHeader.
-    Set fresh to raw as an unsigned number as a pointer to AllocHeader.
-    Set fresh.size to chunk - 32.
-    Set fresh.is_free to 0.
-    Set fresh.next to alloc_head.
-    Set alloc_head to fresh.
-    If fresh.size >= need + 64:
-        Define local rest as a pointer to AllocHeader.
-        Set rest to (fresh as an unsigned number + 32 + need) as a pointer to AllocHeader.
-        Set rest.size to fresh.size - need - 32.
-        Set rest.is_free to 1.
-        Set rest.next to fresh.next.
-        Set fresh.size to need.
-        Set fresh.next to rest.
-        Add need to alloc_bytes_in_use.
-    Else:
-        Add fresh.size to alloc_bytes_in_use.
-    Give back payload_of(fresh).
-Done.
+To check if a pointer to AllocHeader block_node is free, named is_free_block, returning a truth value.
+Call this as "<block_node> is free".
+Give back true if block_node's is_free equals 1, otherwise give back false.
 
-Publicly, to heap_free given p as a pointer to byte, returning nothing.
-    If p as an unsigned number == 0:
-        Give back.
-    Define local h as a pointer to AllocHeader.
-    Set h to header_of(p).
-    If h.is_free == 1:
-        Give back.
-    Set h.is_free to 1.
-    Set alloc_bytes_in_use to alloc_bytes_in_use - h.size.
-    Add 1 to alloc_free_count.
-    Define local following as a pointer to AllocHeader.
-    Set following to h.next.
-    If following as an unsigned number != 0 and following.is_free == 1 and (h as an unsigned number + 32 + h.size) == (following as an unsigned number):
-        Set h.size to h.size + 32 + following.size.
-        Set h.next to following.next.
-Done.
+To split leftover space from a pointer to AllocHeader block_node for an unsigned number need, named split_block, returning nothing.
+Call this as "split leftover space from <block_node> for <need>".
+Let rest be 32 plus need bytes after block_node as a pointer to AllocHeader.
+Set rest's size to block_node's size minus need minus 32.
+Set rest's is_free to 1.
+Set rest's next to block_node's next.
+Set block_node's size to need.
+Set block_node's next to rest.
+Add need to alloc_bytes_in_use.
 
-Publicly, to heap_realloc given p as a pointer to byte, old_size as an unsigned number, new_size as an unsigned number, returning a pointer to byte.
-    If p as an unsigned number == 0:
-        Give back heap_alloc(new_size).
-    Define local h as a pointer to AllocHeader.
-    Set h to header_of(p).
-    If new_size <= h.size:
-        Give back p.
-    Define local replacement as a pointer to byte.
-    Set replacement to heap_alloc(new_size).
-    Define local copy_len as an unsigned number.
-    Set copy_len to smaller(old_size, new_size).
-    Copy copy_len bytes from p to replacement.
-    heap_free(p).
-    Give back replacement.
-Done.
+To claim a pointer to AllocHeader block_node for an unsigned number need, named claim_block, returning nothing.
+Call this as "claim <block_node> for <need>".
+If block_node's size is at least need plus 64, split leftover space from block_node for need, otherwise add block_node's size to alloc_bytes_in_use.
+Set block_node's is_free to 0.
 
-Publicly, to heap_bytes_in_use returning an unsigned number.
-    Give back alloc_bytes_in_use.
-Done.
+To request a new memory page for an unsigned number need, named request_page, returning a pointer to AllocHeader.
+Call this as "request a new memory page for <need>".
+Let chunk be 65536 as an unsigned number.
+If need is more than 65504, let rounded be round need plus 32 up to a page, set chunk to rounded.
+Let raw be ask Linux kernel 9 with 0, chunk, 3, 34, -1, and 0.
+Stop with error "out of memory" if raw is less than 0.
+Let fresh be raw as an unsigned number as a pointer to AllocHeader.
+Set fresh's size to chunk minus 32.
+Set fresh's is_free to 0.
+Set fresh's next to alloc_head.
+Set alloc_head to fresh.
+If fresh's size is at least need plus 64, split leftover space from fresh for need, otherwise add fresh's size to alloc_bytes_in_use.
+Give back fresh.
 
-Publicly, to heap_free_count returning an unsigned number.
-    Give back alloc_free_count.
-Done.
+Publicly, to allocate memory of an unsigned number size bytes, named heap_alloc, returning a pointer to byte.
+Call this as "allocate <size> bytes".
+Let need be round size up to 16 bytes.
+If need is less than 16, make need 16 as an unsigned number.
+Let block be alloc_head.
+While block is not empty.
+If block's is_free equals 1 and block's size is at least need, claim block for need, give back payload of block, otherwise move block to block's next.
+End the loop.
+Let fresh be request a new memory page for need.
+Give back payload of fresh.
+
+Publicly, to free memory at a pointer to byte p, named heap_free, returning nothing.
+Call this as "free memory at <p>".
+Call this as "release memory at <p>".
+Give back if p is empty.
+Let h be header of p.
+Give back if h's is_free equals 1.
+Set h's is_free to 1.
+Set alloc_bytes_in_use to alloc_bytes_in_use minus h's size.
+Add 1 to alloc_free_count.
+Let following be h's next.
+If following is not empty and following's is_free equals 1 and (h as an unsigned number plus 32 plus h's size) equals (following as an unsigned number), set h's size to h's size plus 32 plus following's size, set h's next to following's next.
+
+Publicly, to resize memory at a pointer to byte p from an unsigned number old_size to an unsigned number new_size, named heap_realloc, returning a pointer to byte.
+Call this as "resize memory at <p> from <old_size> to <new_size>".
+Give back allocate new_size bytes if p is empty.
+Let h be header of p.
+Give back p if new_size is at most h's size.
+Let replacement be allocate new_size bytes.
+Let copy_len be smaller of old_size and new_size.
+Copy copy_len bytes from p to replacement.
+Release memory at p.
+Give back replacement.
+
+Publicly, to count bytes in use, named heap_bytes_in_use, returning an unsigned number.
+Give back alloc_bytes_in_use.
+
+Publicly, to count frees, named heap_free_count, returning an unsigned number.
+Give back alloc_free_count.

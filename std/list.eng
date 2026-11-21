@@ -4,98 +4,74 @@ Use alloc and core.
 
 A public record List of T has a data as a pointer to T, a len as an unsigned number, and a cap as an unsigned number.
 
-Publicly, to list_new for T, returning List of T.
-    Define local created as List of T.
-    Give back created.
-Done.
+Publicly, to create_list for T, named list_new, returning List of T.
+created is List of T.
+Give back created.
 
-Publicly, to list_push for T given items as a pointer to List of T, val as T, returning nothing.
-    Call this as "push <val> to <items>".
-    Call this as "append <val> to <items>".
-    If items.len == items.cap:
-        Define local new_cap as an unsigned number.
-        If items.cap == 0:
-            Set new_cap to 8 as an unsigned number.
-        Else:
-            Set new_cap to items.cap * 2.
-        Define local old_bytes as an unsigned number.
-        Define local new_bytes as an unsigned number.
-        Set old_bytes to items.cap * (byte size of T).
-        Set new_bytes to new_cap * (byte size of T).
-        Set items.data to heap_realloc(items.data as a pointer to byte, old_bytes, new_bytes) as a pointer to T.
-        Set items.cap to new_cap.
-    Set item items.len of items.data to val.
-    Add 1 to items.len.
-Done.
+Publicly, to push for T given items as a pointer to List of T, val as T, named list_push, returning nothing.
+Call this as "push <val> to <items>".
+Call this as "append <val> to <items>".
+If items's len equals items's cap.
+Let new_cap be items's cap times 2.
+If items's cap equals 0, make new_cap 8 as an unsigned number.
+If new_cap is less than 16, make new_cap 16 as an unsigned number.
+Let old_bytes be items's cap times (byte size of T).
+Let new_bytes be new_cap times (byte size of T).
+Let resized be resize memory at items's data as a pointer to byte from old_bytes to new_bytes.
+Set items's data to resized as a pointer to T.
+Set items's cap to new_cap.
+End the condition.
+Set item items's len of items's data to val.
+Add 1 to items's len.
 
-Publicly, to list_pop for T given items as a pointer to List of T, returning T.
-    Call this as "pop from <items>".
-    If items.len == 0:
-        panic("pop from empty list", 19).
-    Set items.len to items.len - 1.
-    Give back item items.len of items.data.
-Done.
+Publicly, to pop for T given items as a pointer to List of T, named list_pop, returning T.
+Call this as "pop from <items>".
+If items's len equals 0, stop with error "pop from empty list".
+Set items's len to items's len minus 1.
+Give back item items's len of items's data.
 
-Publicly, to list_get for T given items as a pointer to List of T, index as an unsigned number, returning T.
-    If index >= items.len:
-        panic("list index out of bounds", 24).
-    Give back item index of items.data.
-Done.
+Publicly, to get_item for T given items as a pointer to List of T, index as an unsigned number, named list_get, returning T.
+If index is at least items's len, stop with error "list index out of bounds".
+Give back item index of items's data.
 
-Publicly, to list_set for T given items as a pointer to List of T, index as an unsigned number, val as T, returning nothing.
-    If index >= items.len:
-        panic("list index out of bounds", 24).
-    Set item index of items.data to val.
-Done.
+Publicly, to set_item for T given items as a pointer to List of T, index as an unsigned number, val as T, named list_set, returning nothing.
+If index is at least items's len, stop with error "list index out of bounds".
+Set item index of items's data to val.
 
-Publicly, to list_len for T given items as a pointer to List of T, returning an unsigned number.
-    Call this as "count of <items>".
-    Give back items.len.
-Done.
+Publicly, to count_list for T given items as a pointer to List of T, named list_len, returning an unsigned number.
+Call this as "count of <items>".
+Give back items's len.
 
-Publicly, to list_first for T given items as a pointer to List of T, returning T.
-    Call this as "first item of <items>".
-    If items.len == 0:
-        panic("first item of empty list", 24).
-    Give back item 0 of items.data.
-Done.
+Publicly, to first_item for T given items as a pointer to List of T, named list_first, returning T.
+Call this as "first item of <items>".
+If items's len equals 0, stop with error "first item of empty list".
+Give back item 0 of items's data.
 
-Publicly, to list_last for T given items as a pointer to List of T, returning T.
-    Call this as "last item of <items>".
-    If items.len == 0:
-        panic("last item of empty list", 23).
-    Give back item (items.len - 1) of items.data.
-Done.
+Publicly, to last_item for T given items as a pointer to List of T, named list_last, returning T.
+Call this as "last item of <items>".
+If items's len equals 0, stop with error "last item of empty list".
+Give back item (items's len minus 1) of items's data.
 
-Publicly, to list_clear for T given items as a pointer to List of T, returning nothing.
-    Set items.len to 0 as an unsigned number.
-Done.
+Publicly, to clear_list for T given items as a pointer to List of T, named list_clear, returning nothing.
+Call this as "clear <items>".
+Set items's len to 0 as an unsigned number.
 
-Publicly, to list_free for T given items as a pointer to List of T, returning nothing.
-    If items.data as an unsigned number != 0:
-        heap_free(items.data as a pointer to byte).
-    Set items.data to no address.
-    Set items.len to 0 as an unsigned number.
-    Set items.cap to 0 as an unsigned number.
-Done.
+Publicly, to free_list for T given items as a pointer to List of T, named list_free, returning nothing.
+Call this as "free <items>".
+If items's data is not empty, release memory at items's data as a pointer to byte.
+Set items's data to no address as a pointer to T.
+Set items's len to 0 as an unsigned number.
+Set items's cap to 0 as an unsigned number.
 
-Publicly, to list_sort for T given items as a pointer to List of T, compare as a function taking pointer to T and pointer to T returning whole number, returning nothing.
-    Define local outer as an unsigned number.
-    While outer < items.len:
-        Define local inner as an unsigned number.
-        Set inner to outer.
-        While inner > 0:
-            Define local left as a pointer to T.
-            Define local right as a pointer to T.
-            Set left to address of item (inner - 1) of items.data.
-            Set right to address of item inner of items.data.
-            If compare(right, left) < 0:
-                Define local temporary as T.
-                Set temporary to item inner of items.data.
-                Set item inner of items.data to item (inner - 1) of items.data.
-                Set item (inner - 1) of items.data to temporary.
-                Set inner to inner - 1.
-            Else:
-                break.
-        Add 1 to outer.
-Done.
+Publicly, to sort_list for T given items as a pointer to List of T, compare as a function taking pointer to T and pointer to T returning whole number, named list_sort, returning nothing.
+Call this as "sort <items> using <compare>".
+Let outer be 0 as an unsigned number.
+While outer is less than items's len.
+Let inner be outer.
+While inner is more than 0.
+Let left be address of item (inner minus 1) of items's data.
+Let right be address of item inner of items's data.
+If apply compare to right with left is less than 0, let temporary be item inner of items's data, set item inner of items's data to item (inner minus 1) of items's data, set item (inner minus 1) of items's data to temporary, set inner to inner minus 1, otherwise break.
+End the loop.
+Add 1 to outer.
+End the loop.

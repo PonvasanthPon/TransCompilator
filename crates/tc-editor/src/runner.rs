@@ -170,11 +170,11 @@ pub const PRESETS: [Preset; 8] = [
         name: "04_phrase_syscall_hello.eng",
         description: "Declarative Phrase wrapping a raw Linux write syscall",
         source: concat!(
-            "Public function write_stdout taking buf as ptr<u8> and len as u64 returning i64:\n",
-            "    Phrase: \"emit <buf> with length <len>\"\n",
-            "    Return syscall(1, 1, buf, len).\n\n",
+            "To emit_text given buf as a pointer to byte, len as an unsigned number, named write_stdout, returning a whole number.\n",
+            "Call this as \"emit <buf> with length <len>\".\n",
+            "Give back ask Linux kernel 1 with 1, buf, and len.\n\n",
             "Emit bytes_ptr(\"Hello from R1 Editor (.eng -> zero-libc ELF64)!\\n\") with length bytes_len(\"Hello from R1 Editor (.eng -> zero-libc ELF64)!\\n\").\n",
-            "Return 0.\n",
+            "Give back 0.\n",
         ),
     },
     Preset {

@@ -669,7 +669,11 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
     let core = core.as_str();
     {
         let tokens = tokenize(core);
-        if tokens.first().is_some_and(|token| token.is("let"))
+        let declaration_after = tokens
+            .get(2)
+            .is_some_and(|token| token.is("be") || token.is("is") || token.text == "=");
+        if !declaration_after
+            && tokens.first().is_some_and(|token| token.is("let"))
             && tokens.get(1).is_some_and(|token| {
                 token.is("'s")
                     || token.is("s")

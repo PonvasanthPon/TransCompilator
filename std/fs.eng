@@ -4,169 +4,137 @@ Use alloc, core, io, and string.
 
 A public record File has an fd as a whole number.
 
-To open_file given path as a pointer to TcString, flags as a whole number, returning Result of File and whole number.
-    Define local descriptor as a whole number.
-    Set descriptor to ask Linux kernel 257 with -100, path.data, flags, and 420.
-    Define local answer as Result of File and whole number.
-    If descriptor < 0:
-        Set answer.is_ok to false.
-        Set answer.err_val to descriptor.
-        Give back answer.
-    Define local handle as File.
-    Set handle.fd to descriptor.
-    Set answer.is_ok to true.
-    Set answer.ok_val to handle.
-    Give back answer.
-Done.
+To open_file given path as a pointer to TcString, flags as a whole number, named open_file, returning Result of File and whole number.
+Call this as "open <path> with flags <flags>".
+Let descriptor be ask Linux kernel 257 with -100, path's data, flags, and 420.
+answer is Result of File and whole number.
+If descriptor is less than 0, set answer's is_ok to false, set answer's err_val to descriptor, give back answer.
+handle is File.
+Set handle's fd to descriptor.
+Set answer's is_ok to true.
+Set answer's ok_val to handle.
+Give back answer.
 
-Publicly, to file_open_read given path as a pointer to TcString, returning Result of File and whole number.
-    Give back open_file(path, 0).
-Done.
+Publicly, to open a file for reading given path as a pointer to TcString, named file_open_read, returning Result of File and whole number.
+Call this as "open <path> for reading".
+Give back open path with flags 0.
 
-Publicly, to file_open_write given path as a pointer to TcString, returning Result of File and whole number.
-    Give back open_file(path, 578).
-Done.
+Publicly, to open a file for writing given path as a pointer to TcString, named file_open_write, returning Result of File and whole number.
+Call this as "open <path> for writing".
+Give back open path with flags 578.
 
-Publicly, to file_open_append given path as a pointer to TcString, returning Result of File and whole number.
-    Give back open_file(path, 1090).
-Done.
+Publicly, to open a file for appending given path as a pointer to TcString, named file_open_append, returning Result of File and whole number.
+Call this as "open <path> for appending".
+Give back open path with flags 1090.
 
-Publicly, to file_read_bytes given f as a pointer to File, buf as a pointer to byte, max_len as an unsigned number, returning a whole number.
-    Give back ask Linux kernel 0 with f.fd, buf, and max_len.
-Done.
+Publicly, to read bytes from a file given f as a pointer to File, buf as a pointer to byte, max_len as an unsigned number, named file_read_bytes, returning a whole number.
+Call this as "read from <f> into <buf> up to <max_len> bytes".
+Give back ask Linux kernel 0 with f's fd, buf, and max_len.
 
-Publicly, to file_write_bytes given f as a pointer to File, buf as a pointer to byte, len as an unsigned number, returning a whole number.
-    Give back ask Linux kernel 1 with f.fd, buf, and len.
-Done.
+Publicly, to write bytes to a file given f as a pointer to File, buf as a pointer to byte, len as an unsigned number, named file_write_bytes, returning a whole number.
+Call this as "write to <f> bytes <buf> of length <len>".
+Give back ask Linux kernel 1 with f's fd, buf, and len.
 
-Publicly, to file_seek given f as a pointer to File, offset as a whole number, whence as a whole number, returning a whole number.
-    Give back ask Linux kernel 8 with f.fd, offset, and whence.
-Done.
+Publicly, to seek a file given f as a pointer to File, offset as a whole number, whence as a whole number, named file_seek, returning a whole number.
+Call this as "seek <f> to <offset> from <whence>".
+Give back ask Linux kernel 8 with f's fd, offset, and whence.
 
-Publicly, to file_close given f as a pointer to File, returning a whole number.
-    Define local result as a whole number.
-    Set result to ask Linux kernel 3 with f.fd.
-    Set f.fd to -1.
-    Give back result.
-Done.
+Publicly, to close a file given f as a pointer to File, named file_close, returning a whole number.
+Call this as "close <f>".
+Let result be ask Linux kernel 3 with f's fd.
+Set f's fd to -1.
+Give back result.
 
-Publicly, to write_str_to_file given s as a pointer to TcString, path as a pointer to TcString, returning a whole number.
-    Call this as "save <s> to file <path>".
-    Define local opened as Result of File and whole number.
-    Set opened to file_open_write(path).
-    If not opened.is_ok:
-        Give back opened.err_val.
-    Define local handle as File.
-    Set handle to opened.ok_val.
-    Define local written as a whole number.
-    Set written to file_write_bytes(address of handle, s.data, s.len).
-    file_close(address of handle).
-    Give back written.
-Done.
+Publicly, to save text to a file given s as a pointer to TcString, path as a pointer to TcString, named write_str_to_file, returning a whole number.
+Call this as "save <s> to file <path>".
+Let opened be open path for writing.
+If opened's is_ok equals false, give back opened's err_val.
+handle is File.
+Set handle to opened's ok_val.
+Let written be write to address of handle bytes s's data of length s's len.
+Let descriptor be handle's fd.
+Ask Linux kernel 3 with descriptor.
+Set handle's fd to -1.
+Give back written.
 
-Publicly, to write_i64_to_file given n as a whole number, path as a pointer to TcString, returning a whole number.
-    Call this as "save <n> to file <path>".
-    Define local buffer as block of 32 byte.
-    Define local len as an unsigned number.
-    Set len to format_i64_into(n, address of item 0 of buffer).
-    Define local opened as Result of File and whole number.
-    Set opened to file_open_write(path).
-    If not opened.is_ok:
-        Give back opened.err_val.
-    Define local handle as File.
-    Set handle to opened.ok_val.
-    Define local written as a whole number.
-    Set written to file_write_bytes(address of handle, address of item 0 of buffer, len).
-    file_close(address of handle).
-    Give back written.
-Done.
+Publicly, to save a whole number to a file given n as a whole number, path as a pointer to TcString, named write_i64_to_file, returning a whole number.
+Call this as "save <n> to file <path>".
+Let buffer be block of 32 byte.
+Let len be format whole n into address of item 0 of buffer.
+Let opened be open path for writing.
+If opened's is_ok equals false, give back opened's err_val.
+handle is File.
+Set handle to opened's ok_val.
+Let written be write to address of handle bytes address of item 0 of buffer of length len.
+Let descriptor be handle's fd.
+Ask Linux kernel 3 with descriptor.
+Set handle's fd to -1.
+Give back written.
 
-Publicly, to write_f64_to_file given x as a decimal, path as a pointer to TcString, returning a whole number.
-    Call this as "save <x> to file <path>".
-    Define local buffer as block of 64 byte.
-    Define local len as an unsigned number.
-    Set len to format_f64_into(x, address of item 0 of buffer).
-    Define local opened as Result of File and whole number.
-    Set opened to file_open_write(path).
-    If not opened.is_ok:
-        Give back opened.err_val.
-    Define local handle as File.
-    Set handle to opened.ok_val.
-    Define local written as a whole number.
-    Set written to file_write_bytes(address of handle, address of item 0 of buffer, len).
-    file_close(address of handle).
-    Give back written.
-Done.
+Publicly, to save a decimal to a file given x as a decimal, path as a pointer to TcString, named write_f64_to_file, returning a whole number.
+Call this as "save <x> to file <path>".
+Let buffer be block of 64 byte.
+Let len be format decimal x into address of item 0 of buffer.
+Let opened be open path for writing.
+If opened's is_ok equals false, give back opened's err_val.
+handle is File.
+Set handle to opened's ok_val.
+Let written be write to address of handle bytes address of item 0 of buffer of length len.
+Let descriptor be handle's fd.
+Ask Linux kernel 3 with descriptor.
+Set handle's fd to -1.
+Give back written.
 
-Publicly, to read_file_to_str given path as a pointer to TcString, returning Result of TcString and whole number.
-    Define local answer as Result of TcString and whole number.
-    Define local opened as Result of File and whole number.
-    Set opened to file_open_read(path).
-    If not opened.is_ok:
-        Set answer.is_ok to false.
-        Set answer.err_val to opened.err_val.
-        Give back answer.
-    Define local handle as File.
-    Set handle to opened.ok_val.
-    Define local size as a whole number.
-    Set size to file_seek(address of handle, 0, 2).
-    If size < 0:
-        file_close(address of handle).
-        Set answer.is_ok to false.
-        Set answer.err_val to -5.
-        Give back answer.
-    file_seek(address of handle, 0, 0).
-    Define local text as TcString.
-    Set text.len to size as an unsigned number.
-    Set text.cap to text.len + 1.
-    Set text.data to heap_alloc(text.cap).
-    Define local read_count as a whole number.
-    Set read_count to file_read_bytes(address of handle, text.data, text.len).
-    If read_count < 0:
-        file_close(address of handle).
-        heap_free(text.data).
-        Set answer.is_ok to false.
-        Set answer.err_val to -5.
-        Give back answer.
-    Set text.len to read_count as an unsigned number.
-    Set item text.len of text.data to 0.
-    file_close(address of handle).
-    Set answer.is_ok to true.
-    Set answer.ok_val to text.
-    Give back answer.
-Done.
+Publicly, to read text from a file given path as a pointer to TcString, named read_file_to_str, returning Result of TcString and whole number.
+Call this as "read text from file <path>".
+answer is Result of TcString and whole number.
+Let opened be open path for reading.
+If opened's is_ok equals false, set answer's is_ok to false, set answer's err_val to opened's err_val, give back answer.
+handle is File.
+Set handle to opened's ok_val.
+Let size be seek address of handle to 0 from 2.
+If size is less than 0, let descriptor be handle's fd, ask Linux kernel 3 with descriptor, set answer's is_ok to false, set answer's err_val to -5, give back answer.
+seek address of handle to 0 from 0.
+text is TcString.
+Set text's len to size as an unsigned number.
+Set text's cap to text's len plus 1.
+Let allocated be allocate text's cap bytes.
+Set text's data to allocated.
+Let read_count be read from address of handle into text's data up to text's len bytes.
+If read_count is less than 0, let descriptor be handle's fd, ask Linux kernel 3 with descriptor, release memory at text's data, set answer's is_ok to false, set answer's err_val to -5, give back answer.
+Set text's len to read_count as an unsigned number.
+Set item text's len of text's data to 0.
+Let descriptor be handle's fd.
+Ask Linux kernel 3 with descriptor.
+Set handle's fd to -1.
+Set answer's is_ok to true.
+Set answer's ok_val to text.
+Give back answer.
 
-Publicly, to display_file given path as a pointer to TcString, returning a whole number.
-    Call this as "display file <path>".
-    Define local opened as Result of TcString and whole number.
-    Set opened to read_file_to_str(path).
-    If not opened.is_ok:
-        Give back opened.err_val.
-    Define local text as TcString.
-    Set text to opened.ok_val.
-    If text.len > 0:
-        Ask Linux kernel 1 with 1, text.data, and text.len.
-    Ask Linux kernel 1 with 1, "\n", and 1.
-    Define local length as a whole number.
-    Set length to text.len as a whole number.
-    str_free(address of text).
-    Give back length.
-Done.
+Publicly, to display a file given path as a pointer to TcString, named display_file, returning a whole number.
+Call this as "display file <path>".
+Let opened be read text from file path.
+If opened's is_ok equals false, give back opened's err_val.
+text is TcString.
+Set text to opened's ok_val.
+If text's len is more than 0, ask Linux kernel 1 with 1, text's data, and text's len.
+Ask Linux kernel 1 with 1, "\n", and 1.
+Let length be text's len as a whole number.
+free text address of text.
+Give back length.
 
-Publicly, to file_exists given path as a pointer to TcString, returning a truth value.
-    Call this as "file exists <path>".
-    Define local opened as Result of File and whole number.
-    Set opened to file_open_read(path).
-    If not opened.is_ok:
-        Give back false.
-    Define local handle as File.
-    Set handle to opened.ok_val.
-    file_close(address of handle).
-    Give back true.
-Done.
+Publicly, to check whether a file exists given path as a pointer to TcString, named file_exists, returning a truth value.
+Call this as "file exists <path>".
+Let opened be open path for reading.
+If opened's is_ok equals false, give back false.
+handle is File.
+Set handle to opened's ok_val.
+Let descriptor be handle's fd.
+Ask Linux kernel 3 with descriptor.
+Set handle's fd to -1.
+Give back true.
 
-Publicly, to delete_file given path as a pointer to TcString, returning a whole number.
-    Call this as "delete file <path>".
-    Call this as "remove file <path>".
-    Give back ask Linux kernel 263 with -100, path.data, and 0.
-Done.
+Publicly, to delete a file given path as a pointer to TcString, named delete_file, returning a whole number.
+Call this as "delete file <path>".
+Call this as "remove file <path>".
+Give back ask Linux kernel 263 with -100, path's data, and 0.

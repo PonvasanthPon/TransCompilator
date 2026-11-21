@@ -534,9 +534,9 @@ fn phrase_arguments_reorder_to_parameter_names() {
         &[(
             "main.tc",
             concat!(
-                "Define function join taking left as i64 and right as i64 returning i64:\n",
-                "    Phrase: \"join <right> and <left>\"\n",
-                "    Return left * 10 + right.\n",
+                "To join given left as i64, right as i64, named join, returning i64.\n",
+                "Call this as \"join <right> and <left>\".\n",
+                "Give back left * 10 + right.\n\n",
                 "Return join 2 and 1.\n",
             ),
         )],
@@ -587,9 +587,9 @@ fn phrase_result_assignment_with_is_lowers_as_call() {
         &[(
             "main.tc",
             concat!(
-                "Define function twice taking x as i64 returning i64:\n",
-                "    Phrase: \"double value <x>\"\n",
-                "    Return x * 2.\n",
+                "To twice given x as i64, named twice, returning i64.\n",
+                "Call this as \"double value <x>\".\n",
+                "Give back x * 2.\n\n",
                 "result is double value 21.\n",
                 "Return result.\n",
             ),
