@@ -26,6 +26,7 @@ pub(crate) enum TExprKind {
     ConstNull,
     BytesLit(Vec<u8>),
     BytesLen(Vec<u8>),
+    Zero(ConcreteType),
     Var(String),
     GlobalAddr {
         module: usize,
@@ -689,20 +690,24 @@ impl Checker<'_, '_> {
                 kind: TExprKind::ConstBool(*value),
             },
             AstExpr::ConstNull(annotation) => {
-                let ty = resolve_type_in(
+                let annotated = resolve_type_in(
                     self.resolved,
                     self.module,
                     &self.type_params,
                     annotation,
                     span,
                 )?;
-                if !matches!(ty, ConcreteType::Ptr(_)) {
+                if !matches!(annotated, ConcreteType::Ptr(_)) {
                     return Err(TypeError::new(
                         span.clone(),
                         TypeErrorKind::TypeMismatch,
                         "ConstNull requires a pointer type".to_string(),
                     ));
                 }
+                let ty = match expected {
+                    Some(expected @ ConcreteType::Ptr(_)) => expected.clone(),
+                    _ => annotated,
+                };
                 TExpr {
                     ty,
                     kind: TExprKind::ConstNull,
@@ -716,6 +721,19 @@ impl Checker<'_, '_> {
                 ty: ConcreteType::U64,
                 kind: TExprKind::BytesLen(bytes.clone()),
             },
+            AstExpr::Zero(annotation) => {
+                let ty = resolve_type_in(
+                    self.resolved,
+                    self.module,
+                    &self.type_params,
+                    annotation,
+                    span,
+                )?;
+                TExpr {
+                    ty: ty.clone(),
+                    kind: TExprKind::Zero(ty),
+                }
+            }
             AstExpr::Var(name) => {
                 let ty = self.lookup_var(name).cloned().ok_or_else(|| {
                     TypeError::new(

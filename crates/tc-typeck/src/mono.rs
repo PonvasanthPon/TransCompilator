@@ -690,6 +690,7 @@ fn substitute_expr(expr: &TExpr, map: &HashMap<String, ConcreteType>) -> TExpr {
         TExprKind::ConstNull => TExprKind::ConstNull,
         TExprKind::BytesLit(bytes) => TExprKind::BytesLit(bytes.clone()),
         TExprKind::BytesLen(bytes) => TExprKind::BytesLen(bytes.clone()),
+        TExprKind::Zero(type_) => TExprKind::Zero(type_.substitute(map)),
         TExprKind::Var(name) => TExprKind::Var(name.clone()),
         TExprKind::GlobalAddr { module, index } => TExprKind::GlobalAddr {
             module: *module,

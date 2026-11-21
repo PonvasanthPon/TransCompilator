@@ -28,7 +28,65 @@ impl ExprEnv {
     }
 
     fn is_global(&self, name: &str) -> bool {
-        self.globals.contains_key(name)
+        !self.locals.contains_key(name) && self.globals.contains_key(name)
+    }
+
+    fn expr_type(&self, expr: &AstExpr) -> Option<AstType> {
+        match expr {
+            AstExpr::ConstInt(_, Some(ty)) => Some(ty.clone()),
+            AstExpr::ConstInt(..) => Some(AstType::I64),
+            AstExpr::ConstUint(_, Some(ty)) => Some(ty.clone()),
+            AstExpr::ConstUint(..) => Some(AstType::U64),
+            AstExpr::ConstFloat(_, Some(ty)) => Some(ty.clone()),
+            AstExpr::ConstFloat(..) => Some(AstType::F64),
+            AstExpr::ConstBool(_) => Some(AstType::Bool),
+            AstExpr::ConstNull(ty) => Some(ty.clone()),
+            AstExpr::BytesLit(_) => Some(AstType::ptr(AstType::U8)),
+            AstExpr::BytesLen(_) => Some(AstType::U64),
+            AstExpr::Var(name) => self.type_of(name).cloned(),
+            AstExpr::GlobalAddr { name, .. } => self.type_of(name).cloned().map(AstType::ptr),
+            AstExpr::AddrOfVar(name) => self.type_of(name).cloned().map(AstType::ptr),
+            AstExpr::Load(pointer) => self.expr_type(pointer).and_then(|ty| match ty {
+                AstType::Ptr(inner) => Some(*inner),
+                _ => None,
+            }),
+            AstExpr::IndexAddr { base_ptr, .. } => {
+                let base = self.expr_type(base_ptr)?;
+                let pointee = match base {
+                    AstType::Ptr(inner) => *inner,
+                    _ => return None,
+                };
+                let element = match pointee {
+                    AstType::Array(inner, _) => *inner,
+                    other => other,
+                };
+                Some(AstType::ptr(element))
+            }
+            AstExpr::Cast { to, .. } => Some(to.clone()),
+            AstExpr::SizeOf(_) | AstExpr::AlignOf(_) => Some(AstType::U64),
+            AstExpr::Unary { op, val } => match op {
+                tc_ir::UnOp::LogNot => Some(AstType::Bool),
+                _ => self.expr_type(val),
+            },
+            AstExpr::Binary { op, lhs, .. } => {
+                if matches!(
+                    op,
+                    tc_ir::BinOp::Eq
+                        | tc_ir::BinOp::Ne
+                        | tc_ir::BinOp::Lt
+                        | tc_ir::BinOp::Le
+                        | tc_ir::BinOp::Gt
+                        | tc_ir::BinOp::Ge
+                        | tc_ir::BinOp::LogAnd
+                        | tc_ir::BinOp::LogOr
+                ) {
+                    Some(AstType::Bool)
+                } else {
+                    self.expr_type(lhs)
+                }
+            }
+            _ => None,
+        }
     }
 }
 
@@ -323,8 +381,16 @@ impl<'a> Parser<'a> {
                 val: Box::new(self.parse_unary()?),
             });
         }
-        if self.eat_word("size") || self.eat_word("align") {
-            let alignment = self.tokens[self.position - 1].is("align");
+        if self
+            .peek()
+            .is_some_and(|token| token.is("size") || token.is("align"))
+            && self
+                .tokens
+                .get(self.position + 1)
+                .is_some_and(|token| token.is("of"))
+        {
+            let alignment = self.tokens[self.position].is("align");
+            self.position += 1;
             self.expect_word("of")?;
             let ty = self.parse_type()?;
             return Ok(if alignment {
@@ -337,15 +403,23 @@ impl<'a> Parser<'a> {
             let value = self.parse_unary()?;
             return Ok(binary(BinOp::Mul, value, AstExpr::ConstInt(2, None)));
         }
-        if self.eat_word("half") {
+        if self
+            .peek()
+            .is_some_and(|token| token.is("half") || token.is("square"))
+            && self
+                .tokens
+                .get(self.position + 1)
+                .is_some_and(|token| token.is("of"))
+        {
+            let square = self.tokens[self.position].is("square");
+            self.position += 1;
             self.expect_word("of")?;
             let value = self.parse_unary()?;
-            return Ok(binary(BinOp::Div, value, AstExpr::ConstInt(2, None)));
-        }
-        if self.eat_word("square") {
-            self.expect_word("of")?;
-            let value = self.parse_unary()?;
-            return Ok(binary(BinOp::Mul, value.clone(), value));
+            return Ok(if square {
+                binary(BinOp::Mul, value.clone(), value)
+            } else {
+                binary(BinOp::Div, value, AstExpr::ConstInt(2, None))
+            });
         }
         let (value, _) = self.parse_postfix()?;
         Ok(value)
@@ -393,7 +467,7 @@ impl<'a> Parser<'a> {
                         continue;
                     }
                 }
-                let base = storage_address(&value, self.env)
+                let base = deref_address(&value, self.env)
                     .ok_or_else(|| "field access requires an addressable base".to_string())?;
                 let address = AstExpr::FieldAddr {
                     base_ptr: Box::new(base),
@@ -406,7 +480,7 @@ impl<'a> Parser<'a> {
             if self.eat_symbol("[") {
                 let index = self.parse_expression()?;
                 self.expect_symbol("]")?;
-                let base = storage_address(&value, self.env)
+                let base = deref_address(&value, self.env)
                     .ok_or_else(|| "indexing requires an addressable base".to_string())?;
                 let address = AstExpr::IndexAddr {
                     base_ptr: Box::new(base),
@@ -544,7 +618,7 @@ impl<'a> Parser<'a> {
                 {
                     self.expect_word("of")?;
                     let base = self.parse_unary()?;
-                    let base_ptr = storage_address(&base, self.env)
+                    let base_ptr = deref_address(&base, self.env)
                         .ok_or_else(|| "field access requires an addressable base".to_string())?;
                     let address = AstExpr::FieldAddr {
                         base_ptr: Box::new(base_ptr),
@@ -736,6 +810,18 @@ impl<'a> Parser<'a> {
                 Ok(AstType::array(inner, count))
             }
             name => {
+                let mut module = None;
+                let mut type_name = name.to_string();
+                if self.eat_symbol(".") {
+                    let next = self
+                        .peek()
+                        .filter(|token| token.is_word())
+                        .map(|token| token.lower.clone())
+                        .ok_or_else(|| "expected type name after module qualifier".to_string())?;
+                    self.position += 1;
+                    module = Some(name.to_string());
+                    type_name = next;
+                }
                 let mut type_args = Vec::new();
                 if self.eat_symbol("<") {
                     loop {
@@ -747,8 +833,8 @@ impl<'a> Parser<'a> {
                     }
                 }
                 Ok(AstType::Named {
-                    module: None,
-                    name: name.to_string(),
+                    module,
+                    name: type_name,
                     type_args,
                 })
             }
@@ -764,7 +850,7 @@ fn binary(op: BinOp, lhs: AstExpr, rhs: AstExpr) -> AstExpr {
     }
 }
 
-fn storage_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
+fn place_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
     match value {
         AstExpr::Var(name) => {
             if env.is_global(name) {
@@ -772,22 +858,21 @@ fn storage_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
                     module: None,
                     name: name.clone(),
                 })
-            } else if matches!(env.type_of(name), Some(AstType::Ptr(_))) {
-                Some(AstExpr::Var(name.clone()))
             } else {
                 Some(AstExpr::AddrOfVar(name.clone()))
             }
         }
-        AstExpr::Load(inner) => {
-            if let AstExpr::GlobalAddr { name, .. } = inner.as_ref() {
-                if matches!(env.type_of(name), Some(AstType::Ptr(_))) {
-                    return Some(value.clone());
-                }
-            }
-            Some((**inner).clone())
-        }
+        AstExpr::Load(inner) => Some((**inner).clone()),
         AstExpr::FieldAddr { .. } | AstExpr::IndexAddr { .. } => Some(value.clone()),
         _ => None,
+    }
+}
+
+fn deref_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
+    if matches!(env.expr_type(value), Some(AstType::Ptr(_))) {
+        Some(value.clone())
+    } else {
+        place_address(value, env)
     }
 }
 
@@ -880,7 +965,14 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
     if !parser.at_end() {
         return Err("unexpected trailing token after assignment target".to_string());
     }
-    storage_address(&value, env).ok_or_else(|| "assignment target is not addressable".to_string())
+    place_address(&value, env).ok_or_else(|| "assignment target is not addressable".to_string())
+}
+
+/// Parses an expression used as a store address.  A pointer value is used
+/// directly; a non-pointer place yields its address.
+pub(crate) fn parse_store_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
+    let value = parse_expression(text, env)?;
+    deref_address(&value, env).ok_or_else(|| "store target is not addressable".to_string())
 }
 
 /// Parses a standalone type.

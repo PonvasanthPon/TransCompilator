@@ -284,36 +284,54 @@ fn assignment_shape(text: &str) -> bool {
     false
 }
 
-fn supported_predicate(resolution: &VerbResolution, text: &str, verb_index: usize) -> bool {
+fn prep_roles(text: &str) -> Vec<tc_lexicon::PrepRole> {
+    tokenize(text)
+        .iter()
+        .filter_map(|token| {
+            (token.kind == TokenKind::Word)
+                .then(|| prep_role(&token.lower))
+                .flatten()
+        })
+        .collect()
+}
+
+fn supported_predicate(
+    resolution: &VerbResolution,
+    text: &str,
+    verb_index: usize,
+    passive: bool,
+) -> bool {
     let Some(predicate) = resolution.predicate else {
-        return supported_concept(resolution, text, verb_index);
+        return supported_concept(resolution, text, verb_index, passive);
     };
-    let has_prep = has_preposition(text);
+    let roles = prep_roles(text);
+    let has = |role| roles.contains(&role);
+    let target_ok = passive || target_side_lvalue(text, verb_index);
     match predicate {
-        VerbPredicate::Assign => has_prep && target_side_lvalue(text, verb_index),
-        VerbPredicate::TransferAdd | VerbPredicate::TransferSub => {
-            has_prep && target_side_lvalue(text, verb_index)
+        VerbPredicate::Assign => {
+            (has(tc_lexicon::PrepRole::Destination) || has(tc_lexicon::PrepRole::Location))
+                && target_ok
+        }
+        VerbPredicate::TransferAdd => {
+            (has(tc_lexicon::PrepRole::Destination) || has(tc_lexicon::PrepRole::Extent))
+                && target_ok
+        }
+        VerbPredicate::TransferSub => {
+            (has(tc_lexicon::PrepRole::Source) || has(tc_lexicon::PrepRole::Extent)) && target_ok
         }
         VerbPredicate::TransferMove => {
-            let tokens = tokenize(text);
-            let roles = tokens
-                .iter()
-                .filter_map(|token| {
-                    (token.kind == TokenKind::Word)
-                        .then(|| prep_role(&token.lower))
-                        .flatten()
-                })
-                .collect::<Vec<_>>();
-            roles.contains(&tc_lexicon::PrepRole::Source)
-                && roles.contains(&tc_lexicon::PrepRole::Destination)
+            has(tc_lexicon::PrepRole::Source) && has(tc_lexicon::PrepRole::Destination)
         }
-        VerbPredicate::Combine => has_prep && target_side_lvalue(text, verb_index),
+        VerbPredicate::Combine => {
+            (has(tc_lexicon::PrepRole::Instrument) || has(tc_lexicon::PrepRole::Destination))
+                && target_ok
+        }
         VerbPredicate::Transform => match resolution.concept {
             Some(SemanticConcept::Double | SemanticConcept::Halve | SemanticConcept::Negate) => {
                 !verb_region_is_empty(text, verb_index)
             }
-            Some(SemanticConcept::Mul | SemanticConcept::Div) => has_prep,
-            _ => has_prep,
+            Some(SemanticConcept::Mul | SemanticConcept::Div) => has(tc_lexicon::PrepRole::Extent),
+            _ => has(tc_lexicon::PrepRole::Extent),
         },
         VerbPredicate::Create
         | VerbPredicate::Destroy
@@ -322,15 +340,27 @@ fn supported_predicate(resolution: &VerbResolution, text: &str, verb_index: usiz
     }
 }
 
-fn supported_concept(resolution: &VerbResolution, text: &str, verb_index: usize) -> bool {
+fn supported_concept(
+    resolution: &VerbResolution,
+    text: &str,
+    verb_index: usize,
+    passive: bool,
+) -> bool {
     match resolution.concept {
-        Some(
-            SemanticConcept::Add
-            | SemanticConcept::Sub
-            | SemanticConcept::Assign
-            | SemanticConcept::Transfer,
-        ) => has_preposition(text) || !verb_region_is_empty(text, verb_index),
-        Some(SemanticConcept::Mul | SemanticConcept::Div) => has_preposition(text),
+        Some(SemanticConcept::Add) => {
+            has_preposition(text) || passive || !verb_region_is_empty(text, verb_index)
+        }
+        Some(SemanticConcept::Sub) => {
+            prep_roles(text).contains(&tc_lexicon::PrepRole::Source)
+                || passive
+                || !verb_region_is_empty(text, verb_index)
+        }
+        Some(SemanticConcept::Assign | SemanticConcept::Transfer) => {
+            has_preposition(text) || passive || !verb_region_is_empty(text, verb_index)
+        }
+        Some(SemanticConcept::Mul | SemanticConcept::Div) => {
+            prep_roles(text).contains(&tc_lexicon::PrepRole::Extent)
+        }
         Some(SemanticConcept::Double | SemanticConcept::Halve | SemanticConcept::Negate) => {
             !verb_region_is_empty(text, verb_index)
         }
@@ -401,10 +431,20 @@ fn main_verb_hit(text: &str, clause: &ClauseTree) -> Option<VerbHit> {
 
 fn supported_computational_operation(text: &str, clause: &ClauseTree) -> Option<VerbHit> {
     let hit = main_verb_hit(text, clause)?;
+    let tokens = tokenize(text);
+    let be_auxiliary = hit.index > 0
+        && tokens.get(hit.index - 1).is_some_and(|token| {
+            token.is_word()
+                && matches!(
+                    token.lower.as_str(),
+                    "am" | "is" | "are" | "was" | "were" | "be" | "been" | "being"
+                )
+        });
+    let passive = clause.voice == Voice::Passive || be_auxiliary;
     let supported = if hit.resolution.predicate.is_some() {
-        supported_predicate(&hit.resolution, text, hit.index)
+        supported_predicate(&hit.resolution, text, hit.index, passive)
     } else {
-        supported_concept(&hit.resolution, text, hit.index)
+        supported_concept(&hit.resolution, text, hit.index, passive)
     };
     supported.then_some(hit)
 }
@@ -457,6 +497,14 @@ fn clause_verb_word(text: &str) -> Option<String> {
         return None;
     }
     Some(first.lower.clone())
+}
+
+fn begins_with_determiner(text: &str) -> bool {
+    let first = first_word(text);
+    matches!(
+        lookup_closed_class(&first),
+        Some(ClosedClass::Determiner | ClosedClass::Pronoun)
+    )
 }
 
 fn is_call_expression(text: &str) -> bool {
@@ -525,6 +573,24 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
     }
     let (core, _) = split_where(trimmed);
     let core = core.as_str();
+    {
+        let tokens = tokenize(core);
+        if tokens.first().is_some_and(|token| token.is("let"))
+            && tokens.get(1).is_some_and(|token| {
+                token.is("'s")
+                    || token.is("s")
+                    || (token.is_word()
+                        && matches!(
+                            token.lower.as_str(),
+                            "us" | "me" | "him" | "her" | "them" | "it"
+                        ))
+            })
+        {
+            return IntentVerdict::CommentOmitted {
+                reason: "let-us discourse, not a computational directive".to_string(),
+            };
+        }
+    }
     if assignment_shape(core) {
         return IntentVerdict::Exec;
     }
@@ -543,7 +609,12 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         );
         return IntentVerdict::Unsupported { reason };
     }
-    if clause.voice == Voice::Imperative && clause.verb.is_some() {
+    if (clause.voice == Voice::Imperative || clause.subject.is_none()) && clause.verb.is_some() {
+        if begins_with_determiner(trimmed) {
+            return IntentVerdict::CommentOmitted {
+                reason: "narrative subject phrase without a computational directive".to_string(),
+            };
+        }
         let reason = unsupported_reason(trimmed);
         return IntentVerdict::Unsupported { reason };
     }

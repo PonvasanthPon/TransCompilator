@@ -171,3 +171,38 @@ pub(crate) fn is_lvalue_text(text: &str) -> bool {
     }
     true
 }
+
+/// Splits a type list while tracking parentheses and generic angle brackets.
+#[must_use]
+pub(crate) fn split_type_list(text: &str, separator: &str) -> Vec<String> {
+    let tokens = tokenize(text);
+    let mut pieces = Vec::new();
+    let mut depth = 0_i32;
+    let mut start = 0;
+    for token in &tokens {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" | "<" => depth += 1,
+                ")" | "]" | "}" | ">" => depth -= 1,
+                _ => {}
+            }
+        }
+        let matches = if token.kind == TokenKind::Symbol {
+            token.text == separator
+        } else {
+            token.is(separator)
+        };
+        if depth == 0 && matches {
+            let piece = text[start..token.start].trim();
+            if !piece.is_empty() {
+                pieces.push(piece.to_string());
+            }
+            start = token.end;
+        }
+    }
+    let tail = text[start..].trim();
+    if !tail.is_empty() {
+        pieces.push(tail.to_string());
+    }
+    pieces
+}
