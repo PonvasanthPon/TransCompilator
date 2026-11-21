@@ -1,1 +1,79 @@
-[]
+[
+  {
+    "id": "LIM-CORE-001",
+    "layer": "LANGUAGE",
+    "title": "Reserved control keyword cannot be used as a VerbNet predicate verb.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_control_keyword.tc",
+    "build_rc": 1,
+    "trace_rc": 1,
+    "diagnostic": "tc build: lim_control_keyword:1:1: Unsupported: reserved control keyword `continue` takes no operands; define a Phrase: signature instead",
+    "reason": "continue is a Core-7 control anchor; a VerbNet frame using it as a verb is rejected with UNSUPPORTED.",
+    "panic": false
+  },
+  {
+    "id": "LIM-CORE-002",
+    "layer": "SCOPE",
+    "title": "No cross-sentence anaphora or world-knowledge inference.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_cross_sentence_anaphora.tc",
+    "build_rc": 0,
+    "trace_rc": 0,
+    "diagnostic": "lim_cross_sentence_anaphora:1:1 COMMENT_OMITTED (past-tense or third-person narrative prose) lg=true words=5 links=7 voice=active verb=bought lemma=buy predicate=Receive concept=Transfer verbnet=accept-77.1 wordnet=oewn-02288941-v",
+    "reason": "Narrative prose is COMMENT_OMITTED; Core-7 requires explicit variables and directives.",
+    "panic": false
+  },
+  {
+    "id": "LIM-CORE-003",
+    "layer": "LANGUAGE",
+    "title": "Single-expression complexity is capped at 1024 parser charges.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_expression_budget.tc",
+    "build_rc": 1,
+    "trace_rc": 1,
+    "diagnostic": "tc build: lim_expression_budget:1:1: Lowering: expression exceeds the Core-7 complexity limit",
+    "reason": "The cap prevents native stack exhaustion from pathological AST depth.",
+    "panic": false
+  },
+  {
+    "id": "LIM-CORE-004",
+    "layer": "UPSTREAM",
+    "title": "Link Grammar produces no linkage for a 300-word sentence.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_long_sentence.tc",
+    "build_rc": 0,
+    "trace_rc": 0,
+    "diagnostic": "lim_long_sentence:1:1 COMMENT_OMITTED (no computational directive) lg=false words=0 links=0 voice=active",
+    "reason": "tc-syntax falls back deterministically and omits the sentence as non-computational; no panic or hang.",
+    "panic": false
+  },
+  {
+    "id": "LIM-CORE-005",
+    "layer": "SCOPE",
+    "title": "Threads and OS/UI/library services are outside finite Core-7 English.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_out_of_scope_thread.tc",
+    "build_rc": 1,
+    "trace_rc": 1,
+    "diagnostic": "tc build: lim_out_of_scope_thread:1:1: Unsupported: computational verb `thread` (Assign) has no Core-7 lowering; declare a Phrase: signature or use an assignment/transfer/arithmetic form",
+    "reason": "Such directives fail loudly as UNSUPPORTED instead of being silently omitted.",
+    "panic": false
+  },
+  {
+    "id": "LIM-CORE-006",
+    "layer": "LANGUAGE",
+    "title": "Recursive aggregate values have no finite System V layout.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_recursive_struct.tc",
+    "build_rc": 1,
+    "trace_rc": 1,
+    "diagnostic": "tc build: lim_recursive_struct:2:1: TypeCheck: aggregate has no finite layout (recursive type?)",
+    "reason": "The type checker rejects infinitely sized structs before layout/codegen.",
+    "panic": false
+  },
+  {
+    "id": "LIM-CORE-007",
+    "layer": "LANGUAGE",
+    "title": "Type nesting is capped at 64 levels.",
+    "repro": "battletest_core/corpora/tier_c10/limits/lim_type_nesting.tc",
+    "build_rc": 1,
+    "trace_rc": 1,
+    "diagnostic": "tc build: lim_type_nesting:1:1: Declaration: type nesting exceeds the Core-7 limit",
+    "reason": "The cap prevents stack exhaustion in generic/array type parsing and layout.",
+    "panic": false
+  }
+]

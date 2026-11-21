@@ -286,5 +286,17 @@
     "root_cause": "control anchors immediately returned Exec without validating that the reserved word had no operands (VerbNet frames use continue as a verb).",
     "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
     "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-025",
+    "tier": "C4",
+    "crate": "tc-semantics",
+    "class": "TARGET_CLOBBER",
+    "status": "FIXED",
+    "title": "a pointer-typed struct field cannot be indexed because field types are unknown to the place resolver",
+    "repro": "Define struct S with p as ptr<u8>. s.p[0] = 9.",
+    "root_cause": "ExprEnv carried no aggregate field metadata, so FieldAddr had no inferred pointee type.",
+    "fix_sha": "07ac7f0bbcc2afe5e2108f593aced1f415520b70",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
   }
 ]
