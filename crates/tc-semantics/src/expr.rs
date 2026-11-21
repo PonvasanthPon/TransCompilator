@@ -11,6 +11,15 @@ use tc_typeck::AstType;
 
 use crate::token::{Token, TokenKind, decode_string_token, tokenize};
 
+/// Field metadata for one struct or union.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct AggregateInfo {
+    /// Generic parameter names in declaration order.
+    pub type_params: Vec<String>,
+    /// Field name to declared field type.
+    pub fields: HashMap<String, AstType>,
+}
+
 /// Name-resolution environment for expression parsing.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ExprEnv {
@@ -18,6 +27,8 @@ pub(crate) struct ExprEnv {
     pub locals: HashMap<String, AstType>,
     /// Module-level globals.
     pub globals: HashMap<String, AstType>,
+    /// Aggregate field metadata for place typing.
+    pub aggregates: HashMap<String, AggregateInfo>,
     /// Imported module names and aliases.
     pub modules: Vec<String>,
 }
@@ -61,6 +72,29 @@ impl ExprEnv {
                     other => other,
                 };
                 Some(AstType::ptr(element))
+            }
+            AstExpr::FieldAddr { base_ptr, field } => {
+                let base = self.expr_type(base_ptr)?;
+                let pointee = match base {
+                    AstType::Ptr(inner) => *inner,
+                    _ => return None,
+                };
+                let AstType::Named {
+                    name, type_args, ..
+                } = pointee
+                else {
+                    return None;
+                };
+                let info = self.aggregates.get(&name)?;
+                let substitutions = info
+                    .type_params
+                    .iter()
+                    .cloned()
+                    .zip(type_args)
+                    .collect::<HashMap<_, _>>();
+                info.fields
+                    .get(field)
+                    .map(|ty| AstType::ptr(substitute_type(ty, &substitutions)))
             }
             AstExpr::Cast { to, .. } => Some(to.clone()),
             AstExpr::SizeOf(_) | AstExpr::AlignOf(_) => Some(AstType::U64),
@@ -875,6 +909,42 @@ fn binary(op: BinOp, lhs: AstExpr, rhs: AstExpr) -> AstExpr {
         op,
         lhs: Box::new(lhs),
         rhs: Box::new(rhs),
+    }
+}
+
+fn substitute_type(ty: &AstType, substitutions: &HashMap<String, AstType>) -> AstType {
+    match ty {
+        AstType::Named {
+            module,
+            name,
+            type_args,
+        } => {
+            if module.is_none() {
+                if let Some(replacement) = substitutions.get(name) {
+                    return replacement.clone();
+                }
+            }
+            AstType::Named {
+                module: module.clone(),
+                name: name.clone(),
+                type_args: type_args
+                    .iter()
+                    .map(|arg| substitute_type(arg, substitutions))
+                    .collect(),
+            }
+        }
+        AstType::Ptr(inner) => AstType::Ptr(Box::new(substitute_type(inner, substitutions))),
+        AstType::Array(inner, count) => {
+            AstType::Array(Box::new(substitute_type(inner, substitutions)), *count)
+        }
+        AstType::FnPtr { params, ret } => AstType::FnPtr {
+            params: params
+                .iter()
+                .map(|param| substitute_type(param, substitutions))
+                .collect(),
+            ret: Box::new(substitute_type(ret, substitutions)),
+        },
+        other => other.clone(),
     }
 }
 

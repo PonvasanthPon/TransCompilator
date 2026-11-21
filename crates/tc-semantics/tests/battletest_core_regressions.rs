@@ -439,3 +439,21 @@ fn reserved_control_keywords_reject_trailing_operands() {
         .is_err()
     );
 }
+
+#[test]
+fn pointer_typed_struct_field_can_be_indexed() {
+    assert_english(
+        "ptr-field",
+        &[(
+            "main.tc",
+            concat!(
+                "Define struct Holder of T with p as ptr<T>.\nh is Holder<u8>.\n",
+                "Define global buf as array<u8, 4>.\n",
+                "Set h.p to address of buf[0].\nSet h.p[1] to 8.\n",
+                "Return buf[1] as i64.\n",
+            ),
+        )],
+        8,
+        b"",
+    );
+}
