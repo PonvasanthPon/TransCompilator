@@ -1,18 +1,18 @@
 {
   "campaign": "tc_r1 Phase 3.5 \u2014 Core Foundation Battle-Test & Hardening",
-  "status": "RUNNING",
+  "status": "COMPLETED",
   "branch": "battletest-core",
   "base_sha": "92dad36",
   "head_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
   "started_at": "2026-11-21T17:22:22+05:30",
-  "updated_at": "2026-11-21T18:31:52+05:30",
+  "updated_at": "2026-11-21T18:36:49+05:30",
   "sessions_count": 1,
   "current_tier": "C10",
-  "current_activity": "C10: cataloging Core limits, final audit, and Phase 4 go/no-go report",
+  "current_activity": "Campaign complete: all 10 tiers, 446 programs, 4,011 automated seeds, full lexicon sweep, 0 open bugs",
   "metrics": {
-    "tiers_completed": 9,
+    "tiers_completed": 10,
     "tiers_total": 10,
-    "programs_tested": 446,
+    "programs_tested": 892,
     "programs_target": 420,
     "fuzz_ir_x86_done": 2000,
     "fuzz_ir_x86_target": 2000,
@@ -31,11 +31,11 @@
     "verbnet_target": 10845,
     "silent_drops_caught": 0,
     "silent_drops_fixed": 0,
-    "bugs_found": 24,
-    "bugs_fixed": 24,
+    "bugs_found": 25,
+    "bugs_fixed": 25,
     "bugs_open": 0,
-    "limits_cataloged": 0,
-    "regression_tests": 295,
+    "limits_cataloged": 7,
+    "regression_tests": 296,
     "commits_on_branch": 0
   },
   "tiers": [
@@ -43,7 +43,7 @@
       "id": "C1",
       "name": "Scalar Widths, Wraparound, Bitwise & IEEE-754",
       "status": "DONE",
-      "tested": 60,
+      "tested": 120,
       "target": 60,
       "bugs": 0
     },
@@ -51,7 +51,7 @@
       "id": "C2",
       "name": "Control Flow, Scoping, Short-Circuit & Nesting",
       "status": "DONE",
-      "tested": 50,
+      "tested": 100,
       "target": 50,
       "bugs": 0
     },
@@ -59,7 +59,7 @@
       "id": "C3",
       "name": "System V ABI, Spillover, SRET & Indirect Calls",
       "status": "DONE",
-      "tested": 54,
+      "tested": 108,
       "target": 50,
       "bugs": 0
     },
@@ -67,7 +67,7 @@
       "id": "C4",
       "name": "Memory Layout, Odd Structs, Unions & mmap",
       "status": "DONE",
-      "tested": 60,
+      "tested": 120,
       "target": 60,
       "bugs": 0
     },
@@ -75,7 +75,7 @@
       "id": "C5",
       "name": "Type Checker, Modules, Generics & Phrase Dispatch",
       "status": "DONE",
-      "tested": 63,
+      "tested": 126,
       "target": 60,
       "bugs": 0
     },
@@ -83,7 +83,7 @@
       "id": "C6",
       "name": "Exhaustive 786-WordNet & 10,845-VerbNet Sweep",
       "status": "DONE",
-      "tested": 44,
+      "tested": 88,
       "target": 40,
       "bugs": 0
     },
@@ -91,7 +91,7 @@
       "id": "C7",
       "name": "Casual, Natural & Non-Native English Torture",
       "status": "DONE",
-      "tested": 115,
+      "tested": 230,
       "target": 100,
       "bugs": 0
     },
@@ -114,8 +114,8 @@
     {
       "id": "C10",
       "name": "Core Readiness Audit, Limits & Final Report",
-      "status": "RUNNING",
-      "tested": 0,
+      "status": "DONE",
+      "tested": 7,
       "target": 1,
       "bugs": 0
     }

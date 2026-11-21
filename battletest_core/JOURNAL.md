@@ -64,3 +64,5 @@
 - 2026-11-21T18:28:20+05:30 — generics fuzz batch 3301..3400: 100 PASS / 0 FAIL.
 - 2026-11-21T18:28:24+05:30 — generics fuzz batch 3401..3500: 100 PASS / 0 FAIL.
 - 2026-11-21T18:31:52+05:30 — C8: 511/511 crash inputs clean. C9: 2000 IR + 500 paraphrase + 500 prose + 500 generic seeds clean; final IR 1501..2000 = 500/500. Lexicon sweep clean.
+- 2026-11-21T18:34:27+05:30 — Corpus probe: 446 PASS / 0 FAIL across 446 programs (C1, C2, C3, C4, C5, C6, C7).
+- 2026-11-21T18:36:49+05:30 — C10 complete: 7 Core limits cataloged, final report written, Phase 4 verdict GO.
