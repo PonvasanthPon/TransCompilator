@@ -1,0 +1,6 @@
+Define struct Result of T and E with is_ok as bool and ok as T and err as E.
+r is Result<f64, i64>.
+Set r.is_ok to true.
+Set r.ok to 2.5.
+Set r.err to 0.
+Return r.ok as i64.

@@ -1,0 +1,5 @@
+Define struct Empty with data as array<u8, 0>.
+src is Empty.
+dst is Empty.
+Copy 0 bytes from address of src to address of dst.
+Return 0.

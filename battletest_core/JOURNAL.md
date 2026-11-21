@@ -4,3 +4,27 @@
 - 2026-11-21T17:24:02+05:30 — Logged BUG-CORE-001..006 from the initial high-risk boundary probes.
 - 2026-11-21T17:30:07+05:30 — Fixed BUG-CORE-001..007 with permanent regressions; full gates now 277/277 PASS.
 - 2026-11-21T17:30:12+05:30 — Atomic fixes: 6dbaa06 (BUG-001), 784e0b4 (BUG-002..006), dea982e (BUG-007).
+- 2026-11-21T17:38:44+05:30 — Corpus probe: 36 PASS / 24 FAIL across 60 programs (C1).
+- 2026-11-21T17:39:10+05:30 — Corpus probe: 55 PASS / 5 FAIL across 60 programs (C1).
+- 2026-11-21T17:39:18+05:30 — Corpus probe: 60 PASS / 0 FAIL across 60 programs (C1).
+- 2026-11-21T17:40:36+05:30 — Corpus probe: 38 PASS / 12 FAIL across 50 programs (C2).
+- 2026-11-21T17:41:21+05:30 — Corpus probe: 45 PASS / 5 FAIL across 50 programs (C2).
+- 2026-11-21T17:41:43+05:30 — Corpus probe: 49 PASS / 1 FAIL across 50 programs (C2).
+- 2026-11-21T17:42:25+05:30 — Corpus probe: 25 PASS / 29 FAIL across 54 programs (C3).
+- 2026-11-21T17:42:58+05:30 — Corpus probe: 51 PASS / 3 FAIL across 54 programs (C3).
+- 2026-11-21T17:43:25+05:30 — Corpus probe: 54 PASS / 0 FAIL across 54 programs (C3).
+- 2026-11-21T17:44:20+05:30 — Corpus probe: 47 PASS / 8 FAIL across 55 programs (C4).
+- 2026-11-21T17:44:47+05:30 — Corpus probe: 55 PASS / 0 FAIL across 55 programs (C4).
+- 2026-11-21T17:45:00+05:30 — Corpus probe: 59 PASS / 0 FAIL across 59 programs (C4).
+- 2026-11-21T17:47:16+05:30 — Corpus probe: 33 PASS / 30 FAIL across 63 programs (C5).
+- 2026-11-21T17:47:42+05:30 — Corpus probe: 57 PASS / 6 FAIL across 63 programs (C5).
+- 2026-11-21T17:50:10+05:30 — Corpus probe: 62 PASS / 1 FAIL across 63 programs (C5).
+- 2026-11-21T17:50:25+05:30 — Corpus probe: 63 PASS / 0 FAIL across 63 programs (C5).
+- 2026-11-21T17:51:20+05:30 — Corpus probe: 39 PASS / 5 FAIL across 44 programs (C6).
+- 2026-11-21T17:51:58+05:30 — Corpus probe: 40 PASS / 4 FAIL across 44 programs (C6).
+- 2026-11-21T17:52:31+05:30 — Corpus probe: 44 PASS / 0 FAIL across 44 programs (C6).
+- 2026-11-21T17:53:20+05:30 — Corpus probe: 94 PASS / 21 FAIL across 115 programs (C7).
+- 2026-11-21T17:54:16+05:30 — Corpus probe: 105 PASS / 10 FAIL across 115 programs (C7).
+- 2026-11-21T17:54:48+05:30 — Corpus probe: 115 PASS / 0 FAIL across 115 programs (C7).
+- 2026-11-21T17:56:07+05:30 — Corpus probe: 446 PASS / 0 FAIL across 446 programs (C1, C2, C3, C4, C5, C6, C7).
+- 2026-11-21T17:58:05+05:30 — Resumed after server restart; corrected metrics to 446 programs and 7 completed tiers.

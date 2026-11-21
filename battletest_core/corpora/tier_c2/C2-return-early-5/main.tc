@@ -1,0 +1,8 @@
+Define function f taking n as i64 returning i64:
+    i is 0.
+    Loop:
+        i += 1.
+        If i is at least n:
+            Return i * 10.
+    Return 0.
+Return f(5).

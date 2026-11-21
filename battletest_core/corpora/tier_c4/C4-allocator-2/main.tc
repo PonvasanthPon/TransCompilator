@@ -1,0 +1,59 @@
+
+Define global heap as ptr<u8>.
+Define global bump as i64.
+Define global free_count as i64.
+Define global block_size as i64.
+Define global free_list as array<i64, 64>.
+Define global offsets as array<i64, 64>.
+
+Define function alloc taking size as i64 returning i64:
+    If free_count is more than 0:
+        free_count -= 1.
+        Return free_list[free_count].
+    offset is bump.
+    bump += size.
+    Return offset.
+
+Define function release taking offset as i64 returning void:
+    free_list[free_count] = offset.
+    free_count += 1.
+    Return.
+
+Set heap to syscall(9, 0, 65536, 3, 0x22, -1, 0) as u64 as ptr<u8>.
+Set bump to 0.
+Set free_count to 0.
+Set block_size to 64.
+
+i is 0.
+Loop:
+    If i is at least 32, Break.
+    offsets[i] = alloc(block_size).
+    Set heap[offsets[i]] to i as u8.
+    i += 1.
+
+i is 32 - 1.
+Loop:
+    If i is less than 0, Break.
+    If i mod 2 is 0:
+        release(offsets[i]).
+    i -= 1.
+
+j is 0.
+Loop:
+    If j is at least 16, Break.
+    slot is alloc(block_size).
+    If slot is not offsets[j * 2]:
+        Return 99.
+    Set heap[slot] to (100 + j) as u8.
+    If heap[slot] is not ((100 + j) as u8):
+        Return 98.
+    j += 1.
+
+i is 0.
+total is 0.
+Loop:
+    If i is at least 32, Break.
+    If i mod 2 is 1:
+        total += heap[offsets[i]] as i64.
+    i += 1.
+Return (total + 1) bitand 255.

@@ -1,0 +1,14 @@
+Define global ptrs as array<ptr<u8>, 8>.
+i is 0.
+Loop:
+    If i is at least 8, Break.
+    ptrs[i] = syscall(9, 0, 4096, 3, 0x22, -1, 0) as u64 as ptr<u8>.
+    Set ptrs[i][0] to (i + 1) as u8.
+    i += 1.
+total is 0.
+i is 0.
+Loop:
+    If i is at least 8, Break.
+    total += ptrs[i][0] as i64.
+    i += 1.
+Return total.

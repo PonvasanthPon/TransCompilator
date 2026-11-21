@@ -1,0 +1,7 @@
+Define struct Buf8 with data as array<u8, 8>.
+src is Buf8.
+dst is Buf8.
+Set src.data[0] to 1.
+Set src.data[7] to 2.
+Copy 8 bytes from address of src to address of dst.
+Return (dst.data[0] as i64) + (dst.data[7] as i64).

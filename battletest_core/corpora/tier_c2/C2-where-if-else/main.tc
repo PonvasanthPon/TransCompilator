@@ -1,0 +1,6 @@
+x is 0.
+If x is 0:
+    Add 5 to x where x is 1.
+Else:
+    Add 9 to x.
+Return x.

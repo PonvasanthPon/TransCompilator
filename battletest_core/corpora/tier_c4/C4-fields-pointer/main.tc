@@ -1,0 +1,8 @@
+Define struct Odd1 with a as u8 and b as i64 and c as u8.
+g is Odd1.
+Define local p as ptr<Odd1>.
+Set p to address of g.
+Set p.a to 4.
+Set p.b to 5.
+Set p.c to 6.
+Return (g.a as i64) + g.b + (g.c as i64).

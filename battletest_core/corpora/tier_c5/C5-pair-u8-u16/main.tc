@@ -1,0 +1,5 @@
+Define struct Pair of T and U with first as T and second as U.
+p is Pair<u8, u16>.
+Set p.first to 250.
+Set p.second to 60000.
+Return ((p.first as i64) + (p.second as i64)) bitand 255.

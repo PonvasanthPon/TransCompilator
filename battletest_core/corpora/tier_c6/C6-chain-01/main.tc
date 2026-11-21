@@ -1,0 +1,9 @@
+a is 100.
+b is 200.
+c is 10.
+Add 5 to a.
+Remove 30 from b.
+Multiply c by 3.
+Halve c.
+Transfer 10 from a to b.
+Return (a + b + c) bitand 255.

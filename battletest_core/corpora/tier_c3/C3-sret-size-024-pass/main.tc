@@ -1,0 +1,8 @@
+Define struct S24 with tag as u8 and data as array<u8, 23>.
+Define function sum taking s as S24 returning i64:
+    Return (s.tag as i64) + (s.data[0] as i64) + (s.data[22] as i64).
+s is S24.
+Set s.tag to 5.
+Set s.data[0] to 3.
+Set s.data[22] to 4.
+Return sum(s).

@@ -1,0 +1,6 @@
+Define struct Triple of T and U and V with a as T and b as U and c as V.
+t is Triple<i64, i64, i64>.
+Set t.a to 1.
+Set t.b to 2.
+Set t.c to 3.
+Return t.a + t.b + t.c.

@@ -1,0 +1,7 @@
+Define struct Pair of T and U with first as T and second as U.
+p is Pair<bool, i64>.
+Set p.first to true.
+Set p.second to 9.
+If p.first:
+    Return p.second.
+Return 0.

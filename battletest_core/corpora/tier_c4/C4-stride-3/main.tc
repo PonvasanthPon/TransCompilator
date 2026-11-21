@@ -1,0 +1,12 @@
+Define struct Odd1 with a as u8 and b as i64 and c as u8.
+Define global arr as array<Odd1, 32>.
+i is 0.
+total is 0.
+Loop:
+    If i is at least 32, Break.
+    Set arr[i].a to i as u8.
+    Set arr[i].b to i * 3.
+    Set arr[i].c to (i + 1) as u8.
+    total += arr[i].b.
+    i += 1.
+Return total bitand 255.

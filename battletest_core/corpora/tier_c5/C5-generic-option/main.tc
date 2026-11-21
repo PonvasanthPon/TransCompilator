@@ -1,0 +1,10 @@
+Define struct Option of T with has_val as bool and val as T.
+Define function some of T taking x as T returning Option<T>:
+    r is Option<T>.
+    Set r.has_val to true.
+    Set r.val to x.
+    Return r.
+o is some(7).
+If o.has_val:
+    Return o.val.
+Return 0.

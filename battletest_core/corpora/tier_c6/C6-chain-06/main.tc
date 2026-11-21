@@ -1,0 +1,9 @@
+a is 90.
+b is 80.
+c is 15.
+Increase a by 10.
+Decrease b by 20.
+Double b.
+Divide b by 4.
+Add 5 to c.
+Return (a + b + c) bitand 255.

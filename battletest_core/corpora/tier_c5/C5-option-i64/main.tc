@@ -1,0 +1,7 @@
+Define struct Option of T with has_val as bool and val as T.
+o is Option<i64>.
+Set o.has_val to true.
+Set o.val to 7.
+If o.has_val:
+    Return o.val.
+Return 0.

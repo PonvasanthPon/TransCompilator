@@ -1,0 +1,6 @@
+Define struct Point with x as i64 and y as i64.
+Define struct Box of T with value as T.
+b is Box<Box<Box<Point>>>.
+Set b.value.value.value.x to 5.
+Set b.value.value.value.y to 6.
+Return b.value.value.value.x + b.value.value.value.y.

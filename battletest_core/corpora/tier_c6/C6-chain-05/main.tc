@@ -1,0 +1,9 @@
+a is 30.
+b is 100.
+c is 6.
+Assign a to 42.
+Put 11 in a.
+Set a to 13.
+Keep 17 in a.
+Store 19 in a.
+Return (a + b + c) bitand 255.

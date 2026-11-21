@@ -1,0 +1,5 @@
+Define function inner of T taking x as T returning T:
+    Return x.
+Define function middle of T taking x as T returning T:
+    Return inner(x).
+Return middle(9).

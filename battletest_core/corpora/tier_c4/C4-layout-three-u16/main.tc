@@ -1,0 +1,2 @@
+Define struct Three with a as u16 and b as u16 and c as u16.
+Return ((size of Three) as i64) + ((align of Three) as i64).
