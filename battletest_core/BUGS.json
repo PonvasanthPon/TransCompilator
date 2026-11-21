@@ -214,5 +214,77 @@
     "root_cause": "final imperative fallback ignored closed-class sentence-initial determiners/pronouns.",
     "fix_sha": "615ffb9043a059557582817ebaae04413491feb3",
     "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-019",
+    "tier": "C8",
+    "crate": "tc-syntax",
+    "class": "SYNTAX_PANIC",
+    "status": "FIXED",
+    "title": "tokenizer slices two bytes from a 3-byte UTF-8 character",
+    "repro": "file containing a BOM or curly quote",
+    "root_cause": "two-byte operator lookahead used &text[index..index+2] without checking ASCII.",
+    "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-020",
+    "tier": "C8",
+    "crate": "tc-semantics",
+    "class": "SYNTAX_PANIC",
+    "status": "FIXED",
+    "title": "very long left-associative expressions overflow the stack during AST drop/typecheck",
+    "repro": "Return 1 + 1 + ... (5000 operands)",
+    "root_cause": "expression parser had no node budget, producing an AST deeper than the native stack.",
+    "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-021",
+    "tier": "C8",
+    "crate": "tc-semantics",
+    "class": "SYNTAX_PANIC",
+    "status": "FIXED",
+    "title": "deeply nested generic/array type syntax is unbounded",
+    "repro": "array<array<...i64...>> nested hundreds deep",
+    "root_cause": "parse_type recursed without a depth guard.",
+    "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-022",
+    "tier": "C9",
+    "crate": "tc-semantics",
+    "class": "LEXICON_BUG",
+    "status": "FIXED",
+    "title": "a noun subject that is also a lexical verb hijacks passive main-verb detection",
+    "repro": "cash is 42. cash is increased by 11.",
+    "root_cause": "first_word_hit accepted the first word even when followed by a copula/auxiliary.",
+    "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-023",
+    "tier": "C9",
+    "crate": "tc-semantics",
+    "class": "LEXICON_BUG",
+    "status": "FIXED",
+    "title": "numeric passive subjects make Link Grammar report `to` as the verb",
+    "repro": "1 is added to x. / 42 is added to x.",
+    "root_cause": "main_verb_hit trusted clause.verb even when it was a preposition; added a be-copula-anchored verb scan.",
+    "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-024",
+    "tier": "C6",
+    "crate": "tc-semantics",
+    "class": "TYPECK_BUG",
+    "status": "FIXED",
+    "title": "break/continue/trap ignored trailing operands and surfaced as loop-context type errors",
+    "repro": "continue 10 of x.",
+    "root_cause": "control anchors immediately returned Exec without validating that the reserved word had no operands (VerbNet frames use continue as a verb).",
+    "fix_sha": "c733ce07973fedfe7cb0c65ed6904866b036426e",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
   }
 ]
