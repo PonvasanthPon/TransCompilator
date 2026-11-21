@@ -511,8 +511,8 @@ fn run_audit() -> ExitCode {
     let stats = tc_lexicon::lexicon_stats();
     println!("tc_r1 audit: PASS");
     println!(
-        "  crates          : {} workspace members (7 compiler crates + r1-editor)",
-        crates.len() + 2
+        "  crates          : {} workspace members (7 compiler crates + 2 editors)",
+        crates.len() + 3
     );
     println!("  wordnet entries : {}", stats.wordnet_entries);
     println!("  verbnet frames  : {}", stats.verbnet_frames);

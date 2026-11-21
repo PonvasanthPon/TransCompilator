@@ -6,7 +6,7 @@ HOME_STEM := /home/ponvasan
 FORBIDDEN_HOME := $(HOME_STEM)th
 FORBIDDEN_REFS := $(FORBIDDEN_REPO)|$(FORBIDDEN_HOME)
 
-.PHONY: build release test lint fmt-check audit selftest editor clean
+.PHONY: build release test lint fmt-check audit selftest editor editor-gui clean
 
 build:
 	$(CARGO) build --workspace
@@ -29,6 +29,9 @@ selftest: build
 editor: build
 	$(CARGO) run --bin r1-editor --
 
+editor-gui: build
+	$(CARGO) run --bin r1-editor-gui --
+
 audit:
 	@echo "tc_r1 audit"
 	@ml="$$(find . \( -path ./.git -o -path ./target \) -prune -o -type f \( -name '*.onnx' -o -name '*.pt' -o -name '*.binlm' -o -name '*.mem' -o -name '*.hmm' -o -name '*.gguf' -o -name '*.safetensors' \) -print)"; \
@@ -40,11 +43,11 @@ audit:
 	@if grep -q 'source = "registry+' Cargo.lock; then echo "  FAIL: registry source found in Cargo.lock"; exit 1; fi; \
 	if grep -q '^checksum = ' Cargo.lock; then echo "  FAIL: checksummed external package found in Cargo.lock"; exit 1; fi; \
 	pkgs="$$(grep -c '^name = ' Cargo.lock)"; \
-	if [ "$$pkgs" -ne 8 ]; then echo "  FAIL: expected 8 workspace packages in Cargo.lock, found $$pkgs"; exit 1; fi; \
-	echo "  Cargo.lock packages                 : 8 local (0 external)"
-	@unexpected="$$(grep '^name = ' Cargo.lock | grep -v -E '^name = "tc-(ir|codegen-x86|typeck|lexicon|syntax|semantics|cli|editor)"$$' || true)"; \
+	if [ "$$pkgs" -ne 9 ]; then echo "  FAIL: expected 9 workspace packages in Cargo.lock, found $$pkgs"; exit 1; fi; \
+	echo "  Cargo.lock packages                 : 9 local (0 external)"
+	@unexpected="$$(grep '^name = ' Cargo.lock | grep -v -E '^name = "tc-(ir|codegen-x86|typeck|lexicon|syntax|semantics|cli|editor|editor-gui)"$$' || true)"; \
 	if [ -n "$$unexpected" ]; then echo "  FAIL: unexpected packages in Cargo.lock:"; echo "$$unexpected"; exit 1; fi; \
-	echo "  Cargo.lock identities               : 8 tc-* only"
+	echo "  Cargo.lock identities               : 9 tc-* only"
 	@refs="$$(grep -R -n -E '$(FORBIDDEN_REFS)' crates std Makefile Cargo.toml 2>/dev/null || true)"; \
 	if [ -n "$$refs" ]; then echo "  FAIL: forbidden path references:"; echo "$$refs"; exit 1; fi; \
 	echo "  forbidden path references           : none"
