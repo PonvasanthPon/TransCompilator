@@ -1,0 +1,13 @@
+[package]
+name = "tc-typeck"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Type checking for tc_r1 (Phase 0 scaffold)"
+
+[lints]
+workspace = true
+
+[dependencies]
+tc-ir = { path = "../tc-ir" }

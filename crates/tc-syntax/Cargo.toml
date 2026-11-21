@@ -1,0 +1,13 @@
+[package]
+name = "tc-syntax"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Syntax analysis for tc_r1 (Phase 0 scaffold)"
+
+[lints]
+workspace = true
+
+[dependencies]
+tc-lexicon = { path = "../tc-lexicon" }

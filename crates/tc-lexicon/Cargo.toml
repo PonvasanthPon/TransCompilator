@@ -1,0 +1,12 @@
+[package]
+name = "tc-lexicon"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Lexicon model for tc_r1 (Phase 0 scaffold)"
+
+[lints]
+workspace = true
+
+[dependencies]
