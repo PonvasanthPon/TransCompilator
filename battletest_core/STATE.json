@@ -3,16 +3,16 @@
   "status": "COMPLETED",
   "branch": "battletest-core",
   "base_sha": "92dad36",
-  "head_sha": "37a63098ab338bbd4badec79fa2079d66d1d7ff8",
+  "head_sha": "883a145f3b04dc07b547a01d2f357abe9f534ed8",
   "started_at": "2026-11-21T17:22:22+05:30",
-  "updated_at": "2026-11-21T18:37:53+05:30",
+  "updated_at": "2026-11-21T18:38:08+05:30",
   "sessions_count": 1,
   "current_tier": "C10",
   "current_activity": "Campaign complete: 10/10 tiers, 446 programs, 4,011 automated seeds, full 786+10,845 lexicon sweep, 0 open bugs, Phase 4 GO",
   "metrics": {
     "tiers_completed": 10,
     "tiers_total": 10,
-    "programs_tested": 892,
+    "programs_tested": 446,
     "programs_target": 420,
     "fuzz_ir_x86_done": 2000,
     "fuzz_ir_x86_target": 2000,
@@ -43,7 +43,7 @@
       "id": "C1",
       "name": "Scalar Widths, Wraparound, Bitwise & IEEE-754",
       "status": "DONE",
-      "tested": 120,
+      "tested": 60,
       "target": 60,
       "bugs": 0
     },
@@ -51,7 +51,7 @@
       "id": "C2",
       "name": "Control Flow, Scoping, Short-Circuit & Nesting",
       "status": "DONE",
-      "tested": 100,
+      "tested": 50,
       "target": 50,
       "bugs": 0
     },
@@ -59,7 +59,7 @@
       "id": "C3",
       "name": "System V ABI, Spillover, SRET & Indirect Calls",
       "status": "DONE",
-      "tested": 108,
+      "tested": 54,
       "target": 50,
       "bugs": 0
     },
@@ -67,7 +67,7 @@
       "id": "C4",
       "name": "Memory Layout, Odd Structs, Unions & mmap",
       "status": "DONE",
-      "tested": 120,
+      "tested": 60,
       "target": 60,
       "bugs": 0
     },
@@ -75,7 +75,7 @@
       "id": "C5",
       "name": "Type Checker, Modules, Generics & Phrase Dispatch",
       "status": "DONE",
-      "tested": 126,
+      "tested": 63,
       "target": 60,
       "bugs": 0
     },
@@ -83,7 +83,7 @@
       "id": "C6",
       "name": "Exhaustive 786-WordNet & 10,845-VerbNet Sweep",
       "status": "DONE",
-      "tested": 88,
+      "tested": 44,
       "target": 40,
       "bugs": 0
     },
@@ -91,7 +91,7 @@
       "id": "C7",
       "name": "Casual, Natural & Non-Native English Torture",
       "status": "DONE",
-      "tested": 230,
+      "tested": 115,
       "target": 100,
       "bugs": 0
     },
