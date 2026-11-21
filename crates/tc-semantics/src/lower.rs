@@ -8,7 +8,9 @@ use tc_typeck::{
     PhrasePart, PhrasePattern, Visibility,
 };
 
-use crate::expr::{ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text};
+use crate::expr::{
+    AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
+};
 use crate::intent::{IntentVerdict, classify};
 use crate::phrases::{PhraseBinding, PhraseMatch, match_all};
 use crate::textutil::{
@@ -750,6 +752,7 @@ struct Lowerer<'a> {
     module: String,
     globals: HashMap<String, AstType>,
     types: HashSet<String>,
+    aggregates: HashMap<String, AggregateInfo>,
     module_names: Vec<String>,
     phrases: Vec<PhraseBinding>,
     scopes: Vec<Scope>,
@@ -765,6 +768,7 @@ impl<'a> Lowerer<'a> {
         module: &str,
         globals: HashMap<String, AstType>,
         types: HashSet<String>,
+        aggregates: HashMap<String, AggregateInfo>,
         module_names: Vec<String>,
         phrases: Vec<PhraseBinding>,
     ) -> Self {
@@ -773,6 +777,7 @@ impl<'a> Lowerer<'a> {
             module: module.to_string(),
             globals,
             types,
+            aggregates,
             module_names,
             phrases,
             scopes: vec![Scope::new()],
@@ -836,6 +841,7 @@ impl<'a> Lowerer<'a> {
         ExprEnv {
             locals,
             globals: self.globals.clone(),
+            aggregates: self.aggregates.clone(),
             modules: self.module_names.clone(),
         }
     }
@@ -2443,11 +2449,31 @@ pub(crate) fn lower_module(
         .map(|value| value.name.clone())
         .chain(module_ast.unions.iter().map(|value| value.name.clone()))
         .collect::<HashSet<_>>();
+    let mut aggregates = HashMap::new();
+    for definition in &module_ast.structs {
+        aggregates.insert(
+            definition.name.clone(),
+            AggregateInfo {
+                type_params: definition.type_params.clone(),
+                fields: definition.fields.iter().cloned().collect(),
+            },
+        );
+    }
+    for definition in &module_ast.unions {
+        aggregates.insert(
+            definition.name.clone(),
+            AggregateInfo {
+                type_params: definition.type_params.clone(),
+                fields: definition.fields.iter().cloned().collect(),
+            },
+        );
+    }
     let mut lowerer = Lowerer::new(
         parser,
         &module_ast.name,
         globals,
         types,
+        aggregates,
         module_names,
         phrases,
     );
