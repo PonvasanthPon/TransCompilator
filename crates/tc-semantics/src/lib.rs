@@ -4,8 +4,12 @@
 //! matches declarative `Phrase:` signatures, and lowers executable English into
 //! the Phase 1 typed AST through one unified recursive statement lowerer.
 
+mod cond;
+mod discourse;
 mod expr;
 mod lower;
+mod paraphrase;
+mod quantifier;
 mod textutil;
 
 pub mod intent;
@@ -17,6 +21,10 @@ use tc_lexicon::{SemanticConcept, VerbPredicate};
 use tc_typeck::{AstModule, Program};
 
 pub use intent::IntentVerdict;
+pub use paraphrase::{
+    ParaphraseDoc, ParaphraseEntry, canonicalize_statement, format_paraphrase,
+    format_paraphrase_entries,
+};
 pub use phrases::{PhraseBinding, PhraseMatch, is_phrase_declaration, match_phrase};
 pub use tc_syntax::token;
 pub use tc_syntax::{
@@ -111,6 +119,8 @@ pub struct LoweredProject {
     pub program: Program,
     /// Per-sentence analysis and provenance.
     pub trace: Vec<SentenceTrace>,
+    /// Deterministic paraphrase echo, grouped by module.
+    pub paraphrase: Vec<ParaphraseDoc>,
 }
 
 /// A fully checked and lowered English project.
@@ -122,6 +132,8 @@ pub struct CompiledProject {
     pub module: tc_ir::Module,
     /// Per-sentence analysis and provenance.
     pub trace: Vec<SentenceTrace>,
+    /// Deterministic paraphrase echo, grouped by module.
+    pub paraphrase: Vec<ParaphraseDoc>,
 }
 
 fn type_error(module: &str, error: &tc_typeck::TypeError) -> SemanticError {
@@ -234,9 +246,10 @@ pub fn lower_project_with_parser(
     let entry_key = entry_module.to_ascii_lowercase();
     let mut modules = Vec::with_capacity(jobs.len());
     let mut trace = Vec::new();
+    let mut paraphrase = Vec::new();
     for (index, job) in jobs.into_iter().enumerate() {
         let is_entry = job.module.name == entry_key;
-        let (module, mut traces, mut diagnostics) = lower::lower_module(
+        let (module, mut traces, mut diagnostics, docs) = lower::lower_module(
             job,
             parser,
             module_names.clone(),
@@ -245,6 +258,7 @@ pub fn lower_project_with_parser(
         );
         modules.push(module);
         trace.append(&mut traces);
+        paraphrase.push(docs);
         errors.append(&mut diagnostics);
     }
     if errors.is_empty() {
@@ -255,6 +269,7 @@ pub fn lower_project_with_parser(
                 entry_fn: "main".to_string(),
             },
             trace,
+            paraphrase,
         })
     } else {
         Err(errors)
@@ -305,6 +320,7 @@ pub fn compile_english_to_ir(
         program: lowered.program,
         module,
         trace: lowered.trace,
+        paraphrase: lowered.paraphrase,
     })
 }
 

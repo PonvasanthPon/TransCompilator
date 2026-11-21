@@ -41,10 +41,24 @@ pub struct PhraseMatch {
     pub params: Vec<AstType>,
     /// Generic parameter names of the matched function.
     pub type_params: Vec<String>,
+    /// Canonical source pattern, e.g. `emit <v> to stderr`.
+    pub pattern: String,
 }
 
 fn pattern_words(pattern: &PhrasePattern) -> impl Iterator<Item = &PhrasePart> {
     pattern.parts.iter()
+}
+
+fn pattern_text(pattern: &PhrasePattern) -> String {
+    pattern
+        .parts
+        .iter()
+        .map(|part| match part {
+            PhrasePart::Word(word) => word.clone(),
+            PhrasePart::Param(param) => format!("<{param}>"),
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn next_word_index(tokens: &[Token], start: usize) -> Option<usize> {
@@ -138,6 +152,7 @@ fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Optio
         score,
         params: binding.params.clone(),
         type_params: binding.type_params.clone(),
+        pattern: pattern_text(&binding.pattern),
     })
 }
 
@@ -161,6 +176,7 @@ pub fn match_phrase(text: &str, bindings: &[PhraseBinding]) -> Option<PhraseMatc
     match_all(text, bindings).into_iter().max_by(|left, right| {
         left.score
             .cmp(&right.score)
+            .then_with(|| left.params.len().cmp(&right.params.len()))
             .then_with(|| right.function.cmp(&left.function))
     })
 }

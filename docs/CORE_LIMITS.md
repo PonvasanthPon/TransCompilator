@@ -10,13 +10,13 @@ Verified architectural boundaries. Every reproducer below returns a clean diagno
 - **Diagnostic:** `tc build: lim_control_keyword:1:1: Unsupported: reserved control keyword `continue` takes no operands; define a Phrase: signature instead`
 - **Reason:** continue is a Core-7 control anchor; a VerbNet frame using it as a verb is rejected with UNSUPPORTED.
 
-## LIM-CORE-002 — No cross-sentence anaphora or world-knowledge inference.
+## LIM-CORE-002 — Human gender anaphora, cataphora, and world-knowledge bridging are out of scope.
 
 - **Layer:** SCOPE
 - **Repro:** `battletest_core/corpora/tier_c10/limits/lim_cross_sentence_anaphora.tc`
 - **Build exit:** 0
 - **Diagnostic:** `lim_cross_sentence_anaphora:1:1 COMMENT_OMITTED (past-tense or third-person narrative prose) lg=true words=5 links=7 voice=active verb=bought lemma=buy predicate=Receive concept=Transfer verbnet=accept-77.1 wordnet=oewn-02288941-v`
-- **Reason:** Narrative prose is COMMENT_OMITTED; Core-7 requires explicit variables and directives.
+- **Reason:** Phase 3.6 supports intra-scope and cross-sentence variable, struct/union field, definite-type, and appositive anaphora (`it`, `its <field>`, `the <type>`, `the <type> <name>`). Human gendered pronouns, forward references (cataphora), and arbitrary world-knowledge bridging remain outside finite Core-7 English. Narrative prose is COMMENT_OMITTED; an unresolved supported anaphor is a loud `UNRESOLVED_ANAPHOR` error.
 
 ## LIM-CORE-003 — Single-expression complexity is capped at 1024 parser charges.
 
