@@ -1,0 +1,4 @@
+dashboard/server.pid
+dashboard/server.log
+work/
+*.tmp
