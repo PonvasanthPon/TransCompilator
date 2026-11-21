@@ -192,48 +192,52 @@ pub const PRESETS: [Preset; 8] = [
     },
     Preset {
         name: "06_std_io_and_math.eng",
-        description: "std/io exact formatting and std/math Newton sqrt",
+        description: "Natural-English std/io formatting and std/math roots",
         source: concat!(
-            "Import io.\nImport math.\n",
+            "Use io and math.\n",
             "Say 42.\nSay 3.5.\nSay true.\n",
             "Say sqrt(2.0).\nSay sqrt(9.0).\n",
-            "Return 0.\n",
+            "Give back 0.\n",
         ),
     },
     Preset {
         name: "07_std_generic_list.eng",
-        description: "Generic List<i64> growth, sort, and phrase dispatch",
+        description: "A generic list of whole numbers, sorted naturally",
         source: concat!(
-            "Import io.\nImport list.\n",
-            "Define function cmp taking a as ptr<i64> and b as ptr<i64> returning i64:\n",
-            "    If a[0] < b[0], return -1.\n",
-            "    If a[0] > b[0], return 1.\n",
-            "    Return 0.\n",
-            "Define local nums as List<i64>.\n",
+            "A list of whole numbers, sorted with an English function.\n",
+            "Use io and list.\n",
+            "To compare_items given a as a pointer to whole number, b as a pointer to whole number, returning a whole number.\n",
+            "    If a[0] < b[0]:\n        Give back -1.\n",
+            "    If a[0] > b[0]:\n        Give back 1.\n",
+            "    Give back 0.\n",
+            "Done.\n",
+            "Define local nums as List of whole number.\n",
             "push 9 to address of nums.\npush 1 to address of nums.\n",
             "push 5 to address of nums.\n",
-            "list_sort(address of nums, function cmp).\n",
-            "Define local i as u64.\nWhile i < 3:\n",
-            "    Say list_get(address of nums, i).\n    i += 1.\n",
-            "list_free(address of nums).\nReturn 0.\n",
+            "list_sort(address of nums, function compare_items).\n",
+            "Define local i as an unsigned number.\nWhile i < 3:\n",
+            "    Say list_get(address of nums, i).\n    Add 1 to i.\n",
+            "list_free(address of nums).\nGive back 0.\n",
         ),
     },
     Preset {
         name: "08_std_file_and_map.eng",
-        description: "std/fs sandbox file round-trip and std/map rehash",
+        description: "Natural-English file round-trip and integer map",
         source: concat!(
-            "Import alloc.\nImport core.\nImport io.\nImport fs.\nImport string.\nImport map.\n",
-            "name is str_from_bytes(bytes_ptr(\"preset.txt\"), bytes_len(\"preset.txt\")).\n",
+            "A file round-trip and a small integer map.\n",
+            "Use alloc, core, fs, io, map, and string.\n",
+            "name is str_from_bytes(\"preset.txt\", 10).\n",
             "save 321 to file address of name.\n",
             "display file address of name.\n",
             "delete file address of name.\n",
-            "Define local table as IntMap<i64>.\n",
-            "Define local k as i64.\nWhile k < 20:\n",
-            "    intmap_put(address of table, k, k * 2).\n    k += 1.\n",
-            "Define local found as Option<i64>.\nfound = intmap_get(address of table, 7).\n",
+            "Define local table as IntMap of whole number.\n",
+            "Define local k as a whole number.\nWhile k < 20:\n",
+            "    intmap_put(address of table, k, k * 2).\n    Add 1 to k.\n",
+            "Define local found as Option of whole number.\nfound = intmap_get(address of table, 7).\n",
             "Say found.value.\nSay intmap_len(address of table).\n",
             "intmap_free(address of table).\nstr_free(address of name).\n",
-            "Say heap_bytes_in_use() as i64.\nReturn 0.\n",
+            "Define local used as a whole number.\nused = heap_bytes_in_use() as a whole number.\nSay used.\n",
+            "Give back 0.\n",
         ),
     },
 ];
@@ -280,11 +284,19 @@ fn module_imports(source: &SourceFile) -> Vec<String> {
             continue;
         };
         let tokens = tc_syntax::tokenize(&sentence.text);
-        if !tokens.first().is_some_and(|token| token.is("import")) {
+        let Some(first) = tokens.first() else {
+            continue;
+        };
+        if !first.is("import") && !first.is("use") {
             continue;
         }
-        if let Some(name) = tokens.get(1).filter(|token| token.is_word()) {
-            imports.push(name.lower.clone());
+        for token in tokens.iter().skip(1) {
+            if token.is("as") {
+                break;
+            }
+            if token.is_word() && !token.is("and") && !token.is("module") {
+                imports.push(token.lower.clone());
+            }
         }
     }
     imports

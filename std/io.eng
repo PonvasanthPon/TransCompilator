@@ -1,192 +1,194 @@
-Import core.
+A module of console output, decimal formatting, and byte-safe input.
 
-function format_u64_into taking n as u64 and buf as ptr<u8> returning u64:
-    Define local digits as array<u8, 20>.
-    Define local count as u64.
-    Define local value as u64.
-    value = n.
+Use core.
+
+To format_u64_into given n as an unsigned number, buf as a pointer to byte, returning an unsigned number.
+    Define local digits as block of 20 byte.
+    Define local count as an unsigned number.
+    Define local value as an unsigned number.
+    Set value to n.
     If value == 0:
-        Set buf[0] to 48.
-        Return 1.
+        Set item 0 of buf to 48.
+        Give back 1.
     While value > 0:
-        Set digits[count] to 48 + (value % 10) as u8.
-        value = value / 10.
-        count += 1.
-    Define local len as u64.
+        Set item count of digits to 48 + (value % 10) as a byte.
+        Set value to value / 10.
+        Add 1 to count.
+    Define local len as an unsigned number.
     While count > 0:
-        count -= 1.
-        Set buf[len] to digits[count].
-        len += 1.
-    Return len.
+        Set count to count - 1.
+        Set item len of buf to item count of digits.
+        Add 1 to len.
+    Give back len.
+Done.
 
-Public function format_i64_into taking n as i64 and buf as ptr<u8> returning u64:
-    Define local len as u64.
-    Define local magnitude as u64.
+Publicly, to format_i64_into given n as a whole number, buf as a pointer to byte, returning an unsigned number.
+    Define local len as an unsigned number.
+    Define local magnitude as an unsigned number.
     If n < 0:
-        Set buf[0] to 45.
-        len = 1 as u64.
-        magnitude = (0 as u64) - (n as u64).
+        Set item 0 of buf to 45.
+        Set len to 1 as an unsigned number.
+        Set magnitude to (0 as an unsigned number) - (n as an unsigned number).
     Else:
-        magnitude = n as u64.
-    Define local written as u64.
-    written = format_u64_into(magnitude, (buf as u64 + len) as ptr<u8>).
-    Return len + written.
+        Set magnitude to n as an unsigned number.
+    Define local written as an unsigned number.
+    Set written to format_u64_into(magnitude, (buf as an unsigned number + len) as a pointer to byte).
+    Give back len + written.
+Done.
 
-Public function format_f64_into taking x as f64 and buf as ptr<u8> returning u64:
-    Define local negative as bool.
-    Define local absolute as f64.
+Publicly, to format_f64_into given x as a decimal, buf as a pointer to byte, returning an unsigned number.
+    Define local negative as a truth value.
+    Define local absolute as a decimal.
     If x < 0.0:
-        negative = true.
-        absolute = 0.0 - x.
+        Set negative to true.
+        Set absolute to 0.0 - x.
     Else:
-        absolute = x.
-    Define local scaled as u64.
-    scaled = (absolute * 10000.0 + 0.5) as u64.
-    Define local int_part as u64.
-    int_part = scaled / 10000.
-    Define local frac as u64.
-    frac = scaled % 10000.
-    Define local len as u64.
+        Set absolute to x.
+    Define local scaled as an unsigned number.
+    Set scaled to (absolute * 10000.0 + 0.5) as an unsigned number.
+    Define local int_part as an unsigned number.
+    Set int_part to scaled / 10000.
+    Define local frac as an unsigned number.
+    Set frac to scaled % 10000.
+    Define local len as an unsigned number.
     If negative and scaled != 0:
-        Set buf[0] to 45.
-        len = 1 as u64.
-    Define local text_len as u64.
-    text_len = format_u64_into(int_part, (buf as u64 + len) as ptr<u8>).
-    len += text_len.
-    Set buf[len] to 46.
-    len += 1.
-    Define local divisor as u64.
-    divisor = 1000.
+        Set item 0 of buf to 45.
+        Set len to 1 as an unsigned number.
+    Define local text_len as an unsigned number.
+    Set text_len to format_u64_into(int_part, (buf as an unsigned number + len) as a pointer to byte).
+    Set len to len + text_len.
+    Set item len of buf to 46.
+    Set len to len + 1.
+    Define local divisor as an unsigned number.
+    Set divisor to 1000.
     While divisor > 0:
-        Set buf[len] to 48 + (frac / divisor) as u8.
-        frac = frac % divisor.
-        divisor = divisor / 10.
-        len += 1.
-    Return len.
+        Set item len of buf to (48 + frac / divisor) as a byte.
+        Set frac to frac % divisor.
+        Set divisor to divisor / 10.
+        Add 1 to len.
+    Give back len.
+Done.
 
-function newline returning void:
-    syscall(1, 1, bytes_ptr("\n"), bytes_len("\n")).
+To newline returning nothing.
+    Ask Linux kernel 1 with 1, "\n", and 1.
+Done.
 
-Public function print_i64 taking n as i64 returning void:
-    Phrase: "say <n>"
-    Phrase: "show <n>"
-    Phrase: "print <n>"
-    Phrase: "display <n>"
-    Define local buf as array<u8, 32>.
-    Define local len as u64.
-    len = format_i64_into(n, address of buf[0]).
-    syscall(1, 1, address of buf[0], len).
+Publicly, to print_i64 given n as a whole number, returning nothing.
+    You can call this as "say <n>", "show <n>", "print <n>", or "display <n>".
+    Define local buf as block of 32 byte.
+    Define local len as an unsigned number.
+    Set len to format_i64_into(n, address of item 0 of buf).
+    Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
     newline().
+Done.
 
-Public function print_u64 taking n as u64 returning void:
-    Phrase: "say <n>"
-    Phrase: "show <n>"
-    Phrase: "print <n>"
-    Phrase: "display <n>"
-    Define local buf as array<u8, 32>.
-    Define local len as u64.
-    len = format_u64_into(n, address of buf[0]).
-    syscall(1, 1, address of buf[0], len).
+Publicly, to print_u64 given n as an unsigned number, returning nothing.
+    You can call this as "say <n>", "show <n>", "print <n>", or "display <n>".
+    Define local buf as block of 32 byte.
+    Define local len as an unsigned number.
+    Set len to format_u64_into(n, address of item 0 of buf).
+    Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
     newline().
+Done.
 
-Public function print_f64 taking x as f64 returning void:
-    Phrase: "say <x>"
-    Phrase: "show <x>"
-    Phrase: "print <x>"
-    Phrase: "display <x>"
-    Define local buf as array<u8, 64>.
-    Define local len as u64.
-    len = format_f64_into(x, address of buf[0]).
-    syscall(1, 1, address of buf[0], len).
+Publicly, to print_f64 given x as a decimal, returning nothing.
+    You can call this as "say <x>", "show <x>", "print <x>", or "display <x>".
+    Define local buf as block of 64 byte.
+    Define local len as an unsigned number.
+    Set len to format_f64_into(x, address of item 0 of buf).
+    Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
     newline().
+Done.
 
-Public function print_bool taking b as bool returning void:
-    Phrase: "say <b>"
-    Phrase: "show <b>"
-    Phrase: "print <b>"
-    Phrase: "display <b>"
+Publicly, to print_bool given b as a truth value, returning nothing.
+    You can call this as "say <b>", "show <b>", "print <b>", or "display <b>".
     If b:
-        syscall(1, 1, bytes_ptr("true"), bytes_len("true")).
+        Ask Linux kernel 1 with 1, "true", and 4.
     Else:
-        syscall(1, 1, bytes_ptr("false"), bytes_len("false")).
+        Ask Linux kernel 1 with 1, "false", and 5.
     newline().
+Done.
 
-Public function print_bytes taking p as ptr<u8> and len as u64 returning void:
-    Phrase: "say bytes <p> of length <len>"
-    syscall(1, 1, p, len).
+Publicly, to print_bytes given p as a pointer to byte, len as an unsigned number, returning nothing.
+    Call this as "say bytes <p> of length <len>".
+    Ask Linux kernel 1 with 1, p, and len.
     newline().
+Done.
 
-Public function read_i64_stdin returning i64:
-    Define local ch as array<u8, 1>.
-    Define local value as i64.
-    Define local sign as i64.
-    Define local seen as bool.
-    sign = 1.
+Publicly, to read_i64_stdin returning a whole number.
+    Define local ch as block of 1 byte.
+    Define local value as a whole number.
+    Define local sign as a whole number.
+    Define local seen as a truth value.
+    Set sign to 1.
     Loop:
-        Define local read_count as i64.
-        read_count = syscall(0, 0, address of ch[0], 1).
+        Define local read_count as a whole number.
+        Set read_count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
         If read_count <= 0:
             break.
-        Define local code as i64.
-        code = ch[0] as i64.
+        Define local code as a whole number.
+        Set code to (item 0 of ch) as a whole number.
         If not seen:
             If code == 45:
-                sign = -1.
+                Set sign to -1.
                 continue.
             If code == 43:
                 continue.
             If code == 32 or code == 9 or code == 13 or code == 10:
                 continue.
-            seen = true.
+            Set seen to true.
         If code >= 48 and code <= 57:
-            value = value * 10 + (code - 48).
+            Set value to value * 10 + (code - 48).
             continue.
         break.
-    Return value * sign.
+    Give back value * sign.
+Done.
 
-Public function read_f64_stdin returning f64:
-    Define local ch as array<u8, 1>.
-    Define local value as f64.
-    Define local sign as f64.
-    Define local divisor as f64.
-    Define local seen as bool.
-    Define local fractional as bool.
-    sign = 1.0.
-    divisor = 10.0.
+Publicly, to read_f64_stdin returning a decimal.
+    Define local ch as block of 1 byte.
+    Define local value as a decimal.
+    Define local sign as a decimal.
+    Define local divisor as a decimal.
+    Define local seen as a truth value.
+    Define local fractional as a truth value.
+    Set sign to 1.0.
+    Set divisor to 10.0.
     Loop:
-        Define local read_count as i64.
-        read_count = syscall(0, 0, address of ch[0], 1).
+        Define local read_count as a whole number.
+        Set read_count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
         If read_count <= 0:
             break.
-        Define local code as i64.
-        code = ch[0] as i64.
+        Define local code as a whole number.
+        Set code to (item 0 of ch) as a whole number.
         If not seen and not fractional:
             If code == 45:
-                sign = -1.0.
+                Set sign to -1.0.
                 continue.
             If code == 43:
                 continue.
             If code == 32 or code == 9 or code == 13 or code == 10:
                 continue.
             If code == 46:
-                seen = true.
-                fractional = true.
+                Set seen to true.
+                Set fractional to true.
                 continue.
-            seen = true.
+            Set seen to true.
         If code >= 48 and code <= 57:
             If fractional:
-                value = value + (code - 48) as f64 / divisor.
-                divisor = divisor * 10.0.
+                Set value to value + (code - 48) as a decimal / divisor.
+                Set divisor to divisor * 10.0.
             Else:
-                value = value * 10.0 + (code - 48) as f64.
+                Set value to value * 10.0 + (code - 48) as a decimal.
             continue.
         If code == 46 and not fractional:
-            fractional = true.
+            Set fractional to true.
             continue.
         break.
-    Return value * sign.
+    Give back value * sign.
+Done.
 
-Public function read_i64_into taking dst as ptr<i64> returning void:
-    Phrase: "read number into <dst>"
-    Phrase: "ask for <dst>"
-    Set dst[0] to read_i64_stdin().
+Publicly, to read_i64_into given dst as a pointer to whole number, returning nothing.
+    Call this as "read number into <dst>".
+    Call this as "ask for <dst>".
+    Set item 0 of dst to read_i64_stdin().
+Done.

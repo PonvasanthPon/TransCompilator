@@ -5,12 +5,12 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 4**: the Core-7 typed IR, exhaustive verifier,
+This repository is at **Phase 4.5**: the Core-7 typed IR, exhaustive verifier,
 byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
-word/verb engine, a finite English front end, the pure-English `std/`
-standard library, and two native editors (`r1-editor` TUI and
-`r1-editor-gui`) are implemented. English source now flows through vendored
+word/verb engine, a finite English front end, the readable natural-English
+`std/` standard library, a terminal editor (`r1-editor`), and a true native
+`eframe`/`egui` desktop editor (`r1-editor-gui`) are implemented. English source now flows through vendored
 CMU Link Grammar 5.13.2, paragraph/block segmentation, a normalized clause
 tree, a strict three-way intent gate, a declarative `Phrase:` dispatcher, a
 DRS-style discourse referent stack (`it`, `its <field>`, `the <type>`), a
@@ -23,16 +23,23 @@ real English programs end to end. Differential parity suites in
 agreement between the reference interpreter and compiled ELF64 binaries,
 including sandboxed file creation, appends, seeks, and deletion.
 
-The standard library in `std/` is written entirely in `.eng` English. It
-provides `Option`/`Result` and panic helpers, a free-list allocator, exact
-console formatting and byte-safe input, heap strings, generic `List of T`,
-streaming file I/O, `sqrt`/integer math, and open-addressing `IntMap`/`StrMap`
-tables. Programs that import `std/` still compile to static zero-libc ELF64.
+The standard library in `std/` is written entirely in readable `.eng`
+English. It provides `Option`/`Result` and panic helpers, a free-list
+allocator, exact console formatting and byte-safe input, heap strings,
+generic `List of T`, streaming file I/O, `sqrt`/integer math, and
+open-addressing `IntMap`/`StrMap` tables. The source uses prose-style
+declarations such as `A public record ... has ...`, `Keep a shared ...`,
+`Publicly, to ... given ..., returning ... . ... Done.`, `Give back ...`,
+`Clear bits ... from ...`, and `Ask Linux kernel ... with ...`. Programs that
+import `std/` still compile to static zero-libc ELF64.
 
 ## Hard properties
 
-- **`std`-only Rust** — zero crates.io dependencies; only local workspace
-  path dependencies.
+- **`std`-only compiler and TUI** — the seven compiler crates and the
+  `r1-editor` TUI have zero crates.io dependencies; only local workspace path
+  dependencies.
+- **Native GUI exception** — `tc-editor-gui` is the only crate allowed to use
+  crates.io, and only `eframe`/`egui` for a real Linux desktop window.
 - **Zero ML** — no models, embeddings, neural runtimes, or statistical
   weight files.
 - **Zero network** — builds and tests run fully offline.
@@ -60,7 +67,7 @@ tc_r1/
     tc-semantics/     # intent gate, phrase dispatch, unified Core-7 lowering
     tc-cli/           # end-to-end `tc` command-line driver
     tc-editor/        # native std-only R1 Editor (`r1-editor`) for .eng programs
-    tc-editor-gui/    # offline GUI editor (`r1-editor-gui`) sharing the same runner
+    tc-editor-gui/    # native eframe/egui desktop editor (`r1-editor-gui`)
   std/                # pure-English standard library (8 modules)
   tests/              # additional integration tests
   docs/               # design documentation and the English language spec
@@ -77,11 +84,12 @@ tc-syntax       -> tc-lexicon
 tc-semantics    -> tc-syntax, tc-lexicon, tc-typeck, tc-ir
 tc-cli          -> all six library crates (binary: tc)
 tc-editor       -> tc-ir, tc-codegen-x86, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
-tc-editor-gui   -> tc-editor and the compiler crates (binary: r1-editor-gui)
+tc-editor-gui   -> tc-editor, compiler crates, eframe/egui (binary: r1-editor-gui)
 ```
 
 The graph is strictly acyclic. The two editor crates call the compiler
-in-process; neither shells out to a compiler binary. `crates/tc-cli` produces
+in-process; neither shells out to a compiler binary. Only the native GUI
+links `eframe`/`egui`; all compiler crates and the TUI remain Rust `std`-only. `crates/tc-cli` produces
 the `tc` binary:
 
 - `tc --version` prints `tc_r1 0.1.0`.
@@ -198,7 +206,7 @@ make release     # cargo build --workspace --release
 make test        # build + cargo test --workspace
 make lint        # cargo clippy --workspace --all-targets -- -D warnings
 make fmt-check   # cargo fmt --all -- --check
-make audit       # zero-ML, zero-external-crate, zero-forbidden-reference checks
+make audit       # zero-ML, compiler/TUI std-only, native-GUI boundary checks
 make selftest    # verify + interpret + compile + execute + differential check
 make editor      # launch the terminal editor (r1-editor)
 make editor-gui  # launch the offline GUI editor (r1-editor-gui)
@@ -207,21 +215,22 @@ make clean       # cargo clean
 
 ## English standard library (`std/`)
 
-`Import io.`, `Import list.`, and the other `std/` modules are resolved
-automatically after the importing file's directory and any `-I` directories.
+`Use io.`, `Use list.`, `Use alloc, core, and string.`, and the other
+`std/` imports are resolved automatically after the importing file's
+directory and any `-I` directories. Classic `Import io.` remains valid.
 The resolver checks `TC_STD_DIR`, walks up from `/proc/self/exe`, and falls
 back to the repository `std/` directory for `cargo test`. Transitive imports
 are loaded with cycle detection.
 
 ```text
 std/core.eng     Option, Result, panic, assert_true, mem_zero, mem_eq
-std/alloc.eng    16-byte-aligned free-list heap over mmap/munmap
+std/alloc.eng    reusable-block free-list heap over Linux pages
 std/io.eng       Say/Show/Print/Display formatting and byte-safe stdin
-std/string.eng   NUL-terminated TcString with growable capacity
-std/list.eng     Generic List of T: push, pop, get, set, sort, free
-std/fs.eng       Streaming File handles plus save/display/delete helpers
+std/string.eng   growable TcString with a final zero byte
+std/list.eng     generic List of T: push, pop, get, set, sort, free
+std/fs.eng       File handles plus save/display/delete/exists helpers
 std/math.eng     sqrt, abs, min, max, pow, clamp
-std/map.eng      Open-addressing IntMap of V and StrMap of V
+std/map.eng      IntMap of V and StrMap of V with linear probing
 ```
 
 The reference interpreter implements `openat`, `read`, `write`, `close`,
@@ -275,33 +284,27 @@ CARGO_NET_OFFLINE=true cargo build --release --bin r1-editor
 
 ## R1 Editor GUI (`r1-editor-gui`)
 
-`r1-editor-gui` is a standalone Rust `std`-only desktop-style IDE for `.eng`
-programs. It embeds the complete offline HTML/CSS/JS frontend at compile
-time, binds only to `127.0.0.1`, and calls `tc-editor::runner` and
-`tc-editor::highlight` in-process. There are no external crates, CDNs, fonts,
-npm packages, Python packages, or GUI toolkit headers.
+`r1-editor-gui` is a true native Linux desktop IDE built with
+`eframe`/`egui`. It opens a real OS window, renders with OpenGL through
+Mesa, and calls `tc-editor::runner` and `tc-editor::highlight` in-process.
+There is no HTTP server, no `TcpListener`, no HTML/CSS/JS, and no browser
+launch. The default palette is a calm GitHub-style Light theme with pure
+white editor canvas, soft neutral chrome, and WCAG-friendly syntax colors;
+a quiet Soft Dark theme is available from the toolbar.
 
 ```bash
 make build
-./target/debug/r1-editor-gui                    # start on 127.0.0.1:8792 and open a browser
-./target/debug/r1-editor-gui demo.eng           # open a workspace file
-./target/debug/r1-editor-gui --port 0 --no-open # ephemeral port, print the URL only
-./target/debug/r1-editor-gui --dir examples     # choose the workspace directory
+./target/debug/r1-editor-gui                    # open an empty native window
+./target/debug/r1-editor-gui budget.eng         # open a workspace file
+./target/debug/r1-editor-gui --check budget.eng # headless compile/type check
 ./target/debug/r1-editor-gui --version
+make editor-gui
 ```
 
-The UI includes a file explorer, eight presets, a `std/` reference drawer,
-three themes, a stdin bar, and Run/Paraphrase/Trace/Core-7 IR/Build tabs. Run
-performs ELF64 and reference-interpreter parity in isolated temporary
-directories. The JSON API is also usable headlessly:
-
-```text
-GET  /api/health      GET  /api/presets     GET  /api/std
-GET  /api/files       POST /api/file/open   POST /api/file/save
-POST /api/highlight   POST /api/run         POST /api/paraphrase
-POST /api/trace       POST /api/ir          POST /api/build
-```
-
-All file paths are jailed to the workspace directory and must end in `.eng`;
-save is atomic (`tmp` + `rename`). The GUI test suite binds
-`127.0.0.1:0` and shuts every server down before the test returns.
+The window has a top toolbar with Run, Paraphrase, Trace, Core-7 IR, Build,
+New, Open, Save, Presets, `std/` Reference, and Light/Dark controls; a
+collapsible workspace/preset sidebar; a line-numbered central editor with
+live `tc-lexicon` highlighting and a stdin strip; and a resizable output
+inspector with Run & Parity, Paraphrase, Trace, Core-7 IR, and Build tabs.
+Run executes both the reference interpreter and the static zero-libc ELF64
+in isolated temporary directories and verifies exact parity.

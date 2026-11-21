@@ -29,9 +29,18 @@ fn imports_of(source: &SourceFile) -> Vec<String> {
             continue;
         };
         let tokens = tokenize(&sentence.text);
-        if tokens.first().is_some_and(|token| token.is("import")) {
-            if let Some(name) = tokens.get(1).filter(|token| token.is_word()) {
-                imports.push(name.lower.clone());
+        let Some(first) = tokens.first() else {
+            continue;
+        };
+        if !first.is("import") && !first.is("use") {
+            continue;
+        }
+        for token in tokens.iter().skip(1) {
+            if token.is("as") {
+                break;
+            }
+            if token.is_word() && !token.is("and") && !token.is("module") {
+                imports.push(token.lower.clone());
             }
         }
     }

@@ -1,5 +1,7 @@
 //! Declaration parsing and the single unified Core-7 statement lowerer.
 
+#![allow(clippy::redundant_closure_for_method_calls)]
+
 use std::collections::{HashMap, HashSet};
 
 use tc_lexicon::{SemanticConcept, VerbPredicate, classify_verb, prep_role};
@@ -155,6 +157,16 @@ fn parse_import(text: &str, module: &str, span: Span) -> Result<Import, Semantic
     })
 }
 
+fn top_level_word_count(text: &str, word: &str) -> usize {
+    let mut count = 0;
+    let mut rest = text;
+    while let Some((_, end)) = find_top_level_word(rest, word) {
+        count += 1;
+        rest = &rest[end..];
+    }
+    count
+}
+
 fn split_as(text: &str) -> Option<(String, String)> {
     let (start, end) = find_top_level_word(text, "as")?;
     let left = text[..start].trim();
@@ -173,7 +185,9 @@ fn parse_fields(
     let mut fields = Vec::new();
     let mut pieces = Vec::new();
     for comma_piece in split_type_list(text, ",") {
-        pieces.extend(split_type_list(&comma_piece, "and"));
+        for and_piece in split_type_list(&comma_piece, "and") {
+            pieces.extend(split_type_list(&and_piece, "or"));
+        }
     }
     for piece in pieces {
         let Some((name, ty_text)) = split_as(&piece) else {
@@ -184,7 +198,12 @@ fn parse_fields(
                 format!("field declaration `{piece}` must use `<name> as <type>`"),
             ));
         };
-        let name = lower_name(name.trim());
+        let raw_name = name.trim();
+        let name = tokenize(raw_name)
+            .into_iter()
+            .filter(|token| token.is_word())
+            .find(|token| !matches!(token.lower.as_str(), "a" | "an" | "the"))
+            .map_or_else(|| lower_name(raw_name), |token| lower_name(&token.text));
         if !name
             .chars()
             .all(|character| character.is_ascii_alphanumeric() || character == '_')
@@ -433,8 +452,18 @@ fn parse_function_header(text: &str, module: &str, span: Span) -> Result<AstFn, 
                 index += 1;
             }
             let param_text = &text[start..end];
-            for piece in split_type_list(param_text, "and") {
-                for inner in split_type_list(&piece, ",") {
+            for comma_piece in split_type_list(param_text, ",") {
+                if top_level_word_count(&comma_piece, "as") == 1 {
+                    let Some((param_name, ty_text)) = split_as(&comma_piece) else {
+                        continue;
+                    };
+                    let ty = parse_type_text(ty_text.trim()).map_err(|message| {
+                        semantic_error(module, span, SemanticErrorKind::Declaration, message)
+                    })?;
+                    params.push((lower_name(param_name.trim()), ty));
+                    continue;
+                }
+                for inner in split_type_list(&comma_piece, "and") {
                     if inner.trim().is_empty() {
                         continue;
                     }
@@ -477,10 +506,404 @@ fn parse_function_header(text: &str, module: &str, span: Span) -> Result<AstFn, 
     })
 }
 
+fn natural_function_header(text: &str) -> bool {
+    let tokens = tokenize(text);
+    let mut index = 0;
+    while tokens.get(index).is_some_and(|token| {
+        matches!(
+            token.lower.as_str(),
+            "publicly" | "public" | "private" | "," | "the" | "a" | "an"
+        )
+    }) {
+        index += 1;
+    }
+    tokens.get(index).is_some_and(|token| token.is("to"))
+        && tokens.get(index + 1).is_some_and(|token| token.is_word())
+}
+
+fn natural_visibility(tokens: &[tc_syntax::Token]) -> &'static str {
+    if tokens
+        .iter()
+        .take_while(|token| !token.is("to"))
+        .any(|token| token.is("public") || token.is("publicly"))
+    {
+        "Public "
+    } else if tokens
+        .iter()
+        .take_while(|token| !token.is("to"))
+        .any(|token| token.is("private"))
+    {
+        "Private "
+    } else {
+        ""
+    }
+}
+
+fn split_natural_parameters(
+    text: &str,
+    module: &str,
+    span: Span,
+) -> Result<Vec<(String, String)>, SemanticError> {
+    let mut params = Vec::new();
+    for comma_piece in split_type_list(text, ",") {
+        if let Some((name, ty)) = split_as(&comma_piece) {
+            params.push((lower_name(name.trim()), ty.trim().to_string()));
+            continue;
+        }
+        for piece in split_type_list(&comma_piece, "and") {
+            let piece = piece.trim();
+            if piece.is_empty() {
+                continue;
+            }
+            let tokens = tokenize(piece);
+            let Some(name_token) = tokens.last() else {
+                continue;
+            };
+            if !name_token.is_word() {
+                return Err(semantic_error(
+                    module,
+                    span,
+                    SemanticErrorKind::Declaration,
+                    format!("parameter `{piece}` is missing a name"),
+                ));
+            }
+            let name = lower_name(&name_token.text);
+            let type_text = piece[..name_token.start].trim();
+            let ty = if type_text.is_empty() {
+                "number".to_string()
+            } else {
+                type_text.to_string()
+            };
+            params.push((name, ty));
+        }
+    }
+    Ok(params)
+}
+
+fn compact_natural_function_type(ty: &str) -> Option<String> {
+    let ty = ty.trim();
+    let ty = ty
+        .strip_prefix("a ")
+        .or_else(|| ty.strip_prefix("an "))
+        .unwrap_or(ty);
+    let rest = ty.strip_prefix("function taking ")?;
+    let (start, end) = find_top_level_word(rest, "returning")?;
+    let params = split_type_list(rest[..start].trim(), "and")
+        .into_iter()
+        .flat_map(|piece| split_type_list(&piece, ","))
+        .map(|piece| piece.trim().to_string())
+        .filter(|piece| !piece.is_empty())
+        .collect::<Vec<_>>();
+    Some(format!(
+        "fn({}) -> {}",
+        params.join(", "),
+        rest[end..].trim()
+    ))
+}
+
+fn normalize_function_header(
+    text: &str,
+    module: &str,
+    span: Span,
+) -> Result<String, SemanticError> {
+    let tokens = tokenize(text);
+    let Some(to_index) = tokens.iter().position(|token| token.is("to")) else {
+        return Err(semantic_error(
+            module,
+            span,
+            SemanticErrorKind::Declaration,
+            "natural function header is missing `To`",
+        ));
+    };
+    let Some(name_token) = tokens.get(to_index + 1).filter(|token| token.is_word()) else {
+        return Err(semantic_error(
+            module,
+            span,
+            SemanticErrorKind::Declaration,
+            "natural function name is missing",
+        ));
+    };
+    let name = lower_name(&name_token.text);
+    let mut index = to_index + 2;
+    let mut type_params = Vec::new();
+    if tokens
+        .get(index)
+        .is_some_and(|token| token.is("for") || token.is("of"))
+    {
+        index += 1;
+        let start = tokens.get(index).map_or(text.len(), |token| token.start);
+        let mut end = text.len();
+        while index < tokens.len() {
+            if tokens[index].is("given") || tokens[index].is("returning") || tokens[index].is(":") {
+                end = tokens[index].start;
+                break;
+            }
+            index += 1;
+        }
+        type_params = parse_type_params(&text[start..end], module, span)?
+            .into_iter()
+            .collect::<Vec<_>>();
+    }
+    let mut params = Vec::new();
+    let outer_returning = tokens.iter().rposition(|token| token.is("returning"));
+    if tokens.get(index).is_some_and(|token| token.is("given")) {
+        index += 1;
+        let start = tokens.get(index).map_or(text.len(), |token| token.start);
+        let end = outer_returning
+            .and_then(|position| tokens.get(position))
+            .map_or(text.len(), |token| token.start);
+        params = split_natural_parameters(&text[start..end], module, span)?;
+    }
+    let mut ret = "nothing".to_string();
+    if let Some(position) = outer_returning {
+        let start = tokens
+            .get(position + 1)
+            .map_or(text.len(), |token| token.start);
+        ret = text[start..]
+            .trim()
+            .trim_end_matches(':')
+            .trim_end_matches('.')
+            .trim()
+            .to_string();
+    }
+    let mut header = String::new();
+    header.push_str(natural_visibility(&tokens));
+    header.push_str("function ");
+    header.push_str(&name);
+    if !type_params.is_empty() {
+        header.push_str(" of ");
+        header.push_str(&type_params.join(" and "));
+    }
+    if !params.is_empty() {
+        header.push_str(" taking ");
+        header.push_str(
+            &params
+                .into_iter()
+                .map(|(name, ty)| {
+                    let ty = compact_natural_function_type(&ty).unwrap_or(ty);
+                    format!("{name} as {ty}")
+                })
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
+    }
+    header.push_str(" returning ");
+    header.push_str(&ret);
+    header.push(':');
+    Ok(header)
+}
+
+fn quoted_values(line: &str) -> Vec<String> {
+    let mut values = Vec::new();
+    let mut parts = line.split('"');
+    parts.next();
+    while let Some(value) = parts.next() {
+        values.push(value.to_string());
+        parts.next();
+    }
+    values
+}
+
+fn normalize_natural_declaration(trimmed: &str) -> Option<String> {
+    let tokens = tokenize(trimmed);
+    let mut index = 0;
+    while tokens.get(index).is_some_and(|token| {
+        matches!(
+            token.lower.as_str(),
+            "a" | "an" | "the" | "public" | "private" | ","
+        )
+    }) {
+        index += 1;
+    }
+    if tokens.get(index).is_some_and(|token| token.is("use")) {
+        let rest = trimmed[tokens[index].end..].trim().trim_end_matches('.');
+        let mut modules = Vec::new();
+        for comma_piece in split_type_list(rest, ",") {
+            for piece in split_type_list(&comma_piece, "and") {
+                let value = piece.trim().trim_end_matches('.');
+                if !value.is_empty() {
+                    modules.push(value.to_string());
+                }
+            }
+        }
+        if modules.is_empty() {
+            return None;
+        }
+        return Some(
+            modules
+                .into_iter()
+                .map(|module| format!("Import {module}."))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+    let record_keyword = tokens.get(index).map(|token| token.lower.as_str());
+    if matches!(record_keyword, Some("record" | "union")) {
+        let is_union = record_keyword == Some("union");
+        let keyword_index = index;
+        let prefix = &tokens[..keyword_index];
+        let public = prefix.iter().any(|token| token.is("public"));
+        let name_token = tokens
+            .get(keyword_index + 1)
+            .filter(|token| token.is_word())?;
+        let rest_start = tokens
+            .get(keyword_index + 2)
+            .map_or(trimmed.len(), |token| token.start);
+        let rest = &trimmed[rest_start..];
+        let (before, after) = find_top_level_word(rest, "has")
+            .or_else(|| find_top_level_word(rest, "holds"))
+            .or_else(|| find_top_level_word(rest, "with"))?;
+        let keyword = if is_union { "union" } else { "struct" };
+        return Some(
+            format!(
+                "{} {keyword} {} {} with {}",
+                if public { "Public" } else { "Private" },
+                lower_name(&name_token.text),
+                rest[..before].trim(),
+                rest[after..].trim()
+            )
+            .replace("  ", " "),
+        );
+    }
+    if tokens.get(index).is_some_and(|token| token.is("keep")) {
+        let mut cursor = index + 1;
+        while tokens.get(cursor).is_some_and(|token| {
+            matches!(
+                token.lower.as_str(),
+                "a" | "an" | "the" | "public" | "private"
+            )
+        }) {
+            cursor += 1;
+        }
+        if !tokens
+            .get(cursor)
+            .is_some_and(|token| token.is("shared") || token.is("global"))
+        {
+            return None;
+        }
+        cursor += 1;
+        let name = tokens
+            .get(cursor)
+            .filter(|token| token.is_word())?
+            .text
+            .clone();
+        let public = tokens[..cursor].iter().any(|token| token.is("public"));
+        let as_index = tokens
+            .iter()
+            .position(|token| token.is("as"))
+            .or_else(|| tokens.iter().position(|token| token.text == "="))?;
+        let start = tokens
+            .get(as_index + 1)
+            .map_or(trimmed.len(), |token| token.start);
+        return Some(format!(
+            "{} global {} as {}",
+            if public { "Public" } else { "Private" },
+            lower_name(&name),
+            trimmed[start..].trim()
+        ));
+    }
+    None
+}
+
+fn normalize_natural_line(trimmed: &str) -> Option<String> {
+    let lower = trimmed.to_ascii_lowercase();
+    if lower.starts_with("give back") {
+        let tokens = tokenize(trimmed);
+        let start = tokens.get(2).map_or(trimmed.len(), |token| token.start);
+        let rest = trimmed[start..].trim();
+        return Some(if rest.is_empty() {
+            "Return.".to_string()
+        } else {
+            format!("Return {rest}")
+        });
+    }
+    if lower.starts_with("stop and return") {
+        return Some("Return.".to_string());
+    }
+    if lower.starts_with("call this as") || lower.starts_with("you can call this as") {
+        let values = quoted_values(trimmed);
+        if values.is_empty() {
+            return None;
+        }
+        return Some(
+            values
+                .into_iter()
+                .map(|value| format!("Phrase: \"{value}\"."))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+    normalize_natural_declaration(trimmed)
+}
+
+/// Rewrites natural-English declarations into the stable declaration shorthands.
+fn normalize_natural_source(text: &str) -> String {
+    let mut output = String::new();
+    let mut natural_function: Option<usize> = None;
+    for raw_line in text.lines() {
+        let indent = raw_line.len() - raw_line.trim_start().len();
+        let trimmed = raw_line.trim_start();
+        if trimmed.is_empty() {
+            output.push('\n');
+            continue;
+        }
+        if let Some(header_indent) = natural_function {
+            if trimmed
+                .trim_end_matches('.')
+                .trim()
+                .eq_ignore_ascii_case("done")
+                || trimmed
+                    .trim_end_matches('.')
+                    .trim()
+                    .eq_ignore_ascii_case("end")
+            {
+                natural_function = None;
+                continue;
+            }
+            let desired = header_indent + 4;
+            let effective = indent.max(desired);
+            if let Some(normalized) = normalize_natural_line(trimmed) {
+                for line in normalized.lines() {
+                    output.push_str(&" ".repeat(effective));
+                    output.push_str(line);
+                    output.push('\n');
+                }
+            } else {
+                output.push_str(&" ".repeat(effective));
+                output.push_str(trimmed);
+                output.push('\n');
+            }
+            continue;
+        }
+        if natural_function_header(trimmed) {
+            if let Ok(header) = normalize_function_header(trimmed, "main", Span::default()) {
+                output.push_str(&" ".repeat(indent));
+                output.push_str(&header);
+                output.push('\n');
+                natural_function = Some(indent);
+                continue;
+            }
+        }
+        if let Some(normalized) = normalize_natural_line(trimmed) {
+            for line in normalized.lines() {
+                output.push_str(&" ".repeat(indent));
+                output.push_str(line);
+                output.push('\n');
+            }
+            continue;
+        }
+        output.push_str(raw_line);
+        output.push('\n');
+    }
+    output
+}
+
 /// Runs the declaration pass over one segmented module.
 pub(crate) fn parse_module(source: &SourceFile) -> Result<ModuleJob, Vec<SemanticError>> {
     let module_name = source.module_name();
-    let document = segment_source(source);
+    let normalized_source = normalize_natural_source(&source.text);
+    let normalized = SourceFile::new(source.name.clone(), normalized_source);
+    let document = segment_source(&normalized);
     let mut ast = AstModule {
         name: module_name.clone(),
         imports: Vec::new(),
@@ -2932,6 +3355,19 @@ impl<'a> Lowerer<'a> {
                 "`Else`/`Otherwise` must follow an `If` block",
             ));
         }
+        if let Some(statements) = self.try_natural_bit_update(trimmed, span)? {
+            return Ok(statements);
+        }
+        if let Some(statement) = self.try_write_at(trimmed, span)? {
+            return Ok(vec![statement]);
+        }
+        if let Some(statement) = self.try_set_item(trimmed, span)? {
+            return Ok(vec![statement]);
+        }
+        if starts_with_word(&lower, "ask") {
+            let value = self.parse_value(trimmed, span)?;
+            return Ok(vec![AstStmt::Expr(value, self.span(span))]);
+        }
         if is_direct_call_statement(trimmed) {
             let value = self.parse_value(trimmed, span)?;
             return Ok(vec![AstStmt::Expr(value, self.span(span))]);
@@ -3329,6 +3765,126 @@ impl<'a> Lowerer<'a> {
         Ok(vec![AstStmt::Block(prelude, self.span(span))])
     }
 
+    fn try_natural_bit_update(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let lower = text.trim().to_ascii_lowercase();
+        let (set, separator) = if starts_with_word(&lower, "clear") {
+            (false, "from")
+        } else if starts_with_word(&lower, "set") {
+            (true, "in")
+        } else {
+            return Ok(None);
+        };
+        if !starts_with_word(
+            strip_leading_word(text, if set { "set" } else { "clear" }),
+            "bits",
+        ) {
+            return Ok(None);
+        }
+        let tokens = tokenize(text);
+        let Some(rest_token) = tokens.get(2) else {
+            return Ok(None);
+        };
+        let rest = &text[rest_token.start..];
+        let Some((start, end)) = find_top_level_word(rest, separator) else {
+            return Ok(None);
+        };
+        let mask_text = rest[..start].trim();
+        let target = rest[end..].trim();
+        if mask_text.is_empty() || !is_simple_name(target) {
+            return Ok(None);
+        }
+        let name = lower_name(target);
+        let Some(ty) = self.lookup(&name).cloned() else {
+            return Ok(None);
+        };
+        let mask = AstExpr::Cast {
+            val: Box::new(self.parse_value(mask_text, span)?),
+            to: ty,
+        };
+        let mask = if set {
+            mask
+        } else {
+            AstExpr::Unary {
+                op: tc_ir::UnOp::BitNot,
+                val: Box::new(mask),
+            }
+        };
+        let value = AstExpr::Binary {
+            op: if set {
+                tc_ir::BinOp::BitOr
+            } else {
+                tc_ir::BinOp::BitAnd
+            },
+            lhs: Box::new(self.parse_value(target, span)?),
+            rhs: Box::new(mask),
+        };
+        Ok(Some(self.assign_text(target, value, span, true)?))
+    }
+
+    fn try_write_at(&mut self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
+        if !starts_with_word(text, "write") {
+            return Ok(None);
+        }
+        let rest = strip_leading_word(text, "write");
+        let Some((start, end)) = find_top_level_word(rest, "at") else {
+            return Ok(None);
+        };
+        let value_text = rest[..start].trim();
+        let pointer_text = rest[end..].trim();
+        if value_text.is_empty() || pointer_text.is_empty() {
+            return Ok(None);
+        }
+        let ptr = parse_store_address(pointer_text, &self.expr_env())
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+        Ok(Some(AstStmt::Store {
+            ptr,
+            val: self.parse_value(value_text, span)?,
+            span: self.span(span),
+        }))
+    }
+
+    fn try_set_item(&mut self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
+        if !starts_with_word(text, "set") {
+            return Ok(None);
+        }
+        let rest = strip_leading_word(text, "set").trim();
+        let rest = if starts_with_word(rest, "item") {
+            strip_leading_word(rest, "item")
+        } else if starts_with_word(rest, "element") {
+            strip_leading_word(rest, "element")
+        } else {
+            return Ok(None);
+        };
+        let Some((of_start, of_end)) = find_top_level_word(rest, "of") else {
+            return Ok(None);
+        };
+        let after_of = &rest[of_end..];
+        let Some((to_start, to_end)) = find_top_level_word(after_of, "to") else {
+            return Ok(None);
+        };
+        let index_text = rest[..of_start].trim();
+        let pointer_text = after_of[..to_start].trim();
+        let value_text = after_of[to_end..].trim();
+        if index_text.is_empty() || pointer_text.is_empty() || value_text.is_empty() {
+            return Ok(None);
+        }
+        let base_ptr = parse_store_address(pointer_text, &self.expr_env())
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+        let address = AstExpr::IndexAddr {
+            base_ptr: Box::new(base_ptr),
+            index: Box::new(self.parse_value(index_text, span)?),
+        };
+        Ok(Some(AstStmt::Store {
+            ptr: address,
+            val: self.parse_value(value_text, span)?,
+            span: self.span(span),
+        }))
+    }
+
     fn try_memcopy(&mut self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
         let rest = if starts_with_word(text, "memcopy") {
             strip_leading_word(text, "memcopy")
@@ -3467,7 +4023,7 @@ impl<'a> Lowerer<'a> {
         }
         let words = tokenize(trimmed)
             .into_iter()
-            .filter(tc_syntax::Token::is_word)
+            .filter(|token| token.is_word())
             .map(|token| token.lower)
             .collect::<Vec<_>>();
         let name = match words.as_slice() {
@@ -3538,6 +4094,11 @@ impl<'a> Lowerer<'a> {
         span: Span,
     ) -> Result<Option<(Vec<AstStmt>, AstExpr)>, SemanticError> {
         let tokens = tokenize(text);
+        if tokens.first().is_some_and(|token| token.is("no"))
+            && tokens.get(1).is_some_and(|token| token.is("address"))
+        {
+            return Ok(None);
+        }
         let has_quantifier = tokens.iter().any(|token| {
             token.kind == TokenKind::Word
                 && matches!(token.lower.as_str(), "every" | "each" | "some" | "no")
@@ -4238,7 +4799,7 @@ fn is_direct_call_statement(text: &str) -> bool {
     let open = if tokens.get(1).is_some_and(|token| token.text == "(") {
         1
     } else if tokens.get(1).is_some_and(|token| token.text == ".")
-        && tokens.get(2).is_some_and(tc_syntax::Token::is_word)
+        && tokens.get(2).is_some_and(|token| token.is_word())
         && tokens.get(3).is_some_and(|token| token.text == "(")
     {
         3
@@ -4524,4 +5085,70 @@ pub(crate) fn lower_module(
         entries: lowerer.paraphrase_entries,
     };
     (module_ast, lowerer.trace, lowerer.errors, doc)
+}
+
+#[cfg(test)]
+mod natural_header_tests {
+    use super::{Span, normalize_function_header, normalize_natural_source};
+
+    #[test]
+    fn natural_header_normalizes_type_params_and_returns() {
+        let header = normalize_function_header(
+            "Publicly, to result_err for T and E given an E e, returning Result of T and E.",
+            "core",
+            Span::default(),
+        )
+        .expect("header");
+        println!("{header}");
+        assert!(header.contains("of T and E"));
+        assert!(header.contains("taking e as an E"));
+        assert!(header.contains("returning Result of T and E"));
+    }
+
+    #[test]
+    fn natural_list_source_headers() {
+        let text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../std/list.eng"),
+        )
+        .expect("list.eng");
+        let normalized = normalize_natural_source(&text);
+        for (index, line) in normalized.lines().enumerate() {
+            if line.contains("list_") && line.contains("function") {
+                println!("{:3}: {line}", index + 1);
+            }
+        }
+    }
+
+    #[test]
+    fn natural_io_source_indentation() {
+        let text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../std/io.eng"),
+        )
+        .expect("io.eng");
+        let normalized = normalize_natural_source(&text);
+        for (index, line) in normalized.lines().enumerate() {
+            if (128..=138).contains(&(index + 1)) {
+                println!("{:3}: {:?}", index + 1, line);
+            }
+        }
+    }
+
+    #[test]
+    fn natural_core_source_normalizes_result_err() {
+        let text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../std/core.eng"),
+        )
+        .expect("core.eng");
+        let normalized = normalize_natural_source(&text);
+        for (index, line) in normalized.lines().enumerate() {
+            if (55..=75).contains(&(index + 1)) {
+                println!("{:3}: {line}", index + 1);
+            }
+        }
+        assert!(
+            normalized.contains(
+                "function result_err of t and e taking e as E returning Result of T and E:"
+            )
+        );
+    }
 }
