@@ -1,13 +1,16 @@
 //! Editor state machine and keybindings.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crate::buffer::TextBuffer;
+use crate::highlight::LineState;
 use crate::keys::KeyEvent;
 use crate::runner::{
     OutputTab, PRESETS, RunResult, build_elf_artifact, run_elf_with_parity, run_ir, run_paraphrase,
     run_trace,
 };
+use crate::theme::{Theme, ThemeId};
 
 /// Interactive mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,6 +82,14 @@ pub struct EditorApp {
     pub width: usize,
     /// Current terminal height.
     pub height: usize,
+    /// Active color theme.
+    pub theme: Theme,
+    /// One-based line diagnostic and prose states.
+    pub line_states: HashMap<usize, LineState>,
+    /// Selected row in the preset picker.
+    pub preset_selection: usize,
+    /// Last committed `Ctrl+F` query, used for match highlighting.
+    pub search_query: Option<String>,
 }
 
 impl Default for EditorApp {
@@ -98,20 +109,54 @@ impl EditorApp {
                 summary: "Ready".to_string(),
                 lines: vec![
                     "Press F2 to load a .eng preset or start typing English.".to_string(),
+                    "Keys: F5/^R Run   F6/^P Paraphrase   F7/^T Trace".to_string(),
                     "F5 runs the native ELF64 and checks interpreter parity.".to_string(),
                 ],
+                error_lines: Vec::new(),
+                omitted_lines: Vec::new(),
             },
             tab: OutputTab::Run,
             mode: Mode::Editing,
             prompt_kind: None,
             prompt: String::new(),
-            status: "Press F2 to load a .eng preset or start typing English!".to_string(),
+            status: "R1 Editor ready — press F2 for presets or start typing English!".to_string(),
             output_scroll: 0,
             stdin_text: String::new(),
             quit_confirm: false,
             should_quit: false,
             width: 100,
             height: 30,
+            theme: Theme::initial(),
+            line_states: HashMap::new(),
+            preset_selection: 0,
+            search_query: None,
+        }
+    }
+
+    /// Creates an editor with an explicit theme (test-friendly and NO_COLOR-safe).
+    #[must_use]
+    pub fn with_theme(id: ThemeId) -> Self {
+        let mut app = Self::new();
+        app.theme = Theme::from_id(id);
+        app
+    }
+
+    /// Returns the semantic state for a one-based source line.
+    #[must_use]
+    pub fn line_state(&self, line: usize) -> LineState {
+        self.line_states
+            .get(&line)
+            .copied()
+            .unwrap_or(LineState::Normal)
+    }
+
+    fn update_line_states(&mut self, result: &RunResult) {
+        self.line_states.clear();
+        for line in &result.omitted_lines {
+            self.line_states.insert(*line, LineState::ProseOmitted);
+        }
+        for line in &result.error_lines {
+            self.line_states.insert(*line, LineState::Error);
         }
     }
 
@@ -121,6 +166,8 @@ impl EditorApp {
     ///
     /// Returns the I/O error when an existing file cannot be read.
     pub fn open_path(&mut self, path: &Path) -> std::io::Result<()> {
+        self.line_states.clear();
+        self.search_query = None;
         if path.exists() {
             self.buffer = TextBuffer::load_from_file(path)?;
             self.status = format!("Opened {}", path.display());
@@ -135,6 +182,8 @@ impl EditorApp {
 
     /// Loads a built-in preset into the editor.
     pub fn load_preset(&mut self, index: usize) -> bool {
+        self.line_states.clear();
+        self.preset_selection = index;
         let Some(preset) = PRESETS.get(index) else {
             self.status = format!("No preset {}", index + 1);
             return false;
@@ -202,10 +251,16 @@ impl EditorApp {
                 }
             }
             Some(PromptKind::Find) => {
-                if value.is_empty() || !self.buffer.find_next(&value) {
-                    self.status = format!("Not found: {value}");
+                if value.is_empty() {
+                    self.search_query = None;
+                    self.status = "Search cleared".to_string();
                 } else {
-                    self.status = format!("Found {value}");
+                    self.search_query = Some(value.clone());
+                    if self.buffer.find_next(&value) {
+                        self.status = format!("Found {value}");
+                    } else {
+                        self.status = format!("Not found: {value}");
+                    }
                 }
             }
             Some(PromptKind::Stdin) => {
@@ -231,6 +286,12 @@ impl EditorApp {
             OutputTab::Ir => run_ir(&source, file_path.as_deref()),
             OutputTab::Build => build_elf_artifact(&source, file_path.as_deref()),
         };
+        if matches!(
+            tab,
+            OutputTab::Run | OutputTab::Paraphrase | OutputTab::Trace
+        ) {
+            self.update_line_states(&result);
+        }
         self.status.clone_from(&result.summary);
         self.output = result;
         self.tab = tab;
@@ -308,17 +369,30 @@ impl EditorApp {
                 return true;
             }
             Mode::PresetPicker => {
-                if let KeyEvent::Char(character) = event {
-                    if let Some(index) = character.to_digit(10) {
-                        if (1..=5).contains(&index) {
-                            let _ = self.load_preset(index as usize - 1);
-                            return true;
+                match event {
+                    KeyEvent::Up => {
+                        self.preset_selection =
+                            (self.preset_selection + PRESETS.len() - 1) % PRESETS.len();
+                    }
+                    KeyEvent::Down => {
+                        self.preset_selection = (self.preset_selection + 1) % PRESETS.len();
+                    }
+                    KeyEvent::Enter => {
+                        let _ = self.load_preset(self.preset_selection);
+                    }
+                    KeyEvent::Char(character) => {
+                        if let Some(index) = character.to_digit(10) {
+                            if (1..=5).contains(&index) {
+                                let _ = self.load_preset(index as usize - 1);
+                                return true;
+                            }
                         }
                     }
-                }
-                if matches!(event, KeyEvent::Esc | KeyEvent::F(2)) {
-                    self.mode = Mode::Editing;
-                    self.status = "Preset picker closed".to_string();
+                    KeyEvent::Esc | KeyEvent::F(2) => {
+                        self.mode = Mode::Editing;
+                        self.status = "Preset picker closed".to_string();
+                    }
+                    _ => {}
                 }
                 return true;
             }
@@ -351,7 +425,13 @@ impl EditorApp {
             }
             KeyEvent::F(2) => {
                 self.mode = Mode::PresetPicker;
-                self.status = "Preset picker: press 1-5, Esc to cancel".to_string();
+                self.preset_selection = 0;
+                self.status = "Preset picker: ↑/↓ then Enter, or 1-5".to_string();
+                true
+            }
+            KeyEvent::F(4) => {
+                self.theme = Theme::from_id(self.theme.id.next());
+                self.status = format!("Theme: {}", self.theme.id.name());
                 true
             }
             KeyEvent::F(3) => {
@@ -394,18 +474,22 @@ impl EditorApp {
                     self.buffer = TextBuffer::new();
                     self.mode = Mode::Editing;
                     self.tab = OutputTab::Run;
+                    self.line_states.clear();
+                    self.search_query = None;
                     self.status = "New .eng buffer".to_string();
                 }
                 true
             }
             KeyEvent::Ctrl('z') => {
                 if self.buffer.undo() {
+                    self.line_states.clear();
                     self.status = "Undo".to_string();
                 }
                 true
             }
             KeyEvent::Ctrl('y') => {
                 if self.buffer.redo() {
+                    self.line_states.clear();
                     self.status = "Redo".to_string();
                 }
                 true
@@ -442,7 +526,27 @@ impl EditorApp {
                 _ => true,
             },
             _ => {
-                self.edit_key(event);
+                let edits_buffer = matches!(
+                    event,
+                    KeyEvent::Char(_)
+                        | KeyEvent::Enter
+                        | KeyEvent::Tab
+                        | KeyEvent::Backspace
+                        | KeyEvent::Delete
+                );
+                if edits_buffer {
+                    let row = self.buffer.cursor_row() + 1;
+                    let line_count = self.buffer.lines().len();
+                    self.edit_key(event);
+                    if self.buffer.lines().len() == line_count {
+                        self.line_states.remove(&row);
+                        self.line_states.remove(&(self.buffer.cursor_row() + 1));
+                    } else {
+                        self.line_states.clear();
+                    }
+                } else {
+                    self.edit_key(event);
+                }
                 true
             }
         }
@@ -459,6 +563,8 @@ impl EditorApp {
             KeyEvent::Down => self.buffer.move_down(),
             KeyEvent::Left => self.buffer.move_left(),
             KeyEvent::Right => self.buffer.move_right(),
+            KeyEvent::CtrlLeft => self.buffer.move_word_left(),
+            KeyEvent::CtrlRight => self.buffer.move_word_right(),
             KeyEvent::Home => self.buffer.move_home(),
             KeyEvent::End => self.buffer.move_end(),
             KeyEvent::PageUp => self.buffer.page_up(10),

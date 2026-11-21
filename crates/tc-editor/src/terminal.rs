@@ -8,6 +8,11 @@ const TCGETS: u64 = 0x5401;
 const TCSETS: u64 = 0x5402;
 const TIOCGWINSZ: u64 = 0x5413;
 
+/// Start of a synchronized-output frame.
+pub const SYNC_BEGIN: &str = "\x1b[?2026h";
+/// End of a synchronized-output frame.
+pub const SYNC_END: &str = "\x1b[?2026l";
+
 const ICANON: u32 = 0x0000_0002;
 const ECHO: u32 = 0x0000_0008;
 const ISIG: u32 = 0x0000_0001;
