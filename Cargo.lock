@@ -33,6 +33,7 @@ version = "0.1.0"
 name = "tc-semantics"
 version = "0.1.0"
 dependencies = [
+ "tc-codegen-x86",
  "tc-ir",
  "tc-lexicon",
  "tc-syntax",

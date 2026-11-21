@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-description = "Semantic analysis for tc_r1 (Phase 0 scaffold)"
+description = "Finite English 3-way intent gate, phrase dispatch, and Core-7 lowering"
 
 [lints]
 workspace = true
@@ -14,3 +14,6 @@ tc-ir = { path = "../tc-ir" }
 tc-lexicon = { path = "../tc-lexicon" }
 tc-syntax = { path = "../tc-syntax" }
 tc-typeck = { path = "../tc-typeck" }
+
+[dev-dependencies]
+tc-codegen-x86 = { path = "../tc-codegen-x86" }

@@ -5,18 +5,19 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 2**: the Core-7 typed IR, exhaustive verifier,
+This repository is at **Phase 3**: the Core-7 typed IR, exhaustive verifier,
 byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
-backend, the high-level `tc-typeck` front end, and the zero-ML
-`tc-lexicon` word/verb engine are implemented. The type checker provides
-multi-file modules, visibility, scoping, strict typing, type-directed
-overloads, phrase metadata, and compile-time generics. The lexicon engine
-harvests provenance-carrying Open English WordNet 2025 and CU Boulder
-VerbNet 3.4 tables without per-verb Rust mappings. Differential parity suites
-in `crates/tc-codegen-x86/tests/` and `crates/tc-typeck/tests/` require exact
-exit-status/stdout/stderr agreement between the reference interpreter and
-compiled ELF64 binaries. English parsing and the `std/` library are not
-implemented yet.
+backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
+word/verb engine, and a finite English front end are implemented. English
+source now flows through vendored CMU Link Grammar 5.13.2, paragraph/block
+segmentation, a normalized clause tree, a strict three-way intent gate, a
+declarative `Phrase:` dispatcher, and one unified recursive Core-7 statement
+lowerer. `tc build`, `tc run`, `tc interp`, and `tc trace` compile real
+English programs end to end. Differential parity suites in
+`crates/tc-codegen-x86/tests/`, `crates/tc-typeck/tests/`, and
+`crates/tc-semantics/tests/` require exact exit-status/stdout/stderr
+agreement between the reference interpreter and compiled ELF64 binaries.
+The English `std/` library is not implemented yet.
 
 ## Hard properties
 
@@ -45,13 +46,12 @@ tc_r1/
     tc-codegen-x86/   # ELF64 x86_64 backend
     tc-typeck/        # typed AST, modules, generics, lowering
     tc-lexicon/       # WordNet/VerbNet/closed-class lexicon engine
-    tc-lexicon/       # lexical model
-    tc-syntax/        # syntax analysis
-    tc-semantics/     # semantic analysis
-    tc-cli/           # `tc` command-line driver
-  std/                # English std/ sources (empty in Phase 2)
-  tests/              # integration tests (empty in Phase 2)
-  docs/               # design documentation (empty in Phase 2)
+    tc-syntax/        # Link Grammar FFI, segmentation, clause normalization
+    tc-semantics/     # intent gate, phrase dispatch, unified Core-7 lowering
+    tc-cli/           # end-to-end `tc` command-line driver
+  std/                # English std/ sources (Phase 4)
+  tests/              # additional integration tests
+  docs/               # design documentation
 ```
 
 ## Dependency graph
@@ -69,10 +69,17 @@ tc-cli          -> all six library crates (binary: tc)
 The graph is strictly acyclic. `crates/tc-cli` produces the `tc` binary:
 
 - `tc --version` prints `tc_r1 0.1.0`.
-- `tc --audit` checks the workspace crate identities and reports scaffold
-  status.
+- `tc --audit` checks the workspace crate identities and reports the exact
+  WordNet, VerbNet, morphology, and closed-class counts.
 - `tc --selftest` verifies, interprets, compiles, executes, and
   differentially checks a small Core-7 module, then prints `SELFTEST PASS`.
+- `tc build <file.tc> [-o <out_elf>] [-I <dir>]` compiles English to a
+  static zero-libc ELF64 binary.
+- `tc run <file.tc> [-I <dir>] [-- <args...>]` compiles and executes it.
+- `tc interp <file.tc> [-I <dir>] [-- <args...>]` executes the verified
+  Core-7 IR in the reference interpreter.
+- `tc trace <file.tc> [-I <dir>]` prints per-sentence Link Grammar counts,
+  lexicon provenance, intent verdicts, and formatted TC-IR.
 
 ## Core-7 IR and backend
 
@@ -105,13 +112,31 @@ Linux syscalls with the `r10` fourth-argument convention.
 
 `check_and_lower` is the public AST-to-IR entry point;
 `collect_phrases` validates and exports declarative English phrase
-signatures for Phase 3.
+signatures for the English front end.
+
+## English front end
+
+`tc-syntax` wraps the vendored CMU Link Grammar 5.13.2 shared library through
+a minimal safe FFI layer with owned cleanup and `$ORIGIN` run-paths. It
+segments flowing paragraphs, numbered steps, semicolon clauses, strings,
+decimals, colon-introduced indented blocks, and explicit `End.` closers, then
+normalizes dependency links into active, passive, and imperative clause trees.
+When Link Grammar produces no linkage, deterministic closed-class role
+extraction takes over.
+
+`tc-semantics` classifies every sentence into exactly one of `EXEC`,
+`COMMENT_OMITTED`, or `UNSUPPORTED` using structural anchors, grammatical
+tense, `tc-lexicon` evidence, and in-scope declarative phrases. It matches
+`Phrase:` signatures attached to English functions, binds `<param>` captures
+as expressions, and lowers the whole program through a single recursive
+`lower_stmt` path with a 32-level guard. Identifiers are case-insensitive while
+string and byte literals preserve exact case.
 
 ## Lexicon engine
 
 `tc-lexicon` is a compact, deterministic, provenance-backed semantic layer:
 
-- **784** WordNet rows from 25 exact OEWN-2025 anchor synsets, depth <= 3,
+- **786** WordNet rows from 27 exact OEWN-2025 anchor synsets, depth <= 3,
   sorted by `(lemma, pos, concept)`.
 - **10,845** VerbNet 3.4 frames from all 329 class files and 609
   classes/subclasses, sorted by `(verb, prep, predicate, class_id)`.
@@ -124,24 +149,30 @@ signatures for Phase 3.
 - `goldmines/PROVENANCE.md` records dataset versions, hashes, anchors, counts,
   and the reproducible harvester commands.
 
+The two extra WordNet anchors are depth-zero scalar-magnitude anchors for
+`increase` and `decrease`; they add only their own synset members and do not
+open a broad `verb.change` hyponym tree.
+
 ## Anti-hardcoding bans
 
 The compiler must derive behavior from general linguistic structure, never
 from hand-curated English fragments. Three bans are non-negotiable:
 
 1. **No per-verb lists in Rust.** Verb behavior belongs in general lexical
-   or syntactic rules and data, not hardcoded Rust tables.
+   or syntactic rules and data, not hardcoded Rust tables. Every open-class
+   verb resolves through `tc-lexicon` generated WordNet/VerbNet tables.
 2. **No library phrase hacks in Rust.** Multi-word expressions must follow
    from compositional rules, not special-cased phrase strings in source.
-3. **No prose noun blacklists.** Token classification must use principled
-   lexical and distributional structure, not hand-written banned-noun lists.
+3. **No prose noun blacklists.** Token classification uses grammar, tense,
+   structural anchors, and lexicon evidence, never hand-written banned-noun
+   lists.
 
 ## Commands
 
 ```bash
 make build       # cargo build --workspace
 make release     # cargo build --workspace --release
-make test        # cargo test --workspace
+make test        # build + cargo test --workspace
 make lint        # cargo clippy --workspace --all-targets -- -D warnings
 make fmt-check   # cargo fmt --all -- --check
 make audit       # zero-ML, zero-external-crate, zero-forbidden-reference checks

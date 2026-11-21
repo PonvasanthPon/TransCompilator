@@ -1,13 +1,17 @@
 //! Command-line driver for the `tc_r1` workspace.
 
+use std::collections::{HashMap, VecDeque};
 use std::env;
-use std::path::PathBuf;
-use std::process::{Command, ExitCode};
+use std::fs;
+use std::io::{Read as _, Write as _};
+use std::path::{Path, PathBuf};
+use std::process::{Command, ExitCode, Stdio};
 
 use tc_ir::{
     BinOp, CallTarget, Expr, FnId, Function, LocalDef, LocalId, Module, RodataDef, Stmt, Type,
     interpret, verify_module,
 };
+use tc_semantics::{CompiledProject, LoweredProject, SourceFile};
 
 /// Version reported by `tc --version`, sourced from the workspace manifest.
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -22,6 +26,10 @@ fn main() -> ExitCode {
         }
         Some("--audit") => run_audit(),
         Some("--selftest") => run_selftest(),
+        Some("build") => run_build(args.collect()),
+        Some("run") => run_run(args.collect()),
+        Some("interp") => run_interp(args.collect()),
+        Some("trace") => run_trace(args.collect()),
         Some(argument) => {
             eprintln!("tc: unrecognized argument `{argument}`");
             usage();
@@ -35,7 +43,353 @@ fn main() -> ExitCode {
 }
 
 fn usage() {
-    eprintln!("usage: tc [--version|--audit|--selftest]");
+    eprintln!(
+        "usage: tc <build|run|interp|trace> <file.tc> [-o <out_elf>] [-I <dir>] [-- <args...>]\n       tc [--version|--audit|--selftest]"
+    );
+}
+
+#[derive(Debug, Default)]
+struct CommandLine {
+    file: Option<PathBuf>,
+    output: Option<PathBuf>,
+    includes: Vec<PathBuf>,
+    program_args: Vec<String>,
+}
+
+fn parse_command_line(args: Vec<String>, allow_output: bool) -> Result<CommandLine, String> {
+    let mut parsed = CommandLine::default();
+    let mut index = 0;
+    let mut after_separator = false;
+    while index < args.len() {
+        let argument = &args[index];
+        if after_separator {
+            parsed.program_args.push(argument.clone());
+            index += 1;
+            continue;
+        }
+        match argument.as_str() {
+            "--" => {
+                after_separator = true;
+                index += 1;
+            }
+            "-o" if allow_output => {
+                index += 1;
+                let value = args
+                    .get(index)
+                    .ok_or_else(|| "-o requires a path".to_string())?;
+                parsed.output = Some(PathBuf::from(value));
+                index += 1;
+            }
+            "-I" => {
+                index += 1;
+                let value = args
+                    .get(index)
+                    .ok_or_else(|| "-I requires a directory".to_string())?;
+                parsed.includes.push(PathBuf::from(value));
+                index += 1;
+            }
+            value if value.starts_with('-') && value.len() > 1 => {
+                return Err(format!("unknown option `{value}`"));
+            }
+            value => {
+                if parsed.file.is_none() {
+                    parsed.file = Some(PathBuf::from(value));
+                } else {
+                    parsed.program_args.push(value.to_string());
+                }
+                index += 1;
+            }
+        }
+    }
+    if parsed.file.is_none() {
+        return Err("missing English source file".to_string());
+    }
+    Ok(parsed)
+}
+
+fn module_imports(source: &SourceFile) -> Vec<String> {
+    let document = tc_syntax::segment_source(source);
+    let mut imports = Vec::new();
+    for item in document.items {
+        let tc_syntax::RawItem::Sentence(sentence) = item else {
+            continue;
+        };
+        let tokens = tc_syntax::tokenize(&sentence.text);
+        if !tokens.first().is_some_and(|token| token.is("import")) {
+            continue;
+        }
+        if let Some(name) = tokens.get(1).filter(|token| token.is_word()) {
+            imports.push(name.lower.clone());
+        }
+    }
+    imports
+}
+
+fn find_import(module: &str, entry: &Path, includes: &[PathBuf]) -> Option<PathBuf> {
+    let file_name = format!("{module}.tc");
+    let mut directories = Vec::new();
+    if let Some(parent) = entry.parent() {
+        directories.push(parent.to_path_buf());
+    }
+    directories.extend(includes.iter().cloned());
+    directories
+        .into_iter()
+        .map(|directory| directory.join(&file_name))
+        .find(|candidate| candidate.is_file())
+}
+
+fn load_sources(entry: &Path, includes: &[PathBuf]) -> Result<(Vec<SourceFile>, String), String> {
+    let entry = entry
+        .canonicalize()
+        .map_err(|error| format!("cannot open `{}`: {error}", entry.display()))?;
+    let entry_source = SourceFile::new(
+        entry
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or_else(|| "entry path has no file name".to_string())?
+            .to_string(),
+        fs::read_to_string(&entry)
+            .map_err(|error| format!("cannot read `{}`: {error}", entry.display()))?,
+    );
+    let entry_module = entry_source.module_name();
+    let mut queue = VecDeque::from([entry.clone()]);
+    let mut seen = HashMap::from([(entry_module.clone(), entry.clone())]);
+    let mut sources = Vec::new();
+    while let Some(path) = queue.pop_front() {
+        let source = SourceFile::new(
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .ok_or_else(|| "module path has no file name".to_string())?
+                .to_string(),
+            fs::read_to_string(&path)
+                .map_err(|error| format!("cannot read `{}`: {error}", path.display()))?,
+        );
+        for import in module_imports(&source) {
+            if seen.contains_key(&import) {
+                continue;
+            }
+            let import_path = find_import(&import, &entry, includes).ok_or_else(|| {
+                format!(
+                    "imported module `{import}` was not found in the source directory or -I paths"
+                )
+            })?;
+            seen.insert(import, import_path.clone());
+            queue.push_back(import_path);
+        }
+        sources.push(source);
+    }
+    Ok((sources, entry_module))
+}
+
+fn compile_file(command: &CommandLine) -> Result<CompiledProject, String> {
+    let file = command
+        .file
+        .as_ref()
+        .ok_or_else(|| "missing file".to_string())?;
+    let (sources, entry_module) = load_sources(file, &command.includes)?;
+    tc_semantics::compile_english_to_ir(&sources, &entry_module)
+        .map_err(|errors| format_errors(&errors))
+}
+
+fn format_errors(errors: &[tc_semantics::SemanticError]) -> String {
+    errors
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn run_build(args: Vec<String>) -> ExitCode {
+    let command = match parse_command_line(args, true) {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("tc build: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let compiled = match compile_file(&command) {
+        Ok(compiled) => compiled,
+        Err(message) => {
+            eprintln!("tc build: {message}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let file = command.file.expect("validated");
+    let output = command.output.unwrap_or_else(|| {
+        let stem = file
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .unwrap_or("a.out");
+        file.with_file_name(format!("{stem}.elf"))
+    });
+    match tc_codegen_x86::compile_to_elf(&compiled.module, &output) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("tc build: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run_run(args: Vec<String>) -> ExitCode {
+    let command = match parse_command_line(args, false) {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("tc run: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let compiled = match compile_file(&command) {
+        Ok(compiled) => compiled,
+        Err(message) => {
+            eprintln!("tc run: {message}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let path = std::env::temp_dir().join(format!(
+        "tc_r1_run_{}_{}.elf",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |value| value.as_nanos())
+    ));
+    if let Err(error) = tc_codegen_x86::compile_to_elf(&compiled.module, &path) {
+        eprintln!("tc run: {error}");
+        return ExitCode::FAILURE;
+    }
+    let status = Command::new(&path)
+        .args(&command.program_args)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status();
+    let _ = fs::remove_file(&path);
+    match status {
+        Ok(status) => ExitCode::from(status.code().unwrap_or(1).rem_euclid(256) as u8),
+        Err(error) => {
+            eprintln!("tc run: cannot execute compiled program: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run_interp(args: Vec<String>) -> ExitCode {
+    let command = match parse_command_line(args, false) {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("tc interp: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let compiled = match compile_file(&command) {
+        Ok(compiled) => compiled,
+        Err(message) => {
+            eprintln!("tc interp: {message}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let mut stdin = Vec::new();
+    if std::io::stdin().read_to_end(&mut stdin).is_err() {
+        eprintln!("tc interp: cannot read stdin");
+        return ExitCode::FAILURE;
+    }
+    let mut program_argv = vec![
+        command
+            .file
+            .as_ref()
+            .map_or_else(|| "program".to_string(), |path| path.display().to_string()),
+    ];
+    program_argv.extend(command.program_args);
+    match interpret(&compiled.module, &program_argv, &stdin, 50_000_000) {
+        Ok(output) => {
+            let _ = std::io::stdout().write_all(&output.stdout);
+            let _ = std::io::stderr().write_all(&output.stderr);
+            ExitCode::from(output.exit_code.rem_euclid(256) as u8)
+        }
+        Err(error) => {
+            eprintln!("tc interp: {error:?}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run_trace(args: Vec<String>) -> ExitCode {
+    let command = match parse_command_line(args, false) {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("tc trace: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let file = command.file.as_ref().expect("validated");
+    let (sources, entry_module) = match load_sources(file, &command.includes) {
+        Ok(value) => value,
+        Err(message) => {
+            eprintln!("tc trace: {message}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let lowered: LoweredProject = match tc_semantics::lower_project(&sources, &entry_module) {
+        Ok(value) => value,
+        Err(errors) => {
+            eprintln!("tc trace: {}", format_errors(&errors));
+            return ExitCode::FAILURE;
+        }
+    };
+    for trace in &lowered.trace {
+        print!(
+            "{}:{}:{} {}",
+            trace.module, trace.line, trace.col, trace.intent
+        );
+        print!(
+            " lg={} words={} links={}",
+            trace.lg_used, trace.lg_words, trace.lg_links
+        );
+        print!(" voice={}", trace.voice);
+        if let Some(verb) = &trace.verb {
+            print!(" verb={verb}");
+        }
+        if let Some(lemma) = &trace.lemma {
+            print!(" lemma={lemma}");
+        }
+        if let Some(predicate) = trace.predicate {
+            print!(" predicate={predicate:?}");
+        }
+        if let Some(concept) = trace.concept {
+            print!(" concept={concept:?}");
+        }
+        if let Some(class_id) = trace.class_id {
+            print!(" verbnet={class_id}");
+        }
+        if let Some(synset_id) = trace.synset_id {
+            print!(" wordnet={synset_id}");
+        }
+        if !trace.fillers.is_empty() {
+            print!(" fillers={:?}", trace.fillers);
+        }
+        println!("\n  {}", trace.text);
+    }
+    let unsupported = lowered
+        .trace
+        .iter()
+        .any(|trace| trace.intent.is_unsupported());
+    match tc_typeck::check_and_lower(&lowered.program) {
+        Ok(module) => {
+            println!("--- TC-IR ---");
+            println!("{}", tc_ir::format_module(&module));
+            if unsupported {
+                ExitCode::FAILURE
+            } else {
+                ExitCode::SUCCESS
+            }
+        }
+        Err(errors) => {
+            for error in errors {
+                eprintln!("{error}");
+            }
+            ExitCode::FAILURE
+        }
+    }
 }
 
 fn run_audit() -> ExitCode {
