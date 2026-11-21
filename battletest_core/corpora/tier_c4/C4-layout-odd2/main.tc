@@ -1,2 +1,0 @@
-Define struct Odd2 with a as u8 and b as u16 and c as u8 and d as u32 and e as u8.
-Return ((size of Odd2) as i64) + ((align of Odd2) as i64).

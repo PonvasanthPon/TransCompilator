@@ -1,4 +1,0 @@
-Define function read_ptr of T taking p as ptr<T> returning T:
-    Return *p.
-x is 2.5.
-Return read_ptr(address of x) as i64.

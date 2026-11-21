@@ -1,9 +1,0 @@
-Define struct S3 with tag as u8 and data as array<u8, 2>.
-Define function make taking t as u8 returning S3:
-    r is S3.
-    Set r.tag to t.
-    Set r.data[0] to 3.
-    Set r.data[1] to 4.
-    Return r.
-r is make(5).
-Return (r.tag as i64) + (r.data[0] as i64) + (r.data[1] as i64).

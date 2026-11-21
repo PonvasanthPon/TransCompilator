@@ -1,3 +1,0 @@
-Define function g taking a as i64 and b as i64 returning i64:
-    Return a * b.
-Return g(g(2, 3), g(4, 5)).

@@ -1,4 +1,0 @@
-Define struct S16 with x as i64 and y as i64.
-s is S16.
-Set s.x to 16.
-Return s.y.

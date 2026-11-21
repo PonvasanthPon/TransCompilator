@@ -1,4 +1,0 @@
-Define local x as i16.
-Set x to 7.
-Set x to x + 3.
-Return (x as i64) bitand 255.

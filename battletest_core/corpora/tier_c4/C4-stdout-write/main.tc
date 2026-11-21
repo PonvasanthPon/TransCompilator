@@ -1,2 +1,0 @@
-syscall(1, 1, bytes_ptr("bt-out\n"), bytes_len("bt-out\n")).
-Return 0.

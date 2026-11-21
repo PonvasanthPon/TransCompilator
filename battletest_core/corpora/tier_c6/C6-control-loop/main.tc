@@ -1,5 +1,0 @@
-x is 20.
-Loop:
-    Remove 3 from x.
-    If x is at most 10, Break.
-Return x.

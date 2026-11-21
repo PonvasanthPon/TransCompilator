@@ -1,4 +1,0 @@
-Define struct S1 with x as i64 and y as f64.
-s is S1.
-Set s.x to 1.
-Return s.y.

@@ -1,5 +1,0 @@
-Define struct Box of T with value as T.
-Define function boom of T taking x as T returning T:
-    y is boom(address of x).
-    Return x.
-Return boom(1).

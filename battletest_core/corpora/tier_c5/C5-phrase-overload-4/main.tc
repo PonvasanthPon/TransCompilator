@@ -1,5 +1,0 @@
-Import a.
-Import b.
-Import c.
-Emit bytes_ptr("hi").
-Return 3.

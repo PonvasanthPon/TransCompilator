@@ -1,4 +1,0 @@
-Define function f taking x as i64 returning i64:
-    Phrase: "emit <x> <x>"
-    Return x.
-Return 0.

@@ -1,9 +1,0 @@
-a is 80.
-b is 90.
-c is 12.
-Increase b by 7.
-Decrease a by 3.
-Negate a.
-Withdraw 20 from b.
-Multiply c by 2.
-Return (a + b + c) bitand 255.

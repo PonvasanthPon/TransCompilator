@@ -1,4 +1,0 @@
-Define struct S with v as i32.
-s is S.
-Set s.v to -100000.
-Return ((s.v as i64) + 96) bitand 255.

@@ -1,6 +1,0 @@
-{
-  "wordnet": {"total": 786, "verbs": 783, "exec": 16, "comment_ok": 766, "unsupported": 767, "silent_drop": 0, "panic": 0},
-  "verbnet": {"total": 10845, "unique": 5356, "exec": 1484, "unsupported": 9355, "comment": 6, "type_error": 0, "target_clobber": 0, "panic": 0},
-  "samples": [
-  ]
-}

@@ -1,6 +1,0 @@
-x is 0.
-Loop:
-    x += 1.
-    Break.
-    x += 100.
-Return x.

@@ -1,5 +1,0 @@
-Define function total taking n as i64 returning i64:
-    If n is 0:
-        Return 0.
-    Return n + total(n - 1).
-Return total(2000).

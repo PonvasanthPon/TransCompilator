@@ -1,5 +1,0 @@
-Define function add taking a as i64 and b as i64 returning i64:
-    Return a + b.
-Define global fp as fn(i64, i64) -> i64.
-Set fp to function add.
-Return fp(6, 7).

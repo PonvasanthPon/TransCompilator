@@ -1,4 +1,0 @@
-Define struct S20 with x as i64 and y as i64.
-s is S20.
-Set s.x to 20.
-Return s.missing.

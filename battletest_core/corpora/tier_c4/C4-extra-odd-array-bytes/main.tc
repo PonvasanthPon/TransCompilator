@@ -1,2 +1,0 @@
-Define struct Odd1 with a as u8 and b as i64 and c as u8.
-Return (size of array<Odd1, 4>) as i64.

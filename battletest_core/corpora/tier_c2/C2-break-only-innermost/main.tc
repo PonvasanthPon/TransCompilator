@@ -1,9 +1,0 @@
-outer is 0.
-inner is 0.
-Loop:
-    outer += 1.
-    If outer is at least 2, Break.
-    Loop:
-        inner += 1.
-        Break.
-Return outer * 10 + inner.

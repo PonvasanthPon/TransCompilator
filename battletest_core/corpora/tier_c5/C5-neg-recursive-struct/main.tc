@@ -1,3 +1,0 @@
-Define struct Bad with next as Bad.
-b is Bad.
-Return 0.

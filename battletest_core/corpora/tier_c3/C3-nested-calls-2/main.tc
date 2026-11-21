@@ -1,3 +1,0 @@
-Define function f taking a as i64 returning i64:
-    Return a + 1.
-Return f(f(f(1))).

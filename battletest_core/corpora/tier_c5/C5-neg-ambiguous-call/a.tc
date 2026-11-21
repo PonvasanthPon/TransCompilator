@@ -1,2 +1,0 @@
-Public function add taking x as i64 and y as i64 returning i64:
-    Return x + y.

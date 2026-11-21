@@ -1,6 +1,0 @@
-Define struct S1 with tag as u8.
-Define function sum taking s as S1 returning i64:
-    Return s.tag as i64.
-s is S1.
-Set s.tag to 5.
-Return sum(s).

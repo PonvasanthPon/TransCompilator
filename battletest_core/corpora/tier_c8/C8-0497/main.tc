@@ -1,3 +1,0 @@
-Define global g5 as array<u8, 6>.
-Set g5[10] to 1.
-Return 0.

@@ -1,7 +1,0 @@
-Import c.
-Import d.
-Public function a_sum taking x as i64 returning i64:
-    r is d.Pair<i64, i64>.
-    Set r.first to 5.
-    Set r.second to 6.
-    Return d.plus_base(x) + r.first + r.second.

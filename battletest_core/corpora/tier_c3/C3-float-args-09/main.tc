@@ -1,3 +1,0 @@
-Define function f taking f0 as f64 and f1 as f64 and f2 as f64 and f3 as f64 and f4 as f64 and f5 as f64 and f6 as f64 and f7 as f64 and f8 as f64 returning i64:
-    Return (f0 + f1 + f2 + f3 + f4 + f5 + f6 + f7 + f8) as i64.
-Return f(1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5).

@@ -1,3 +1,0 @@
-Define global g0 as array<u8, 1>.
-Set g0[5] to 1.
-Return 0.

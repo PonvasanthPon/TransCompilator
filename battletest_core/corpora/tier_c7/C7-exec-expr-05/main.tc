@@ -1,5 +1,0 @@
-a is 6.
-b is 11.
-Transfer 6 from a to b.
-Move 5 from b to a.
-Return a + b.

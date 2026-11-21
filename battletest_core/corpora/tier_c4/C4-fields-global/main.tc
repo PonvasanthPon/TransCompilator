@@ -1,6 +1,0 @@
-Define struct Odd1 with a as u8 and b as i64 and c as u8.
-Define global g as Odd1.
-Set g.a to 7.
-Set g.b to 8.
-Set g.c to 9.
-Return (g.a as i64) + g.b + (g.c as i64).

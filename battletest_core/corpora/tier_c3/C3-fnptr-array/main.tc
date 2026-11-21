@@ -1,8 +1,0 @@
-Define function add taking a as i64 and b as i64 returning i64:
-    Return a + b.
-Define function mul taking a as i64 and b as i64 returning i64:
-    Return a * b.
-Define global table as array<fn(i64, i64) -> i64, 2>.
-Set table[0] to function add.
-Set table[1] to function mul.
-Return table[0](2, 3) + table[1](4, 5).

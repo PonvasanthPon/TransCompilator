@@ -1,4 +1,0 @@
-Define function f taking x as i64 returning i64:
-    Multiply x by 3.
-    Return x.
-Return f(7).

@@ -1,3 +1,0 @@
-Define struct Odd1 with a as u8 and b as i64 and c as u8.
-Define struct Nested with tag as u8 and inner as Odd1 and tail as u16.
-Return ((size of Nested) as i64) + ((align of Nested) as i64).

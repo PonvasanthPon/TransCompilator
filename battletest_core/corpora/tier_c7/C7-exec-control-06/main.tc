@@ -1,6 +1,0 @@
-x is 15.
-If x more than 7:
-    Add 3 to x.
-Else:
-    Remove 1 from x.
-Return x.

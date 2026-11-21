@@ -1,9 +1,0 @@
-a is 120.
-b is 140.
-c is 30.
-Deduct 40 from b.
-Withdraw 20 from b.
-Subtract 10 from b.
-Spend 5 from b.
-Take 5 from b.
-Return (a + b + c) bitand 255.
