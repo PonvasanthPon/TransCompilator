@@ -61,15 +61,20 @@ fn run_audit() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
+    let stats = tc_lexicon::lexicon_stats();
     println!("tc_r1 audit: PASS");
     println!(
-        "  crates         : {} linked (6 libs + 1 cli)",
+        "  crates          : {} linked (6 libs + 1 cli)",
         crates.len() + 1
     );
-    println!("  dependencies   : std + local path only");
-    println!("  external crates: 0");
-    println!("  ML runtime     : disabled");
-    println!("  network        : disabled");
+    println!("  wordnet entries : {}", stats.wordnet_entries);
+    println!("  verbnet frames  : {}", stats.verbnet_frames);
+    println!("  irregular lemmas: {}", stats.irregular_lemmas);
+    println!("  closed-class    : {}", stats.closed_class_words);
+    println!("  dependencies    : std + local path only");
+    println!("  external crates : 0");
+    println!("  ML runtime      : disabled");
+    println!("  network         : disabled");
     ExitCode::SUCCESS
 }
 
