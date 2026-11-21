@@ -5,14 +5,15 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 1**: the Core-7 typed IR, exhaustive verifier,
+This repository is at **Phase 2**: the Core-7 typed IR, exhaustive verifier,
 byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
-backend, and the high-level `tc-typeck` front end are implemented. The type
-checker provides multi-file modules with visibility and import-cycle
-validation, lexical scoping, strict type checking, type-directed overload
-resolution, declarative phrase metadata, and compile-time monomorphization
-of generic structs, unions, and functions. Differential parity suites in
-`crates/tc-codegen-x86/tests/` and `crates/tc-typeck/tests/` require exact
+backend, the high-level `tc-typeck` front end, and the zero-ML
+`tc-lexicon` word/verb engine are implemented. The type checker provides
+multi-file modules, visibility, scoping, strict typing, type-directed
+overloads, phrase metadata, and compile-time generics. The lexicon engine
+harvests provenance-carrying Open English WordNet 2025 and CU Boulder
+VerbNet 3.4 tables without per-verb Rust mappings. Differential parity suites
+in `crates/tc-codegen-x86/tests/` and `crates/tc-typeck/tests/` require exact
 exit-status/stdout/stderr agreement between the reference interpreter and
 compiled ELF64 binaries. English parsing and the `std/` library are not
 implemented yet.
@@ -43,13 +44,14 @@ tc_r1/
     tc-ir/            # intermediate representation
     tc-codegen-x86/   # ELF64 x86_64 backend
     tc-typeck/        # typed AST, modules, generics, lowering
+    tc-lexicon/       # WordNet/VerbNet/closed-class lexicon engine
     tc-lexicon/       # lexical model
     tc-syntax/        # syntax analysis
     tc-semantics/     # semantic analysis
     tc-cli/           # `tc` command-line driver
-  std/                # English std/ sources (empty in Phase 1)
-  tests/              # integration tests (empty in Phase 1)
-  docs/               # design documentation (empty in Phase 1)
+  std/                # English std/ sources (empty in Phase 2)
+  tests/              # integration tests (empty in Phase 2)
+  docs/               # design documentation (empty in Phase 2)
 ```
 
 ## Dependency graph
@@ -104,6 +106,23 @@ Linux syscalls with the `r10` fourth-argument convention.
 `check_and_lower` is the public AST-to-IR entry point;
 `collect_phrases` validates and exports declarative English phrase
 signatures for Phase 3.
+
+## Lexicon engine
+
+`tc-lexicon` is a compact, deterministic, provenance-backed semantic layer:
+
+- **784** WordNet rows from 25 exact OEWN-2025 anchor synsets, depth <= 3,
+  sorted by `(lemma, pos, concept)`.
+- **10,845** VerbNet 3.4 frames from all 329 class files and 609
+  classes/subclasses, sorted by `(verb, prep, predicate, class_id)`.
+- **103** irregular morphology rows plus 8,749 WordNet verb lemmas for
+  deterministic lemma validation.
+- **279** audited closed-class function words.
+- `classify_verb`, POS-aware lookups, lemmatization, phrase-safe semantic
+  concepts, and exact provenance IDs are exposed through binary-searched
+  static tables.
+- `goldmines/PROVENANCE.md` records dataset versions, hashes, anchors, counts,
+  and the reproducible harvester commands.
 
 ## Anti-hardcoding bans
 
