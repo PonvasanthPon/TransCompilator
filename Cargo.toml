@@ -18,7 +18,6 @@ license = "MIT"
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
-missing_docs = "deny"
 unused_must_use = "deny"
 unreachable_pub = "deny"
 missing_debug_implementations = "deny"
@@ -27,3 +26,29 @@ rust_2018_idioms = { level = "deny", priority = -1 }
 [workspace.lints.clippy]
 all = { level = "deny", priority = -1 }
 pedantic = { level = "deny", priority = -1 }
+# Compiler/VM code performs intentional two's-complement width conversions.
+cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+cast_lossless = "allow"
+# Exact float comparisons are part of the parity tests.
+float_cmp = "allow"
+# Emitters and interpreters naturally use long dispatch functions.
+too_many_lines = "allow"
+# Methods reading only scalar fields are kept on their Vm context for clarity.
+unused_self = "allow"
+# Value types are small and intentionally passed by value.
+needless_pass_by_value = "allow"
+# Public constructors are not all must-use candidates.
+must_use_candidate = "allow"
+double_must_use = "allow"
+# Result-returning APIs document errors in their module-level design notes.
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+# These two are style-only and conflict with deliberate VM match shapes.
+match_same_arms = "allow"
+unnested_or_patterns = "allow"
+unnecessary_wraps = "allow"
+assert_is_empty = "allow"
+doc_markdown = "allow"

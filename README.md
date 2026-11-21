@@ -5,10 +5,13 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is currently at **Phase 0**: toolchain verification, a
-seven-crate `std`-only workspace, vendored linguistic assets, and smoke
-tests. No IR, lexer, parser, semantics, or code generation is implemented
-yet.
+This repository is at **Phase 0**: the Core-7 typed IR, exhaustive verifier,
+deterministic formatter, byte-accurate reference interpreter, and direct
+x86_64 static zero-libc ELF64 backend are implemented. The differential
+parity suite in `crates/tc-codegen-x86/tests/` runs every program both in the
+reference interpreter and as a compiled ELF64 binary, requiring identical
+exit status, stdout, and stderr. English parsing and the `std/` library are
+not implemented yet.
 
 ## Hard properties
 
@@ -62,6 +65,23 @@ The graph is strictly acyclic. `crates/tc-cli` produces the `tc` binary:
 - `tc --version` prints `tc_r1 0.1.0`.
 - `tc --audit` checks the Phase 0 crate identities and reports scaffold
   status.
+- `tc --selftest` verifies, interprets, compiles, executes, and
+  differentially checks a small Core-7 module, then prints `SELFTEST PASS`.
+
+## Core-7 IR and backend
+
+`tc-ir` exposes `types`, `ir`, `verify`, `fmt`, and `interp` modules. The IR
+contains only seven irreducible machine primitives: typed values, raw
+memory, control flow, functions, aggregates, raw syscalls, and traps. There
+are no heap `String`/`List` operations, print statements, file opcodes, or
+English-specific nodes.
+
+`tc-codegen-x86` emits Intel-syntax assembly, assembles with GNU `as --64`,
+and links with `ld -static`. It implements the System V AMD64 integer and SSE
+argument/return conventions, spillover stack arguments, nested-call-safe
+argument evaluation, indirect function calls, width- and sign-accurate
+integer operations, IEEE-754 `f32`/`f64`, aggregates in memory, and raw
+Linux syscalls with the `r10` fourth-argument convention.
 
 ## Anti-hardcoding bans
 
@@ -84,5 +104,6 @@ make test        # cargo test --workspace
 make lint        # cargo clippy --workspace --all-targets -- -D warnings
 make fmt-check   # cargo fmt --all -- --check
 make audit       # zero-ML, zero-external-crate, zero-forbidden-reference checks
+make selftest    # verify + interpret + compile + execute + differential check
 make clean       # cargo clean
 ```
