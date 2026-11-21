@@ -1,7 +1,7 @@
 # tc_r1 Lexicon Provenance
 
 This file records the exact read-only linguistic sources used to generate the
-Phase 2 `tc-lexicon` tables. No raw corpus files are committed into `tc_r1`;
+Phase 2/3 `tc-lexicon` tables. No raw corpus files are committed into `tc_r1`;
 only the deterministic Rust tables and the stdlib-only harvester scripts are
 tracked.
 
@@ -15,8 +15,8 @@ tracked.
 - **License:** CC-BY 4.0
 - **Local use:** read-only copy in the sandbox goldmines tree; never modified.
 - **Scanned:** 135,969 lexical entries and 107,519 synsets.
-- **Harvest:** 25 exact `oewn-*` anchor synsets, 653 reachable synsets at
-  hypernym distance <= 3, and **784** emitted `WordNetEntry` rows.
+- **Harvest:** 27 exact `oewn-*` anchor synsets, 655 reachable synsets at
+  hypernym distance <= 3, and **786** emitted `WordNetEntry` rows.
 - **Morphology validation:** 8,749 single-word WordNet verb lemmas emitted as
   `VERB_LEMMAS`, plus **103** standard irregular form -> lemma rows.
 
@@ -46,6 +46,12 @@ tracked.
 | Loop | `oewn-00960366-v` |
 | Branch | `oewn-00676526-v` |
 | Return | `oewn-02314987-v` |
+| Add (direct) | `oewn-00156409-v` (increase) |
+| Sub (direct) | `oewn-00151509-v` (decrease) |
+
+The two `direct` anchors are depth-zero anchors: they contribute their own
+synset members (`increase`; `decrease`) without expanding a broad
+`verb.change` hyponym tree.
 
 The traversal is a multi-source BFS over inverse-hypernym (hyponym) edges,
 retaining the shortest distance to an anchor and discarding lexical material
@@ -54,8 +60,11 @@ from narrative, motion, consumption, emotion, weather, and cooking roots
 `bake`, `cook`, `travel`, `swim`) and ambiguous light/measure lemmas
 (`be`, `have`, `do`, `go`, `come`, `get`, `run`, `watch`, `very`, `last`,
 `plus`, `times`, `minus`, `equals`, `exists`, `series`, `bus`, `gas`,
-`class`). WordNet POS is preserved on every row, so unrelated noun/adjective
-senses cannot collide with computational verb senses.
+`class`, `diminish`, `lessen`, `fall`). WordNet POS is preserved on every
+row, so unrelated noun/adjective senses cannot collide with computational
+verb senses. Phase 3 added the two depth-zero scalar anchors above so the
+finite statement grammar can resolve `Increase x by 5` and
+`Decrease x by 3` from real WordNet synsets rather than Rust verb lists.
 
 ## CU Boulder VerbNet 3.4
 
@@ -78,6 +87,9 @@ class/subclass id. The table emits the exact required preposition bindings:
 
 ## Closed-class and morphology data
 
+- Phase 3 `tc-syntax` links the vendored CMU Link Grammar 5.13.2 shared
+  library and resolves its English dictionary beside the executable or from
+  the compile-time `CARGO_MANIFEST_DIR` fallback. No corpus file is copied.
 - `crates/tc-lexicon/src/closed_class.rs` is a hand-audited closed-class table
   of **279** English function words. It is not open-class semantic mapping.
 - `goldmines/tools/harvest_wordnet_r1.py` emits the sorted irregular table

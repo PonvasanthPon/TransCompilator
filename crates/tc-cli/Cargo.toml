@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-description = "Command-line driver for the tc_r1 compiler (Phase 0 scaffold)"
+description = "End-to-end English build/run/interp/trace driver"
 
 [lints]
 workspace = true

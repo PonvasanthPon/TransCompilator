@@ -14,7 +14,7 @@ build:
 release:
 	$(CARGO) build --workspace --release
 
-test:
+test: build
 	$(CARGO) test --workspace
 
 lint:
