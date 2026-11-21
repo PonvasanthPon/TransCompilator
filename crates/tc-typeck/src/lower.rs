@@ -538,6 +538,37 @@ impl FnLowerer<'_> {
                 let id = self.rodata.intern(bytes);
                 self.materialize(&expr.ty, IrExpr::RodataLen(id), span)
             }
+            TExprKind::Zero(ty) => {
+                if ty.is_aggregate() {
+                    let (size, _) = concrete_layout(self.mono, ty).ok_or_else(|| {
+                        internal(span, "aggregate has no finite layout (recursive type?)")
+                    })?;
+                    let blob = vec![0_u8; size.max(1)];
+                    let id = self.rodata.intern(&blob);
+                    let temp = self.new_temp(ty.clone(), span)?;
+                    let ir_ty = convert_type(self.mono, ty, span)?;
+                    self.emit(IrStmt::MemCopy {
+                        dst: IrExpr::AddrOfLocal(temp),
+                        src: IrExpr::RodataPtr(id),
+                        size: IrExpr::SizeOf(ir_ty),
+                    });
+                    Ok(Lowered::Place { local: temp })
+                } else {
+                    let ir_ty = convert_type(self.mono, ty, span)?;
+                    let value = match ty {
+                        ConcreteType::Bool => IrExpr::ConstBool(false),
+                        ConcreteType::F32 | ConcreteType::F64 => IrExpr::ConstFloat(0.0, ir_ty),
+                        ConcreteType::Ptr(_) => IrExpr::ConstNull(ir_ty),
+                        ConcreteType::FnPtr { .. } => IrExpr::Cast {
+                            val: Box::new(IrExpr::ConstUint(0, IrType::U64)),
+                            to: ir_ty,
+                        },
+                        _ if ty.is_signed_int() => IrExpr::ConstInt(0, ir_ty),
+                        _ => IrExpr::ConstUint(0, ir_ty),
+                    };
+                    self.materialize(ty, value, span)
+                }
+            }
             TExprKind::Var(name) => {
                 let (local, ty) = self
                     .lookup(name)
@@ -958,6 +989,72 @@ fn union_id(
                 format!("monomorphized union `{module}::{name}` not found"),
             )
         })
+}
+
+fn concrete_layout(mono: &MonoProgram, ty: &ConcreteType) -> Option<(usize, usize)> {
+    concrete_layout_depth(mono, ty, 0)
+}
+
+fn concrete_layout_depth(
+    mono: &MonoProgram,
+    ty: &ConcreteType,
+    depth: usize,
+) -> Option<(usize, usize)> {
+    if depth > 64 {
+        return None;
+    }
+    Some(match ty {
+        ConcreteType::Void => (1, 1),
+        ConcreteType::Bool | ConcreteType::U8 | ConcreteType::I8 => (1, 1),
+        ConcreteType::U16 | ConcreteType::I16 => (2, 2),
+        ConcreteType::U32 | ConcreteType::I32 | ConcreteType::F32 => (4, 4),
+        ConcreteType::U64
+        | ConcreteType::I64
+        | ConcreteType::F64
+        | ConcreteType::Ptr(_)
+        | ConcreteType::FnPtr { .. } => (8, 8),
+        ConcreteType::Array(element, count) => {
+            let (size, align) = concrete_layout_depth(mono, element, depth + 1)?;
+            (size.checked_mul(*count)?, align)
+        }
+        ConcreteType::Struct { module, name, args } => {
+            let module_index = *mono.module_by_name.get(module)?;
+            let item = mono.structs.iter().find(|item| {
+                item.key.module == module_index
+                    && item.source_name == *name
+                    && item.key.type_args == *args
+            })?;
+            let mut offset = 0_usize;
+            let mut align = 1_usize;
+            for (_, field) in &item.fields {
+                let (field_size, field_align) = concrete_layout_depth(mono, field, depth + 1)?;
+                offset = round_up(offset, field_align).checked_add(field_size)?;
+                align = align.max(field_align);
+            }
+            (round_up(offset, align).max(1), align)
+        }
+        ConcreteType::Union { module, name, args } => {
+            let module_index = *mono.module_by_name.get(module)?;
+            let item = mono.unions.iter().find(|item| {
+                item.key.module == module_index
+                    && item.source_name == *name
+                    && item.key.type_args == *args
+            })?;
+            let mut size = 0_usize;
+            let mut align = 1_usize;
+            for (_, field) in &item.fields {
+                let (field_size, field_align) = concrete_layout_depth(mono, field, depth + 1)?;
+                size = size.max(field_size);
+                align = align.max(field_align);
+            }
+            (round_up(size, align).max(1), align)
+        }
+        ConcreteType::Generic(_) => return None,
+    })
+}
+
+fn round_up(value: usize, align: usize) -> usize {
+    value.div_ceil(align.max(1)) * align.max(1)
 }
 
 fn internal(span: &Span, message: impl Into<String>) -> TypeError {

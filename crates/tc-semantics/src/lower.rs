@@ -8,12 +8,12 @@ use tc_typeck::{
     PhrasePart, PhrasePattern, Visibility,
 };
 
-use crate::expr::{ExprEnv, parse_address, parse_expression, parse_type_text};
+use crate::expr::{ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text};
 use crate::intent::{IntentVerdict, classify};
 use crate::phrases::{PhraseBinding, PhraseMatch, match_all};
 use crate::textutil::{
     find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_top_level,
-    split_where, starts_with_word,
+    split_type_list, split_where, starts_with_word,
 };
 use crate::token::{Token, TokenKind, decode_string_token, tokenize};
 use crate::{
@@ -158,8 +158,8 @@ fn parse_fields(
 ) -> Result<Vec<(String, AstType)>, SemanticError> {
     let mut fields = Vec::new();
     let mut pieces = Vec::new();
-    for comma_piece in split_top_level(text, ",") {
-        pieces.extend(split_top_level(&comma_piece, "and"));
+    for comma_piece in split_type_list(text, ",") {
+        pieces.extend(split_type_list(&comma_piece, "and"));
     }
     for piece in pieces {
         let Some((name, ty_text)) = split_as(&piece) else {
@@ -192,8 +192,8 @@ fn parse_fields(
 
 fn parse_type_params(text: &str, module: &str, span: Span) -> Result<Vec<String>, SemanticError> {
     let mut params = Vec::new();
-    for piece in split_top_level(text, "and") {
-        for inner in split_top_level(&piece, ",") {
+    for piece in split_type_list(text, "and") {
+        for inner in split_type_list(&piece, ",") {
             let value = inner.trim();
             if value.is_empty() {
                 continue;
@@ -419,8 +419,8 @@ fn parse_function_header(text: &str, module: &str, span: Span) -> Result<AstFn, 
                 index += 1;
             }
             let param_text = &text[start..end];
-            for piece in split_top_level(param_text, "and") {
-                for inner in split_top_level(&piece, ",") {
+            for piece in split_type_list(param_text, "and") {
+                for inner in split_type_list(&piece, ",") {
                     if inner.trim().is_empty() {
                         continue;
                     }
@@ -750,7 +750,6 @@ struct Lowerer<'a> {
     module: String,
     globals: HashMap<String, AstType>,
     types: HashSet<String>,
-    new_globals: Vec<AstGlobal>,
     module_names: Vec<String>,
     phrases: Vec<PhraseBinding>,
     scopes: Vec<Scope>,
@@ -774,7 +773,6 @@ impl<'a> Lowerer<'a> {
             module: module.to_string(),
             globals,
             types,
-            new_globals: Vec::new(),
             module_names,
             phrases,
             scopes: vec![Scope::new()],
@@ -822,6 +820,12 @@ impl<'a> Lowerer<'a> {
             .or_else(|| self.globals.get(name))
     }
 
+    fn current_scope_contains(&self, name: &str) -> bool {
+        self.scopes
+            .last()
+            .is_some_and(|scope| scope.vars.contains_key(name))
+    }
+
     fn expr_env(&self) -> ExprEnv {
         let mut locals = HashMap::new();
         for scope in &self.scopes {
@@ -860,7 +864,7 @@ impl<'a> Lowerer<'a> {
     }
 
     fn parse_value(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
-        if let Some(phrase) = self.match_phrase_typed(text) {
+        if let Some(phrase) = self.match_phrase_typed(text, span)? {
             return self.phrase_expression(&phrase, span);
         }
         self.parse_expr(text, span)
@@ -904,15 +908,21 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    fn match_phrase_typed(&self, text: &str) -> Option<PhraseMatch> {
+    fn match_phrase_typed(
+        &self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<PhraseMatch>, SemanticError> {
         let candidates = match_all(text, &self.phrases);
-        let max_score = candidates.iter().map(|candidate| candidate.score).max()?;
+        let Some(max_score) = candidates.iter().map(|candidate| candidate.score).max() else {
+            return Ok(None);
+        };
         let candidates = candidates
             .into_iter()
             .filter(|candidate| candidate.score == max_score)
             .collect::<Vec<_>>();
         if candidates.len() == 1 {
-            return candidates.into_iter().next();
+            return Ok(candidates.into_iter().next());
         }
         let env = self.expr_env();
         let mut scored = candidates
@@ -942,14 +952,32 @@ impl<'a> Lowerer<'a> {
             })
             .collect::<Vec<_>>();
         scored.retain(|(usable, _, _)| *usable);
-        scored.sort_by(|left, right| {
-            right
-                .1
-                .cmp(&left.1)
+        let Some(best_score) = scored.iter().map(|(_, score, _)| *score).max() else {
+            return Ok(None);
+        };
+        let mut best = scored
+            .into_iter()
+            .filter(|(_, score, _)| *score == best_score)
+            .collect::<Vec<_>>();
+        best.sort_by(|left, right| {
+            left.2
+                .module
+                .cmp(&right.2.module)
                 .then_with(|| left.2.function.cmp(&right.2.function))
-                .then_with(|| left.2.module.cmp(&right.2.module))
         });
-        scored.into_iter().next().map(|(_, _, candidate)| candidate)
+        if best.len() > 1 {
+            let names = best
+                .iter()
+                .map(|(_, _, candidate)| format!("{}::{}", candidate.module, candidate.function))
+                .collect::<Vec<_>>()
+                .join(", ");
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                format!("ambiguous Phrase dispatch (candidates: {names})"),
+            ));
+        }
+        Ok(best.into_iter().next().map(|(_, _, candidate)| candidate))
     }
 
     fn shallow_type(&self, expr: &AstExpr) -> AstType {
@@ -964,6 +992,7 @@ impl<'a> Lowerer<'a> {
             AstExpr::ConstNull(ty) => ty.clone(),
             AstExpr::BytesLit(_) => AstType::ptr(AstType::U8),
             AstExpr::BytesLen(_) => AstType::U64,
+            AstExpr::Zero(ty) => ty.clone(),
             AstExpr::Var(name) => self.lookup(name).cloned().unwrap_or(AstType::I64),
             AstExpr::Binary { op, lhs, .. } => {
                 if matches!(
@@ -1065,7 +1094,7 @@ impl<'a> Lowerer<'a> {
                         continue;
                     }
                     let clause = analyze_clause(self.parser, sentence);
-                    let phrase = self.match_phrase_typed(&sentence.text);
+                    let phrase = self.match_phrase_typed(&sentence.text, sentence.span)?;
                     let verdict = self.trace_sentence(sentence, &clause, phrase.as_ref());
                     match verdict {
                         IntentVerdict::Exec => {
@@ -1095,7 +1124,7 @@ impl<'a> Lowerer<'a> {
                         continue;
                     }
                     let clause = analyze_clause(self.parser, header);
-                    let phrase = self.match_phrase_typed(&header.text);
+                    let phrase = self.match_phrase_typed(&header.text, header.span)?;
                     let verdict = self.trace_sentence(header, &clause, phrase.as_ref());
                     if !verdict.is_exec() {
                         index += 1;
@@ -1641,8 +1670,8 @@ impl<'a> Lowerer<'a> {
             .or_else(|| trimmed.strip_prefix("an "))
             .unwrap_or(trimmed);
         if let Ok(ty) = parse_type_text(stripped) {
-            if let AstType::Named { name, .. } = &ty {
-                if self.types.contains(name) {
+            if let AstType::Named { module, name, .. } = &ty {
+                if module.is_some() || self.types.contains(name) {
                     return Some(ty);
                 }
             }
@@ -1664,25 +1693,16 @@ impl<'a> Lowerer<'a> {
         })
     }
 
-    fn zero_global(&mut self, ty: AstType, span: Span) -> AstExpr {
-        let name = self.next_temp("zero");
-        self.new_globals.push(AstGlobal {
-            vis: Visibility::Private,
-            name: name.clone(),
-            ty,
-            init: None,
-            span: self.span(span),
-        });
-        AstExpr::Load(Box::new(AstExpr::GlobalAddr { module: None, name }))
-    }
-
     fn declare_local(&mut self, name: &str, ty: AstType, span: Span) -> AstStmt {
         let init = match &ty {
             AstType::Ptr(_) => AstExpr::ConstNull(ty.clone()),
-            AstType::Named { .. } | AstType::Array(..) => self.zero_global(ty.clone(), span),
+            AstType::Named { .. } | AstType::Array(..) => AstExpr::Zero(ty.clone()),
             AstType::F32 | AstType::F64 => AstExpr::ConstFloat(0.0, Some(ty.clone())),
             AstType::Bool => AstExpr::ConstBool(false),
             AstType::Void => AstExpr::ConstInt(0, None),
+            AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64 => {
+                AstExpr::ConstUint(0, Some(ty.clone()))
+            }
             _ => AstExpr::ConstInt(0, Some(ty.clone())),
         };
         self.declare(name, ty.clone());
@@ -1798,13 +1818,41 @@ impl<'a> Lowerer<'a> {
     ) -> Result<Vec<AstStmt>, SemanticError> {
         if is_simple_name(target_text) {
             let name = lower_name(target_text);
-            if self.lookup(&name).is_some() {
-                let target = if self.globals.contains_key(&name) {
-                    Target::Global(name)
-                } else {
-                    Target::Local(name)
-                };
-                return Ok(vec![self.write_target(&target, value, span)]);
+            if self.current_scope_contains(&name) {
+                return Ok(vec![self.write_target(&Target::Local(name), value, span)]);
+            }
+            if self.globals.contains_key(&name)
+                && !self
+                    .scopes
+                    .iter()
+                    .any(|scope| scope.vars.contains_key(&name))
+            {
+                return Ok(vec![self.write_target(&Target::Global(name), value, span)]);
+            }
+            if let Some(outer) = self.lookup(&name).cloned() {
+                let value_ty = self.shallow_type(&value);
+                if outer == value_ty {
+                    let target = if self.globals.contains_key(&name)
+                        && !self
+                            .scopes
+                            .iter()
+                            .any(|scope| scope.vars.contains_key(&name))
+                    {
+                        Target::Global(name)
+                    } else {
+                        Target::Local(name)
+                    };
+                    return Ok(vec![self.write_target(&target, value, span)]);
+                }
+                // A type-changing assignment in a nested block is a shadow,
+                // not a mutation of the outer binding.
+                self.declare(&name, value_ty);
+                return Ok(vec![AstStmt::Let {
+                    name,
+                    ty: None,
+                    init: value,
+                    span: self.span(span),
+                }]);
             }
             if allow_declare {
                 let ty = self.shallow_type(&value);
@@ -2019,7 +2067,15 @@ impl<'a> Lowerer<'a> {
             .map_or(text.len(), |token| token.start);
         let between_verb_prep = text[after_verb_start..before_prep_end].trim();
         let after_prep = text[after_prep_start..].trim();
-        let passive = clause.voice == Voice::Passive;
+        let be_auxiliary = verb_index > 0
+            && tokens.get(verb_index - 1).is_some_and(|token| {
+                token.is_word()
+                    && matches!(
+                        token.lower.as_str(),
+                        "am" | "is" | "are" | "was" | "were" | "be" | "been" | "being"
+                    )
+            });
+        let passive = clause.voice == Voice::Passive || be_auxiliary;
         match resolution.concept {
             Some(SemanticConcept::Double) => {
                 let target = if passive {
@@ -2104,9 +2160,10 @@ impl<'a> Lowerer<'a> {
                     ));
                 };
                 if chosen_role == Some(tc_lexicon::PrepRole::Location) {
-                    let address = parse_address(target, &self.expr_env()).map_err(|message| {
-                        self.error(span, SemanticErrorKind::Lowering, message)
-                    })?;
+                    let address =
+                        parse_store_address(target, &self.expr_env()).map_err(|message| {
+                            self.error(span, SemanticErrorKind::Lowering, message)
+                        })?;
                     return Ok(Some(vec![AstStmt::Store {
                         ptr: address,
                         val: value,
@@ -2167,16 +2224,14 @@ impl<'a> Lowerer<'a> {
                 let Some(operator) = transform_operator(resolution.concept, predicate) else {
                     return Ok(None);
                 };
-                let (target, value) = match role {
-                    Some(tc_lexicon::PrepRole::Extent) => (between_verb_prep, after_prep),
-                    Some(tc_lexicon::PrepRole::Instrument) => (between_verb_prep, after_prep),
-                    Some(tc_lexicon::PrepRole::Destination) => (after_prep, between_verb_prep),
-                    _ => {
-                        if passive {
-                            (subject_text.as_str(), after_prep)
-                        } else {
-                            (between_verb_prep, after_prep)
-                        }
+                let (target, value) = if passive {
+                    (subject_text.as_str(), after_prep)
+                } else {
+                    match role {
+                        Some(tc_lexicon::PrepRole::Extent) => (between_verb_prep, after_prep),
+                        Some(tc_lexicon::PrepRole::Instrument) => (between_verb_prep, after_prep),
+                        Some(tc_lexicon::PrepRole::Destination) => (after_prep, between_verb_prep),
+                        _ => (between_verb_prep, after_prep),
                     }
                 };
                 if target.is_empty() {
@@ -2225,10 +2280,17 @@ impl<'a> Lowerer<'a> {
         let after = text[tokens[prep_index].end..].trim();
         let _ = concept;
         let (target, value_text) = if passive {
-            if after.is_empty() {
-                (subject_text, between)
-            } else {
-                (after, subject_text)
+            match role {
+                Some(tc_lexicon::PrepRole::Extent) | Some(tc_lexicon::PrepRole::Instrument) => {
+                    (subject_text, after)
+                }
+                _ => {
+                    if after.is_empty() {
+                        (subject_text, between)
+                    } else {
+                        (after, subject_text)
+                    }
+                }
             }
         } else {
             match role {
@@ -2447,6 +2509,5 @@ pub(crate) fn lower_module(
             span: tc_typeck::Span::new(&module_ast.name, 1, 1),
         });
     }
-    module_ast.globals.extend(lowerer.new_globals.clone());
     (module_ast, lowerer.trace, lowerer.errors)
 }

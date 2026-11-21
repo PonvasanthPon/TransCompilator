@@ -337,6 +337,8 @@ pub enum AstExpr {
     BytesLit(Vec<u8>),
     /// Read-only byte literal length.
     BytesLen(Vec<u8>),
+    /// Zero-initialized value of the given type.
+    Zero(AstType),
     /// Variable reference.
     Var(String),
     /// Address of a global object.
