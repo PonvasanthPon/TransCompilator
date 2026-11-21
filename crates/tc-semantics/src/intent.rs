@@ -540,6 +540,33 @@ fn clause_verb_word(text: &str) -> Option<String> {
     Some(first.lower.clone())
 }
 
+fn is_natural_systems_statement(text: &str) -> bool {
+    let tokens = tokenize(text);
+    let words = tokens
+        .iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower.as_str())
+        .collect::<Vec<_>>();
+    let Some(first) = words.first().copied() else {
+        return false;
+    };
+    match first {
+        "clear" => words.get(1) == Some(&"bits") && words.contains(&"from"),
+        "set" => {
+            (words.get(1) == Some(&"bits") && words.contains(&"in"))
+                || (matches!(words.get(1), Some(&"item" | &"element")) && words.contains(&"to"))
+        }
+        "write" => words.contains(&"at"),
+        "ask" => {
+            words.get(1) == Some(&"linux")
+                && words.get(2) == Some(&"kernel")
+                && words.contains(&"with")
+        }
+        "copy" => words.contains(&"bytes") && words.contains(&"from") && words.contains(&"to"),
+        _ => false,
+    }
+}
+
 fn begins_with_determiner(text: &str) -> bool {
     let first = first_word(text);
     matches!(
@@ -627,6 +654,9 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         }
     }
     if is_control_anchor(&first) {
+        return IntentVerdict::Exec;
+    }
+    if is_natural_systems_statement(trimmed) {
         return IntentVerdict::Exec;
     }
     if phrase.is_some() {

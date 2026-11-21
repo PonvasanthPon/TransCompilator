@@ -1,63 +1,78 @@
-Public struct Option of T with has_value as bool and value as T.
-Public struct Result of T and E with is_ok as bool and ok_val as T and err_val as E.
+A module of optional values, result values, panic helpers, and byte utilities.
 
-Public function option_some of T taking v as T returning Option<T>:
-    Define local value_out as Option<T>.
+A public record Option of T has a has_value flag as a truth value, and a value as T.
+
+A public record Result of T and E has an is_ok flag as a truth value, an ok_val as T, and an err_val as E.
+
+Publicly, to option_some for T given v as T, returning Option of T.
+    Define local value_out as Option of T.
     Set value_out.has_value to true.
     Set value_out.value to v.
-    Return value_out.
+    Give back value_out.
+Done.
 
-Public function option_none of T returning Option<T>:
-    Define local value_out as Option<T>.
-    Return value_out.
+Publicly, to option_none for T, returning Option of T.
+    Define local value_out as Option of T.
+    Give back value_out.
+Done.
 
-Public function option_is_some of T taking o as ptr<Option<T>> returning bool:
-    Return o.has_value.
+Publicly, to option_is_some for T given o as a pointer to Option of T, returning a truth value.
+    Give back o.has_value.
+Done.
 
-Public function option_unwrap_or of T taking o as ptr<Option<T>> and fallback as T returning T:
+Publicly, to option_unwrap_or for T given o as a pointer to Option of T, fallback as T, returning T.
     If o.has_value:
-        Return o.value.
-    Return fallback.
+        Give back o.value.
+    Give back fallback.
+Done.
 
-Public function result_ok of T and E taking v as T returning Result<T, E>:
-    Define local value_out as Result<T, E>.
+Publicly, to result_ok for T and E given v as T, returning Result of T and E.
+    Define local value_out as Result of T and E.
     Set value_out.is_ok to true.
     Set value_out.ok_val to v.
-    Return value_out.
+    Give back value_out.
+Done.
 
-Public function result_err of T and E taking e as E returning Result<T, E>:
-    Define local value_out as Result<T, E>.
+Publicly, to result_err for T and E given e as E, returning Result of T and E.
+    Define local value_out as Result of T and E.
     Set value_out.is_ok to false.
     Set value_out.err_val to e.
-    Return value_out.
+    Give back value_out.
+Done.
 
-Public function result_is_ok of T and E taking r as ptr<Result<T, E>> returning bool:
-    Return r.is_ok.
+Publicly, to result_is_ok for T and E given r as a pointer to Result of T and E, returning a truth value.
+    Give back r.is_ok.
+Done.
 
-Public function result_unwrap_or of T and E taking r as ptr<Result<T, E>> and fallback as T returning T:
+Publicly, to result_unwrap_or for T and E given r as a pointer to Result of T and E, fallback as T, returning T.
     If r.is_ok:
-        Return r.ok_val.
-    Return fallback.
+        Give back r.ok_val.
+    Give back fallback.
+Done.
 
-Public function panic taking msg as ptr<u8> and len as u64 returning void:
-    syscall(1, 2, msg, len).
-    syscall(1, 2, bytes_ptr("\n"), bytes_len("\n")).
-    syscall(60, 1).
+Publicly, to panic given msg as a pointer to byte, len as an unsigned number, returning nothing.
+    Ask Linux kernel 1 with 2, msg, and len.
+    Ask Linux kernel 1 with 2, "\n", and 1.
+    Ask Linux kernel 60 with 1.
+Done.
 
-Public function assert_true taking cond as bool and msg as ptr<u8> and len as u64 returning void:
+Publicly, to assert_true given cond as a truth value, msg as a pointer to byte, len as an unsigned number, returning nothing.
     If not cond:
         panic(msg, len).
+Done.
 
-Public function mem_zero taking dst as ptr<u8> and len as u64 returning void:
-    Define local i as u64.
+Publicly, to mem_zero given dst as a pointer to byte, len as an unsigned number, returning nothing.
+    Define local i as an unsigned number.
     While i < len:
-        Set dst[i] to 0.
-        i += 1.
+        Set item i of dst to 0.
+        Add 1 to i.
+Done.
 
-Public function mem_eq taking a as ptr<u8> and b as ptr<u8> and len as u64 returning bool:
-    Define local i as u64.
+Publicly, to mem_eq given a as a pointer to byte, b as a pointer to byte, len as an unsigned number, returning a truth value.
+    Define local i as an unsigned number.
     While i < len:
         If a[i] != b[i]:
-            Return false.
-        i += 1.
-    Return true.
+            Give back false.
+        Add 1 to i.
+    Give back true.
+Done.

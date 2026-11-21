@@ -1,268 +1,288 @@
-Import alloc.
-Import core.
-Import string.
+A pair of integer and text hash maps with linear probing.
 
-Public struct IntMap of V with keys as ptr<i64> and values as ptr<V> and states as ptr<u8> and cap as u64 and len as u64.
-Public struct StrMap of V with keys as ptr<ptr<TcString>> and values as ptr<V> and states as ptr<u8> and cap as u64 and len as u64.
+Use alloc, core, and string.
 
-function int_hash taking key as i64 returning u64:
-    Define local value as u64.
-    value = key as u64.
-    value = value bitxor (value shr 33).
-    value = value * (11400714819323198485 as u64).
-    Return value.
+A public record IntMap of V has keys as a pointer to whole number, values as a pointer to V, states as a pointer to byte, a cap as an unsigned number, and a len as an unsigned number.
+A public record StrMap of V has keys as a pointer to pointer to TcString, values as a pointer to V, states as a pointer to byte, a cap as an unsigned number, and a len as an unsigned number.
 
-function str_hash taking key as ptr<TcString> returning u64:
-    Define local value as u64.
-    value = 1469598103934665603 as u64.
-    Define local index as u64.
+To int_hash given key as a whole number, returning an unsigned number.
+    Define local value as an unsigned number.
+    Set value to key as an unsigned number.
+    Set value to exclusive or of value and (shift value right by 33).
+    Set value to value * 11400714819323198485 as an unsigned number.
+    Give back value.
+Done.
+
+To str_hash given key as a pointer to TcString, returning an unsigned number.
+    Define local value as an unsigned number.
+    Set value to 1469598103934665603 as an unsigned number.
+    Define local index as an unsigned number.
     While index < key.len:
-        value = (value bitxor (key.data[index] as u64)) * (1099511628211 as u64).
-        index += 1.
-    Return value.
+        Define local byte_value as an unsigned number.
+        Set byte_value to (item index of key.data) as an unsigned number.
+        Set value to (exclusive or of value and byte_value) * 1099511628211 as an unsigned number.
+        Add 1 to index.
+    Give back value.
+Done.
 
-function intmap_rehash of V taking table as ptr<IntMap<V>> and new_cap as u64 returning void:
-    Define local old_keys as ptr<i64>.
-    Define local old_values as ptr<V>.
-    Define local old_states as ptr<u8>.
-    Define local old_cap as u64.
-    old_keys = table.keys.
-    old_values = table.values.
-    old_states = table.states.
-    old_cap = table.cap.
-    table.keys = heap_alloc(new_cap * 8) as ptr<i64>.
-    table.values = heap_alloc(new_cap * (size of V)) as ptr<V>.
-    table.states = heap_alloc(new_cap) as ptr<u8>.
+To intmap_rehash for V given table as a pointer to IntMap of V, new_cap as an unsigned number, returning nothing.
+    Define local old_keys as a pointer to whole number.
+    Define local old_values as a pointer to V.
+    Define local old_states as a pointer to byte.
+    Define local old_cap as an unsigned number.
+    Set old_keys to table.keys.
+    Set old_values to table.values.
+    Set old_states to table.states.
+    Set old_cap to table.cap.
+    Set table.keys to heap_alloc(new_cap * 8) as a pointer to whole number.
+    Set table.values to heap_alloc(new_cap * (byte size of V)) as a pointer to V.
+    Set table.states to heap_alloc(new_cap) as a pointer to byte.
     mem_zero(table.states, new_cap).
-    table.cap = new_cap.
-    table.len = 0.
-    Define local index as u64.
+    Set table.cap to new_cap.
+    Set table.len to 0 as an unsigned number.
+    Define local index as an unsigned number.
     While index < old_cap:
-        If old_states[index] == 1:
+        If item index of old_states == 1:
             Define local old_value as V.
-            old_value = old_values[index].
-            intmap_put(table, old_keys[index], old_value).
-        index += 1.
+            Set old_value to item index of old_values.
+            intmap_put(table, item index of old_keys, old_value).
+        Add 1 to index.
     If old_cap > 0:
-        heap_free(old_keys as ptr<u8>).
-        heap_free(old_values as ptr<u8>).
-        heap_free(old_states as ptr<u8>).
+        heap_free(old_keys as a pointer to byte).
+        heap_free(old_values as a pointer to byte).
+        heap_free(old_states as a pointer to byte).
+Done.
 
-Public function intmap_new of V returning IntMap<V>:
-    Define local created as IntMap<V>.
-    Return created.
+Publicly, to intmap_new for V, returning IntMap of V.
+    Define local created as IntMap of V.
+    Give back created.
+Done.
 
-Public function intmap_put of V taking table as ptr<IntMap<V>> and key as i64 and val as V returning void:
+Publicly, to intmap_put for V given table as a pointer to IntMap of V, key as a whole number, val as V, returning nothing.
     If table.cap == 0 or (table.len + 1) * 10 >= table.cap * 7:
-        Define local next_cap as u64.
+        Define local next_cap as an unsigned number.
         If table.cap == 0:
-            next_cap = 16 as u64.
+            Set next_cap to 16 as an unsigned number.
         Else:
-            next_cap = table.cap * 2.
+            Set next_cap to table.cap * 2.
         intmap_rehash(table, next_cap).
-    Define local index as u64.
-    index = int_hash(key) % table.cap.
-    Define local first_deleted as u64.
-    first_deleted = table.cap.
+    Define local index as an unsigned number.
+    Set index to int_hash(key) % table.cap.
+    Define local first_deleted as an unsigned number.
+    Set first_deleted to table.cap.
     Loop:
-        If table.states[index] == 1 and table.keys[index] == key:
-            Set table.values[index] to val.
-            Return.
-        If table.states[index] == 2 and first_deleted == table.cap:
-            first_deleted = index.
-        If table.states[index] == 0:
+        If item index of table.states == 1 and item index of table.keys == key:
+            Set item index of table.values to val.
+            Give back.
+        If item index of table.states == 2 and first_deleted == table.cap:
+            Set first_deleted to index.
+        If item index of table.states == 0:
             If first_deleted != table.cap:
-                index = first_deleted.
-            table.states[index] = 1.
-            table.keys[index] = key.
-            Set table.values[index] to val.
-            table.len += 1.
-            Return.
-        index = (index + 1) % table.cap.
+                Set index to first_deleted.
+            Set item index of table.states to 1.
+            Set item index of table.keys to key.
+            Set item index of table.values to val.
+            Add 1 to table.len.
+            Give back.
+        Set index to (index + 1) % table.cap.
+Done.
 
-Public function intmap_get of V taking table as ptr<IntMap<V>> and key as i64 returning Option<V>:
-    Define local answer as Option<V>.
+Publicly, to intmap_get for V given table as a pointer to IntMap of V, key as a whole number, returning Option of V.
+    Define local answer as Option of V.
     If table.cap == 0:
-        Return answer.
-    Define local index as u64.
-    index = int_hash(key) % table.cap.
-    Define local probes as u64.
+        Give back answer.
+    Define local index as an unsigned number.
+    Set index to int_hash(key) % table.cap.
+    Define local probes as an unsigned number.
     While probes < table.cap:
-        If table.states[index] == 0:
-            Return answer.
-        If table.states[index] == 1 and table.keys[index] == key:
+        If item index of table.states == 0:
+            Give back answer.
+        If item index of table.states == 1 and item index of table.keys == key:
             Set answer.has_value to true.
-            Set answer.value to table.values[index].
-            Return answer.
-        index = (index + 1) % table.cap.
-        probes += 1.
-    Return answer.
+            Set answer.value to item index of table.values.
+            Give back answer.
+        Set index to (index + 1) % table.cap.
+        Add 1 to probes.
+    Give back answer.
+Done.
 
-Public function intmap_contains of V taking table as ptr<IntMap<V>> and key as i64 returning bool:
+Publicly, to intmap_contains for V given table as a pointer to IntMap of V, key as a whole number, returning a truth value.
     If table.cap == 0:
-        Return false.
-    Define local index as u64.
-    index = int_hash(key) % table.cap.
-    Define local probes as u64.
+        Give back false.
+    Define local index as an unsigned number.
+    Set index to int_hash(key) % table.cap.
+    Define local probes as an unsigned number.
     While probes < table.cap:
-        If table.states[index] == 0:
-            Return false.
-        If table.states[index] == 1 and table.keys[index] == key:
-            Return true.
-        index = (index + 1) % table.cap.
-        probes += 1.
-    Return false.
+        If item index of table.states == 0:
+            Give back false.
+        If item index of table.states == 1 and item index of table.keys == key:
+            Give back true.
+        Set index to (index + 1) % table.cap.
+        Add 1 to probes.
+    Give back false.
+Done.
 
-Public function intmap_remove of V taking table as ptr<IntMap<V>> and key as i64 returning bool:
+Publicly, to intmap_remove for V given table as a pointer to IntMap of V, key as a whole number, returning a truth value.
     If table.cap == 0:
-        Return false.
-    Define local index as u64.
-    index = int_hash(key) % table.cap.
-    Define local probes as u64.
+        Give back false.
+    Define local index as an unsigned number.
+    Set index to int_hash(key) % table.cap.
+    Define local probes as an unsigned number.
     While probes < table.cap:
-        If table.states[index] == 0:
-            Return false.
-        If table.states[index] == 1 and table.keys[index] == key:
-            table.states[index] = 2.
-            table.len -= 1.
-            Return true.
-        index = (index + 1) % table.cap.
-        probes += 1.
-    Return false.
+        If item index of table.states == 0:
+            Give back false.
+        If item index of table.states == 1 and item index of table.keys == key:
+            Set item index of table.states to 2.
+            Set table.len to table.len - 1.
+            Give back true.
+        Set index to (index + 1) % table.cap.
+        Add 1 to probes.
+    Give back false.
+Done.
 
-Public function intmap_len of V taking table as ptr<IntMap<V>> returning u64:
-    Return table.len.
+Publicly, to intmap_len for V given table as a pointer to IntMap of V, returning an unsigned number.
+    Give back table.len.
+Done.
 
-Public function intmap_free of V taking table as ptr<IntMap<V>> returning void:
+Publicly, to intmap_free for V given table as a pointer to IntMap of V, returning nothing.
     If table.cap > 0:
-        heap_free(table.keys as ptr<u8>).
-        heap_free(table.values as ptr<u8>).
-        heap_free(table.states as ptr<u8>).
-    table.keys = 0 as u64 as ptr<i64>.
-    table.values = 0 as u64 as ptr<V>.
-    table.states = 0 as u64 as ptr<u8>.
-    table.cap = 0.
-    table.len = 0.
+        heap_free(table.keys as a pointer to byte).
+        heap_free(table.values as a pointer to byte).
+        heap_free(table.states as a pointer to byte).
+    Set table.keys to 0 as an unsigned number as a pointer to whole number.
+    Set table.values to no address as a pointer to V.
+    Set table.states to no address as a pointer to byte.
+    Set table.cap to 0 as an unsigned number.
+    Set table.len to 0 as an unsigned number.
+Done.
 
-function strmap_rehash of V taking table as ptr<StrMap<V>> and new_cap as u64 returning void:
-    Define local old_keys as ptr<ptr<TcString>>.
-    Define local old_values as ptr<V>.
-    Define local old_states as ptr<u8>.
-    Define local old_cap as u64.
-    old_keys = table.keys.
-    old_values = table.values.
-    old_states = table.states.
-    old_cap = table.cap.
-    table.keys = heap_alloc(new_cap * 8) as ptr<ptr<TcString>>.
-    table.values = heap_alloc(new_cap * (size of V)) as ptr<V>.
-    table.states = heap_alloc(new_cap) as ptr<u8>.
+To strmap_rehash for V given table as a pointer to StrMap of V, new_cap as an unsigned number, returning nothing.
+    Define local old_keys as a pointer to pointer to TcString.
+    Define local old_values as a pointer to V.
+    Define local old_states as a pointer to byte.
+    Define local old_cap as an unsigned number.
+    Set old_keys to table.keys.
+    Set old_values to table.values.
+    Set old_states to table.states.
+    Set old_cap to table.cap.
+    Set table.keys to heap_alloc(new_cap * 8) as a pointer to pointer to TcString.
+    Set table.values to heap_alloc(new_cap * (byte size of V)) as a pointer to V.
+    Set table.states to heap_alloc(new_cap) as a pointer to byte.
     mem_zero(table.states, new_cap).
-    table.cap = new_cap.
-    table.len = 0.
-    Define local index as u64.
+    Set table.cap to new_cap.
+    Set table.len to 0 as an unsigned number.
+    Define local index as an unsigned number.
     While index < old_cap:
-        If old_states[index] == 1:
+        If item index of old_states == 1:
             Define local old_value as V.
-            old_value = old_values[index].
-            strmap_put(table, old_keys[index], old_value).
-        index += 1.
+            Set old_value to item index of old_values.
+            strmap_put(table, item index of old_keys, old_value).
+        Add 1 to index.
     If old_cap > 0:
-        heap_free(old_keys as ptr<u8>).
-        heap_free(old_values as ptr<u8>).
-        heap_free(old_states as ptr<u8>).
+        heap_free(old_keys as a pointer to byte).
+        heap_free(old_values as a pointer to byte).
+        heap_free(old_states as a pointer to byte).
+Done.
 
-Public function strmap_new of V returning StrMap<V>:
-    Define local created as StrMap<V>.
-    Return created.
+Publicly, to strmap_new for V, returning StrMap of V.
+    Define local created as StrMap of V.
+    Give back created.
+Done.
 
-Public function strmap_put of V taking table as ptr<StrMap<V>> and key as ptr<TcString> and val as V returning void:
+Publicly, to strmap_put for V given table as a pointer to StrMap of V, key as a pointer to TcString, val as V, returning nothing.
     If table.cap == 0 or (table.len + 1) * 10 >= table.cap * 7:
-        Define local next_cap as u64.
+        Define local next_cap as an unsigned number.
         If table.cap == 0:
-            next_cap = 16 as u64.
+            Set next_cap to 16 as an unsigned number.
         Else:
-            next_cap = table.cap * 2.
+            Set next_cap to table.cap * 2.
         strmap_rehash(table, next_cap).
-    Define local index as u64.
-    index = str_hash(key) % table.cap.
-    Define local first_deleted as u64.
-    first_deleted = table.cap.
+    Define local index as an unsigned number.
+    Set index to str_hash(key) % table.cap.
+    Define local first_deleted as an unsigned number.
+    Set first_deleted to table.cap.
     Loop:
-        If table.states[index] == 1 and str_eq(table.keys[index], key):
-            Set table.values[index] to val.
-            Return.
-        If table.states[index] == 2 and first_deleted == table.cap:
-            first_deleted = index.
-        If table.states[index] == 0:
+        If item index of table.states == 1 and str_eq(item index of table.keys, key):
+            Set item index of table.values to val.
+            Give back.
+        If item index of table.states == 2 and first_deleted == table.cap:
+            Set first_deleted to index.
+        If item index of table.states == 0:
             If first_deleted != table.cap:
-                index = first_deleted.
-            table.states[index] = 1.
-            table.keys[index] = key.
-            Set table.values[index] to val.
-            table.len += 1.
-            Return.
-        index = (index + 1) % table.cap.
+                Set index to first_deleted.
+            Set item index of table.states to 1.
+            Set item index of table.keys to key.
+            Set item index of table.values to val.
+            Add 1 to table.len.
+            Give back.
+        Set index to (index + 1) % table.cap.
+Done.
 
-Public function strmap_get of V taking table as ptr<StrMap<V>> and key as ptr<TcString> returning Option<V>:
-    Define local answer as Option<V>.
+Publicly, to strmap_get for V given table as a pointer to StrMap of V, key as a pointer to TcString, returning Option of V.
+    Define local answer as Option of V.
     If table.cap == 0:
-        Return answer.
-    Define local index as u64.
-    index = str_hash(key) % table.cap.
-    Define local probes as u64.
+        Give back answer.
+    Define local index as an unsigned number.
+    Set index to str_hash(key) % table.cap.
+    Define local probes as an unsigned number.
     While probes < table.cap:
-        If table.states[index] == 0:
-            Return answer.
-        If table.states[index] == 1 and str_eq(table.keys[index], key):
+        If item index of table.states == 0:
+            Give back answer.
+        If item index of table.states == 1 and str_eq(item index of table.keys, key):
             Set answer.has_value to true.
-            Set answer.value to table.values[index].
-            Return answer.
-        index = (index + 1) % table.cap.
-        probes += 1.
-    Return answer.
+            Set answer.value to item index of table.values.
+            Give back answer.
+        Set index to (index + 1) % table.cap.
+        Add 1 to probes.
+    Give back answer.
+Done.
 
-Public function strmap_contains of V taking table as ptr<StrMap<V>> and key as ptr<TcString> returning bool:
+Publicly, to strmap_contains for V given table as a pointer to StrMap of V, key as a pointer to TcString, returning a truth value.
     If table.cap == 0:
-        Return false.
-    Define local index as u64.
-    index = str_hash(key) % table.cap.
-    Define local probes as u64.
+        Give back false.
+    Define local index as an unsigned number.
+    Set index to str_hash(key) % table.cap.
+    Define local probes as an unsigned number.
     While probes < table.cap:
-        If table.states[index] == 0:
-            Return false.
-        If table.states[index] == 1 and str_eq(table.keys[index], key):
-            Return true.
-        index = (index + 1) % table.cap.
-        probes += 1.
-    Return false.
+        If item index of table.states == 0:
+            Give back false.
+        If item index of table.states == 1 and str_eq(item index of table.keys, key):
+            Give back true.
+        Set index to (index + 1) % table.cap.
+        Add 1 to probes.
+    Give back false.
+Done.
 
-Public function strmap_remove of V taking table as ptr<StrMap<V>> and key as ptr<TcString> returning bool:
+Publicly, to strmap_remove for V given table as a pointer to StrMap of V, key as a pointer to TcString, returning a truth value.
     If table.cap == 0:
-        Return false.
-    Define local index as u64.
-    index = str_hash(key) % table.cap.
-    Define local probes as u64.
+        Give back false.
+    Define local index as an unsigned number.
+    Set index to str_hash(key) % table.cap.
+    Define local probes as an unsigned number.
     While probes < table.cap:
-        If table.states[index] == 0:
-            Return false.
-        If table.states[index] == 1 and str_eq(table.keys[index], key):
-            table.states[index] = 2.
-            table.len -= 1.
-            Return true.
-        index = (index + 1) % table.cap.
-        probes += 1.
-    Return false.
+        If item index of table.states == 0:
+            Give back false.
+        If item index of table.states == 1 and str_eq(item index of table.keys, key):
+            Set item index of table.states to 2.
+            Set table.len to table.len - 1.
+            Give back true.
+        Set index to (index + 1) % table.cap.
+        Add 1 to probes.
+    Give back false.
+Done.
 
-Public function strmap_len of V taking table as ptr<StrMap<V>> returning u64:
-    Return table.len.
+Publicly, to strmap_len for V given table as a pointer to StrMap of V, returning an unsigned number.
+    Give back table.len.
+Done.
 
-Public function strmap_free of V taking table as ptr<StrMap<V>> returning void:
+Publicly, to strmap_free for V given table as a pointer to StrMap of V, returning nothing.
     If table.cap > 0:
-        heap_free(table.keys as ptr<u8>).
-        heap_free(table.values as ptr<u8>).
-        heap_free(table.states as ptr<u8>).
-    table.keys = 0 as u64 as ptr<ptr<TcString>>.
-    table.values = 0 as u64 as ptr<V>.
-    table.states = 0 as u64 as ptr<u8>.
-    table.cap = 0.
-    table.len = 0.
+        heap_free(table.keys as a pointer to byte).
+        heap_free(table.values as a pointer to byte).
+        heap_free(table.states as a pointer to byte).
+    Set table.keys to no address as a pointer to pointer to TcString.
+    Set table.values to no address as a pointer to V.
+    Set table.states to no address as a pointer to byte.
+    Set table.cap to 0 as an unsigned number.
+    Set table.len to 0 as an unsigned number.
+Done.

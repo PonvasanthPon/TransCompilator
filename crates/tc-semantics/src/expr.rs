@@ -407,6 +407,144 @@ impl<'a> Parser<'a> {
 
     fn parse_unary(&mut self) -> Result<AstExpr> {
         self.charge()?;
+        if self.eat_word("convert") {
+            let value = self.parse_unary()?;
+            self.expect_word("to")?;
+            let to = self.parse_type()?;
+            return Ok(AstExpr::Cast {
+                val: Box::new(value),
+                to,
+            });
+        }
+        if self.words_are(&["byte", "size", "of"]) {
+            self.position += 3;
+            let ty = self.parse_type()?;
+            return Ok(AstExpr::SizeOf(ty));
+        }
+        if self.words_are(&["alignment", "of"]) || self.words_are(&["align", "of"]) {
+            self.position += 2;
+            let ty = self.parse_type()?;
+            return Ok(AstExpr::AlignOf(ty));
+        }
+        if self.words_are(&["memory", "location", "of"]) {
+            self.position += 3;
+            let value = self.parse_unary()?;
+            return explicit_address(&value, self.env)
+                .ok_or_else(|| "memory location requires an addressable value".to_string());
+        }
+        if self.words_are(&["value", "at"]) {
+            self.position += 2;
+            return Ok(AstExpr::Load(Box::new(self.parse_unary()?)));
+        }
+        if matches!(self.peek_lower(0), Some("item" | "element")) {
+            let saved = self.position;
+            self.position += 1;
+            let index = if self
+                .peek()
+                .is_some_and(|token| token.kind == TokenKind::Number)
+            {
+                self.parse_unary()?
+            } else if self.peek_lower(0).is_some() && self.peek_lower(1) == Some("of") {
+                let name = self.peek_lower(0).unwrap_or_default().to_string();
+                self.position += 1;
+                AstExpr::Var(name)
+            } else {
+                let result = self.parse_unary();
+                if result.is_err() {
+                    self.position = saved;
+                    return Err("item index is invalid".to_string());
+                }
+                result?
+            };
+            if self.eat_word("of") {
+                let pointer = self.parse_unary()?;
+                let base = deref_address(&pointer, self.env)
+                    .ok_or_else(|| "item access requires a pointer".to_string())?;
+                return Ok(AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                    base_ptr: Box::new(base),
+                    index: Box::new(index),
+                })));
+            }
+            self.position = saved;
+        }
+        if self.words_are(&["keep", "bits"]) {
+            self.position += 2;
+            let mask = self.parse_unary()?;
+            self.expect_word("of")?;
+            let value = self.parse_unary()?;
+            let mask = if let Some(ty) = self.env.expr_type(&value) {
+                AstExpr::Cast {
+                    val: Box::new(mask),
+                    to: ty,
+                }
+            } else {
+                mask
+            };
+            return Ok(binary(BinOp::BitAnd, value, mask));
+        }
+        if self.words_are(&["bitwise", "and", "of"]) {
+            self.position += 3;
+            let left = self.parse_unary()?;
+            self.expect_word("and")?;
+            let right = self.parse_unary()?;
+            return Ok(binary(BinOp::BitAnd, left, right));
+        }
+        if self.words_are(&["bitwise", "or", "of"]) {
+            self.position += 3;
+            let left = self.parse_unary()?;
+            self.expect_word("and")?;
+            let right = self.parse_unary()?;
+            return Ok(binary(BinOp::BitOr, left, right));
+        }
+        if self.words_are(&["exclusive", "or", "of"]) {
+            self.position += 3;
+            let left = self.parse_unary()?;
+            self.expect_word("and")?;
+            let right = self.parse_unary()?;
+            return Ok(binary(BinOp::BitXor, left, right));
+        }
+        if self.words_are(&["bitwise", "inverse", "of"]) {
+            self.position += 3;
+            return Ok(AstExpr::Unary {
+                op: UnOp::BitNot,
+                val: Box::new(self.parse_unary()?),
+            });
+        }
+        if self.words_are(&["shift"]) {
+            self.position += 1;
+            let value = self.parse_unary()?;
+            let right = if self.eat_word("left") {
+                false
+            } else if self.eat_word("right") {
+                true
+            } else {
+                return Err("shift requires `left` or `right`".to_string());
+            };
+            self.expect_word("by")?;
+            let amount = self.parse_unary()?;
+            return Ok(binary(
+                if right { BinOp::Shr } else { BinOp::Shl },
+                value,
+                amount,
+            ));
+        }
+        if self.words_are(&["ask", "linux", "kernel"]) {
+            self.position += 3;
+            let number = self.parse_unary()?;
+            self.expect_word("with")?;
+            let mut args = Vec::new();
+            loop {
+                self.eat_word("and");
+                args.push(self.parse_expression()?);
+                if !self.eat_symbol(",") {
+                    break;
+                }
+            }
+            return Ok(AstExpr::Syscall {
+                num: Box::new(number),
+                args,
+            });
+        }
         if self.eat_symbol("-") {
             let value = self.parse_unary()?;
             if let AstExpr::ConstUint(integer, None) = value {
@@ -695,6 +833,10 @@ impl<'a> Parser<'a> {
                     "true" => Ok((AstExpr::ConstBool(true), None)),
                     "false" => Ok((AstExpr::ConstBool(false), None)),
                     "null" => Ok((AstExpr::ConstNull(AstType::ptr(AstType::U8)), None)),
+                    "empty" | "no" if self.peek().is_some_and(|token| token.is("address")) => {
+                        self.position += 1;
+                        Ok((AstExpr::ConstNull(AstType::ptr(AstType::U8)), None))
+                    }
                     "sum" if self.peek().is_some_and(|token| token.is("of")) => {
                         self.parse_aggregate_expression("sum")
                     }
@@ -813,13 +955,213 @@ impl<'a> Parser<'a> {
         result
     }
 
+    fn peek_lower(&self, offset: usize) -> Option<&str> {
+        self.tokens
+            .get(self.position + offset)
+            .filter(|token| token.kind == TokenKind::Word)
+            .map(|token| token.lower.as_str())
+    }
+
+    fn words_are(&self, words: &[&str]) -> bool {
+        words
+            .iter()
+            .enumerate()
+            .all(|(offset, word)| self.peek_lower(offset) == Some(*word))
+    }
+
+    fn words_are_any(&self, words: &[&str]) -> bool {
+        words.iter().enumerate().all(|(offset, word)| {
+            self.tokens
+                .get(self.position + offset)
+                .is_some_and(|token| token.lower == *word)
+        })
+    }
+
+    fn skip_type_articles(&mut self) {
+        while matches!(self.peek_lower(0), Some("a" | "an" | "the")) {
+            self.position += 1;
+        }
+    }
+
+    fn parse_natural_array(&mut self, prefix_words: usize) -> Result<AstType> {
+        self.position += prefix_words;
+        let count = self
+            .peek()
+            .filter(|token| token.kind == TokenKind::Number)
+            .and_then(|value| value.text.parse::<usize>().ok())
+            .ok_or_else(|| "expected array length".to_string())?;
+        self.position += 1;
+        let inner = self.parse_type()?;
+        Ok(AstType::array(inner, count))
+    }
+
     fn parse_type_inner(&mut self) -> Result<AstType> {
+        self.skip_type_articles();
+        for (words, ty) in [
+            (&["32", "-", "bit", "number"][..], AstType::I32),
+            (&["unsigned", "32", "-", "bit", "number"][..], AstType::U32),
+            (&["16", "-", "bit", "number"][..], AstType::I16),
+            (&["unsigned", "16", "-", "bit", "number"][..], AstType::U16),
+            (&["32", "-", "bit", "decimal"][..], AstType::F32),
+            (&["signed", "32", "-", "bit", "number"][..], AstType::I32),
+            (&["signed", "16", "-", "bit", "number"][..], AstType::I16),
+        ] {
+            if self.words_are_any(words) {
+                self.position += words.len();
+                return Ok(ty);
+            }
+        }
         let token = self
             .peek()
             .cloned()
             .ok_or_else(|| "expected type".to_string())?;
         if token.kind != TokenKind::Word {
             return Err("expected type name".to_string());
+        }
+        if self.words_are(&["whole", "number"])
+            || self.words_are(&["signed", "number"])
+            || self.words_are(&["integer"])
+            || self.words_are(&["number"])
+            || self.words_are(&["signed", "whole", "number"])
+        {
+            let count = if self.words_are(&["signed", "whole", "number"]) {
+                3
+            } else if self.words_are(&["whole", "number"]) || self.words_are(&["signed", "number"])
+            {
+                2
+            } else {
+                1
+            };
+            self.position += count;
+            return Ok(AstType::I64);
+        }
+        if self.words_are(&["unsigned", "number"])
+            || self.words_are(&["unsigned", "whole", "number"])
+            || self.words_are(&["count"])
+        {
+            self.position += if self.words_are(&["unsigned", "whole", "number"]) {
+                3
+            } else if self.words_are(&["unsigned", "number"]) {
+                2
+            } else {
+                1
+            };
+            return Ok(AstType::U64);
+        }
+        if self.words_are(&["small", "number"])
+            || self.words_are(&["signed", "32-bit", "number"])
+            || self.words_are(&["32", "-", "bit", "number"])
+        {
+            self.position += if self.words_are(&["32", "-", "bit", "number"]) {
+                4
+            } else if self.words_are(&["signed", "32-bit", "number"]) {
+                3
+            } else {
+                2
+            };
+            return Ok(AstType::I32);
+        }
+        if self.words_are(&["unsigned", "32-bit", "number"])
+            || self.words_are(&["unsigned", "32", "-", "bit", "number"])
+        {
+            self.position += if self.words_are(&["unsigned", "32", "-", "bit", "number"]) {
+                5
+            } else {
+                3
+            };
+            return Ok(AstType::U32);
+        }
+        if self.words_are(&["short", "number"])
+            || self.words_are(&["signed", "16-bit", "number"])
+            || self.words_are(&["16", "-", "bit", "number"])
+        {
+            self.position += if self.words_are(&["16", "-", "bit", "number"]) {
+                4
+            } else if self.words_are(&["signed", "16-bit", "number"]) {
+                3
+            } else {
+                2
+            };
+            return Ok(AstType::I16);
+        }
+        if self.words_are(&["unsigned", "16-bit", "number"])
+            || self.words_are(&["unsigned", "16", "-", "bit", "number"])
+        {
+            self.position += if self.words_are(&["unsigned", "16", "-", "bit", "number"]) {
+                5
+            } else {
+                3
+            };
+            return Ok(AstType::U16);
+        }
+        if self.words_are(&["signed", "byte"]) {
+            self.position += 2;
+            return Ok(AstType::I8);
+        }
+        if self.words_are(&["byte"]) {
+            self.position += 1;
+            return Ok(AstType::U8);
+        }
+        if self.words_are(&["decimal", "number"])
+            || self.words_are(&["real", "number"])
+            || self.words_are(&["decimal"])
+        {
+            self.position += if self.words_are(&["decimal"]) { 1 } else { 2 };
+            return Ok(AstType::F64);
+        }
+        if self.words_are(&["short", "decimal"])
+            || self.words_are(&["32-bit", "decimal"])
+            || self.words_are(&["32", "-", "bit", "decimal"])
+        {
+            self.position += if self.words_are(&["32", "-", "bit", "decimal"]) {
+                4
+            } else {
+                2
+            };
+            return Ok(AstType::F32);
+        }
+        if self.words_are(&["truth", "value"]) {
+            self.position += 2;
+            return Ok(AstType::Bool);
+        }
+        if self.words_are(&["boolean"]) || self.words_are(&["flag"]) {
+            self.position += 1;
+            return Ok(AstType::Bool);
+        }
+        if self.words_are(&["nothing"]) {
+            self.position += 1;
+            return Ok(AstType::Void);
+        }
+        if self.words_are(&["pointer", "to"]) || self.words_are(&["address", "of"]) {
+            self.position += 2;
+            let inner = self.parse_type()?;
+            return Ok(AstType::ptr(inner));
+        }
+        if self.words_are(&["block", "of"]) {
+            return self.parse_natural_array(2);
+        }
+        if self.words_are(&["fixed"]) {
+            return self.parse_natural_array(1);
+        }
+        if self.words_are(&["function", "taking"]) {
+            self.position += 2;
+            let mut params = Vec::new();
+            loop {
+                params.push(self.parse_type()?);
+                if self.eat_word("and") || self.eat_symbol(",") {
+                    continue;
+                }
+                break;
+            }
+            let ret = if self.eat_word("returning") {
+                self.parse_type()?
+            } else {
+                AstType::Void
+            };
+            return Ok(AstType::FnPtr {
+                params,
+                ret: Box::new(ret),
+            });
         }
         self.position += 1;
         match token.lower.as_str() {
@@ -905,6 +1247,14 @@ impl<'a> Parser<'a> {
                             break;
                         }
                         self.expect_symbol(",")?;
+                    }
+                } else if self.eat_word("of") {
+                    loop {
+                        type_args.push(self.parse_type()?);
+                        if self.eat_word("and") || self.eat_symbol(",") {
+                            continue;
+                        }
+                        break;
                     }
                 }
                 Ok(AstType::Named {
@@ -1123,6 +1473,28 @@ mod tests {
         assert!(parse_expression("10 percent of 50", &env).is_ok());
         assert!(parse_expression("x more than 5", &env).is_ok());
         assert!(parse_expression("1 + 2 * 3", &env).is_ok());
+    }
+
+    #[test]
+    fn natural_type_phrases_parse() {
+        use super::parse_type_text;
+        for text in [
+            "a whole number",
+            "an unsigned number",
+            "a truth value",
+            "a pointer to byte",
+            "Result of T and E",
+            "Option of T",
+            "List of T",
+            "block of 8 byte",
+            "function taking pointer to T and pointer to T returning whole number",
+        ] {
+            assert!(
+                parse_type_text(text).is_ok(),
+                "{text}: {:?}",
+                parse_type_text(text)
+            );
+        }
     }
 
     #[test]

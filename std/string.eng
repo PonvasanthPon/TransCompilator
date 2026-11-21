@@ -1,82 +1,90 @@
-Import alloc.
-Import core.
-Import io.
+A growable sequence of bytes with a final zero byte.
 
-Public struct TcString with data as ptr<u8> and len as u64 and cap as u64.
+Use alloc, core, and io.
 
-Public function str_new returning TcString:
+A public record TcString has a data as a pointer to byte, a len as an unsigned number, and a cap as an unsigned number.
+
+Publicly, to str_new returning TcString.
     Define local s as TcString.
-    Return s.
+    Give back s.
+Done.
 
-Public function str_from_bytes taking p as ptr<u8> and n as u64 returning TcString:
+Publicly, to str_from_bytes given p as a pointer to byte, n as an unsigned number, returning TcString.
     Define local s as TcString.
-    s.len = n.
-    s.cap = n + 1.
-    s.data = heap_alloc(s.cap).
+    Set s.len to n.
+    Set s.cap to n + 1.
+    Set s.data to heap_alloc(s.cap).
     If n > 0:
         Copy n bytes from p to s.data.
-    Set s.data[n] to 0.
-    Return s.
+    Set item n of s.data to 0.
+    Give back s.
+Done.
 
-Public function str_push_bytes taking s as ptr<TcString> and p as ptr<u8> and n as u64 returning void:
+Publicly, to str_push_bytes given s as a pointer to TcString, p as a pointer to byte, n as an unsigned number, returning nothing.
     If n == 0:
-        Return.
-    Define local needed as u64.
-    needed = s.len + n + 1.
+        Give back.
+    Define local needed as an unsigned number.
+    Set needed to s.len + n + 1.
     If needed > s.cap:
-        Define local new_cap as u64.
-        new_cap = s.cap * 2.
+        Define local new_cap as an unsigned number.
+        Set new_cap to s.cap * 2.
         If new_cap < needed:
-            new_cap = needed.
+            Set new_cap to needed.
         If new_cap < 16:
-            new_cap = 16 as u64.
-        Define local old_cap as u64.
-        old_cap = s.cap.
-        s.data = heap_realloc(s.data, old_cap, new_cap).
-        s.cap = new_cap.
-    Copy n bytes from p to (s.data as u64 + s.len) as ptr<u8>.
-    s.len = s.len + n.
-    Set s.data[s.len] to 0.
+            Set new_cap to 16 as an unsigned number.
+        Define local old_cap as an unsigned number.
+        Set old_cap to s.cap.
+        Set s.data to heap_realloc(s.data, old_cap, new_cap).
+        Set s.cap to new_cap.
+    Copy n bytes from p to (s.data as an unsigned number + s.len) as a pointer to byte.
+    Set s.len to s.len + n.
+    Set item s.len of s.data to 0.
+Done.
 
-Public function str_concat taking a as ptr<TcString> and b as ptr<TcString> returning TcString:
-    Phrase: "join <a> and <b>"
+Publicly, to str_concat given a as a pointer to TcString, b as a pointer to TcString, returning TcString.
+    Call this as "join <a> and <b>".
     Define local joined as TcString.
-    joined = str_from_bytes(a.data, a.len).
+    Set joined to str_from_bytes(a.data, a.len).
     str_push_bytes(address of joined, b.data, b.len).
-    Return joined.
+    Give back joined.
+Done.
 
-Public function str_eq taking a as ptr<TcString> and b as ptr<TcString> returning bool:
+Publicly, to str_eq given a as a pointer to TcString, b as a pointer to TcString, returning a truth value.
     If a.len != b.len:
-        Return false.
-    Return mem_eq(a.data, b.data, a.len).
+        Give back false.
+    Give back mem_eq(a.data, b.data, a.len).
+Done.
 
-Public function str_len taking s as ptr<TcString> returning u64:
-    Phrase: "length of <s>"
-    Return s.len.
+Publicly, to str_len given s as a pointer to TcString, returning an unsigned number.
+    Call this as "length of <s>".
+    Give back s.len.
+Done.
 
-Public function str_clone taking s as ptr<TcString> returning TcString:
-    Return str_from_bytes(s.data, s.len).
+Publicly, to str_clone given s as a pointer to TcString, returning TcString.
+    Give back str_from_bytes(s.data, s.len).
+Done.
 
-Public function str_clear taking s as ptr<TcString> returning void:
-    s.len = 0.
-    If s.data as u64 != 0:
-        Set s.data[0] to 0.
+Publicly, to str_clear given s as a pointer to TcString, returning nothing.
+    Set s.len to 0 as an unsigned number.
+    If s.data as an unsigned number != 0:
+        Set item 0 of s.data to 0.
+Done.
 
-Public function str_free taking s as ptr<TcString> returning void:
-    If s.data as u64 != 0:
+Publicly, to str_free given s as a pointer to TcString, returning nothing.
+    If s.data as an unsigned number != 0:
         heap_free(s.data).
-    s.data = null.
-    s.len = 0.
-    s.cap = 0.
+    Set s.data to no address.
+    Set s.len to 0 as an unsigned number.
+    Set s.cap to 0 as an unsigned number.
+Done.
 
-function newline returning void:
-    syscall(1, 1, bytes_ptr("\n"), bytes_len("\n")).
+To newline returning nothing.
+    Ask Linux kernel 1 with 1, "\n", and 1.
+Done.
 
-Public function print_str taking s as ptr<TcString> returning void:
-    Phrase: "say <s>"
-    Phrase: "show <s>"
-    Phrase: "print <s>"
-    Phrase: "display <s>"
+Publicly, to print_str given s as a pointer to TcString, returning nothing.
+    You can call this as "say <s>", "show <s>", "print <s>", or "display <s>".
     If s.len > 0:
-        syscall(1, 1, s.data, s.len).
+        Ask Linux kernel 1 with 1, s.data, and s.len.
     newline().
+Done.

@@ -1,158 +1,172 @@
-Import alloc.
-Import core.
-Import io.
-Import string.
+A sandboxed file interface over Linux file descriptors.
 
-Public struct File with fd as i64.
+Use alloc, core, io, and string.
 
-function open_file taking path as ptr<TcString> and flags as i64 returning Result<File, i64>:
-    Define local descriptor as i64.
-    descriptor = syscall(257, -100, path.data, flags, 420).
-    Define local answer as Result<File, i64>.
+A public record File has an fd as a whole number.
+
+To open_file given path as a pointer to TcString, flags as a whole number, returning Result of File and whole number.
+    Define local descriptor as a whole number.
+    Set descriptor to ask Linux kernel 257 with -100, path.data, flags, and 420.
+    Define local answer as Result of File and whole number.
     If descriptor < 0:
         Set answer.is_ok to false.
         Set answer.err_val to descriptor.
-        Return answer.
+        Give back answer.
     Define local handle as File.
     Set handle.fd to descriptor.
     Set answer.is_ok to true.
     Set answer.ok_val to handle.
-    Return answer.
+    Give back answer.
+Done.
 
-Public function file_open_read taking path as ptr<TcString> returning Result<File, i64>:
-    Return open_file(path, 0).
+Publicly, to file_open_read given path as a pointer to TcString, returning Result of File and whole number.
+    Give back open_file(path, 0).
+Done.
 
-Public function file_open_write taking path as ptr<TcString> returning Result<File, i64>:
-    Return open_file(path, 578).
+Publicly, to file_open_write given path as a pointer to TcString, returning Result of File and whole number.
+    Give back open_file(path, 578).
+Done.
 
-Public function file_open_append taking path as ptr<TcString> returning Result<File, i64>:
-    Return open_file(path, 1090).
+Publicly, to file_open_append given path as a pointer to TcString, returning Result of File and whole number.
+    Give back open_file(path, 1090).
+Done.
 
-Public function file_read_bytes taking f as ptr<File> and buf as ptr<u8> and max_len as u64 returning i64:
-    Return syscall(0, f.fd, buf, max_len).
+Publicly, to file_read_bytes given f as a pointer to File, buf as a pointer to byte, max_len as an unsigned number, returning a whole number.
+    Give back ask Linux kernel 0 with f.fd, buf, and max_len.
+Done.
 
-Public function file_write_bytes taking f as ptr<File> and buf as ptr<u8> and len as u64 returning i64:
-    Return syscall(1, f.fd, buf, len).
+Publicly, to file_write_bytes given f as a pointer to File, buf as a pointer to byte, len as an unsigned number, returning a whole number.
+    Give back ask Linux kernel 1 with f.fd, buf, and len.
+Done.
 
-Public function file_seek taking f as ptr<File> and offset as i64 and whence as i64 returning i64:
-    Return syscall(8, f.fd, offset, whence).
+Publicly, to file_seek given f as a pointer to File, offset as a whole number, whence as a whole number, returning a whole number.
+    Give back ask Linux kernel 8 with f.fd, offset, and whence.
+Done.
 
-Public function file_close taking f as ptr<File> returning i64:
-    Define local result as i64.
-    result = syscall(3, f.fd).
+Publicly, to file_close given f as a pointer to File, returning a whole number.
+    Define local result as a whole number.
+    Set result to ask Linux kernel 3 with f.fd.
     Set f.fd to -1.
-    Return result.
+    Give back result.
+Done.
 
-Public function write_str_to_file taking s as ptr<TcString> and path as ptr<TcString> returning i64:
-    Phrase: "save <s> to file <path>"
-    Define local opened as Result<File, i64>.
-    opened = file_open_write(path).
+Publicly, to write_str_to_file given s as a pointer to TcString, path as a pointer to TcString, returning a whole number.
+    Call this as "save <s> to file <path>".
+    Define local opened as Result of File and whole number.
+    Set opened to file_open_write(path).
     If not opened.is_ok:
-        Return opened.err_val.
+        Give back opened.err_val.
     Define local handle as File.
-    handle = opened.ok_val.
-    Define local written as i64.
-    written = file_write_bytes(address of handle, s.data, s.len).
+    Set handle to opened.ok_val.
+    Define local written as a whole number.
+    Set written to file_write_bytes(address of handle, s.data, s.len).
     file_close(address of handle).
-    Return written.
+    Give back written.
+Done.
 
-Public function write_i64_to_file taking n as i64 and path as ptr<TcString> returning i64:
-    Phrase: "save <n> to file <path>"
-    Define local buffer as array<u8, 32>.
-    Define local len as u64.
-    len = format_i64_into(n, address of buffer[0]).
-    Define local opened as Result<File, i64>.
-    opened = file_open_write(path).
+Publicly, to write_i64_to_file given n as a whole number, path as a pointer to TcString, returning a whole number.
+    Call this as "save <n> to file <path>".
+    Define local buffer as block of 32 byte.
+    Define local len as an unsigned number.
+    Set len to format_i64_into(n, address of item 0 of buffer).
+    Define local opened as Result of File and whole number.
+    Set opened to file_open_write(path).
     If not opened.is_ok:
-        Return opened.err_val.
+        Give back opened.err_val.
     Define local handle as File.
-    handle = opened.ok_val.
-    Define local written as i64.
-    written = file_write_bytes(address of handle, address of buffer[0], len).
+    Set handle to opened.ok_val.
+    Define local written as a whole number.
+    Set written to file_write_bytes(address of handle, address of item 0 of buffer, len).
     file_close(address of handle).
-    Return written.
+    Give back written.
+Done.
 
-Public function write_f64_to_file taking x as f64 and path as ptr<TcString> returning i64:
-    Phrase: "save <x> to file <path>"
-    Define local buffer as array<u8, 64>.
-    Define local len as u64.
-    len = format_f64_into(x, address of buffer[0]).
-    Define local opened as Result<File, i64>.
-    opened = file_open_write(path).
+Publicly, to write_f64_to_file given x as a decimal, path as a pointer to TcString, returning a whole number.
+    Call this as "save <x> to file <path>".
+    Define local buffer as block of 64 byte.
+    Define local len as an unsigned number.
+    Set len to format_f64_into(x, address of item 0 of buffer).
+    Define local opened as Result of File and whole number.
+    Set opened to file_open_write(path).
     If not opened.is_ok:
-        Return opened.err_val.
+        Give back opened.err_val.
     Define local handle as File.
-    handle = opened.ok_val.
-    Define local written as i64.
-    written = file_write_bytes(address of handle, address of buffer[0], len).
+    Set handle to opened.ok_val.
+    Define local written as a whole number.
+    Set written to file_write_bytes(address of handle, address of item 0 of buffer, len).
     file_close(address of handle).
-    Return written.
+    Give back written.
+Done.
 
-Public function read_file_to_str taking path as ptr<TcString> returning Result<TcString, i64>:
-    Define local answer as Result<TcString, i64>.
-    Define local opened as Result<File, i64>.
-    opened = file_open_read(path).
+Publicly, to read_file_to_str given path as a pointer to TcString, returning Result of TcString and whole number.
+    Define local answer as Result of TcString and whole number.
+    Define local opened as Result of File and whole number.
+    Set opened to file_open_read(path).
     If not opened.is_ok:
         Set answer.is_ok to false.
         Set answer.err_val to opened.err_val.
-        Return answer.
+        Give back answer.
     Define local handle as File.
-    handle = opened.ok_val.
-    Define local size as i64.
-    size = file_seek(address of handle, 0, 2).
+    Set handle to opened.ok_val.
+    Define local size as a whole number.
+    Set size to file_seek(address of handle, 0, 2).
     If size < 0:
         file_close(address of handle).
         Set answer.is_ok to false.
         Set answer.err_val to -5.
-        Return answer.
+        Give back answer.
     file_seek(address of handle, 0, 0).
     Define local text as TcString.
-    text.len = size as u64.
-    text.cap = text.len + 1.
-    text.data = heap_alloc(text.cap).
-    Define local read_count as i64.
-    read_count = file_read_bytes(address of handle, text.data, text.len).
+    Set text.len to size as an unsigned number.
+    Set text.cap to text.len + 1.
+    Set text.data to heap_alloc(text.cap).
+    Define local read_count as a whole number.
+    Set read_count to file_read_bytes(address of handle, text.data, text.len).
     If read_count < 0:
         file_close(address of handle).
         heap_free(text.data).
         Set answer.is_ok to false.
         Set answer.err_val to -5.
-        Return answer.
-    text.len = read_count as u64.
-    Set text.data[text.len] to 0.
+        Give back answer.
+    Set text.len to read_count as an unsigned number.
+    Set item text.len of text.data to 0.
     file_close(address of handle).
     Set answer.is_ok to true.
     Set answer.ok_val to text.
-    Return answer.
+    Give back answer.
+Done.
 
-Public function display_file taking path as ptr<TcString> returning i64:
-    Phrase: "display file <path>"
-    Define local opened as Result<TcString, i64>.
-    opened = read_file_to_str(path).
+Publicly, to display_file given path as a pointer to TcString, returning a whole number.
+    Call this as "display file <path>".
+    Define local opened as Result of TcString and whole number.
+    Set opened to read_file_to_str(path).
     If not opened.is_ok:
-        Return opened.err_val.
+        Give back opened.err_val.
     Define local text as TcString.
-    text = opened.ok_val.
+    Set text to opened.ok_val.
     If text.len > 0:
-        syscall(1, 1, text.data, text.len).
-    syscall(1, 1, bytes_ptr("\n"), bytes_len("\n")).
-    Define local length as i64.
-    length = text.len as i64.
+        Ask Linux kernel 1 with 1, text.data, and text.len.
+    Ask Linux kernel 1 with 1, "\n", and 1.
+    Define local length as a whole number.
+    Set length to text.len as a whole number.
     str_free(address of text).
-    Return length.
+    Give back length.
+Done.
 
-Public function file_exists taking path as ptr<TcString> returning bool:
-    Phrase: "file exists <path>"
-    Define local opened as Result<File, i64>.
-    opened = file_open_read(path).
+Publicly, to file_exists given path as a pointer to TcString, returning a truth value.
+    Call this as "file exists <path>".
+    Define local opened as Result of File and whole number.
+    Set opened to file_open_read(path).
     If not opened.is_ok:
-        Return false.
+        Give back false.
     Define local handle as File.
-    handle = opened.ok_val.
+    Set handle to opened.ok_val.
     file_close(address of handle).
-    Return true.
+    Give back true.
+Done.
 
-Public function delete_file taking path as ptr<TcString> returning i64:
-    Phrase: "delete file <path>"
-    Phrase: "remove file <path>"
-    Return syscall(263, -100, path.data, 0).
+Publicly, to delete_file given path as a pointer to TcString, returning a whole number.
+    Call this as "delete file <path>".
+    Call this as "remove file <path>".
+    Give back ask Linux kernel 263 with -100, path.data, and 0.
+Done.

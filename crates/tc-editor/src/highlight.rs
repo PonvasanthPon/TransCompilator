@@ -85,6 +85,38 @@ fn is_hardware_type(word: &str) -> bool {
             | "bool"
             | "void"
             | "ptr"
+            | "whole"
+            | "unsigned"
+            | "signed"
+            | "number"
+            | "integer"
+            | "decimal"
+            | "real"
+            | "byte"
+            | "pointer"
+            | "flag"
+            | "boolean"
+            | "truth"
+            | "nothing"
+            | "count"
+            | "short"
+    )
+}
+
+fn is_natural_control(word: &str) -> bool {
+    matches!(
+        word,
+        "done"
+            | "give"
+            | "to"
+            | "use"
+            | "keep"
+            | "record"
+            | "publicly"
+            | "given"
+            | "returning"
+            | "ask"
+            | "kernel"
     )
 }
 
@@ -96,6 +128,8 @@ fn classify_word(word: &str, theme: &Theme) -> StyledSpan {
     let lower = word.to_ascii_lowercase();
     let kind = if is_hardware_type(&lower) {
         TokenStyle::Type
+    } else if is_natural_control(&lower) {
+        TokenStyle::ControlAnchor
     } else if is_anaphor_or_quantifier(&lower) {
         TokenStyle::AnaphorOrQuantifier
     } else {

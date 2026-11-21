@@ -1,89 +1,101 @@
-Import alloc.
-Import core.
+A growable sequence of values of one type.
 
-Public struct List of T with data as ptr<T> and len as u64 and cap as u64.
+Use alloc and core.
 
-Public function list_new of T returning List<T>:
-    Define local created as List<T>.
-    Return created.
+A public record List of T has a data as a pointer to T, a len as an unsigned number, and a cap as an unsigned number.
 
-Public function list_push of T taking items as ptr<List<T>> and val as T returning void:
-    Phrase: "push <val> to <items>"
-    Phrase: "append <val> to <items>"
+Publicly, to list_new for T, returning List of T.
+    Define local created as List of T.
+    Give back created.
+Done.
+
+Publicly, to list_push for T given items as a pointer to List of T, val as T, returning nothing.
+    Call this as "push <val> to <items>".
+    Call this as "append <val> to <items>".
     If items.len == items.cap:
-        Define local new_cap as u64.
+        Define local new_cap as an unsigned number.
         If items.cap == 0:
-            new_cap = 8 as u64.
+            Set new_cap to 8 as an unsigned number.
         Else:
-            new_cap = items.cap * 2.
-        Define local old_bytes as u64.
-        Define local new_bytes as u64.
-        old_bytes = items.cap * (size of T).
-        new_bytes = new_cap * (size of T).
-        items.data = heap_realloc(items.data as ptr<u8>, old_bytes, new_bytes) as ptr<T>.
-        items.cap = new_cap.
-    Set items.data[items.len] to val.
-    items.len += 1.
+            Set new_cap to items.cap * 2.
+        Define local old_bytes as an unsigned number.
+        Define local new_bytes as an unsigned number.
+        Set old_bytes to items.cap * (byte size of T).
+        Set new_bytes to new_cap * (byte size of T).
+        Set items.data to heap_realloc(items.data as a pointer to byte, old_bytes, new_bytes) as a pointer to T.
+        Set items.cap to new_cap.
+    Set item items.len of items.data to val.
+    Add 1 to items.len.
+Done.
 
-Public function list_pop of T taking items as ptr<List<T>> returning T:
-    Phrase: "pop from <items>"
+Publicly, to list_pop for T given items as a pointer to List of T, returning T.
+    Call this as "pop from <items>".
     If items.len == 0:
-        panic(bytes_ptr("pop from empty list"), bytes_len("pop from empty list")).
-    items.len -= 1.
-    Return items.data[items.len].
+        panic("pop from empty list", 19).
+    Set items.len to items.len - 1.
+    Give back item items.len of items.data.
+Done.
 
-Public function list_get of T taking items as ptr<List<T>> and index as u64 returning T:
+Publicly, to list_get for T given items as a pointer to List of T, index as an unsigned number, returning T.
     If index >= items.len:
-        panic(bytes_ptr("list index out of bounds"), bytes_len("list index out of bounds")).
-    Return items.data[index].
+        panic("list index out of bounds", 24).
+    Give back item index of items.data.
+Done.
 
-Public function list_set of T taking items as ptr<List<T>> and index as u64 and val as T returning void:
+Publicly, to list_set for T given items as a pointer to List of T, index as an unsigned number, val as T, returning nothing.
     If index >= items.len:
-        panic(bytes_ptr("list index out of bounds"), bytes_len("list index out of bounds")).
-    Set items.data[index] to val.
+        panic("list index out of bounds", 24).
+    Set item index of items.data to val.
+Done.
 
-Public function list_len of T taking items as ptr<List<T>> returning u64:
-    Phrase: "count of <items>"
-    Return items.len.
+Publicly, to list_len for T given items as a pointer to List of T, returning an unsigned number.
+    Call this as "count of <items>".
+    Give back items.len.
+Done.
 
-Public function list_first of T taking items as ptr<List<T>> returning T:
-    Phrase: "first item of <items>"
+Publicly, to list_first for T given items as a pointer to List of T, returning T.
+    Call this as "first item of <items>".
     If items.len == 0:
-        panic(bytes_ptr("first item of empty list"), bytes_len("first item of empty list")).
-    Return items.data[0].
+        panic("first item of empty list", 24).
+    Give back item 0 of items.data.
+Done.
 
-Public function list_last of T taking items as ptr<List<T>> returning T:
-    Phrase: "last item of <items>"
+Publicly, to list_last for T given items as a pointer to List of T, returning T.
+    Call this as "last item of <items>".
     If items.len == 0:
-        panic(bytes_ptr("last item of empty list"), bytes_len("last item of empty list")).
-    Return items.data[items.len - 1].
+        panic("last item of empty list", 23).
+    Give back item (items.len - 1) of items.data.
+Done.
 
-Public function list_clear of T taking items as ptr<List<T>> returning void:
-    items.len = 0.
+Publicly, to list_clear for T given items as a pointer to List of T, returning nothing.
+    Set items.len to 0 as an unsigned number.
+Done.
 
-Public function list_free of T taking items as ptr<List<T>> returning void:
-    If items.data as u64 != 0:
-        heap_free(items.data as ptr<u8>).
-    items.data = 0 as u64 as ptr<T>.
-    items.len = 0.
-    items.cap = 0.
+Publicly, to list_free for T given items as a pointer to List of T, returning nothing.
+    If items.data as an unsigned number != 0:
+        heap_free(items.data as a pointer to byte).
+    Set items.data to no address.
+    Set items.len to 0 as an unsigned number.
+    Set items.cap to 0 as an unsigned number.
+Done.
 
-Public function list_sort of T taking items as ptr<List<T>> and compare as fn(ptr<T>, ptr<T>) -> i64 returning void:
-    Define local outer as u64.
+Publicly, to list_sort for T given items as a pointer to List of T, compare as a function taking pointer to T and pointer to T returning whole number, returning nothing.
+    Define local outer as an unsigned number.
     While outer < items.len:
-        Define local inner as u64.
-        inner = outer.
+        Define local inner as an unsigned number.
+        Set inner to outer.
         While inner > 0:
-            Define local left as ptr<T>.
-            Define local right as ptr<T>.
-            left = address of items.data[inner - 1].
-            right = address of items.data[inner].
+            Define local left as a pointer to T.
+            Define local right as a pointer to T.
+            Set left to address of item (inner - 1) of items.data.
+            Set right to address of item inner of items.data.
             If compare(right, left) < 0:
                 Define local temporary as T.
-                temporary = items.data[inner].
-                Set items.data[inner] to items.data[inner - 1].
-                Set items.data[inner - 1] to temporary.
-                inner -= 1.
+                Set temporary to item inner of items.data.
+                Set item inner of items.data to item (inner - 1) of items.data.
+                Set item (inner - 1) of items.data to temporary.
+                Set inner to inner - 1.
             Else:
                 break.
-        outer += 1.
+        Add 1 to outer.
+Done.

@@ -1,112 +1,128 @@
-Import core.
+A dynamic memory allocator with reusable blocks over Linux pages.
 
-Define struct AllocHeader with size as u64 and is_free as u64 and next as ptr<AllocHeader> and pad as u64.
+Use core.
 
-Define global alloc_head as ptr<AllocHeader>.
-Define global alloc_bytes_in_use as u64.
-Define global alloc_free_count as u64.
+A record AllocHeader has a size as an unsigned number, an is_free flag as an unsigned number, a next link as a pointer to AllocHeader, and a pad as an unsigned number.
 
-function align16 taking n as u64 returning u64:
-    Return (n + 15) bitand (bitnot (15 as u64)).
+Keep a shared alloc_head as a pointer to AllocHeader.
+Keep a shared alloc_bytes_in_use as an unsigned number.
+Keep a shared alloc_free_count as an unsigned number.
 
-function align_page taking n as u64 returning u64:
-    Return (n + 4095) bitand (bitnot (4095 as u64)).
+To align16 given n as an unsigned number, returning an unsigned number.
+    Add 15 to n.
+    Clear bits 15 from n.
+    Give back n.
+Done.
 
-function header_of taking p as ptr<u8> returning ptr<AllocHeader>:
-    Return (p as u64 - 32) as ptr<AllocHeader>.
+To align_page given n as an unsigned number, returning an unsigned number.
+    Add 4095 to n.
+    Clear bits 4095 from n.
+    Give back n.
+Done.
 
-function payload_of taking h as ptr<AllocHeader> returning ptr<u8>:
-    Return (h as u64 + 32) as ptr<u8>.
+To header_of given p as a pointer to byte, returning a pointer to AllocHeader.
+    Give back (p as an unsigned number - 32) as a pointer to AllocHeader.
+Done.
 
-function smaller taking a as u64 and b as u64 returning u64:
+To payload_of given h as a pointer to AllocHeader, returning a pointer to byte.
+    Give back (h as an unsigned number + 32) as a pointer to byte.
+Done.
+
+To smaller given a as an unsigned number, b as an unsigned number, returning an unsigned number.
     If a < b:
-        Return a.
-    Return b.
+        Give back a.
+    Give back b.
+Done.
 
-Public function heap_alloc taking size as u64 returning ptr<u8>:
-    Define local need as u64.
-    need = align16(size).
+Publicly, to heap_alloc given size as an unsigned number, returning a pointer to byte.
+    Define local need as an unsigned number.
+    Set need to align16(size).
     If need < 16:
-        need = 16 as u64.
-    Define local block as ptr<AllocHeader>.
-    block = alloc_head.
-    While block as u64 != 0:
+        Set need to 16 as an unsigned number.
+    Define local block as a pointer to AllocHeader.
+    Set block to alloc_head.
+    While block as an unsigned number != 0:
         If block.is_free == 1 and block.size >= need:
             If block.size >= need + 64:
-                Define local rest as ptr<AllocHeader>.
-                rest = (block as u64 + 32 + need) as ptr<AllocHeader>.
+                Define local rest as a pointer to AllocHeader.
+                Set rest to (block as an unsigned number + 32 + need) as a pointer to AllocHeader.
                 Set rest.size to block.size - need - 32.
                 Set rest.is_free to 1.
                 Set rest.next to block.next.
                 Set block.size to need.
                 Set block.next to rest.
-                alloc_bytes_in_use += need.
+                Add need to alloc_bytes_in_use.
             Else:
-                alloc_bytes_in_use += block.size.
+                Add block.size to alloc_bytes_in_use.
             Set block.is_free to 0.
-            Return payload_of(block).
-        block = block.next.
-    Define local chunk as u64.
+            Give back payload_of(block).
+        Set block to block.next.
+    Define local chunk as an unsigned number.
     If need > 65504:
-        chunk = align_page(need + 32).
+        Set chunk to align_page(need + 32).
     Else:
-        chunk = 65536 as u64.
-    Define local raw as i64.
-    raw = syscall(9, 0, chunk, 3, 34, -1, 0).
+        Set chunk to 65536 as an unsigned number.
+    Define local raw as a whole number.
+    Set raw to ask Linux kernel 9 with 0, chunk, 3, 34, -1, and 0.
     If raw < 0:
-        panic(bytes_ptr("out of memory"), bytes_len("out of memory")).
-    Define local fresh as ptr<AllocHeader>.
-    fresh = raw as u64 as ptr<AllocHeader>.
+        panic("out of memory", 13).
+    Define local fresh as a pointer to AllocHeader.
+    Set fresh to raw as an unsigned number as a pointer to AllocHeader.
     Set fresh.size to chunk - 32.
     Set fresh.is_free to 0.
     Set fresh.next to alloc_head.
-    alloc_head = fresh.
+    Set alloc_head to fresh.
     If fresh.size >= need + 64:
-        Define local rest as ptr<AllocHeader>.
-        rest = (fresh as u64 + 32 + need) as ptr<AllocHeader>.
+        Define local rest as a pointer to AllocHeader.
+        Set rest to (fresh as an unsigned number + 32 + need) as a pointer to AllocHeader.
         Set rest.size to fresh.size - need - 32.
         Set rest.is_free to 1.
         Set rest.next to fresh.next.
         Set fresh.size to need.
         Set fresh.next to rest.
-        alloc_bytes_in_use += need.
+        Add need to alloc_bytes_in_use.
     Else:
-        alloc_bytes_in_use += fresh.size.
-    Return payload_of(fresh).
+        Add fresh.size to alloc_bytes_in_use.
+    Give back payload_of(fresh).
+Done.
 
-Public function heap_free taking p as ptr<u8> returning void:
-    If p as u64 == 0:
-        Return.
-    Define local h as ptr<AllocHeader>.
-    h = header_of(p).
+Publicly, to heap_free given p as a pointer to byte, returning nothing.
+    If p as an unsigned number == 0:
+        Give back.
+    Define local h as a pointer to AllocHeader.
+    Set h to header_of(p).
     If h.is_free == 1:
-        Return.
+        Give back.
     Set h.is_free to 1.
-    alloc_bytes_in_use -= h.size.
-    alloc_free_count += 1.
-    Define local following as ptr<AllocHeader>.
-    following = h.next.
-    If following as u64 != 0 and following.is_free == 1 and (h as u64 + 32 + h.size) == (following as u64):
+    Set alloc_bytes_in_use to alloc_bytes_in_use - h.size.
+    Add 1 to alloc_free_count.
+    Define local following as a pointer to AllocHeader.
+    Set following to h.next.
+    If following as an unsigned number != 0 and following.is_free == 1 and (h as an unsigned number + 32 + h.size) == (following as an unsigned number):
         Set h.size to h.size + 32 + following.size.
         Set h.next to following.next.
+Done.
 
-Public function heap_realloc taking p as ptr<u8> and old_size as u64 and new_size as u64 returning ptr<u8>:
-    If p as u64 == 0:
-        Return heap_alloc(new_size).
-    Define local h as ptr<AllocHeader>.
-    h = header_of(p).
+Publicly, to heap_realloc given p as a pointer to byte, old_size as an unsigned number, new_size as an unsigned number, returning a pointer to byte.
+    If p as an unsigned number == 0:
+        Give back heap_alloc(new_size).
+    Define local h as a pointer to AllocHeader.
+    Set h to header_of(p).
     If new_size <= h.size:
-        Return p.
-    Define local replacement as ptr<u8>.
-    replacement = heap_alloc(new_size).
-    Define local copy_len as u64.
-    copy_len = smaller(old_size, new_size).
+        Give back p.
+    Define local replacement as a pointer to byte.
+    Set replacement to heap_alloc(new_size).
+    Define local copy_len as an unsigned number.
+    Set copy_len to smaller(old_size, new_size).
     Copy copy_len bytes from p to replacement.
     heap_free(p).
-    Return replacement.
+    Give back replacement.
+Done.
 
-Public function heap_bytes_in_use returning u64:
-    Return alloc_bytes_in_use.
+Publicly, to heap_bytes_in_use returning an unsigned number.
+    Give back alloc_bytes_in_use.
+Done.
 
-Public function heap_free_count returning u64:
-    Return alloc_free_count.
+Publicly, to heap_free_count returning an unsigned number.
+    Give back alloc_free_count.
+Done.
