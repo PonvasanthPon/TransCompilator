@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>tc_r1 Phase 3.5 — Core Battle-Test</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --muted:#8b949e; --ok:#3fb950; --warn:#d29922; --bad:#f85149; --accent:#58a6ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  header { padding:18px 24px; border-bottom:1px solid var(--line); display:flex; gap:24px; flex-wrap:wrap; align-items:center; }
+  h1 { font-size:18px; margin:0; color:var(--accent); }
+  .pill { border:1px solid var(--line); border-radius:999px; padding:3px 10px; color:var(--muted); }
+  .running { color:var(--ok); border-color:var(--ok); }
+  .completed { color:var(--accent); border-color:var(--accent); }
+  main { padding:20px 24px 60px; display:grid; gap:20px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card .k { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+  .card .v { font-size:22px; margin-top:4px; }
+  .card .s { color:var(--muted); font-size:11px; margin-top:2px; }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  h2 { font-size:14px; margin:0 0 10px; color:var(--accent); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th,td { text-align:left; padding:5px 7px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .bad { color:var(--bad); }
+  pre { margin:0; white-space:pre-wrap; word-break:break-word; font-size:11px; color:var(--muted); max-height:300px; overflow:auto; }
+  .bar { height:8px; background:#21262d; border-radius:999px; overflow:hidden; margin-top:6px; }
+  .bar > i { display:block; height:100%; background:var(--ok); }
+  .activity { font-size:13px; color:var(--text); margin-top:6px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:900px){ .grid2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<header>
+  <h1>tc_r1 Phase 3.5 — Core Foundation Battle-Test</h1>
+  <span id="status" class="pill">LOADING</span>
+  <span class="pill">branch <b id="branch">—</b></span>
+  <span class="pill">HEAD <b id="head">—</b></span>
+  <span class="pill">tier <b id="tier">—</b></span>
+  <span class="pill">elapsed <b id="elapsed">—</b></span>
+  <span class="pill">sessions <b id="sessions">—</b></span>
+</header>
+<main>
+  <section>
+    <h2>Current Activity</h2>
+    <div id="activity" class="activity">—</div>
+    <div id="progress" class="bar"><i style="width:0%"></i></div>
+  </section>
+
+  <div class="cards" id="cards"></div>
+
+  <section>
+    <h2>Tier Matrix C1–C10</h2>
+    <table>
+      <thead><tr><th>Tier</th><th>Name</th><th>Status</th><th>Tested</th><th>Target</th><th>Bugs</th></tr></thead>
+      <tbody id="tiers"></tbody>
+    </table>
+  </section>
+
+  <div class="grid2">
+    <section><h2>Live Probe Feed</h2><pre id="programs">—</pre></section>
+    <section><h2>Live Journal Tail</h2><pre id="journal">—</pre></section>
+  </div>
+
+  <div class="grid2">
+    <section><h2>Bug Tracker</h2><pre id="bugs">—</pre></section>
+    <section><h2>Core Limits Catalog</h2><pre id="limits">—</pre></section>
+  </div>
+
+  <section><h2>Fuzz / Lexicon Feed</h2><pre id="fuzz">—</pre></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n ?? 0).toLocaleString();
+const pct = (a,b) => b ? Math.min(100, 100*a/b) : 0;
+const cards = [
+  ["tiers_completed","Tiers Completed","tiers_total"],
+  ["programs_tested","Hand-Written Programs","programs_target"],
+  ["fuzz_ir_x86_done","IR/x86 Differential Fuzz","fuzz_ir_x86_target"],
+  ["fuzz_paraphrase_done","English Paraphrase Fuzz","fuzz_paraphrase_target"],
+  ["fuzz_prose_done","Prose-Injection Fuzz","fuzz_prose_target"],
+  ["fuzz_generics_done","Generic/Module AST Fuzz","fuzz_generics_target"],
+  ["crash_fuzz_done","Malformed/FFI Crash Fuzz","crash_fuzz_target"],
+  ["wordnet_swept","WordNet Swept","wordnet_target"],
+  ["verbnet_swept","VerbNet Swept","verbnet_target"],
+  ["silent_drops_fixed","Silent Drops Fixed","silent_drops_caught"],
+  ["bugs_found","Bugs Found","bugs_fixed"],
+  ["bugs_open","Bugs Open",""],
+  ["regression_tests","Permanent cargo test Count",""],
+  ["panics_or_segfaults","Panics / Segfaults",""],
+];
+function renderCards(m){
+  $("cards").innerHTML = cards.map(([k,label,t])=>{
+    let v = m[k] ?? 0;
+    let sub = t ? `target ${fmt(m[t])}` : "";
+    if (t && m[t]) sub += ` · ${pct(v,m[t]).toFixed(1)}%`;
+    let cls = "";
+    if (k === "bugs_open" || k === "panics_or_segfaults") cls = v ? "bad" : "ok";
+    return `<div class="card"><div class="k">${label}</div><div class="v ${cls}">${fmt(v)}</div><div class="s">${sub}</div></div>`;
+  }).join("");
+}
+async function tick(){
+  try {
+    const s = await (await fetch("/api/state", {cache:"no-store"})).json();
+    const m = s.metrics || {};
+    $("status").textContent = s.status || "?";
+    $("status").className = "pill " + (s.status === "COMPLETED" ? "completed" : s.status === "RUNNING" ? "running" : "");
+    $("branch").textContent = s.branch || "—";
+    $("head").textContent = (s.head_sha || "—").slice(0,12);
+    $("tier").textContent = s.current_tier || "—";
+    $("sessions").textContent = s.sessions_count ?? "—";
+    if (s.started_at) {
+      const sec = Math.max(0, (Date.now() - new Date(s.started_at).getTime())/1000);
+      $("elapsed").textContent = `${Math.floor(sec/3600)}h ${Math.floor(sec%3600/60)}m`;
+    }
+    $("activity").textContent = s.current_activity || "—";
+    $("progress").firstElementChild.style.width = pct(m.programs_tested, m.programs_target) + "%";
+    renderCards(m);
+    $("tiers").innerHTML = (s.tiers||[]).map(t=>`<tr><td><b>${t.id}</b></td><td>${t.name}</td><td class="${t.status==="DONE"?"ok":t.status==="RUNNING"?"warn":""}">${t.status}</td><td>${fmt(t.tested)}</td><td>${fmt(t.target)}</td><td>${fmt(t.bugs)}</td></tr>`).join("");
+    const [p,b,f,j,l] = await Promise.all([
+      fetch("/api/programs?limit=18",{cache:"no-store"}).then(r=>r.json()),
+      fetch("/api/bugs",{cache:"no-store"}).then(r=>r.json()),
+      fetch("/api/fuzz?limit=12",{cache:"no-store"}).then(r=>r.json()),
+      fetch("/api/journal?tail=22",{cache:"no-store"}).then(r=>r.json()),
+      fetch("/api/limits",{cache:"no-store"}).then(r=>r.json()),
+    ]);
+    $("programs").textContent = p.map(x=>`${x.tier||"?"} ${x.status||""} ${x.name||x.path||""}`).join("\n") || "—";
+    $("bugs").textContent = (Array.isArray(b)?b:[]).map(x=>`${x.id} [${x.status}] ${x.crate}: ${x.title||x.root_cause||""}`).join("\n") || "no bugs";
+    $("fuzz").textContent = f.map(x=>JSON.stringify(x)).join("\n") || "—";
+    $("journal").textContent = (j||[]).join("\n") || "—";
+    $("limits").textContent = (Array.isArray(l)?l:[]).map(x=>`${x.id}: ${x.title||x.reason||""}`).join("\n") || "—";
+  } catch (e) {
+    $("activity").textContent = "dashboard fetch error: " + e;
+  }
+}
+tick(); setInterval(tick, 2000);
+</script>
+</body>
+</html>

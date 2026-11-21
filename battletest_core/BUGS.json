@@ -1,0 +1,86 @@
+[
+  {
+    "id": "BUG-CORE-001",
+    "tier": "C1",
+    "crate": "tc-codegen-x86",
+    "class": "CODEGEN_PARITY",
+    "status": "FIXED",
+    "title": "float-to-integer casts do not saturate like the reference interpreter",
+    "repro": "Return (18446744073709551615 as f64) as i64.",
+    "root_cause": "x86 cvttsd2si yields INT64_MIN for out-of-range/NaN, while interp uses Rust saturating `as`.",
+    "fix_sha": "6dbaa060c7c4a033eb51e02948df82553a87bc9a",
+    "regression": "crates/tc-codegen-x86/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-002",
+    "tier": "C4",
+    "crate": "tc-semantics",
+    "class": "TARGET_CLOBBER",
+    "status": "FIXED",
+    "title": "indexing or field access through a global pointer uses the address of the global slot",
+    "repro": "Define global p as ptr<u8>. Set p to syscall(9,0,4096,3,0x22,-1,0). Set p[0] to 65.",
+    "root_cause": "storage_address(Load(GlobalAddr)) returns GlobalAddr without checking whether the global itself is a pointer.",
+    "fix_sha": "784e0b446c1d12c71e8855c09cd4ef3f2d17b6c1",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-003",
+    "tier": "C4",
+    "crate": "tc-semantics",
+    "class": "SYNTAX",
+    "status": "FIXED",
+    "title": "hexadecimal/binary/octal integer literals are rejected",
+    "repro": "Set p to syscall(9, 0, 4096, 3, 0x22, -1, 0).",
+    "root_cause": "expression number parser accepts decimal only.",
+    "fix_sha": "784e0b446c1d12c71e8855c09cd4ef3f2d17b6c1",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-004",
+    "tier": "C5",
+    "crate": "tc-semantics",
+    "class": "TYPECK_BUG",
+    "status": "FIXED",
+    "title": "English type grammar cannot express FnPtr field/parameter types",
+    "repro": "Define struct C with cmp as fn(ptr<i64>, ptr<i64>) -> i64.",
+    "root_cause": "parse_type handles ptr/array/named types only.",
+    "fix_sha": "784e0b446c1d12c71e8855c09cd4ef3f2d17b6c1",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-005",
+    "tier": "C5",
+    "crate": "tc-semantics",
+    "class": "PHRASE_BUG",
+    "status": "FIXED",
+    "title": "phrase dispatch is not type-directed across overloaded module declarations",
+    "repro": "three modules declare Phrase: \"emit <x>\" for i64/f64/ptr<u8>; Return emit 42 + emit 3.5 + emit bytes_ptr(\"x\").",
+    "root_cause": "PhraseBinding lacks parameter types and match_phrase chooses by literal-word score/name only.",
+    "fix_sha": "784e0b446c1d12c71e8855c09cd4ef3f2d17b6c1",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-006",
+    "tier": "C4",
+    "crate": "tc-semantics",
+    "class": "LOWERING",
+    "status": "FIXED",
+    "title": "Core-7 MemCopy has no English statement form",
+    "repro": "Copy 8 bytes from a to b.",
+    "root_cause": "lower_core does not recognize a memcopy directive.",
+    "fix_sha": "784e0b446c1d12c71e8855c09cd4ef3f2d17b6c1",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  },
+  {
+    "id": "BUG-CORE-007",
+    "tier": "C7",
+    "crate": "tc-syntax",
+    "class": "SYNTAX_PANIC",
+    "status": "FIXED",
+    "title": "bare sentence-initial `first` is stripped as a discourse filler, corrupting an identifier",
+    "repro": "first is ops.f(2, 3).",
+    "root_cause": "strip_fillers removes listed discourse words even without a following comma.",
+    "fix_sha": "dea982e4871c655ef0df9bd9b0acd4afcb3d6d9a",
+    "regression": "crates/tc-semantics/tests/battletest_core_regressions.rs"
+  }
+]
