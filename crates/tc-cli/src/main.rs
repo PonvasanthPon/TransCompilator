@@ -45,7 +45,7 @@ fn main() -> ExitCode {
 
 fn usage() {
     eprintln!(
-        "usage: tc <build|run|interp|trace|paraphrase> <file.tc> [-o <out_elf>] [-I <dir>] [--paraphrase] [-- <args...>]\n       tc [--version|--audit|--selftest]"
+        "usage: tc <build|run|interp|trace|paraphrase> <file.eng|file.tc> [-o <out_elf>] [-I <dir>] [--paraphrase] [-- <args...>]\n       tc [--version|--audit|--selftest]"
     );
 }
 
@@ -132,16 +132,37 @@ fn module_imports(source: &SourceFile) -> Vec<String> {
 }
 
 fn find_import(module: &str, entry: &Path, includes: &[PathBuf]) -> Option<PathBuf> {
-    let file_name = format!("{module}.tc");
     let mut directories = Vec::new();
     if let Some(parent) = entry.parent() {
         directories.push(parent.to_path_buf());
     }
     directories.extend(includes.iter().cloned());
-    directories
-        .into_iter()
-        .map(|directory| directory.join(&file_name))
-        .find(|candidate| candidate.is_file())
+    for directory in directories {
+        let english = directory.join(format!("{module}.eng"));
+        if english.is_file() {
+            return Some(english);
+        }
+        let legacy = directory.join(format!("{module}.tc"));
+        if legacy.is_file() {
+            return Some(legacy);
+        }
+    }
+    None
+}
+
+fn source_display_name(path: &Path) -> Result<String, String> {
+    let name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| format!("source path `{}` has no file name", path.display()))?;
+    if let Some(stem) = name
+        .strip_suffix(".eng")
+        .or_else(|| name.strip_suffix(".ENG"))
+    {
+        Ok(format!("{stem}.tc"))
+    } else {
+        Ok(name.to_string())
+    }
 }
 
 fn load_sources(entry: &Path, includes: &[PathBuf]) -> Result<(Vec<SourceFile>, String), String> {
@@ -149,11 +170,7 @@ fn load_sources(entry: &Path, includes: &[PathBuf]) -> Result<(Vec<SourceFile>, 
         .canonicalize()
         .map_err(|error| format!("cannot open `{}`: {error}", entry.display()))?;
     let entry_source = SourceFile::new(
-        entry
-            .file_name()
-            .and_then(|name| name.to_str())
-            .ok_or_else(|| "entry path has no file name".to_string())?
-            .to_string(),
+        source_display_name(&entry)?,
         fs::read_to_string(&entry)
             .map_err(|error| format!("cannot read `{}`: {error}", entry.display()))?,
     );
@@ -163,10 +180,7 @@ fn load_sources(entry: &Path, includes: &[PathBuf]) -> Result<(Vec<SourceFile>, 
     let mut sources = Vec::new();
     while let Some(path) = queue.pop_front() {
         let source = SourceFile::new(
-            path.file_name()
-                .and_then(|name| name.to_str())
-                .ok_or_else(|| "module path has no file name".to_string())?
-                .to_string(),
+            source_display_name(&path)?,
             fs::read_to_string(&path)
                 .map_err(|error| format!("cannot read `{}`: {error}", path.display()))?,
         );
@@ -449,8 +463,8 @@ fn run_audit() -> ExitCode {
     let stats = tc_lexicon::lexicon_stats();
     println!("tc_r1 audit: PASS");
     println!(
-        "  crates          : {} linked (6 libs + 1 cli)",
-        crates.len() + 1
+        "  crates          : {} workspace members (7 compiler crates + r1-editor)",
+        crates.len() + 2
     );
     println!("  wordnet entries : {}", stats.wordnet_entries);
     println!("  verbnet frames  : {}", stats.verbnet_frames);
