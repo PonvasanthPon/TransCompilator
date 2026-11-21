@@ -94,6 +94,8 @@ struct Parser<'a> {
     tokens: &'a [Token],
     position: usize,
     env: &'a ExprEnv,
+    budget: usize,
+    type_depth: usize,
 }
 
 type Result<T> = std::result::Result<T, String>;
@@ -144,13 +146,23 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn charge(&mut self) -> Result<()> {
+        if self.budget == 0 {
+            return Err("expression exceeds the Core-7 complexity limit".to_string());
+        }
+        self.budget -= 1;
+        Ok(())
+    }
+
     fn parse_expression(&mut self) -> Result<AstExpr> {
+        self.charge()?;
         self.parse_or()
     }
 
     fn parse_or(&mut self) -> Result<AstExpr> {
         let mut left = self.parse_and()?;
         while self.eat_word("or") || self.eat_symbol("||") {
+            self.charge()?;
             let right = self.parse_and()?;
             left = binary(BinOp::LogOr, left, right);
         }
@@ -160,6 +172,7 @@ impl<'a> Parser<'a> {
     fn parse_and(&mut self) -> Result<AstExpr> {
         let mut left = self.parse_not()?;
         while self.eat_word("and") || self.eat_symbol("&&") {
+            self.charge()?;
             let right = self.parse_not()?;
             left = binary(BinOp::LogAnd, left, right);
         }
@@ -305,6 +318,7 @@ impl<'a> Parser<'a> {
             let Some(operator) = operator else {
                 break;
             };
+            self.charge()?;
             let right = self.parse_multiplicative()?;
             left = binary(operator, left, right);
         }
@@ -348,6 +362,7 @@ impl<'a> Parser<'a> {
             let Some(op) = operator.take() else {
                 break;
             };
+            self.charge()?;
             let right = self.parse_unary()?;
             left = binary(op, left, right);
         }
@@ -355,6 +370,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_unary(&mut self) -> Result<AstExpr> {
+        self.charge()?;
         if self.eat_symbol("-") {
             return Ok(AstExpr::Unary {
                 op: UnOp::Neg,
@@ -428,6 +444,7 @@ impl<'a> Parser<'a> {
     fn parse_postfix(&mut self) -> Result<(AstExpr, Option<AstExpr>)> {
         let (mut value, mut place) = self.parse_primary()?;
         loop {
+            self.charge()?;
             if self.eat_symbol(".") || self.eat_symbol("'s") {
                 if let AstExpr::BytesLit(bytes) = &value {
                     if self.eat_word("len") {
@@ -542,6 +559,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_primary(&mut self) -> Result<(AstExpr, Option<AstExpr>)> {
+        self.charge()?;
         let token = self
             .peek()
             .cloned()
@@ -739,6 +757,16 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_type(&mut self) -> Result<AstType> {
+        if self.type_depth >= 64 {
+            return Err("type nesting exceeds the Core-7 limit".to_string());
+        }
+        self.type_depth += 1;
+        let result = self.parse_type_inner();
+        self.type_depth -= 1;
+        result
+    }
+
+    fn parse_type_inner(&mut self) -> Result<AstType> {
         let token = self
             .peek()
             .cloned()
@@ -908,6 +936,8 @@ pub(crate) fn parse_expression(text: &str, env: &ExprEnv) -> Result<AstExpr> {
         tokens: &tokens,
         position: 0,
         env,
+        budget: 1024,
+        type_depth: 0,
     };
     let value = parser.parse_expression()?;
     if !parser.at_end() {
@@ -935,6 +965,8 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
             tokens: rest,
             position: 0,
             env,
+            budget: 1024,
+            type_depth: 0,
         };
         let value = parser.parse_expression()?;
         if !parser.at_end() {
@@ -949,6 +981,8 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
             tokens: rest,
             position: 0,
             env,
+            budget: 1024,
+            type_depth: 0,
         };
         let value = parser.parse_expression()?;
         if !parser.at_end() {
@@ -960,6 +994,8 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
         tokens: &tokens,
         position: 0,
         env,
+        budget: 1024,
+        type_depth: 0,
     };
     let value = parser.parse_expression()?;
     if !parser.at_end() {
@@ -983,6 +1019,8 @@ pub(crate) fn parse_type_text(text: &str) -> Result<AstType> {
         tokens: &tokens,
         position: 0,
         env: &env,
+        budget: 1024,
+        type_depth: 0,
     };
     let ty = parser.parse_type()?;
     if !parser.at_end() {

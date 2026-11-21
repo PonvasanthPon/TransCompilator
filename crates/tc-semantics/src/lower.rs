@@ -1983,6 +1983,15 @@ impl<'a> Lowerer<'a> {
             {
                 continue;
             }
+            if tokens.get(index + 1).is_some_and(|next| {
+                next.is_word()
+                    && matches!(
+                        next.lower.as_str(),
+                        "am" | "is" | "are" | "was" | "were" | "be" | "been" | "being"
+                    )
+            }) {
+                continue;
+            }
             let prep = tokens.iter().skip(index + 1).find_map(|candidate| {
                 if candidate.kind == TokenKind::Word
                     && matches!(
