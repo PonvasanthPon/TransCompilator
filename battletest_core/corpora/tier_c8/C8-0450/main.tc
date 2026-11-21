@@ -1,0 +1,4 @@
+Define struct S18 with x as i64 and y as ptr<i64>.
+s is S18.
+Set s.x to 18.
+Return s.x.

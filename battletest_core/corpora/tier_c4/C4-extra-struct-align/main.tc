@@ -1,0 +1,2 @@
+Define struct S with a as u8 and b as u32.
+Return (align of S) as i64.

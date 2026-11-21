@@ -1,0 +1,7 @@
+Define struct Buf7 with data as array<u8, 7>.
+src is Buf7.
+dst is Buf7.
+Set src.data[0] to 1.
+Set src.data[6] to 2.
+Copy 7 bytes from address of src to address of dst.
+Return (dst.data[0] as i64) + (dst.data[6] as i64).

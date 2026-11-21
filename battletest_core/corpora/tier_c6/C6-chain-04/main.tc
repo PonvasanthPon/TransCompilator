@@ -1,0 +1,9 @@
+a is 70.
+b is 40.
+c is 9.
+Transfer 15 from b to a.
+Spend 5 from b.
+Take 3 from b.
+Subtract 2 from b.
+Halve a.
+Return (a + b + c) bitand 255.

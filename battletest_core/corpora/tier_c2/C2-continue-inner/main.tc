@@ -1,0 +1,8 @@
+total is 0.
+i is 0.
+Loop:
+    i += 1.
+    If i is at least 6, Break.
+    If i mod 2 is 0, Continue.
+    total += i.
+Return total.

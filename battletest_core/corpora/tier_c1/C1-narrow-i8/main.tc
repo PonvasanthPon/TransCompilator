@@ -1,0 +1,4 @@
+Define struct S with v as i8.
+s is S.
+Set s.v to -5.
+Return ((s.v as i64) + 5) bitand 255.

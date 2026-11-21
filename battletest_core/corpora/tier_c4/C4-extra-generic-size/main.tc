@@ -1,0 +1,2 @@
+Define struct Pair of T and U with first as T and second as U.
+Return (size of Pair<i64, f64>) as i64.

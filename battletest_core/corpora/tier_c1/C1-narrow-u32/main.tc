@@ -1,0 +1,4 @@
+Define struct S with v as u32.
+s is S.
+Set s.v to 4000000000.
+Return ((s.v as i64) + 0) bitand 255.

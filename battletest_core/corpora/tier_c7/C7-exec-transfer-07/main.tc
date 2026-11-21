@@ -1,0 +1,4 @@
+First, bank is 260.
+After that, wallet is 26.
+Then, transfer 36 from bank to wallet.
+Finally, return bank + wallet.

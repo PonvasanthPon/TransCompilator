@@ -1,0 +1,6 @@
+Define local x as i16.
+Define local n as i16.
+Set x to -2.
+Set n to 1.
+Set x to x shr n.
+Return (((x as i64) bitand 255) + (((x as i64) shr 8) bitand 255)) bitand 255.

@@ -1,0 +1,5 @@
+Define function sum8 taking a as i64 and b as i64 and c as i64 and d as i64 and e as i64 and f as i64 and g as i64 and h as i64 returning i64:
+    Return a + b + c + d + e + f + g + h.
+Define global fp as fn(i64, i64, i64, i64, i64, i64, i64, i64) -> i64.
+Set fp to function sum8.
+Return fp(1, 2, 3, 4, 5, 6, 7, 8).

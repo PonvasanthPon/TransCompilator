@@ -1,0 +1,9 @@
+i is 0.
+total is 0.
+Repeat 3 times:
+    If i is less than 2:
+        Add 10 to total.
+    Else:
+        Add 20 to total.
+    i += 1.
+Return total.

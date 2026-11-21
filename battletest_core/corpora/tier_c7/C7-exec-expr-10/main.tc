@@ -1,0 +1,5 @@
+a is 11.
+b is 21.
+Transfer 11 from a to b.
+Move 10 from b to a.
+Return a + b.

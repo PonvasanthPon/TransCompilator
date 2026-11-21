@@ -1,0 +1,4 @@
+Define struct S7 with x as i64 and y as array<i64, 2>.
+s is S7.
+Set s.x to 7.
+Return s.y.

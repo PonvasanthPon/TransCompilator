@@ -1,0 +1,6 @@
+Define struct Odd1 with a as u8 and b as i64 and c as u8.
+x is Odd1.
+Set x.a to 1.
+Set x.b to 2.
+Set x.c to 3.
+Return (x.a as i64) + x.b + (x.c as i64).

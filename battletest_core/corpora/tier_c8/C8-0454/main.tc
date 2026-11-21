@@ -1,0 +1,4 @@
+Define struct S22 with x as i64 and y as ptr<i64>.
+s is S22.
+Set s.x to 22.
+Return s.y.

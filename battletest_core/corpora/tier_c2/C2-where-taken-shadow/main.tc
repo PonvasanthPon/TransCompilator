@@ -1,0 +1,5 @@
+x is 0.
+total is 0.
+If true:
+    Add x to total where x is 6.
+Return x + total.
