@@ -1,0 +1,4 @@
+Define struct S24 with x as i64 and y as i64.
+s is S24.
+Set s.x to 24.
+Return s.x.

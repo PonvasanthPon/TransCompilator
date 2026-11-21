@@ -1,0 +1,2 @@
+Define global x as array<i64, 2>.
+Return 0.

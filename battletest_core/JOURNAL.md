@@ -28,3 +28,39 @@
 - 2026-11-21T17:54:48+05:30 — Corpus probe: 115 PASS / 0 FAIL across 115 programs (C7).
 - 2026-11-21T17:56:07+05:30 — Corpus probe: 446 PASS / 0 FAIL across 446 programs (C1, C2, C3, C4, C5, C6, C7).
 - 2026-11-21T17:58:05+05:30 — Resumed after server restart; corrected metrics to 446 programs and 7 completed tiers.
+- 2026-11-21T18:20:07+05:30 — Crash fuzz batch 1..100: 95 PASS / 5 FAIL; cumulative clean 95.
+- 2026-11-21T18:21:35+05:30 — Crash fuzz batch 1..130: 130 PASS / 0 FAIL; cumulative clean 130.
+- 2026-11-21T18:21:40+05:30 — Crash fuzz batch 131..260: 130 PASS / 0 FAIL; cumulative clean 260.
+- 2026-11-21T18:21:45+05:30 — Crash fuzz batch 261..390: 130 PASS / 0 FAIL; cumulative clean 390.
+- 2026-11-21T18:21:49+05:30 — Crash fuzz batch 391..511: 121 PASS / 0 FAIL; cumulative clean 511.
+- 2026-11-21T18:24:53+05:30 — paraphrase fuzz batch 2001..2020: 18 PASS / 2 FAIL.
+- 2026-11-21T18:24:54+05:30 — prose fuzz batch 2001..2020: 20 PASS / 0 FAIL.
+- 2026-11-21T18:24:55+05:30 — generics fuzz batch 2001..2020: 20 PASS / 0 FAIL.
+- 2026-11-21T18:25:32+05:30 — paraphrase fuzz batch 2001..2020: 0 PASS / 2 FAIL.
+- 2026-11-21T18:25:44+05:30 — paraphrase fuzz batch 2001..2020: 0 PASS / 2 FAIL.
+- 2026-11-21T18:25:52+05:30 — paraphrase fuzz batch 2001..2020: 2 PASS / 0 FAIL.
+- 2026-11-21T18:26:06+05:30 — paraphrase fuzz batch 2001..2100: 79 PASS / 1 FAIL.
+- 2026-11-21T18:26:13+05:30 — paraphrase fuzz batch 2101..2200: 99 PASS / 1 FAIL.
+- 2026-11-21T18:26:22+05:30 — paraphrase fuzz batch 2201..2300: 100 PASS / 0 FAIL.
+- 2026-11-21T18:26:30+05:30 — paraphrase fuzz batch 2301..2400: 99 PASS / 1 FAIL.
+- 2026-11-21T18:26:38+05:30 — paraphrase fuzz batch 2401..2500: 99 PASS / 1 FAIL.
+- 2026-11-21T18:27:12+05:30 — paraphrase fuzz batch 2041..2041: 1 PASS / 0 FAIL.
+- 2026-11-21T18:27:13+05:30 — paraphrase fuzz batch 2171..2171: 1 PASS / 0 FAIL.
+- 2026-11-21T18:27:13+05:30 — paraphrase fuzz batch 2301..2301: 1 PASS / 0 FAIL.
+- 2026-11-21T18:27:13+05:30 — paraphrase fuzz batch 2431..2431: 1 PASS / 0 FAIL.
+- 2026-11-21T18:27:19+05:30 — paraphrase fuzz batch 2001..2100: 0 PASS / 0 FAIL.
+- 2026-11-21T18:27:19+05:30 — paraphrase fuzz batch 2101..2200: 0 PASS / 0 FAIL.
+- 2026-11-21T18:27:19+05:30 — paraphrase fuzz batch 2201..2300: 0 PASS / 0 FAIL.
+- 2026-11-21T18:27:19+05:30 — paraphrase fuzz batch 2301..2400: 0 PASS / 0 FAIL.
+- 2026-11-21T18:27:19+05:30 — paraphrase fuzz batch 2401..2500: 0 PASS / 0 FAIL.
+- 2026-11-21T18:27:31+05:30 — prose fuzz batch 2501..2600: 100 PASS / 0 FAIL.
+- 2026-11-21T18:27:37+05:30 — prose fuzz batch 2601..2700: 100 PASS / 0 FAIL.
+- 2026-11-21T18:27:43+05:30 — prose fuzz batch 2701..2800: 100 PASS / 0 FAIL.
+- 2026-11-21T18:27:49+05:30 — prose fuzz batch 2801..2900: 100 PASS / 0 FAIL.
+- 2026-11-21T18:27:56+05:30 — prose fuzz batch 2901..3000: 100 PASS / 0 FAIL.
+- 2026-11-21T18:28:07+05:30 — generics fuzz batch 3001..3100: 100 PASS / 0 FAIL.
+- 2026-11-21T18:28:11+05:30 — generics fuzz batch 3101..3200: 100 PASS / 0 FAIL.
+- 2026-11-21T18:28:15+05:30 — generics fuzz batch 3201..3300: 100 PASS / 0 FAIL.
+- 2026-11-21T18:28:20+05:30 — generics fuzz batch 3301..3400: 100 PASS / 0 FAIL.
+- 2026-11-21T18:28:24+05:30 — generics fuzz batch 3401..3500: 100 PASS / 0 FAIL.
+- 2026-11-21T18:31:52+05:30 — C8: 511/511 crash inputs clean. C9: 2000 IR + 500 paraphrase + 500 prose + 500 generic seeds clean; final IR 1501..2000 = 500/500. Lexicon sweep clean.

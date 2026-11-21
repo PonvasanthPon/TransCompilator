@@ -1,0 +1,4 @@
+Define struct S25 with x as i64 and y as f64.
+s is S25.
+Set s.x to 25.
+Return s.y.

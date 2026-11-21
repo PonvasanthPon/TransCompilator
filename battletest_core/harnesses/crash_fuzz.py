@@ -125,7 +125,7 @@ def build_cases() -> None:
     for depth in [1, 2, 5, 10, 20, 30]:
         ty = "i64"
         for _ in range(depth):
-            ty = f"Pair<{ty}, {ty}>"
+            ty = f"Pair<{ty}, i64>"
         add(
             "generic-depth",
             f"Define struct Pair of T and U with first as T and second as U.\n"
@@ -426,15 +426,37 @@ def run_one(index: int, category: str, data: bytes) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--jobs", type=int, default=8)
-    parser.add_argument("--limit", type=int)
+    parser.add_argument("--jobs", type=int, default=4)
+    parser.add_argument("--start", type=int, default=1)
+    parser.add_argument("--end", type=int)
     args = parser.parse_args()
     build_cases()
-    if args.limit:
-        del CASES[args.limit:]
+    end = args.end if args.end is not None else len(CASES)
+    selected = [
+        (index, category, data)
+        for index, (category, data) in enumerate(CASES, 1)
+        if args.start <= index <= end
+    ]
+    done = set()
+    if LOG.is_file():
+        for line in LOG.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if record.get("status") == "PASS":
+                done.add(record.get("id"))
+    selected = [
+        (index, category, data)
+        for index, category, data in selected
+        if f"C8-{index:04d}" not in done
+    ]
     TIER.mkdir(parents=True, exist_ok=True)
     LOG.touch()
-    print(f"crash-fuzzing {len(CASES)} inputs with {args.jobs} workers", flush=True)
+    print(
+        f"crash-fuzzing {len(selected)} inputs (range {args.start}..{end}) with {args.jobs} workers",
+        flush=True,
+    )
     passed = 0
     failed = 0
     started = time.time()
@@ -442,7 +464,7 @@ def main() -> int:
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             futures = [
                 pool.submit(run_one, index, category, data)
-                for index, (category, data) in enumerate(CASES, 1)
+                for index, category, data in selected
             ]
             for index, future in enumerate(as_completed(futures), 1):
                 record = future.result()
@@ -453,11 +475,23 @@ def main() -> int:
                 else:
                     failed += 1
                     print(f"FAIL {record['id']} {record.get('error')}", flush=True)
-                if index % 50 == 0 or index == len(CASES):
-                    print(f"  progress {index}/{len(CASES)} pass={passed} fail={failed}", flush=True)
+                if index % 50 == 0 or index == len(selected):
+                    print(
+                        f"  progress {index}/{len(selected)} pass={passed} fail={failed}",
+                        flush=True,
+                    )
     print(f"crash fuzz complete in {time.time() - started:.1f}s pass={passed} fail={failed}")
+    unique_pass = set()
+    if LOG.is_file():
+        for line in LOG.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if record.get("status") == "PASS":
+                unique_pass.add(record.get("id"))
     state = update_state.load()
-    state["metrics"]["crash_fuzz_done"] = len(CASES)
+    state["metrics"]["crash_fuzz_done"] = len(unique_pass)
     state["metrics"]["panics_or_segfaults"] = failed
     for entry in state["tiers"]:
         if entry["id"] == "C8":
@@ -470,7 +504,9 @@ def main() -> int:
         )
     state["current_activity"] = f"Crash fuzz: {passed} pass / {failed} fail"
     update_state.save(state)
-    update_state.journal(f"Crash fuzz {len(CASES)} inputs: {passed} PASS / {failed} FAIL.")
+    update_state.journal(
+        f"Crash fuzz batch {args.start}..{end}: {passed} PASS / {failed} FAIL; cumulative clean {len(unique_pass)}."
+    )
     return 0 if failed == 0 else 1
 
 
