@@ -99,16 +99,19 @@ pub enum ThemeId {
     HighContrast,
     /// No color escape sequences at all.
     Monochrome,
+    /// Soft neutral paper-gray with deep readable ink.
+    Light,
 }
 
 impl ThemeId {
-    /// Cycles Midnight -> HighContrast -> Monochrome -> Midnight.
+    /// Cycles Midnight -> HighContrast -> Monochrome -> Light -> Midnight.
     #[must_use]
     pub fn next(self) -> Self {
         match self {
             Self::Midnight => Self::HighContrast,
             Self::HighContrast => Self::Monochrome,
-            Self::Monochrome => Self::Midnight,
+            Self::Monochrome => Self::Light,
+            Self::Light => Self::Midnight,
         }
     }
 
@@ -119,6 +122,7 @@ impl ThemeId {
             Self::Midnight => "Midnight",
             Self::HighContrast => "High-Contrast",
             Self::Monochrome => "Monochrome",
+            Self::Light => "Light",
         }
     }
 }
@@ -224,6 +228,30 @@ impl Theme {
                 success: Rgb(0, 255, 80),
                 warning: Rgb(255, 220, 0),
                 error: Rgb(255, 40, 40),
+            },
+            ThemeId::Light => Self {
+                id,
+                canvas_bg: Rgb(246, 248, 250),
+                panel_bg: Rgb(255, 255, 255),
+                header_bg: Rgb(240, 243, 246),
+                active_line_bg: Rgb(230, 240, 255),
+                error_bg: Rgb(255, 235, 233),
+                focus_border: Rgb(9, 105, 218),
+                unfocused_border: Rgb(208, 215, 222),
+                text: Rgb(31, 35, 40),
+                muted: Rgb(87, 96, 106),
+                active_line_number: Rgb(140, 149, 159),
+                control: Rgb(5, 80, 174),
+                action_verb: Rgb(9, 105, 218),
+                anaphor: Rgb(14, 116, 144),
+                type_color: Rgb(149, 56, 0),
+                number: Rgb(130, 80, 223),
+                string: Rgb(17, 99, 41),
+                operator: Rgb(87, 96, 106),
+                omitted: Rgb(110, 119, 129),
+                success: Rgb(26, 127, 55),
+                warning: Rgb(154, 103, 0),
+                error: Rgb(207, 34, 46),
             },
             ThemeId::Monochrome => Self {
                 id,
