@@ -323,6 +323,19 @@ fn extract_phrase_lines(
         }
     }
     *items = remaining;
+    let mut seen = HashSet::new();
+    patterns.retain(|pattern| {
+        let key = pattern
+            .parts
+            .iter()
+            .map(|part| match part {
+                PhrasePart::Word(word) => word.clone(),
+                PhrasePart::Param(param) => format!("<{param}>"),
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        seen.insert(key)
+    });
     Ok(patterns)
 }
 
@@ -601,11 +614,205 @@ fn compact_natural_function_type(ty: &str) -> Option<String> {
     ))
 }
 
+fn v2_type_indicator(word: &str, type_params: &[String]) -> bool {
+    matches!(
+        word,
+        "whole"
+            | "signed"
+            | "unsigned"
+            | "number"
+            | "numbers"
+            | "integer"
+            | "count"
+            | "small"
+            | "short"
+            | "byte"
+            | "bytes"
+            | "decimal"
+            | "decimals"
+            | "real"
+            | "truth"
+            | "flag"
+            | "boolean"
+            | "pointer"
+            | "address"
+            | "block"
+            | "fixed"
+            | "nothing"
+            | "function"
+    ) || type_params.iter().any(|param| param == word)
+        || word.chars().next().is_some_and(char::is_uppercase)
+}
+
+fn v2_type_word(word: &str, type_params: &[String]) -> bool {
+    matches!(
+        word,
+        "a" | "an"
+            | "the"
+            | "whole"
+            | "signed"
+            | "unsigned"
+            | "number"
+            | "numbers"
+            | "integer"
+            | "count"
+            | "small"
+            | "short"
+            | "byte"
+            | "bytes"
+            | "decimal"
+            | "decimals"
+            | "real"
+            | "truth"
+            | "value"
+            | "flag"
+            | "boolean"
+            | "pointer"
+            | "address"
+            | "of"
+            | "to"
+            | "block"
+            | "fixed"
+            | "nothing"
+            | "function"
+            | "taking"
+            | "returning"
+    ) || type_params.iter().any(|param| param == word)
+        || word.chars().next().is_some_and(char::is_uppercase)
+}
+
+fn normalize_type_text_words(text: &str) -> String {
+    text.replace("numbers", "number")
+        .replace("decimals", "decimal")
+        .replace("bytes ", "byte ")
+        .trim_end_matches(" bytes")
+        .to_string()
+}
+
+fn extract_embedded_parameters(
+    tokens: &[tc_syntax::Token],
+    type_params: &[String],
+) -> Vec<(String, String)> {
+    let mut params: Vec<(String, String)> = Vec::new();
+    let mut last_type: Option<String> = None;
+    let mut index = 0;
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if token.is("and") {
+            if let Some(next) = tokens.get(index + 1) {
+                if next.is_word() && !v2_type_word(&next.lower, type_params) {
+                    if let Some(ty) = &last_type {
+                        if !params.iter().any(|(name, _)| name == &next.lower) {
+                            params.push((next.lower.clone(), ty.clone()));
+                        }
+                    }
+                    index += 2;
+                    continue;
+                }
+            }
+            index += 1;
+            continue;
+        }
+        let starts_type = if token.is("a") || token.is("an") {
+            tokens.get(index + 1).is_some_and(|next| {
+                v2_type_indicator(&next.lower, type_params)
+                    || next.text.chars().next().is_some_and(char::is_uppercase)
+            })
+        } else {
+            v2_type_indicator(&token.lower, type_params)
+                || token.text.chars().next().is_some_and(char::is_uppercase)
+        };
+        if !token.is_word() || !starts_type {
+            index += 1;
+            continue;
+        }
+        let start = index;
+        while index < tokens.len() {
+            let candidate = &tokens[index];
+            if candidate.kind != TokenKind::Word
+                || (!v2_type_word(&candidate.lower, type_params)
+                    && !candidate
+                        .text
+                        .chars()
+                        .next()
+                        .is_some_and(char::is_uppercase))
+                || candidate.is("is")
+                || (index != start && matches!(candidate.lower.as_str(), "a" | "an" | "the"))
+            {
+                break;
+            }
+            index += 1;
+        }
+        let type_text = tokens[start..index]
+            .iter()
+            .map(|token| token.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
+        if type_text.trim().is_empty() {
+            continue;
+        }
+        let Some(name_token) = tokens.get(index) else {
+            continue;
+        };
+        if !name_token.is_word()
+            || v2_type_indicator(&name_token.lower, type_params)
+            || matches!(
+                name_token.lower.as_str(),
+                "is" | "are"
+                    | "for"
+                    | "if"
+                    | "otherwise"
+                    | "returning"
+                    | "given"
+                    | "and"
+                    | "or"
+                    | "into"
+                    | "from"
+                    | "to"
+                    | "with"
+                    | "at"
+                    | "in"
+                    | "on"
+                    | "by"
+                    | "between"
+            )
+        {
+            continue;
+        }
+        let name = name_token.lower.clone();
+        if !params.iter().any(|(existing, _)| existing == &name) {
+            let ty = normalize_type_text_words(&type_text);
+            params.push((name, ty.clone()));
+            last_type = Some(ty);
+        }
+        index += 1;
+    }
+    params
+}
+
 fn normalize_function_header(
     text: &str,
     module: &str,
     span: Span,
 ) -> Result<String, SemanticError> {
+    let mut clean = text.to_string();
+    let mut canonical_name = None;
+    for keyword in ["named", "called"] {
+        if let Some((start, end)) = find_top_level_word(&clean, keyword) {
+            let rest = &clean[end..];
+            if let Some(name_token) = tokenize(rest).into_iter().find(|token| token.is_word()) {
+                canonical_name = Some(lower_name(&name_token.text));
+                let mut remove_start = start;
+                if let Some(comma) = clean[..start].rfind(',') {
+                    remove_start = comma;
+                }
+                let remove_end = end + name_token.end;
+                clean.replace_range(remove_start..remove_end, "");
+            }
+            break;
+        }
+    }
+    let text = clean.as_str();
     let tokens = tokenize(text);
     let Some(to_index) = tokens.iter().position(|token| token.is("to")) else {
         return Err(semantic_error(
@@ -623,7 +830,7 @@ fn normalize_function_header(
             "natural function name is missing",
         ));
     };
-    let name = lower_name(&name_token.text);
+    let name = canonical_name.unwrap_or_else(|| lower_name(&name_token.text));
     let mut index = to_index + 2;
     let mut type_params = Vec::new();
     if tokens
@@ -646,13 +853,24 @@ fn normalize_function_header(
     }
     let mut params = Vec::new();
     let outer_returning = tokens.iter().rposition(|token| token.is("returning"));
-    if tokens.get(index).is_some_and(|token| token.is("given")) {
-        index += 1;
-        let start = tokens.get(index).map_or(text.len(), |token| token.start);
+    if let Some(given_index) = tokens.iter().position(|token| token.is("given")) {
+        let start = tokens
+            .get(given_index + 1)
+            .map_or(text.len(), |token| token.start);
         let end = outer_returning
             .and_then(|position| tokens.get(position))
             .map_or(text.len(), |token| token.start);
         params = split_natural_parameters(&text[start..end], module, span)?;
+    }
+    if params.is_empty() {
+        let phrase_start = tokens
+            .get(to_index + 2)
+            .map_or(text.len(), |token| token.start);
+        let phrase_end = outer_returning
+            .and_then(|position| tokens.get(position))
+            .map_or(text.len(), |token| token.start);
+        let phrase_tokens = tokenize(&text[phrase_start..phrase_end]);
+        params = extract_embedded_parameters(&phrase_tokens, &type_params);
     }
     let mut ret = "nothing".to_string();
     if let Some(position) = outer_returning {
@@ -837,67 +1055,532 @@ fn normalize_natural_line(trimmed: &str) -> Option<String> {
 }
 
 /// Rewrites natural-English declarations into the stable declaration shorthands.
+fn v2_action_start(text: &str) -> bool {
+    let word = first_word(text);
+    if word.is_empty()
+        || matches!(
+            word.as_str(),
+            "returning" | "given" | "named" | "called" | "taking" | "of"
+        )
+    {
+        return false;
+    }
+    if matches!(
+        word.as_str(),
+        "give"
+            | "return"
+            | "put"
+            | "set"
+            | "make"
+            | "move"
+            | "add"
+            | "remove"
+            | "stop"
+            | "break"
+            | "continue"
+            | "let"
+            | "start"
+            | "claim"
+            | "clear"
+            | "say"
+            | "ask"
+            | "save"
+            | "display"
+            | "delete"
+            | "open"
+            | "close"
+            | "push"
+            | "append"
+            | "pop"
+            | "sort"
+            | "free"
+            | "request"
+            | "find"
+            | "round"
+            | "square"
+            | "fill"
+            | "split"
+            | "resize"
+            | "format"
+            | "print"
+            | "read"
+            | "join"
+            | "create"
+    ) {
+        return true;
+    }
+    classify_verb(&word, None).is_some()
+}
+
+fn split_inline_function_body(text: &str) -> Option<(String, String)> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for token in &tokens {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                "," if depth == 0 => {
+                    let header = text[..token.start].trim();
+                    let body = text[token.end..].trim();
+                    let header_lower = header.to_ascii_lowercase();
+                    let pending_given =
+                        header_lower.contains(" given ") && !header_lower.contains("returning");
+                    if !header.is_empty() && !pending_given && v2_action_start(body) {
+                        return Some((header.to_string(), body.to_string()));
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    None
+}
+
+fn split_trailing_if(text: &str) -> Option<(String, String, Option<String>)> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+            continue;
+        }
+        if depth != 0 || !token.is("if") || index == 0 {
+            continue;
+        }
+        let action = text[..token.start].trim();
+        if action.is_empty() || !v2_action_start(action) {
+            continue;
+        }
+        let suffix = &text[token.end..];
+        let suffix_tokens = tokenize(suffix);
+        let mut suffix_depth = 0_i32;
+        let mut otherwise = None;
+        for (inner, part) in suffix_tokens.iter().enumerate() {
+            if part.kind == TokenKind::Symbol {
+                match part.text.as_str() {
+                    "(" | "[" | "{" => suffix_depth += 1,
+                    ")" | "]" | "}" => suffix_depth -= 1,
+                    "," if suffix_depth == 0 => {
+                        let next = suffix_tokens.get(inner + 1);
+                        if next.is_some_and(|value| value.is("otherwise") || value.is("else")) {
+                            otherwise = next.map(|value| (part.start, value.end));
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        if let Some((comma, end_word)) = otherwise {
+            let condition = suffix[..comma].trim();
+            let alternative = suffix[end_word..].trim();
+            if !condition.is_empty() && !alternative.is_empty() {
+                return Some((
+                    action.to_string(),
+                    condition.to_string(),
+                    Some(alternative.to_string()),
+                ));
+            }
+        } else if !suffix.trim().is_empty() {
+            return Some((action.to_string(), suffix.trim().to_string(), None));
+        }
+    }
+    None
+}
+
+fn split_call_it(text: &str) -> Option<(String, String)> {
+    let lower = text.to_ascii_lowercase();
+    let marker = " and call it ";
+    let position = lower.rfind(marker)?;
+    let expression = text[..position].trim();
+    let name = text[position + marker.len()..].trim();
+    if expression.is_empty() || name.is_empty() || !is_simple_name(name) {
+        return None;
+    }
+    let expression = expression
+        .strip_prefix("Start at ")
+        .or_else(|| expression.strip_prefix("start at "))
+        .unwrap_or(expression)
+        .trim()
+        .to_string();
+    Some((name.to_string(), expression))
+}
+
+fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
+    let spaces = " ".repeat(indent);
+    let trimmed = text.trim().trim_end_matches(['.', ',']).trim();
+    if trimmed.is_empty() {
+        return Vec::new();
+    }
+    let lower = trimmed.to_ascii_lowercase();
+    if lower.starts_with("phrase:") {
+        return vec![format!("{spaces}{trimmed}.")];
+    }
+    if lower.starts_with("call this as") || lower.starts_with("you can call this as") {
+        return normalize_natural_line(trimmed)
+            .into_iter()
+            .flat_map(|value| value.lines().map(ToString::to_string).collect::<Vec<_>>())
+            .map(|line| format!("{spaces}{line}"))
+            .collect();
+    }
+    if trimmed.ends_with(':') {
+        return vec![format!("{spaces}{trimmed}")];
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("Until ")
+        .or_else(|| trimmed.strip_prefix("until "))
+    {
+        if let Some((start, end)) = find_top_level_symbol(rest, ",") {
+            let condition = rest[..start].trim();
+            let body = rest[end..].trim();
+            let mut lines = vec![format!("{spaces}While not {condition}:")];
+            for action in split_actions(body) {
+                lines.extend(normalize_prose_line(&action, indent + 4));
+            }
+            return lines;
+        }
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("While ")
+        .or_else(|| trimmed.strip_prefix("while "))
+    {
+        if let Some((start, end)) = find_top_level_symbol(rest, ",") {
+            let condition = rest[..start].trim();
+            let body = rest[end..].trim();
+            let mut lines = vec![format!("{spaces}While {condition}:")];
+            for action in split_actions(body) {
+                lines.extend(normalize_prose_line(&action, indent + 4));
+            }
+            return lines;
+        }
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("If ")
+        .or_else(|| trimmed.strip_prefix("if "))
+    {
+        if let Some((start, end)) = find_top_level_symbol(rest, ",") {
+            let condition = rest[..start].trim();
+            let body = rest[end..].trim();
+            if !condition.is_empty() && v2_action_start(body) {
+                let body_tokens = tokenize(body);
+                let mut otherwise = None;
+                let mut depth = 0_i32;
+                for (index, token) in body_tokens.iter().enumerate() {
+                    if token.kind == TokenKind::Symbol {
+                        match token.text.as_str() {
+                            "(" | "[" | "{" => depth += 1,
+                            ")" | "]" | "}" => depth -= 1,
+                            _ => {}
+                        }
+                        continue;
+                    }
+                    if depth == 0 && (token.is("otherwise") || token.is("else")) {
+                        otherwise = Some((token.start, token.end));
+                        break;
+                    }
+                    let _ = index;
+                }
+                let (then_text, else_text) = if let Some((comma, word_end)) = otherwise {
+                    (&body[..comma], Some(body[word_end..].trim()))
+                } else {
+                    (body, None)
+                };
+                let mut lines = vec![format!("{spaces}If {condition}:")];
+                for action in split_actions(then_text) {
+                    lines.extend(normalize_prose_line(&action, indent + 4));
+                }
+                if let Some(else_text) = else_text {
+                    lines.push(format!("{spaces}Otherwise:"));
+                    for action in split_actions(else_text) {
+                        lines.extend(normalize_prose_line(&action, indent + 4));
+                    }
+                }
+                return lines;
+            }
+        }
+    }
+    if let Some((action, condition, alternative)) = split_trailing_if(trimmed) {
+        let mut lines = vec![format!("{spaces}If {condition}:")];
+        lines.extend(normalize_prose_line(&action, indent + 4));
+        if let Some(alternative) = alternative {
+            lines.push(format!("{spaces}Otherwise:"));
+            lines.extend(normalize_prose_line(&alternative, indent + 4));
+        }
+        return lines;
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("Let ")
+        .or_else(|| trimmed.strip_prefix("let "))
+    {
+        if let Some((name, value)) = rest.split_once(" be ") {
+            let value_lower = value.to_ascii_lowercase();
+            if value_lower.starts_with("block of")
+                || value_lower.starts_with("fixed ")
+                || value_lower.starts_with("array ")
+            {
+                return vec![format!("{spaces}Define local {name} as {value}.")];
+            }
+        }
+    }
+    if let Some((name, expression)) = split_call_it(trimmed) {
+        return vec![format!("{spaces}Let {name} be {expression}.")];
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("Make ")
+        .or_else(|| trimmed.strip_prefix("make "))
+    {
+        let rest = rest.strip_prefix("be ").unwrap_or(rest);
+        if let Some((target, value)) = rest.split_once(' ') {
+            return vec![format!("{spaces}Set {target} to {value}.")];
+        }
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("Move ")
+        .or_else(|| trimmed.strip_prefix("move "))
+    {
+        if let Some((start, end)) = find_top_level_word(rest, "to") {
+            let target = rest[..start].trim();
+            let value = rest[end..].trim();
+            if is_simple_name(target) && !target.to_ascii_lowercase().contains(" from ") {
+                return vec![format!("{spaces}Set {target} to {value}.")];
+            }
+        }
+    }
+    if lower.starts_with("stop with error ") {
+        if let Some(message) = quoted_values(trimmed).first() {
+            return vec![format!(
+                "{spaces}panic(\"{}\", {}).",
+                message,
+                message.len()
+            )];
+        }
+    }
+    if let Some(normalized) = normalize_natural_line(trimmed) {
+        return normalized
+            .lines()
+            .map(|line| format!("{spaces}{line}"))
+            .collect();
+    }
+    let may_split = matches!(
+        first_word(trimmed).as_str(),
+        "add"
+            | "remove"
+            | "give"
+            | "return"
+            | "clear"
+            | "say"
+            | "display"
+            | "save"
+            | "claim"
+            | "round"
+            | "find"
+            | "request"
+            | "push"
+            | "append"
+            | "pop"
+            | "sort"
+            | "free"
+            | "open"
+            | "close"
+            | "delete"
+            | "start"
+            | "split"
+            | "resize"
+            | "format"
+            | "print"
+            | "read"
+            | "join"
+            | "create"
+    );
+    let actions = split_actions(trimmed);
+    if may_split && v2_action_start(trimmed) && actions.len() > 1 && !starts_control(trimmed) {
+        let mut lines = Vec::new();
+        for action in actions {
+            lines.extend(normalize_prose_line(&action, indent));
+        }
+        return lines;
+    }
+    vec![format!("{spaces}{trimmed}.")]
+}
+
+#[allow(dead_code)]
+fn auto_phrase_for_header(text: &str) -> Option<String> {
+    if find_top_level_word(text, "named").is_some() || find_top_level_word(text, "called").is_some()
+    {
+        return None;
+    }
+    let tokens = tokenize(text);
+    let to_index = tokens.iter().position(|token| token.is("to"))?;
+    let given_index = tokens.iter().position(|token| token.is("given"))?;
+    let phrase_start = tokens.get(to_index + 1)?.start;
+    let phrase_end = tokens.get(given_index)?.start;
+    let mut words = tokens
+        .iter()
+        .filter(|token| token.start >= phrase_start && token.start < phrase_end && token.is_word())
+        .map(|token| token.lower.clone())
+        .filter(|word| !matches!(word.as_str(), "a" | "an" | "the"))
+        .collect::<Vec<_>>();
+    let params_start = tokens.get(given_index + 1)?.start;
+    let params_end = tokens
+        .iter()
+        .find(|token| token.is("returning"))
+        .map_or(text.len(), |token| token.start);
+    let params =
+        split_natural_parameters(&text[params_start..params_end], "main", Span::default()).ok()?;
+    if words.is_empty() || params.is_empty() {
+        return None;
+    }
+    words.push(format!("<{}>", params[0].0));
+    let mut pattern = words.join(" ");
+    for param in params.iter().skip(1) {
+        pattern.push_str(" and <");
+        pattern.push_str(&param.0);
+        pattern.push('>');
+    }
+    Some(pattern)
+}
+
+fn top_level_declaration(text: &str) -> bool {
+    let lower = text.trim().to_ascii_lowercase();
+    lower.starts_with("use ")
+        || lower.starts_with("import ")
+        || lower.starts_with("a record ")
+        || lower.starts_with("a public record ")
+        || lower.starts_with("a union ")
+        || lower.starts_with("a public union ")
+        || lower.starts_with("keep ")
+        || lower.starts_with("define global ")
+        || lower.starts_with("define struct ")
+        || lower.starts_with("publicly, to ")
+        || lower.starts_with("publicly to ")
+        || lower.starts_with("to ")
+}
+
+fn paragraph_control_header(text: &str) -> bool {
+    let lower = text.trim().to_ascii_lowercase();
+    (lower.starts_with("while ")
+        || lower.starts_with("until ")
+        || lower.starts_with("if ")
+        || lower.starts_with("unless "))
+        && find_top_level_symbol(text, ",").is_none()
+        && text.trim_end().ends_with('.')
+}
+
 fn normalize_natural_source(text: &str) -> String {
     let mut output = String::new();
     let mut natural_function: Option<usize> = None;
+    let mut control_blocks: Vec<usize> = Vec::new();
     for raw_line in text.lines() {
         let indent = raw_line.len() - raw_line.trim_start().len();
         let trimmed = raw_line.trim_start();
         if trimmed.is_empty() {
+            control_blocks.clear();
+            natural_function = None;
             output.push('\n');
             continue;
         }
-        if let Some(header_indent) = natural_function {
-            if trimmed
+        if trimmed
+            .trim_end_matches('.')
+            .trim()
+            .eq_ignore_ascii_case("done")
+            || trimmed
                 .trim_end_matches('.')
                 .trim()
-                .eq_ignore_ascii_case("done")
-                || trimmed
-                    .trim_end_matches('.')
-                    .trim()
-                    .eq_ignore_ascii_case("end")
-            {
-                natural_function = None;
+                .eq_ignore_ascii_case("end")
+        {
+            control_blocks.clear();
+            natural_function = None;
+            continue;
+        }
+        if matches!(
+            trimmed
+                .trim_end_matches('.')
+                .trim()
+                .to_ascii_lowercase()
+                .as_str(),
+            "end the loop" | "end the condition"
+        ) && !control_blocks.is_empty()
+        {
+            control_blocks.pop();
+            continue;
+        }
+        if let Some(&control_indent) = control_blocks.last() {
+            if paragraph_control_header(trimmed) {
+                let header = trimmed.trim_end_matches('.').trim();
+                output.push_str(&" ".repeat(control_indent + 4));
+                output.push_str(header);
+                output.push_str(":\n");
+                control_blocks.push(control_indent + 4);
+                continue;
+            }
+            let effective = indent.max(control_indent + 4);
+            for line in normalize_prose_line(trimmed, effective) {
+                output.push_str(&line);
+                output.push('\n');
+            }
+            continue;
+        }
+        if natural_function.is_some() && top_level_declaration(trimmed) {
+            natural_function = None;
+            control_blocks.clear();
+        }
+        if let Some(header_indent) = natural_function {
+            if paragraph_control_header(trimmed) {
+                let header = trimmed.trim_end_matches('.').trim();
+                output.push_str(&" ".repeat(header_indent + 4));
+                output.push_str(header);
+                output.push_str(":\n");
+                control_blocks.push(header_indent + 4);
                 continue;
             }
             let desired = header_indent + 4;
             let effective = indent.max(desired);
-            if let Some(normalized) = normalize_natural_line(trimmed) {
-                for line in normalized.lines() {
-                    output.push_str(&" ".repeat(effective));
-                    output.push_str(line);
-                    output.push('\n');
-                }
-            } else {
-                output.push_str(&" ".repeat(effective));
-                output.push_str(trimmed);
+            for line in normalize_prose_line(trimmed, effective) {
+                output.push_str(&line);
                 output.push('\n');
             }
             continue;
         }
         if natural_function_header(trimmed) {
-            if let Ok(header) = normalize_function_header(trimmed, "main", Span::default()) {
+            let (header_text, inline_body) = split_inline_function_body(trimmed)
+                .map_or((trimmed.to_string(), None), |(header, body)| {
+                    (header, Some(body))
+                });
+            if let Ok(header) = normalize_function_header(&header_text, "main", Span::default()) {
                 output.push_str(&" ".repeat(indent));
                 output.push_str(&header);
                 output.push('\n');
-                natural_function = Some(indent);
+                if let Some(body) = inline_body {
+                    for line in normalize_prose_line(&body, indent + 4) {
+                        output.push_str(&line);
+                        output.push('\n');
+                    }
+                } else {
+                    natural_function = Some(indent);
+                }
                 continue;
             }
         }
-        if let Some(normalized) = normalize_natural_line(trimmed) {
-            for line in normalized.lines() {
-                output.push_str(&" ".repeat(indent));
-                output.push_str(line);
-                output.push('\n');
-            }
+        if paragraph_control_header(trimmed) {
+            let header = trimmed.trim_end_matches('.').trim();
+            output.push_str(&" ".repeat(indent));
+            output.push_str(header);
+            output.push_str(":\n");
+            control_blocks.push(indent);
             continue;
         }
-        output.push_str(raw_line);
-        output.push('\n');
+        for line in normalize_prose_line(trimmed, indent) {
+            output.push_str(&line);
+            output.push('\n');
+        }
     }
     output
 }
-
 /// Runs the declaration pass over one segmented module.
 pub(crate) fn parse_module(source: &SourceFile) -> Result<ModuleJob, Vec<SemanticError>> {
     let module_name = source.module_name();
@@ -4876,10 +5559,11 @@ fn split_actions(text: &str) -> Vec<String> {
                         result.push(text[start..].trim().to_string());
                         return result;
                     }
-                    if !action.is_empty() {
+                    let rest = text[token.end..].trim();
+                    if !action.is_empty() && !rest.is_empty() && starts_action(rest) {
                         result.push(action.to_string());
+                        start = token.end;
                     }
-                    start = token.end;
                 }
                 _ => {}
             }
@@ -5088,67 +5772,48 @@ pub(crate) fn lower_module(
 }
 
 #[cfg(test)]
-mod natural_header_tests {
+mod version2_tests {
     use super::{Span, normalize_function_header, normalize_natural_source};
 
     #[test]
-    fn natural_header_normalizes_type_params_and_returns() {
+    fn natural_header_with_given_parameters() {
         let header = normalize_function_header(
-            "Publicly, to result_err for T and E given an E e, returning Result of T and E.",
-            "core",
+            "Publicly, to twice given value as a whole number, named twice, returning a whole number.",
+            "main",
             Span::default(),
         )
         .expect("header");
-        println!("{header}");
-        assert!(header.contains("of T and E"));
-        assert!(header.contains("taking e as an E"));
-        assert!(header.contains("returning Result of T and E"));
+        assert!(header.contains("function twice"));
+        assert!(header.contains("taking value as a whole number"));
+        assert!(header.contains("returning a whole number"));
     }
 
     #[test]
-    fn natural_list_source_headers() {
-        let text = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../std/list.eng"),
-        )
-        .expect("list.eng");
-        let normalized = normalize_natural_source(&text);
-        for (index, line) in normalized.lines().enumerate() {
-            if line.contains("list_") && line.contains("function") {
-                println!("{:3}: {line}", index + 1);
-            }
-        }
-    }
-
-    #[test]
-    fn natural_io_source_indentation() {
-        let text = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../std/io.eng"),
-        )
-        .expect("io.eng");
-        let normalized = normalize_natural_source(&text);
-        for (index, line) in normalized.lines().enumerate() {
-            if (128..=138).contains(&(index + 1)) {
-                println!("{:3}: {:?}", index + 1, line);
-            }
-        }
-    }
-
-    #[test]
-    fn natural_core_source_normalizes_result_err() {
-        let text = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../std/core.eng"),
-        )
-        .expect("core.eng");
-        let normalized = normalize_natural_source(&text);
-        for (index, line) in normalized.lines().enumerate() {
-            if (55..=75).contains(&(index + 1)) {
-                println!("{:3}: {line}", index + 1);
-            }
-        }
-        assert!(
-            normalized.contains(
-                "function result_err of t and e taking e as E returning Result of T and E:"
-            )
+    fn paragraph_function_ends_at_blank_line() {
+        let normalized = normalize_natural_source(
+            "Use core.\nTo twice given value as a whole number, named twice, returning a whole number.\nGive back value plus value.\n\nReturn twice 5.\n",
         );
+        assert!(normalized.contains("function twice"));
+        assert!(normalized.contains("Return value plus value"));
+        assert!(normalized.contains("Return twice 5"));
+    }
+
+    #[test]
+    fn trailing_if_becomes_control_block() {
+        let normalized = normalize_natural_source(
+            "To smaller given a as a whole number, b as a whole number, named smaller, returning a whole number.\nGive back a if a is less than b, otherwise give back b.\n",
+        );
+        assert!(normalized.contains("If a is less than b:"));
+        assert!(normalized.contains("Return a"));
+        assert!(normalized.contains("Otherwise:"));
+        assert!(normalized.contains("Return b"));
+    }
+
+    #[test]
+    fn inline_naming_becomes_let() {
+        let normalized = normalize_natural_source(
+            "To make given value as a whole number, named make, returning nothing.\nvalue plus 1 and call it answer.\n",
+        );
+        assert!(normalized.contains("Let answer be value plus 1."));
     }
 }

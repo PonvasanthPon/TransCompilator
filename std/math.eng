@@ -1,84 +1,45 @@
-Numeric helpers for roots, absolute values, minima, maxima, powers, and clamps.
+Basic math operations in plain English.
 
 Use core.
 
-Publicly, to sqrt given x as a decimal, returning a decimal.
-    Call this as "square root of <x>".
-    If x < 0.0:
-        panic("sqrt of negative number", 23).
-    If x == 0.0:
-        Give back 0.0.
-    Define local guess as a decimal.
-    If x >= 1.0:
-        Set guess to x * 0.5.
-    Else:
-        Set guess to 1.0.
-    Define local iteration as a whole number.
-    While iteration < 24:
-        Set guess to 0.5 * (guess + x / guess).
-        Add 1 to iteration.
-    Give back guess.
-Done.
+Publicly, to find the absolute value of a whole number x, named abs_i64, returning a whole number.
+Give back 0 minus x if x is less than 0, otherwise give back x.
 
-Publicly, to abs_i64 given x as a whole number, returning a whole number.
-    If x < 0:
-        Give back 0 - x.
-    Give back x.
-Done.
+Publicly, to find the absolute value of a decimal x, named abs_f64, returning a decimal.
+Give back 0.0 if x equals 0.0.
+Give back 0.0 minus x if x is less than 0.0, otherwise give back x.
 
-Publicly, to abs_f64 given x as a decimal, returning a decimal.
-    If x == 0.0:
-        Give back 0.0.
-    If x < 0.0:
-        Give back 0.0 - x.
-    Give back x.
-Done.
+Publicly, to find the smaller of whole numbers a and b, named min_i64, returning a whole number.
+Give back a if a is less than b, otherwise give back b.
 
-Publicly, to min_i64 given a as a whole number, b as a whole number, returning a whole number.
-    If a < b:
-        Give back a.
-    Give back b.
-Done.
+Publicly, to find the larger of whole numbers a and b, named max_i64, returning a whole number.
+Give back a if a is more than b, otherwise give back b.
 
-Publicly, to max_i64 given a as a whole number, b as a whole number, returning a whole number.
-    If a > b:
-        Give back a.
-    Give back b.
-Done.
+Publicly, to find the smaller of decimals a and b, named min_f64, returning a decimal.
+Give back a if a is less than b, otherwise give back b.
 
-Publicly, to min_f64 given a as a decimal, b as a decimal, returning a decimal.
-    If a < b:
-        Give back a.
-    Give back b.
-Done.
+Publicly, to find the larger of decimals a and b, named max_f64, returning a decimal.
+Give back a if a is more than b, otherwise give back b.
 
-Publicly, to max_f64 given a as a decimal, b as a decimal, returning a decimal.
-    If a > b:
-        Give back a.
-    Give back b.
-Done.
+Publicly, to find the square root of a decimal x, named sqrt, returning a decimal.
+Call this as "square root of <x>".
+Stop with error "sqrt of negative number" if x is less than 0.0.
+Give back 0.0 if x equals 0.0.
+Let guess be 1.0.
+Set guess to 0.5 times x if x is at least 1.0.
+Let iteration be 0.
+Until iteration is at least 24, set guess to 0.5 times (guess plus x divided by guess), add 1 to iteration.
+Give back guess.
 
-Publicly, to pow_i64 given base as a whole number, exponent as a whole number, returning a whole number.
-    If exponent < 0:
-        Give back 0.
-    Define local result as a whole number.
-    Define local factor as a whole number.
-    Define local power as a whole number.
-    Set result to 1.
-    Set factor to base.
-    Set power to exponent.
-    While power > 0:
-        If power % 2 == 1:
-            Set result to result * factor.
-        Set factor to factor * factor.
-        Set power to power / 2.
-    Give back result.
-Done.
+Publicly, to raise a whole number base to a whole number exponent, named pow_i64, returning a whole number.
+Give back 0 if exponent is less than 0.
+Let result be 1.
+Let factor be base.
+Let power be exponent.
+While power is more than 0, set result to result times factor if power modulo 2 equals 1, set factor to factor times factor, set power to power divided by 2.
+Give back result.
 
-Publicly, to clamp_i64 given value as a whole number, low as a whole number, high as a whole number, returning a whole number.
-    If value < low:
-        Give back low.
-    If value > high:
-        Give back high.
-    Give back value.
-Done.
+Publicly, to clamp a whole number number_to_clamp between a whole number lower_bound and a whole number upper_bound, named clamp_i64, returning a whole number.
+Give back lower_bound if number_to_clamp is less than lower_bound.
+Give back upper_bound if number_to_clamp is more than upper_bound.
+Give back number_to_clamp.

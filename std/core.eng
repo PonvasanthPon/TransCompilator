@@ -4,75 +4,56 @@ A public record Option of T has a has_value flag as a truth value, and a value a
 
 A public record Result of T and E has an is_ok flag as a truth value, an ok_val as T, and an err_val as E.
 
-Publicly, to option_some for T given v as T, returning Option of T.
-    Define local value_out as Option of T.
-    Set value_out.has_value to true.
-    Set value_out.value to v.
-    Give back value_out.
-Done.
+Publicly, to wrap_option for T given value as T, named option_some, returning Option of T.
+value_out is Option of T.
+Set value_out's has_value to true.
+Set value_out's value to value.
+Give back value_out.
 
-Publicly, to option_none for T, returning Option of T.
-    Define local value_out as Option of T.
-    Give back value_out.
-Done.
+Publicly, to empty_option for T, named option_none, returning Option of T.
+value_out is Option of T.
+Give back value_out.
 
-Publicly, to option_is_some for T given o as a pointer to Option of T, returning a truth value.
-    Give back o.has_value.
-Done.
+Publicly, to check_option for T given option_value as a pointer to Option of T, named option_is_some, returning a truth value.
+Give back option_value's has_value.
 
-Publicly, to option_unwrap_or for T given o as a pointer to Option of T, fallback as T, returning T.
-    If o.has_value:
-        Give back o.value.
-    Give back fallback.
-Done.
+Publicly, to unwrap_option for T given option_value as a pointer to Option of T, fallback as T, named option_unwrap_or, returning T.
+Give back option_value's value if option_value's has_value equals true, otherwise give back fallback.
 
-Publicly, to result_ok for T and E given v as T, returning Result of T and E.
-    Define local value_out as Result of T and E.
-    Set value_out.is_ok to true.
-    Set value_out.ok_val to v.
-    Give back value_out.
-Done.
+Publicly, to succeed_result for T and E given value as T, named result_ok, returning Result of T and E.
+value_out is Result of T and E.
+Set value_out's is_ok to true.
+Set value_out's ok_val to value.
+Give back value_out.
 
-Publicly, to result_err for T and E given e as E, returning Result of T and E.
-    Define local value_out as Result of T and E.
-    Set value_out.is_ok to false.
-    Set value_out.err_val to e.
-    Give back value_out.
-Done.
+Publicly, to fail_result for T and E given error_value as E, named result_err, returning Result of T and E.
+value_out is Result of T and E.
+Set value_out's is_ok to false.
+Set value_out's err_val to error_value.
+Give back value_out.
 
-Publicly, to result_is_ok for T and E given r as a pointer to Result of T and E, returning a truth value.
-    Give back r.is_ok.
-Done.
+Publicly, to check_result for T and E given result_value as a pointer to Result of T and E, named result_is_ok, returning a truth value.
+Give back result_value's is_ok.
 
-Publicly, to result_unwrap_or for T and E given r as a pointer to Result of T and E, fallback as T, returning T.
-    If r.is_ok:
-        Give back r.ok_val.
-    Give back fallback.
-Done.
+Publicly, to unwrap_result for T and E given result_value as a pointer to Result of T and E, fallback as T, named result_unwrap_or, returning T.
+Give back result_value's ok_val if result_value's is_ok equals true, otherwise give back fallback.
 
-Publicly, to panic given msg as a pointer to byte, len as an unsigned number, returning nothing.
-    Ask Linux kernel 1 with 2, msg, and len.
-    Ask Linux kernel 1 with 2, "\n", and 1.
-    Ask Linux kernel 60 with 1.
-Done.
+Publicly, to stop given msg as a pointer to byte, len as an unsigned number, named panic, returning nothing.
+Call this as "stop with message <msg> of length <len>".
+Ask Linux kernel 1 with 2, msg, and len.
+Ask Linux kernel 1 with 2, "\n", and 1.
+Ask Linux kernel 60 with 1.
 
-Publicly, to assert_true given cond as a truth value, msg as a pointer to byte, len as an unsigned number, returning nothing.
-    If not cond:
-        panic(msg, len).
-Done.
+Publicly, to check stop condition given cond as a truth value, msg as a pointer to byte, len as an unsigned number, named assert_true, returning nothing.
+If not cond, stop with message msg of length len.
 
-Publicly, to mem_zero given dst as a pointer to byte, len as an unsigned number, returning nothing.
-    Define local i as an unsigned number.
-    While i < len:
-        Set item i of dst to 0.
-        Add 1 to i.
-Done.
+Publicly, to clear given dst as a pointer to byte, len as an unsigned number, named mem_zero, returning nothing.
+Call this as "clear <len> bytes at <dst>".
+Let i be 0 as an unsigned number.
+While i is less than len, set item i of dst to 0, add 1 to i.
 
-Publicly, to mem_eq given a as a pointer to byte, b as a pointer to byte, len as an unsigned number, returning a truth value.
-    Define local i as an unsigned number.
-    While i < len:
-        If a[i] != b[i]:
-            Give back false.
-        Add 1 to i.
-    Give back true.
-Done.
+Publicly, to check_bytes given a as a pointer to byte, b as a pointer to byte, len as an unsigned number, named mem_eq, returning a truth value.
+Call this as "bytes at <a> match bytes at <b> for <len>".
+Let i be 0 as an unsigned number.
+While i is less than len, set i to i plus 1, if a[i minus 1] is not equal to b[i minus 1], give back false.
+Give back true.

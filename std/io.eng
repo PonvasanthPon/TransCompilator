@@ -2,193 +2,131 @@ A module of console output, decimal formatting, and byte-safe input.
 
 Use core.
 
-To format_u64_into given n as an unsigned number, buf as a pointer to byte, returning an unsigned number.
-    Define local digits as block of 20 byte.
-    Define local count as an unsigned number.
-    Define local value as an unsigned number.
-    Set value to n.
-    If value == 0:
-        Set item 0 of buf to 48.
-        Give back 1.
-    While value > 0:
-        Set item count of digits to 48 + (value % 10) as a byte.
-        Set value to value / 10.
-        Add 1 to count.
-    Define local len as an unsigned number.
-    While count > 0:
-        Set count to count - 1.
-        Set item len of buf to item count of digits.
-        Add 1 to len.
-    Give back len.
-Done.
+To format an unsigned number n into a pointer to byte buf, named format_u64_into, returning an unsigned number.
+Call this as "format unsigned <n> into <buf>".
+Let digits be block of 20 byte.
+Let count be 0 as an unsigned number.
+Let value be n.
+If value equals 0, set item 0 of buf to 48, give back 1.
+While value is more than 0, set item count of digits to 48 plus (value modulo 10) as a byte, set value to value divided by 10, add 1 to count.
+Let len be 0 as an unsigned number.
+While count is more than 0, set count to count minus 1, set item len of buf to item count of digits, add 1 to len.
+Give back len.
 
-Publicly, to format_i64_into given n as a whole number, buf as a pointer to byte, returning an unsigned number.
-    Define local len as an unsigned number.
-    Define local magnitude as an unsigned number.
-    If n < 0:
-        Set item 0 of buf to 45.
-        Set len to 1 as an unsigned number.
-        Set magnitude to (0 as an unsigned number) - (n as an unsigned number).
-    Else:
-        Set magnitude to n as an unsigned number.
-    Define local written as an unsigned number.
-    Set written to format_u64_into(magnitude, (buf as an unsigned number + len) as a pointer to byte).
-    Give back len + written.
-Done.
+Publicly, to format a whole number n into a pointer to byte buf, named format_i64_into, returning an unsigned number.
+Call this as "format whole <n> into <buf>".
+Let len be 0 as an unsigned number.
+Let magnitude be 0 as an unsigned number.
+If n is less than 0, set item 0 of buf to 45, set len to 1 as an unsigned number, set magnitude to (0 as an unsigned number) minus (n as an unsigned number), otherwise set magnitude to n as an unsigned number.
+Let written be format unsigned magnitude into (buf as an unsigned number plus len) as a pointer to byte.
+Give back len plus written.
 
-Publicly, to format_f64_into given x as a decimal, buf as a pointer to byte, returning an unsigned number.
-    Define local negative as a truth value.
-    Define local absolute as a decimal.
-    If x < 0.0:
-        Set negative to true.
-        Set absolute to 0.0 - x.
-    Else:
-        Set absolute to x.
-    Define local scaled as an unsigned number.
-    Set scaled to (absolute * 10000.0 + 0.5) as an unsigned number.
-    Define local int_part as an unsigned number.
-    Set int_part to scaled / 10000.
-    Define local frac as an unsigned number.
-    Set frac to scaled % 10000.
-    Define local len as an unsigned number.
-    If negative and scaled != 0:
-        Set item 0 of buf to 45.
-        Set len to 1 as an unsigned number.
-    Define local text_len as an unsigned number.
-    Set text_len to format_u64_into(int_part, (buf as an unsigned number + len) as a pointer to byte).
-    Set len to len + text_len.
-    Set item len of buf to 46.
-    Set len to len + 1.
-    Define local divisor as an unsigned number.
-    Set divisor to 1000.
-    While divisor > 0:
-        Set item len of buf to (48 + frac / divisor) as a byte.
-        Set frac to frac % divisor.
-        Set divisor to divisor / 10.
-        Add 1 to len.
-    Give back len.
-Done.
+Publicly, to format a decimal x into a pointer to byte buf, named format_f64_into, returning an unsigned number.
+Call this as "format decimal <x> into <buf>".
+Let negative be false.
+Let absolute be x.
+If x is less than 0.0, set negative to true, set absolute to 0.0 minus x.
+Let scaled be (absolute times 10000.0 plus 0.5) as an unsigned number.
+Let int_part be scaled divided by 10000.
+Let frac be scaled modulo 10000.
+Let len be 0 as an unsigned number.
+If negative and scaled is not equal to 0, set item 0 of buf to 45, set len to 1 as an unsigned number.
+Let text_len be format unsigned int_part into (buf as an unsigned number plus len) as a pointer to byte.
+Set len to len plus text_len.
+Set item len of buf to 46.
+Set len to len plus 1.
+Let divisor be 1000 as an unsigned number.
+While divisor is more than 0, set item len of buf to (48 plus frac divided by divisor) as a byte, set frac to frac modulo divisor, set divisor to divisor divided by 10, add 1 to len.
+Give back len.
 
-To newline returning nothing.
-    Ask Linux kernel 1 with 1, "\n", and 1.
-Done.
+To print a newline, named newline, returning nothing.
+Call this as "print a newline".
+Ask Linux kernel 1 with 1, "\n", and 1.
 
-Publicly, to print_i64 given n as a whole number, returning nothing.
-    You can call this as "say <n>", "show <n>", "print <n>", or "display <n>".
-    Define local buf as block of 32 byte.
-    Define local len as an unsigned number.
-    Set len to format_i64_into(n, address of item 0 of buf).
-    Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
-    newline().
-Done.
+Publicly, to print a whole number n, named print_i64, returning nothing.
+You can call this as "say <n>", "show <n>", "print <n>", or "display <n>".
+Let buf be block of 32 byte.
+Let len be format whole n into address of item 0 of buf.
+Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
+print a newline.
 
-Publicly, to print_u64 given n as an unsigned number, returning nothing.
-    You can call this as "say <n>", "show <n>", "print <n>", or "display <n>".
-    Define local buf as block of 32 byte.
-    Define local len as an unsigned number.
-    Set len to format_u64_into(n, address of item 0 of buf).
-    Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
-    newline().
-Done.
+Publicly, to print an unsigned number n, named print_u64, returning nothing.
+You can call this as "say <n>", "show <n>", "print <n>", or "display <n>".
+Let buf be block of 32 byte.
+Let len be format unsigned n into address of item 0 of buf.
+Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
+print a newline.
 
-Publicly, to print_f64 given x as a decimal, returning nothing.
-    You can call this as "say <x>", "show <x>", "print <x>", or "display <x>".
-    Define local buf as block of 64 byte.
-    Define local len as an unsigned number.
-    Set len to format_f64_into(x, address of item 0 of buf).
-    Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
-    newline().
-Done.
+Publicly, to print a decimal x, named print_f64, returning nothing.
+You can call this as "say <x>", "show <x>", "print <x>", or "display <x>".
+Let buf be block of 64 byte.
+Let len be format decimal x into address of item 0 of buf.
+Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
+print a newline.
 
-Publicly, to print_bool given b as a truth value, returning nothing.
-    You can call this as "say <b>", "show <b>", "print <b>", or "display <b>".
-    If b:
-        Ask Linux kernel 1 with 1, "true", and 4.
-    Else:
-        Ask Linux kernel 1 with 1, "false", and 5.
-    newline().
-Done.
+Publicly, to print a truth value b, named print_bool, returning nothing.
+You can call this as "say <b>", "show <b>", "print <b>", or "display <b>".
+If b, ask Linux kernel 1 with 1, "true", and 4, otherwise ask Linux kernel 1 with 1, "false", and 5.
+print a newline.
 
-Publicly, to print_bytes given p as a pointer to byte, len as an unsigned number, returning nothing.
-    Call this as "say bytes <p> of length <len>".
-    Ask Linux kernel 1 with 1, p, and len.
-    newline().
-Done.
+Publicly, to print bytes given p as a pointer to byte, len as an unsigned number, named print_bytes, returning nothing.
+Call this as "say bytes <p> of length <len>".
+Ask Linux kernel 1 with 1, p, and len.
+print a newline.
 
-Publicly, to read_i64_stdin returning a whole number.
-    Define local ch as block of 1 byte.
-    Define local value as a whole number.
-    Define local sign as a whole number.
-    Define local seen as a truth value.
-    Set sign to 1.
-    Loop:
-        Define local read_count as a whole number.
-        Set read_count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
-        If read_count <= 0:
-            break.
-        Define local code as a whole number.
-        Set code to (item 0 of ch) as a whole number.
-        If not seen:
-            If code == 45:
-                Set sign to -1.
-                continue.
-            If code == 43:
-                continue.
-            If code == 32 or code == 9 or code == 13 or code == 10:
-                continue.
-            Set seen to true.
-        If code >= 48 and code <= 57:
-            Set value to value * 10 + (code - 48).
-            continue.
-        break.
-    Give back value * sign.
-Done.
+Publicly, to read a whole number from input, named read_i64_stdin, returning a whole number.
+Call this as "read a whole number from input".
+Let ch be block of 1 byte.
+Let value be 0.
+Let sign be 1.
+Let seen be false.
+Let done be false.
+Let read_count be 1.
+Let code be 0.
+While done is false.
+Set read_count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
+If read_count is at most 0, set done to true.
+If done is false, set code to (item 0 of ch) as a whole number.
+If done is false and seen is false and code equals 45, set sign to -1.
+If done is false and seen is false and code equals 32, set done to false.
+If done is false and seen is false and code equals 9, set done to false.
+If done is false and seen is false and code equals 13, set done to false.
+If done is false and seen is false and code equals 10, set done to false.
+If done is false and code is at least 48 and code is at most 57, set value to value times 10 plus (code minus 48), set seen to true.
+If done is false and seen is true and (code is less than 48 or code is more than 57), set done to true.
+End the loop.
+Give back value times sign.
 
-Publicly, to read_f64_stdin returning a decimal.
-    Define local ch as block of 1 byte.
-    Define local value as a decimal.
-    Define local sign as a decimal.
-    Define local divisor as a decimal.
-    Define local seen as a truth value.
-    Define local fractional as a truth value.
-    Set sign to 1.0.
-    Set divisor to 10.0.
-    Loop:
-        Define local read_count as a whole number.
-        Set read_count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
-        If read_count <= 0:
-            break.
-        Define local code as a whole number.
-        Set code to (item 0 of ch) as a whole number.
-        If not seen and not fractional:
-            If code == 45:
-                Set sign to -1.0.
-                continue.
-            If code == 43:
-                continue.
-            If code == 32 or code == 9 or code == 13 or code == 10:
-                continue.
-            If code == 46:
-                Set seen to true.
-                Set fractional to true.
-                continue.
-            Set seen to true.
-        If code >= 48 and code <= 57:
-            If fractional:
-                Set value to value + (code - 48) as a decimal / divisor.
-                Set divisor to divisor * 10.0.
-            Else:
-                Set value to value * 10.0 + (code - 48) as a decimal.
-            continue.
-        If code == 46 and not fractional:
-            Set fractional to true.
-            continue.
-        break.
-    Give back value * sign.
-Done.
+Publicly, to read a decimal from input, named read_f64_stdin, returning a decimal.
+Call this as "read a decimal from input".
+Let ch be block of 1 byte.
+Let value be 0.0.
+Let sign be 1.0.
+Let divisor be 10.0.
+Let seen be false.
+Let fractional be false.
+Let done be false.
+Let read_count be 1.
+Let code be 0.
+While done is false.
+Set read_count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
+If read_count is at most 0, set done to true.
+If done is false, set code to (item 0 of ch) as a whole number.
+If done is false and seen is false and fractional is false and code equals 45, set sign to -1.0.
+If done is false and seen is false and fractional is false and code equals 32, set done to false.
+If done is false and seen is false and fractional is false and code equals 9, set done to false.
+If done is false and seen is false and fractional is false and code equals 13, set done to false.
+If done is false and seen is false and fractional is false and code equals 10, set done to false.
+If done is false and fractional is false and code equals 46, set seen to true, set fractional to true.
+If done is false and fractional and code is at least 48 and code is at most 57, set value to value plus (code minus 48) as a decimal divided by divisor, set divisor to divisor times 10.0.
+If done is false and fractional is false and code is at least 48 and code is at most 57, set value to value times 10.0 plus (code minus 48) as a decimal, set seen to true.
+If done is false and fractional and code is not 46 and (code is less than 48 or code is more than 57), set done to true.
+If done is false and fractional is false and seen is true and code is not 46 and (code is less than 48 or code is more than 57), set done to true.
+End the loop.
+Give back value times sign.
 
-Publicly, to read_i64_into given dst as a pointer to whole number, returning nothing.
-    Call this as "read number into <dst>".
-    Call this as "ask for <dst>".
-    Set item 0 of dst to read_i64_stdin().
-Done.
+Publicly, to read a whole number into a pointer to whole number dst, named read_i64_into, returning nothing.
+Call this as "read number into <dst>".
+Call this as "ask for <dst>".
+Let number_read be read a whole number from input.
+Set item 0 of dst to number_read.
