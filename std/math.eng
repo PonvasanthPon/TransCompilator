@@ -1,0 +1,73 @@
+Import core.
+
+Public function sqrt taking x as f64 returning f64:
+    Phrase: "square root of <x>"
+    If x < 0.0:
+        panic(bytes_ptr("sqrt of negative number"), bytes_len("sqrt of negative number")).
+    If x == 0.0:
+        Return 0.0.
+    Define local guess as f64.
+    If x >= 1.0:
+        guess = x * 0.5.
+    Else:
+        guess = 1.0.
+    Define local iteration as i64.
+    While iteration < 24:
+        guess = 0.5 * (guess + x / guess).
+        iteration += 1.
+    Return guess.
+
+Public function abs_i64 taking x as i64 returning i64:
+    If x < 0:
+        Return 0 - x.
+    Return x.
+
+Public function abs_f64 taking x as f64 returning f64:
+    If x == 0.0:
+        Return 0.0.
+    If x < 0.0:
+        Return 0.0 - x.
+    Return x.
+
+Public function min_i64 taking a as i64 and b as i64 returning i64:
+    If a < b:
+        Return a.
+    Return b.
+
+Public function max_i64 taking a as i64 and b as i64 returning i64:
+    If a > b:
+        Return a.
+    Return b.
+
+Public function min_f64 taking a as f64 and b as f64 returning f64:
+    If a < b:
+        Return a.
+    Return b.
+
+Public function max_f64 taking a as f64 and b as f64 returning f64:
+    If a > b:
+        Return a.
+    Return b.
+
+Public function pow_i64 taking base as i64 and exponent as i64 returning i64:
+    If exponent < 0:
+        Return 0.
+    Define local result as i64.
+    Define local factor as i64.
+    Define local power as i64.
+    result = 1.
+    factor = base.
+    power = exponent.
+    While power > 0:
+        If power % 2 == 1:
+            result = result * factor.
+        factor = factor * factor.
+        power = power / 2.
+    Return result.
+
+Public function clamp_i64 taking value as i64 and low as i64 and high as i64 returning i64:
+    If value < low:
+        Return low.
+    If value > high:
+        Return high.
+    Return value.

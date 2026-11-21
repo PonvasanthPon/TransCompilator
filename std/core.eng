@@ -1,0 +1,63 @@
+Public struct Option of T with has_value as bool and value as T.
+Public struct Result of T and E with is_ok as bool and ok_val as T and err_val as E.
+
+Public function option_some of T taking v as T returning Option<T>:
+    Define local value_out as Option<T>.
+    Set value_out.has_value to true.
+    Set value_out.value to v.
+    Return value_out.
+
+Public function option_none of T returning Option<T>:
+    Define local value_out as Option<T>.
+    Return value_out.
+
+Public function option_is_some of T taking o as ptr<Option<T>> returning bool:
+    Return o.has_value.
+
+Public function option_unwrap_or of T taking o as ptr<Option<T>> and fallback as T returning T:
+    If o.has_value:
+        Return o.value.
+    Return fallback.
+
+Public function result_ok of T and E taking v as T returning Result<T, E>:
+    Define local value_out as Result<T, E>.
+    Set value_out.is_ok to true.
+    Set value_out.ok_val to v.
+    Return value_out.
+
+Public function result_err of T and E taking e as E returning Result<T, E>:
+    Define local value_out as Result<T, E>.
+    Set value_out.is_ok to false.
+    Set value_out.err_val to e.
+    Return value_out.
+
+Public function result_is_ok of T and E taking r as ptr<Result<T, E>> returning bool:
+    Return r.is_ok.
+
+Public function result_unwrap_or of T and E taking r as ptr<Result<T, E>> and fallback as T returning T:
+    If r.is_ok:
+        Return r.ok_val.
+    Return fallback.
+
+Public function panic taking msg as ptr<u8> and len as u64 returning void:
+    syscall(1, 2, msg, len).
+    syscall(1, 2, bytes_ptr("\n"), bytes_len("\n")).
+    syscall(60, 1).
+
+Public function assert_true taking cond as bool and msg as ptr<u8> and len as u64 returning void:
+    If not cond:
+        panic(msg, len).
+
+Public function mem_zero taking dst as ptr<u8> and len as u64 returning void:
+    Define local i as u64.
+    While i < len:
+        Set dst[i] to 0.
+        i += 1.
+
+Public function mem_eq taking a as ptr<u8> and b as ptr<u8> and len as u64 returning bool:
+    Define local i as u64.
+    While i < len:
+        If a[i] != b[i]:
+            Return false.
+        i += 1.
+    Return true.

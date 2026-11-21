@@ -595,7 +595,7 @@ fn r1_editor_cli_version_and_check_flag() {
         .output()
         .expect("presets");
     assert!(presets.status.success());
-    assert_eq!(String::from_utf8_lossy(&presets.stdout).lines().count(), 5);
+    assert_eq!(String::from_utf8_lossy(&presets.stdout).lines().count(), 8);
     let dir = temp_dir("editor_check");
     let path = dir.join("check.eng");
     fs::write(&path, PRESETS[0].source).expect("write");

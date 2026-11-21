@@ -1,0 +1,158 @@
+Import alloc.
+Import core.
+Import io.
+Import string.
+
+Public struct File with fd as i64.
+
+function open_file taking path as ptr<TcString> and flags as i64 returning Result<File, i64>:
+    Define local descriptor as i64.
+    descriptor = syscall(257, -100, path.data, flags, 420).
+    Define local answer as Result<File, i64>.
+    If descriptor < 0:
+        Set answer.is_ok to false.
+        Set answer.err_val to descriptor.
+        Return answer.
+    Define local handle as File.
+    Set handle.fd to descriptor.
+    Set answer.is_ok to true.
+    Set answer.ok_val to handle.
+    Return answer.
+
+Public function file_open_read taking path as ptr<TcString> returning Result<File, i64>:
+    Return open_file(path, 0).
+
+Public function file_open_write taking path as ptr<TcString> returning Result<File, i64>:
+    Return open_file(path, 578).
+
+Public function file_open_append taking path as ptr<TcString> returning Result<File, i64>:
+    Return open_file(path, 1090).
+
+Public function file_read_bytes taking f as ptr<File> and buf as ptr<u8> and max_len as u64 returning i64:
+    Return syscall(0, f.fd, buf, max_len).
+
+Public function file_write_bytes taking f as ptr<File> and buf as ptr<u8> and len as u64 returning i64:
+    Return syscall(1, f.fd, buf, len).
+
+Public function file_seek taking f as ptr<File> and offset as i64 and whence as i64 returning i64:
+    Return syscall(8, f.fd, offset, whence).
+
+Public function file_close taking f as ptr<File> returning i64:
+    Define local result as i64.
+    result = syscall(3, f.fd).
+    Set f.fd to -1.
+    Return result.
+
+Public function write_str_to_file taking s as ptr<TcString> and path as ptr<TcString> returning i64:
+    Phrase: "save <s> to file <path>"
+    Define local opened as Result<File, i64>.
+    opened = file_open_write(path).
+    If not opened.is_ok:
+        Return opened.err_val.
+    Define local handle as File.
+    handle = opened.ok_val.
+    Define local written as i64.
+    written = file_write_bytes(address of handle, s.data, s.len).
+    file_close(address of handle).
+    Return written.
+
+Public function write_i64_to_file taking n as i64 and path as ptr<TcString> returning i64:
+    Phrase: "save <n> to file <path>"
+    Define local buffer as array<u8, 32>.
+    Define local len as u64.
+    len = format_i64_into(n, address of buffer[0]).
+    Define local opened as Result<File, i64>.
+    opened = file_open_write(path).
+    If not opened.is_ok:
+        Return opened.err_val.
+    Define local handle as File.
+    handle = opened.ok_val.
+    Define local written as i64.
+    written = file_write_bytes(address of handle, address of buffer[0], len).
+    file_close(address of handle).
+    Return written.
+
+Public function write_f64_to_file taking x as f64 and path as ptr<TcString> returning i64:
+    Phrase: "save <x> to file <path>"
+    Define local buffer as array<u8, 64>.
+    Define local len as u64.
+    len = format_f64_into(x, address of buffer[0]).
+    Define local opened as Result<File, i64>.
+    opened = file_open_write(path).
+    If not opened.is_ok:
+        Return opened.err_val.
+    Define local handle as File.
+    handle = opened.ok_val.
+    Define local written as i64.
+    written = file_write_bytes(address of handle, address of buffer[0], len).
+    file_close(address of handle).
+    Return written.
+
+Public function read_file_to_str taking path as ptr<TcString> returning Result<TcString, i64>:
+    Define local answer as Result<TcString, i64>.
+    Define local opened as Result<File, i64>.
+    opened = file_open_read(path).
+    If not opened.is_ok:
+        Set answer.is_ok to false.
+        Set answer.err_val to opened.err_val.
+        Return answer.
+    Define local handle as File.
+    handle = opened.ok_val.
+    Define local size as i64.
+    size = file_seek(address of handle, 0, 2).
+    If size < 0:
+        file_close(address of handle).
+        Set answer.is_ok to false.
+        Set answer.err_val to -5.
+        Return answer.
+    file_seek(address of handle, 0, 0).
+    Define local text as TcString.
+    text.len = size as u64.
+    text.cap = text.len + 1.
+    text.data = heap_alloc(text.cap).
+    Define local read_count as i64.
+    read_count = file_read_bytes(address of handle, text.data, text.len).
+    If read_count < 0:
+        file_close(address of handle).
+        heap_free(text.data).
+        Set answer.is_ok to false.
+        Set answer.err_val to -5.
+        Return answer.
+    text.len = read_count as u64.
+    Set text.data[text.len] to 0.
+    file_close(address of handle).
+    Set answer.is_ok to true.
+    Set answer.ok_val to text.
+    Return answer.
+
+Public function display_file taking path as ptr<TcString> returning i64:
+    Phrase: "display file <path>"
+    Define local opened as Result<TcString, i64>.
+    opened = read_file_to_str(path).
+    If not opened.is_ok:
+        Return opened.err_val.
+    Define local text as TcString.
+    text = opened.ok_val.
+    If text.len > 0:
+        syscall(1, 1, text.data, text.len).
+    syscall(1, 1, bytes_ptr("\n"), bytes_len("\n")).
+    Define local length as i64.
+    length = text.len as i64.
+    str_free(address of text).
+    Return length.
+
+Public function file_exists taking path as ptr<TcString> returning bool:
+    Phrase: "file exists <path>"
+    Define local opened as Result<File, i64>.
+    opened = file_open_read(path).
+    If not opened.is_ok:
+        Return false.
+    Define local handle as File.
+    handle = opened.ok_val.
+    file_close(address of handle).
+    Return true.
+
+Public function delete_file taking path as ptr<TcString> returning i64:
+    Phrase: "delete file <path>"
+    Phrase: "remove file <path>"
+    Return syscall(263, -100, path.data, 0).

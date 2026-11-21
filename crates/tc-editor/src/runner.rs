@@ -11,7 +11,7 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use tc_ir::{format_module, interpret, verify_module};
+use tc_ir::{format_module, interpret_in_dir, verify_module};
 use tc_semantics::{
     CompiledProject, LoweredProject, SourceFile, compile_english_to_ir, format_paraphrase,
     lower_project,
@@ -126,7 +126,7 @@ pub struct Preset {
 }
 
 /// Five starter programs that all pass exact ELF64/interpreter parity.
-pub const PRESETS: [Preset; 5] = [
+pub const PRESETS: [Preset; 8] = [
     Preset {
         name: "01_discourse_cash.eng",
         description: "ACE discourse, expletive prose, comma precedence, For every",
@@ -190,6 +190,52 @@ pub const PRESETS: [Preset; 5] = [
             "Return wallet % 256.\n",
         ),
     },
+    Preset {
+        name: "06_std_io_and_math.eng",
+        description: "std/io exact formatting and std/math Newton sqrt",
+        source: concat!(
+            "Import io.\nImport math.\n",
+            "Say 42.\nSay 3.5.\nSay true.\n",
+            "Say sqrt(2.0).\nSay sqrt(9.0).\n",
+            "Return 0.\n",
+        ),
+    },
+    Preset {
+        name: "07_std_generic_list.eng",
+        description: "Generic List<i64> growth, sort, and phrase dispatch",
+        source: concat!(
+            "Import io.\nImport list.\n",
+            "Define function cmp taking a as ptr<i64> and b as ptr<i64> returning i64:\n",
+            "    If a[0] < b[0], return -1.\n",
+            "    If a[0] > b[0], return 1.\n",
+            "    Return 0.\n",
+            "Define local nums as List<i64>.\n",
+            "push 9 to address of nums.\npush 1 to address of nums.\n",
+            "push 5 to address of nums.\n",
+            "list_sort(address of nums, function cmp).\n",
+            "Define local i as u64.\nWhile i < 3:\n",
+            "    Say list_get(address of nums, i).\n    i += 1.\n",
+            "list_free(address of nums).\nReturn 0.\n",
+        ),
+    },
+    Preset {
+        name: "08_std_file_and_map.eng",
+        description: "std/fs sandbox file round-trip and std/map rehash",
+        source: concat!(
+            "Import alloc.\nImport core.\nImport io.\nImport fs.\nImport string.\nImport map.\n",
+            "name is str_from_bytes(bytes_ptr(\"preset.txt\"), bytes_len(\"preset.txt\")).\n",
+            "save 321 to file address of name.\n",
+            "display file address of name.\n",
+            "delete file address of name.\n",
+            "Define local table as IntMap<i64>.\n",
+            "Define local k as i64.\nWhile k < 20:\n",
+            "    intmap_put(address of table, k, k * 2).\n    k += 1.\n",
+            "Define local found as Option<i64>.\nfound = intmap_get(address of table, 7).\n",
+            "Say found.value.\nSay intmap_len(address of table).\n",
+            "intmap_free(address of table).\nstr_free(address of name).\n",
+            "Say heap_bytes_in_use() as i64.\nReturn 0.\n",
+        ),
+    },
 ];
 
 /// Returns the built-in presets.
@@ -244,15 +290,51 @@ fn module_imports(source: &SourceFile) -> Vec<String> {
     imports
 }
 
-fn find_import(module: &str, directory: Option<&Path>) -> Option<PathBuf> {
-    let directory = directory?;
-    let english = directory.join(format!("{module}.eng"));
-    if english.is_file() {
-        return Some(english);
+fn find_std_dir() -> Option<PathBuf> {
+    if let Some(value) = std::env::var_os("TC_STD_DIR") {
+        let path = PathBuf::from(value);
+        if path.join("core.eng").is_file() {
+            return Some(path);
+        }
     }
-    let legacy = directory.join(format!("{module}.tc"));
-    if legacy.is_file() {
-        return Some(legacy);
+    if let Ok(executable) = std::env::current_exe() {
+        let mut directory = executable.parent().map(Path::to_path_buf);
+        for _ in 0..4 {
+            if let Some(current) = &directory {
+                let candidate = current.join("std");
+                if candidate.join("core.eng").is_file() {
+                    return Some(candidate);
+                }
+                directory = current.parent().map(Path::to_path_buf);
+            }
+        }
+    }
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../std");
+    manifest
+        .join("core.eng")
+        .is_file()
+        .then(|| manifest.canonicalize().unwrap_or(manifest))
+}
+
+fn find_import(module: &str, directory: Option<&Path>, std_dir: Option<&Path>) -> Option<PathBuf> {
+    let mut directories = Vec::new();
+    if let Some(directory) = directory {
+        directories.push(directory.to_path_buf());
+    }
+    if let Some(std_dir) = std_dir {
+        if !directories.contains(&std_dir.to_path_buf()) {
+            directories.push(std_dir.to_path_buf());
+        }
+    }
+    for directory in directories {
+        let english = directory.join(format!("{module}.eng"));
+        if english.is_file() {
+            return Some(english);
+        }
+        let legacy = directory.join(format!("{module}.tc"));
+        if legacy.is_file() {
+            return Some(legacy);
+        }
     }
     None
 }
@@ -263,19 +345,21 @@ fn load_sources(
 ) -> Result<(Vec<SourceFile>, String), String> {
     let entry_module = file_path.map_or_else(|| "untitled".to_string(), module_name);
     let entry_name = file_path.map_or_else(|| "untitled.tc".to_string(), display_name);
-    let directory = file_path.and_then(Path::parent);
+    let directory = file_path.and_then(Path::parent).map(Path::to_path_buf);
+    let std_dir = find_std_dir();
     let entry = SourceFile::new(entry_name, source.to_string());
-    let mut queue = VecDeque::from([entry.clone()]);
+    let mut queue = VecDeque::from([(entry, directory)]);
     let mut seen = HashMap::from([(entry_module.clone(), file_path.map(Path::to_path_buf))]);
     let mut sources = Vec::new();
-    while let Some(current) = queue.pop_front() {
+    while let Some((current, current_dir)) = queue.pop_front() {
         for import in module_imports(&current) {
             if seen.contains_key(&import) {
                 continue;
             }
-            let Some(path) = find_import(&import, directory) else {
+            let Some(path) = find_import(&import, current_dir.as_deref(), std_dir.as_deref())
+            else {
                 return Err(format!(
-                    "imported module `{import}` was not found next to the active .eng file"
+                    "imported module `{import}` was not found next to the active .eng file or in std/"
                 ));
             };
             let imported = SourceFile::new(
@@ -283,8 +367,9 @@ fn load_sources(
                 fs::read_to_string(&path)
                     .map_err(|error| format!("cannot read `{}`: {error}", path.display()))?,
             );
+            let imported_dir = path.parent().map(Path::to_path_buf);
             seen.insert(import, Some(path));
-            queue.push_back(imported);
+            queue.push_back((imported, imported_dir));
         }
         sources.push(current);
     }
@@ -330,14 +415,23 @@ struct ProcessOutput {
     timed_out: bool,
 }
 
-fn execute_elf(path: &Path, stdin_text: &str, timeout: Duration) -> std::io::Result<ProcessOutput> {
-    let mut child = Command::new(path)
+fn execute_elf(
+    path: &Path,
+    directory: Option<&Path>,
+    stdin_text: &str,
+    timeout: Duration,
+) -> std::io::Result<ProcessOutput> {
+    let mut command = Command::new(path);
+    command
         .arg0("program")
         .env_clear()
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
+        .stderr(Stdio::piped());
+    if let Some(directory) = directory {
+        command.current_dir(directory);
+    }
+    let mut child = command.spawn()?;
     let mut stdout = child.stdout.take().expect("stdout pipe");
     let mut stderr = child.stderr.take().expect("stderr pipe");
     let out_reader = std::thread::spawn(move || {
@@ -404,14 +498,25 @@ pub fn run_elf_with_parity(source: &str, file_path: Option<&Path>, stdin_text: &
         );
     }
     let arguments = vec!["program".to_string()];
-    let interpreted = match interpret(
+    let work = std::env::temp_dir().join(format!(
+        "r1_editor_run_{}_{}",
+        std::process::id(),
+        TEMP_COUNTER.fetch_add(1, Ordering::Relaxed)
+    ));
+    let interp_dir = work.join("interp");
+    let elf_dir = work.join("elf");
+    let _ = fs::create_dir_all(&interp_dir);
+    let _ = fs::create_dir_all(&elf_dir);
+    let interpreted = match interpret_in_dir(
         &compiled.module,
         &arguments,
         stdin_text.as_bytes(),
+        &interp_dir,
         10_000_000,
     ) {
         Ok(value) => value,
         Err(error) => {
+            let _ = fs::remove_dir_all(&work);
             return RunResult::failure("INTERPRETER FAILED", vec![format!("{error:?}")]);
         }
     };
@@ -420,10 +525,11 @@ pub fn run_elf_with_parity(source: &str, file_path: Option<&Path>, stdin_text: &
         return RunResult::failure("ELF64 BUILD FAILED", vec![error.to_string()]);
     }
     let byte_size = fs::metadata(&path).map_or(0, |metadata| metadata.len());
-    let native = match execute_elf(&path, stdin_text, Duration::from_secs(5)) {
+    let native = match execute_elf(&path, Some(&elf_dir), stdin_text, Duration::from_secs(5)) {
         Ok(value) => value,
         Err(error) => {
             let _ = fs::remove_file(&path);
+            let _ = fs::remove_dir_all(&work);
             return RunResult::failure(
                 "ELF64 EXECUTION FAILED",
                 vec![format!("cannot execute `{}`: {error}", path.display())],
@@ -431,6 +537,7 @@ pub fn run_elf_with_parity(source: &str, file_path: Option<&Path>, stdin_text: &
         }
     };
     let _ = fs::remove_file(&path);
+    let _ = fs::remove_dir_all(&work);
     if native.timed_out {
         return RunResult::failure(
             "ELF64 TIMEOUT",
@@ -680,7 +787,7 @@ mod tests {
         let mut names = PRESETS.iter().map(|preset| preset.name).collect::<Vec<_>>();
         names.sort_unstable();
         names.dedup();
-        assert_eq!(names.len(), 5);
+        assert_eq!(names.len(), 8);
     }
 
     #[test]

@@ -20,6 +20,8 @@ pub struct PhraseBinding {
     pub vis: Visibility,
     /// Pattern parts.
     pub pattern: PhrasePattern,
+    /// Function parameter names in declaration order.
+    pub param_names: Vec<String>,
     /// Function parameter types in declaration order.
     pub params: Vec<AstType>,
     /// Generic parameter names.
@@ -98,7 +100,7 @@ fn capture_text(text: &str, tokens: &[Token], start: usize, end: usize) -> Strin
 fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Option<PhraseMatch> {
     let parts = pattern_words(&binding.pattern).collect::<Vec<_>>();
     let mut token_index = 0;
-    let mut args = Vec::new();
+    let mut captures: Vec<Option<String>> = vec![None; binding.param_names.len()];
     let mut score = 0;
     let mut parameter_index = 0;
     let mut part_index = 0;
@@ -113,7 +115,7 @@ fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Optio
                 score += 1;
                 part_index += 1;
             }
-            PhrasePart::Param(_) => {
+            PhrasePart::Param(parameter) => {
                 let next_literal = parts[part_index + 1..].iter().find_map(|part| match part {
                     PhrasePart::Word(word) => Some(word.clone()),
                     PhrasePart::Param(_) => None,
@@ -124,7 +126,6 @@ fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Optio
                     while let Some(index) = next_word_index(tokens, search) {
                         if tokens[index].is(&literal) {
                             found = Some(index);
-                            break;
                         }
                         search = index + 1;
                     }
@@ -135,16 +136,21 @@ fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Optio
                 if end <= token_index {
                     return None;
                 }
-                args.push(capture_text(text, tokens, token_index, end));
+                let position = binding
+                    .param_names
+                    .iter()
+                    .position(|name| name == parameter)?;
+                captures[position] = Some(capture_text(text, tokens, token_index, end));
                 parameter_index += 1;
                 token_index = end;
                 part_index += 1;
             }
         }
     }
-    if token_index != tokens.len() || args.len() != parameter_index {
+    if token_index != tokens.len() || parameter_index != binding.param_names.len() {
         return None;
     }
+    let args = captures.into_iter().collect::<Option<Vec<_>>>()?;
     Some(PhraseMatch {
         module: binding.module.clone(),
         function: binding.function.clone(),
