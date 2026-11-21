@@ -1,0 +1,6 @@
+Define local x as u8.
+Define local n as u8.
+Set x to 0x80.
+Set n to 7.
+Set x to x shr n.
+Return ((x bitand 255) + ((x shr 8) bitand 255)) as i64.

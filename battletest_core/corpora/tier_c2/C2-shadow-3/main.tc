@@ -1,0 +1,12 @@
+x is 3.
+If true:
+    x is 1.5.
+    If true:
+        x is 9.
+        If true:
+            x is true.
+            If true:
+                x is 6.
+                If true:
+                    x is 2.5.
+Return x.

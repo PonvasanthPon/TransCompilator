@@ -1,0 +1,4 @@
+Define struct S11 with x as i64 and y as array<i64, 2>.
+s is S11.
+Set s.x to 11.
+Return s.missing.

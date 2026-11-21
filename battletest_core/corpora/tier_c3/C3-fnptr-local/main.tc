@@ -1,0 +1,4 @@
+Define function add taking a as i64 and b as i64 returning i64:
+    Return a + b.
+fp is function add.
+Return fp(2, 3).

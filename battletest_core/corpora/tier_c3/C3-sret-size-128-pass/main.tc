@@ -1,0 +1,8 @@
+Define struct S128 with tag as u8 and data as array<u8, 127>.
+Define function sum taking s as S128 returning i64:
+    Return (s.tag as i64) + (s.data[0] as i64) + (s.data[126] as i64).
+s is S128.
+Set s.tag to 5.
+Set s.data[0] to 3.
+Set s.data[126] to 4.
+Return sum(s).

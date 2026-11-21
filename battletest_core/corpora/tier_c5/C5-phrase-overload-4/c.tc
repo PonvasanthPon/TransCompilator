@@ -1,0 +1,3 @@
+Public function emit taking x as ptr<u8> returning i64:
+    Phrase: "emit <x>"
+    Return 1.

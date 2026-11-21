@@ -1,0 +1,7 @@
+Define function f taking a as i64 returning i64:
+    Return a + 1.
+Define function g taking a as i64 and b as i64 returning i64:
+    Return a * b.
+Define function h taking a as i64 and b as i64 and c as i64 returning i64:
+    Return a + b + c.
+Return f(g(2, 3) + h(4, 5, 6)).

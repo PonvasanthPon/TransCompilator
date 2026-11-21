@@ -1,0 +1,8 @@
+Define struct Odd1 with a as u8 and b as i64 and c as u8.
+src is Odd1.
+dst is Odd1.
+Set src.a to 1.
+Set src.b to 2.
+Set src.c to 3.
+Copy 24 bytes from address of src to address of dst.
+Return (dst.a as i64) + dst.b + (dst.c as i64).

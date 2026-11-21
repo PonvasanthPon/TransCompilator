@@ -1,0 +1,7 @@
+Import a.
+Import b.
+Import c.
+Emit 42.
+Emit 3.5.
+Emit bytes_ptr("x").
+Return 0.

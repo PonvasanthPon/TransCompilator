@@ -146,15 +146,6 @@ pub fn lower_project(
     sources: &[SourceFile],
     entry_module: &str,
 ) -> Result<LoweredProject, Vec<SemanticError>> {
-    if sources.is_empty() {
-        return Err(vec![SemanticError {
-            module: entry_module.to_string(),
-            line: 1,
-            col: 1,
-            kind: SemanticErrorKind::Segmentation,
-            message: "no source files were supplied".to_string(),
-        }]);
-    }
     let parser = LinkGrammarParser::new().map_err(|error: SyntaxError| {
         vec![SemanticError {
             module: entry_module.to_string(),
@@ -164,6 +155,29 @@ pub fn lower_project(
             message: error.message,
         }]
     })?;
+    lower_project_with_parser(sources, entry_module, &parser)
+}
+
+/// Lowers a project with a caller-owned Link Grammar parser.  This is the
+/// high-throughput entry point used by the exhaustive lexicon sweeper.
+///
+/// # Errors
+///
+/// Returns declaration, lowering, or syntax diagnostics.
+pub fn lower_project_with_parser(
+    sources: &[SourceFile],
+    entry_module: &str,
+    parser: &LinkGrammarParser,
+) -> Result<LoweredProject, Vec<SemanticError>> {
+    if sources.is_empty() {
+        return Err(vec![SemanticError {
+            module: entry_module.to_string(),
+            line: 1,
+            col: 1,
+            kind: SemanticErrorKind::Segmentation,
+            message: "no source files were supplied".to_string(),
+        }]);
+    }
     let mut jobs = Vec::with_capacity(sources.len());
     let mut errors = Vec::new();
     for source in sources {
@@ -224,7 +238,7 @@ pub fn lower_project(
         let is_entry = job.module.name == entry_key;
         let (module, mut traces, mut diagnostics) = lower::lower_module(
             job,
-            &parser,
+            parser,
             module_names.clone(),
             bindings[index].clone(),
             is_entry,

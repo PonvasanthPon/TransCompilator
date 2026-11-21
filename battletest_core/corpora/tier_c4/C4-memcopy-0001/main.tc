@@ -1,0 +1,6 @@
+Define struct Buf1 with data as array<u8, 1>.
+src is Buf1.
+dst is Buf1.
+Set src.data[0] to 9.
+Copy 1 bytes from address of src to address of dst.
+Return dst.data[0] as i64.

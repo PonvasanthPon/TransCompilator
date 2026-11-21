@@ -1,0 +1,13 @@
+Define function a taking n as i64 returning i64:
+    If n is 0:
+        Return 1.
+    Return b(n - 1).
+Define function b taking n as i64 returning i64:
+    If n is 0:
+        Return 1.
+    Return c(n - 1).
+Define function c taking n as i64 returning i64:
+    If n is 0:
+        Return 1.
+    Return a(n - 1).
+Return a(9).

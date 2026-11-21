@@ -1,0 +1,4 @@
+Define function f returning i64:
+    Return 5.
+    Return 9.
+Return f().

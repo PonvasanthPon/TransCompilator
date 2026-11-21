@@ -1,0 +1,9 @@
+a is 25.
+b is 75.
+c is 5.
+Add 25 to a.
+Remove 25 from b.
+Multiply c by 4.
+Halve c.
+Transfer 10 from a to b.
+Return (a + b + c) bitand 255.

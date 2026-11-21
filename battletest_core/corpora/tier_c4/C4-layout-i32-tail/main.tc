@@ -1,0 +1,2 @@
+Define struct Four with a as i32 and b as i32 and c as i32 and d as i8.
+Return ((size of Four) as i64) + ((align of Four) as i64).

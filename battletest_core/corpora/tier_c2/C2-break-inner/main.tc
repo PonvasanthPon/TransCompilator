@@ -1,0 +1,9 @@
+a is 0.
+b is 0.
+Loop:
+    a += 1.
+    If a is at least 3, Break.
+    Loop:
+        b += 1.
+        If b is at least 2, Break.
+Return a * 10 + b.

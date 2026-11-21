@@ -1,0 +1,123 @@
+{
+  "campaign": "tc_r1 Phase 3.5 \u2014 Core Foundation Battle-Test & Hardening",
+  "status": "COMPLETED",
+  "branch": "battletest-core",
+  "base_sha": "92dad36",
+  "head_sha": "c1d2430b5c2a9292523c35e3804e6c4712a48d4d",
+  "started_at": "2026-11-21T17:22:22+05:30",
+  "updated_at": "2026-11-21T18:38:23+05:30",
+  "sessions_count": 1,
+  "current_tier": "C10",
+  "current_activity": "Campaign complete: 10/10 tiers, 446 programs, 4,011 automated seeds, full 786+10,845 lexicon sweep, 0 open bugs, Phase 4 GO",
+  "metrics": {
+    "tiers_completed": 10,
+    "tiers_total": 10,
+    "programs_tested": 446,
+    "programs_target": 420,
+    "fuzz_ir_x86_done": 2000,
+    "fuzz_ir_x86_target": 2000,
+    "fuzz_paraphrase_done": 500,
+    "fuzz_paraphrase_target": 500,
+    "fuzz_prose_done": 500,
+    "fuzz_prose_target": 500,
+    "fuzz_generics_done": 500,
+    "fuzz_generics_target": 500,
+    "crash_fuzz_done": 511,
+    "crash_fuzz_target": 500,
+    "panics_or_segfaults": 0,
+    "wordnet_swept": 786,
+    "wordnet_target": 786,
+    "verbnet_swept": 10845,
+    "verbnet_target": 10845,
+    "silent_drops_caught": 0,
+    "silent_drops_fixed": 0,
+    "bugs_found": 25,
+    "bugs_fixed": 25,
+    "bugs_open": 0,
+    "limits_cataloged": 7,
+    "regression_tests": 296,
+    "commits_on_branch": 15
+  },
+  "tiers": [
+    {
+      "id": "C1",
+      "name": "Scalar Widths, Wraparound, Bitwise & IEEE-754",
+      "status": "DONE",
+      "tested": 60,
+      "target": 60,
+      "bugs": 0
+    },
+    {
+      "id": "C2",
+      "name": "Control Flow, Scoping, Short-Circuit & Nesting",
+      "status": "DONE",
+      "tested": 50,
+      "target": 50,
+      "bugs": 0
+    },
+    {
+      "id": "C3",
+      "name": "System V ABI, Spillover, SRET & Indirect Calls",
+      "status": "DONE",
+      "tested": 54,
+      "target": 50,
+      "bugs": 0
+    },
+    {
+      "id": "C4",
+      "name": "Memory Layout, Odd Structs, Unions & mmap",
+      "status": "DONE",
+      "tested": 60,
+      "target": 60,
+      "bugs": 0
+    },
+    {
+      "id": "C5",
+      "name": "Type Checker, Modules, Generics & Phrase Dispatch",
+      "status": "DONE",
+      "tested": 63,
+      "target": 60,
+      "bugs": 0
+    },
+    {
+      "id": "C6",
+      "name": "Exhaustive 786-WordNet & 10,845-VerbNet Sweep",
+      "status": "DONE",
+      "tested": 44,
+      "target": 40,
+      "bugs": 0
+    },
+    {
+      "id": "C7",
+      "name": "Casual, Natural & Non-Native English Torture",
+      "status": "DONE",
+      "tested": 115,
+      "target": 100,
+      "bugs": 0
+    },
+    {
+      "id": "C8",
+      "name": "Link Grammar FFI & Malformed-Input Crash Fuzz",
+      "status": "DONE",
+      "tested": 511,
+      "target": 500,
+      "bugs": 0
+    },
+    {
+      "id": "C9",
+      "name": "3,500-Seed Multi-Engine Differential Fuzzer",
+      "status": "DONE",
+      "tested": 3500,
+      "target": 3500,
+      "bugs": 0
+    },
+    {
+      "id": "C10",
+      "name": "Core Readiness Audit, Limits & Final Report",
+      "status": "DONE",
+      "tested": 7,
+      "target": 1,
+      "bugs": 0
+    }
+  ]
+}

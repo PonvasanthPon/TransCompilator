@@ -1,0 +1,4 @@
+Define local x as u16.
+Set x to 65535.
+Set x to x + 1.
+Return ((x bitand 255) + ((x shr 8) bitand 255)) as i64.

@@ -1,0 +1,4 @@
+x is -9223372036854775807 - 1.
+If x / -1 is x:
+    Return 1.
+Return 0.

@@ -108,6 +108,30 @@ pub fn tokenize(text: &str) -> Vec<Token> {
             continue;
         }
         if character.is_ascii_digit() {
+            if character == '0' {
+                if let Some(prefix) = text[index + 1..].chars().next() {
+                    if matches!(prefix, 'x' | 'X' | 'b' | 'B' | 'o' | 'O') {
+                        index += 2;
+                        while index < bytes.len() {
+                            let current = text[index..].chars().next().unwrap_or('\0');
+                            if current.is_ascii_alphanumeric() || current == '_' {
+                                index += current.len_utf8();
+                            } else {
+                                break;
+                            }
+                        }
+                        let raw = &text[start..index];
+                        tokens.push(Token {
+                            text: raw.to_string(),
+                            lower: raw.to_string(),
+                            kind: TokenKind::Number,
+                            start,
+                            end: index,
+                        });
+                        continue;
+                    }
+                }
+            }
             index += 1;
             while index < bytes.len() {
                 let current = text[index..].chars().next().unwrap_or('\0');
@@ -157,16 +181,16 @@ pub fn tokenize(text: &str) -> Vec<Token> {
             continue;
         }
         let mut symbol = character.to_string();
-        if index + 1 < bytes.len() {
+        if character.is_ascii() && index + 1 < bytes.len() {
             let pair = &text[index..index + 2];
             if matches!(
                 pair,
-                "==" | "!=" | "<=" | ">=" | "+=" | "-=" | "*=" | "/=" | "&&" | "||"
+                "==" | "!=" | "<=" | ">=" | "+=" | "-=" | "*=" | "/=" | "&&" | "||" | "->"
             ) {
                 symbol = pair.to_string();
             }
         }
-        if symbol.len() > 1 {
+        if character.is_ascii() && symbol.len() == 2 {
             index += 2;
         } else {
             index += character.len_utf8();

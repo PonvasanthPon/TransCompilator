@@ -1,0 +1,2 @@
+Define struct Odd1 with a as u8 and b as i64 and c as u8.
+Return ((size of Odd1) as i64) + ((align of Odd1) as i64).
