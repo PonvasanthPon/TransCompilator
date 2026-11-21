@@ -326,7 +326,15 @@ fn strip_fillers(text: &str, column: u32) -> (String, Vec<String>, u32) {
                     | "after"
                     | "afterwards"
             ) {
-                consumed = first.len();
+                // A comma proves discourse use.  Bare forms are stripped only
+                // for unambiguous polite/interjection words, so identifiers
+                // such as `first` remain available.
+                let after_word = remaining[first.len()..].trim_start();
+                let comma = after_word.starts_with(',');
+                let bare_allowed = matches!(first, "please" | "okay" | "ok" | "alright");
+                if comma || bare_allowed {
+                    consumed = first.len();
+                }
             }
         }
         if consumed == 0 {
