@@ -131,12 +131,52 @@ fn module_imports(source: &SourceFile) -> Vec<String> {
     imports
 }
 
-fn find_import(module: &str, entry: &Path, includes: &[PathBuf]) -> Option<PathBuf> {
+fn find_std_dir() -> Option<PathBuf> {
+    if let Some(value) = env::var_os("TC_STD_DIR") {
+        let path = PathBuf::from(value);
+        if path.join("core.eng").is_file() {
+            return Some(path);
+        }
+    }
+    if let Ok(executable) = env::current_exe() {
+        let mut directory = executable.parent().map(Path::to_path_buf);
+        for _ in 0..4 {
+            if let Some(current) = &directory {
+                let candidate = current.join("std");
+                if candidate.join("core.eng").is_file() {
+                    return Some(candidate);
+                }
+                directory = current.parent().map(Path::to_path_buf);
+            }
+        }
+    }
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../std");
+    manifest
+        .join("core.eng")
+        .is_file()
+        .then(|| manifest.canonicalize().unwrap_or(manifest))
+}
+
+fn find_import(
+    module: &str,
+    current_dir: Option<&Path>,
+    entry: &Path,
+    includes: &[PathBuf],
+    std_dir: Option<&Path>,
+) -> Option<PathBuf> {
     let mut directories = Vec::new();
-    if let Some(parent) = entry.parent() {
+    if let Some(parent) = current_dir {
         directories.push(parent.to_path_buf());
     }
+    if let Some(parent) = entry.parent() {
+        if !directories.contains(&parent.to_path_buf()) {
+            directories.push(parent.to_path_buf());
+        }
+    }
     directories.extend(includes.iter().cloned());
+    if let Some(std_dir) = std_dir {
+        directories.push(std_dir.to_path_buf());
+    }
     for directory in directories {
         let english = directory.join(format!("{module}.eng"));
         if english.is_file() {
@@ -175,6 +215,7 @@ fn load_sources(entry: &Path, includes: &[PathBuf]) -> Result<(Vec<SourceFile>, 
             .map_err(|error| format!("cannot read `{}`: {error}", entry.display()))?,
     );
     let entry_module = entry_source.module_name();
+    let std_dir = find_std_dir();
     let mut queue = VecDeque::from([entry.clone()]);
     let mut seen = HashMap::from([(entry_module.clone(), entry.clone())]);
     let mut sources = Vec::new();
@@ -188,9 +229,16 @@ fn load_sources(entry: &Path, includes: &[PathBuf]) -> Result<(Vec<SourceFile>, 
             if seen.contains_key(&import) {
                 continue;
             }
-            let import_path = find_import(&import, &entry, includes).ok_or_else(|| {
+            let import_path = find_import(
+                &import,
+                path.parent(),
+                &entry,
+                includes,
+                std_dir.as_deref(),
+            )
+            .ok_or_else(|| {
                 format!(
-                    "imported module `{import}` was not found in the source directory or -I paths"
+                    "imported module `{import}` was not found in the source directory, -I paths, or std/"
                 )
             })?;
             seen.insert(import, import_path.clone());
@@ -470,6 +518,17 @@ fn run_audit() -> ExitCode {
     println!("  verbnet frames  : {}", stats.verbnet_frames);
     println!("  irregular lemmas: {}", stats.irregular_lemmas);
     println!("  closed-class    : {}", stats.closed_class_words);
+    let std_modules = find_std_dir().map_or(0, |directory| {
+        fs::read_dir(directory).map_or(0, |entries| {
+            entries
+                .filter_map(Result::ok)
+                .filter(|entry| {
+                    entry.path().extension().and_then(|value| value.to_str()) == Some("eng")
+                })
+                .count()
+        })
+    });
+    println!("  std modules     : {std_modules}");
     println!("  dependencies    : std + local path only");
     println!("  external crates : 0");
     println!("  ML runtime      : disabled");

@@ -1308,7 +1308,7 @@ impl Checker<'_, '_> {
         explicit_args: &[AstType],
         args_ast: &[AstExpr],
         args: &[TExpr],
-        _expected: Option<&ConcreteType>,
+        expected: Option<&ConcreteType>,
         span: &Span,
     ) -> Result<(FnItem, Vec<ConcreteType>, Vec<TExpr>, ConcreteType), TypeError> {
         let candidates = self
@@ -1324,7 +1324,7 @@ impl Checker<'_, '_> {
                 explicit_arity_match = true;
             }
             let (type_args, _params, ret, matched, unbound) =
-                self.instantiate_candidate(candidate, explicit_args, args, span)?;
+                self.instantiate_candidate(candidate, explicit_args, args, expected, span)?;
             if matched {
                 viable.push((candidate, type_args, ret, args.to_vec()));
             }
@@ -1648,6 +1648,7 @@ impl Checker<'_, '_> {
         candidate: FnItem,
         explicit_args: &[AstType],
         args: &[TExpr],
+        expected: Option<&ConcreteType>,
         span: &Span,
     ) -> Result<InstMatch, TypeError> {
         let function = &self.resolved.modules[candidate.module].ast.functions[candidate.index];
@@ -1704,6 +1705,16 @@ impl Checker<'_, '_> {
         for (param, arg) in params.iter().zip(args) {
             if !unify(param, &arg.ty, &mut bindings) {
                 return Ok((Vec::new(), params, ret, false, false));
+            }
+        }
+        if let Some(expected) = expected {
+            if fresh.iter().any(|name| !bindings.contains_key(name))
+                && !matches!(ret, ConcreteType::Generic(_))
+            {
+                let mut extended = bindings.clone();
+                if unify(&ret, expected, &mut extended) {
+                    bindings = extended;
+                }
             }
         }
         if fresh.iter().any(|name| !bindings.contains_key(name)) {

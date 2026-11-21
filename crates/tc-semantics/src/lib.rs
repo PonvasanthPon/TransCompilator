@@ -15,10 +15,11 @@ mod textutil;
 pub mod intent;
 pub mod phrases;
 
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 
 use tc_lexicon::{SemanticConcept, VerbPredicate};
-use tc_typeck::{AstModule, Program};
+use tc_typeck::{AstModule, AstType, Program};
 
 pub use intent::IntentVerdict;
 pub use paraphrase::{
@@ -230,6 +231,42 @@ pub fn lower_project_with_parser(
     }
 
     let bindings = lower::collect_phrase_bindings(&jobs);
+    let mut global_returns: HashMap<String, Option<AstType>> = HashMap::new();
+    let mut global_types = HashSet::new();
+    let mut global_aggregates = HashMap::new();
+    for job in &jobs {
+        for function in &job.module.functions {
+            global_returns.insert(
+                function.name.clone(),
+                (!lower::type_contains_params(&function.ret, &function.type_params))
+                    .then(|| function.ret.clone()),
+            );
+        }
+        for definition in &job.module.structs {
+            if definition.vis == tc_typeck::Visibility::Public {
+                global_types.insert(definition.name.clone());
+                global_aggregates.insert(
+                    definition.name.clone(),
+                    crate::expr::AggregateInfo {
+                        type_params: definition.type_params.clone(),
+                        fields: definition.fields.iter().cloned().collect(),
+                    },
+                );
+            }
+        }
+        for definition in &job.module.unions {
+            if definition.vis == tc_typeck::Visibility::Public {
+                global_types.insert(definition.name.clone());
+                global_aggregates.insert(
+                    definition.name.clone(),
+                    crate::expr::AggregateInfo {
+                        type_params: definition.type_params.clone(),
+                        fields: definition.fields.iter().cloned().collect(),
+                    },
+                );
+            }
+        }
+    }
     let mut module_names = jobs
         .iter()
         .map(|job| job.module.name.clone())
@@ -254,6 +291,9 @@ pub fn lower_project_with_parser(
             parser,
             module_names.clone(),
             bindings[index].clone(),
+            global_returns.clone(),
+            global_types.clone(),
+            global_aggregates.clone(),
             is_entry,
         );
         modules.push(module);

@@ -7,7 +7,7 @@ pub mod types;
 pub mod verify;
 
 pub use fmt::{format_expr, format_module, format_type};
-pub use interp::{InterpError, InterpOutput, interpret};
+pub use interp::{InterpError, InterpOutput, interpret, interpret_in_dir};
 pub use ir::{
     BinOp, CallTarget, Expr, FnId, Function, GlobalDef, GlobalId, LocalDef, LocalId, Module,
     RodataDef, RodataId, Stmt, StructDef, StructId, UnOp, UnionDef, UnionId,

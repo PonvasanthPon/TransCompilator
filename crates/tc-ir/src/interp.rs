@@ -1,5 +1,10 @@
 //! Byte-accurate reference interpreter for Core-7 IR.
 
+use std::collections::HashMap;
+use std::fs::{File, OpenOptions};
+use std::io::{Read as _, Seek as _, SeekFrom, Write as _};
+use std::path::{Component, Path, PathBuf};
+
 use crate::ir::{BinOp, CallTarget, Expr, Function, Module, Stmt, UnOp};
 use crate::types::Type;
 use crate::verify::verify_module;
@@ -297,10 +302,13 @@ struct Vm<'a> {
     steps: usize,
     max_steps: usize,
     call_depth: usize,
+    cwd: Option<PathBuf>,
+    open_files: HashMap<u64, File>,
+    next_fd: u64,
 }
 
 impl<'a> Vm<'a> {
-    fn new(module: &Module, stdin: &'a [u8], max_steps: usize) -> Self {
+    fn new(module: &Module, stdin: &'a [u8], max_steps: usize, cwd: Option<&Path>) -> Self {
         let mut rodata_offsets = Vec::with_capacity(module.rodata.len());
         let mut rodata_len = 0usize;
         for blob in &module.rodata {
@@ -346,6 +354,9 @@ impl<'a> Vm<'a> {
             steps: 0,
             max_steps,
             call_depth: 0,
+            cwd: cwd.map(Path::to_path_buf),
+            open_files: HashMap::new(),
+            next_fd: 3,
         }
     }
 
@@ -943,40 +954,218 @@ impl<'a> Vm<'a> {
         }
     }
 
+    fn read_c_string(&self, address: u64) -> Result<String, InterpError> {
+        let mut bytes = Vec::new();
+        for offset in 0..4096_u64 {
+            let byte = self.memory.read_u8(address.saturating_add(offset))?;
+            if byte == 0 {
+                break;
+            }
+            bytes.push(byte);
+        }
+        String::from_utf8(bytes)
+            .map_err(|_| InterpError::Internal("virtual path is not UTF-8".to_string()))
+    }
+
+    fn sandbox_path(&self, raw: &str) -> Result<PathBuf, i64> {
+        let Some(cwd) = &self.cwd else {
+            return Err(-13);
+        };
+        let candidate = Path::new(raw);
+        if candidate.is_absolute() {
+            return Err(-13);
+        }
+        let mut relative = PathBuf::new();
+        for component in candidate.components() {
+            match component {
+                Component::CurDir => {}
+                Component::Normal(value) => relative.push(value),
+                Component::ParentDir => {
+                    if !relative.pop() {
+                        return Err(-13);
+                    }
+                }
+                Component::RootDir | Component::Prefix(_) => return Err(-13),
+            }
+        }
+        Ok(cwd.join(relative))
+    }
+
+    fn allocate_fd(&mut self, file: File) -> i64 {
+        let mut fd = self.next_fd.max(3);
+        while self.open_files.contains_key(&fd) {
+            fd += 1;
+        }
+        self.next_fd = fd + 1;
+        self.open_files.insert(fd, file);
+        i64::try_from(fd).unwrap_or(-9)
+    }
+
+    fn openat(&mut self, args: &[Value]) -> FlowResult<Value> {
+        let dirfd = args.first().map_or(0, |value| value.bits) as i64;
+        if dirfd != -100 && dirfd != 0 {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        }
+        let path_address = args.get(1).map_or(0, |value| value.bits);
+        let flags = args.get(2).map_or(0, |value| value.bits);
+        let mode = args.get(3).map_or(0, |value| value.bits);
+        let _ = mode;
+        let Ok(path) = self.read_c_string(path_address) else {
+            return Ok(Value::new(Type::I64, (-14i64) as u64));
+        };
+        let full = match self.sandbox_path(&path) {
+            Ok(value) => value,
+            Err(code) => return Ok(Value::new(Type::I64, code as u64)),
+        };
+        let access = flags & 0x3;
+        let create = flags & 0x40 != 0;
+        let truncate = flags & 0x200 != 0;
+        let append = flags & 0x400 != 0;
+        let mut options = OpenOptions::new();
+        options
+            .read(access != 1)
+            .write(access == 1 || access == 2)
+            .create(create)
+            .truncate(truncate)
+            .append(append);
+        match options.open(&full) {
+            Ok(file) => {
+                let fd = self.allocate_fd(file);
+                Ok(Value::new(Type::I64, fd as u64))
+            }
+            Err(error) => {
+                let code = match error.kind() {
+                    std::io::ErrorKind::NotFound => -2,
+                    std::io::ErrorKind::PermissionDenied => -13,
+                    _ => -5,
+                };
+                Ok(Value::new(Type::I64, code as u64))
+            }
+        }
+    }
+
+    fn read_fd(&mut self, args: &[Value]) -> FlowResult<Value> {
+        let fd = args.first().map_or(0, |value| value.bits);
+        let address = args.get(1).map_or(0, |value| value.bits);
+        let count =
+            usize::try_from(args.get(2).map_or(0, |value| value.bits)).unwrap_or(usize::MAX);
+        if fd == 0 {
+            let available = self.stdin.len().saturating_sub(self.stdin_cursor);
+            let read = count.min(available);
+            if read != 0 {
+                let bytes = self.stdin[self.stdin_cursor..self.stdin_cursor + read].to_vec();
+                self.memory.write(address, &bytes)?;
+                self.stdin_cursor += read;
+            }
+            return Ok(Value::new(Type::I64, read as u64));
+        }
+        if fd < 3 {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        }
+        let Some(file) = self.open_files.get_mut(&fd) else {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        };
+        let mut buffer = vec![0_u8; count.min(16 * 1024 * 1024)];
+        let Ok(read) = file.read(&mut buffer) else {
+            return Ok(Value::new(Type::I64, (-5i64) as u64));
+        };
+        if read != 0 {
+            self.memory.write(address, &buffer[..read])?;
+        }
+        Ok(Value::new(Type::I64, read as u64))
+    }
+
+    fn write_fd(&mut self, args: &[Value]) -> FlowResult<Value> {
+        let fd = args.first().map_or(0, |value| value.bits);
+        let address = args.get(1).map_or(0, |value| value.bits);
+        let count =
+            usize::try_from(args.get(2).map_or(0, |value| value.bits)).unwrap_or(usize::MAX);
+        let bytes = self.memory.read(address, count)?;
+        if fd == 1 {
+            self.stdout.extend_from_slice(&bytes);
+            return Ok(Value::new(Type::I64, count as u64));
+        }
+        if fd == 2 {
+            self.stderr.extend_from_slice(&bytes);
+            return Ok(Value::new(Type::I64, count as u64));
+        }
+        if fd < 3 {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        }
+        let Some(file) = self.open_files.get_mut(&fd) else {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        };
+        match file.write(&bytes) {
+            Ok(written) => Ok(Value::new(Type::I64, written as u64)),
+            Err(_) => Ok(Value::new(Type::I64, (-5i64) as u64)),
+        }
+    }
+
+    fn close_fd(&mut self, fd: u64) -> FlowResult<Value> {
+        if fd < 3 {
+            return Ok(Value::new(Type::I64, 0));
+        }
+        if self.open_files.remove(&fd).is_some() {
+            Ok(Value::new(Type::I64, 0))
+        } else {
+            Ok(Value::new(Type::I64, (-9i64) as u64))
+        }
+    }
+
+    fn seek_fd(&mut self, args: &[Value]) -> FlowResult<Value> {
+        let fd = args.first().map_or(0, |value| value.bits);
+        let offset = args.get(1).map_or(0, |value| value.bits) as i64;
+        let whence = args.get(2).map_or(0, |value| value.bits) as i64;
+        let Some(file) = self.open_files.get_mut(&fd) else {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        };
+        let from = match whence {
+            0 => SeekFrom::Start(offset as u64),
+            1 => SeekFrom::Current(offset),
+            2 => SeekFrom::End(offset),
+            _ => return Ok(Value::new(Type::I64, (-22i64) as u64)),
+        };
+        match file.seek(from) {
+            Ok(position) => Ok(Value::new(Type::I64, position)),
+            Err(_) => Ok(Value::new(Type::I64, (-5i64) as u64)),
+        }
+    }
+
+    fn unlinkat(&mut self, args: &[Value]) -> FlowResult<Value> {
+        let dirfd = args.first().map_or(0, |value| value.bits) as i64;
+        if dirfd != -100 && dirfd != 0 {
+            return Ok(Value::new(Type::I64, (-9i64) as u64));
+        }
+        let address = args.get(1).map_or(0, |value| value.bits);
+        let Ok(path) = self.read_c_string(address) else {
+            return Ok(Value::new(Type::I64, (-14i64) as u64));
+        };
+        let full = match self.sandbox_path(&path) {
+            Ok(value) => value,
+            Err(code) => return Ok(Value::new(Type::I64, code as u64)),
+        };
+        match std::fs::remove_file(full) {
+            Ok(()) => Ok(Value::new(Type::I64, 0)),
+            Err(error) => {
+                let code = if error.kind() == std::io::ErrorKind::NotFound {
+                    -2
+                } else {
+                    -5
+                };
+                Ok(Value::new(Type::I64, code as u64))
+            }
+        }
+    }
+
     fn syscall(&mut self, number: u64, args: &[Value]) -> FlowResult<Value> {
         let arg = |index: usize| args.get(index).map_or(0, |value| value.bits);
         match number {
-            0 => {
-                let fd = arg(0);
-                if fd != 0 {
-                    return Ok(Value::new(Type::I64, (-9i64) as u64));
-                }
-                let address = arg(1);
-                let count = usize::try_from(arg(2)).unwrap_or(usize::MAX);
-                let available = self.stdin.len().saturating_sub(self.stdin_cursor);
-                let read = count.min(available);
-                if read != 0 {
-                    let bytes = self.stdin[self.stdin_cursor..self.stdin_cursor + read].to_vec();
-                    self.memory.write(address, &bytes)?;
-                    self.stdin_cursor += read;
-                }
-                Ok(Value::new(Type::I64, read as u64))
-            }
-            1 => {
-                let fd = arg(0);
-                if fd != 1 && fd != 2 {
-                    return Ok(Value::new(Type::I64, (-9i64) as u64));
-                }
-                let address = arg(1);
-                let count = usize::try_from(arg(2)).unwrap_or(usize::MAX);
-                let bytes = self.memory.read(address, count)?;
-                if fd == 1 {
-                    self.stdout.extend_from_slice(&bytes);
-                } else {
-                    self.stderr.extend_from_slice(&bytes);
-                }
-                Ok(Value::new(Type::I64, count as u64))
-            }
+            0 => self.read_fd(args),
+            1 => self.write_fd(args),
+            3 => self.close_fd(arg(0)),
+            8 => self.seek_fd(args),
+            257 => self.openat(args),
+            263 => self.unlinkat(args),
             9 => {
                 let length = usize::try_from(arg(1)).unwrap_or(usize::MAX);
                 if length == 0 || length > HEAP_LIMIT {
@@ -1091,11 +1280,38 @@ pub fn interpret(
     stdin: &[u8],
     max_steps: usize,
 ) -> Result<InterpOutput, InterpError> {
+    interpret_with_cwd(module, args, stdin, None, max_steps)
+}
+
+/// Runs a module with a sandboxed working directory for file syscalls.
+///
+/// # Errors
+///
+/// Returns interpreter verification, memory, parsing, or execution errors.
+pub fn interpret_in_dir(
+    module: &Module,
+    args: &[String],
+    stdin: &[u8],
+    cwd: &Path,
+    max_steps: usize,
+) -> Result<InterpOutput, InterpError> {
+    interpret_with_cwd(module, args, stdin, Some(cwd), max_steps)
+}
+
+fn interpret_with_cwd(
+    module: &Module,
+    args: &[String],
+    stdin: &[u8],
+    cwd: Option<&Path>,
+    max_steps: usize,
+) -> Result<InterpOutput, InterpError> {
     std::thread::scope(|scope| {
         let handle = std::thread::Builder::new()
             .name("tc-ir-interp".to_string())
             .stack_size(64 * 1024 * 1024)
-            .spawn_scoped(scope, || interpret_inner(module, args, stdin, max_steps))
+            .spawn_scoped(scope, || {
+                interpret_inner(module, args, stdin, cwd, max_steps)
+            })
             .map_err(|error| {
                 InterpError::Internal(format!("failed to start interpreter thread: {error}"))
             })?;
@@ -1109,6 +1325,7 @@ fn interpret_inner(
     module: &Module,
     args: &[String],
     stdin: &[u8],
+    cwd: Option<&Path>,
     max_steps: usize,
 ) -> Result<InterpOutput, InterpError> {
     if let Err(errors) = verify_module(module) {
@@ -1123,7 +1340,7 @@ fn interpret_inner(
         .functions
         .get(module.entry.0)
         .ok_or_else(|| InterpError::TypeError("entry function out of bounds".into()))?;
-    let mut vm = Vm::new(module, stdin, max_steps);
+    let mut vm = Vm::new(module, stdin, max_steps, cwd);
     let arguments = if entry.params.is_empty() {
         Vec::new()
     } else {

@@ -457,3 +457,167 @@ fn pointer_typed_struct_field_can_be_indexed() {
         b"",
     );
 }
+
+#[test]
+fn pointer_field_assignment_advances_loop_variable() {
+    assert_english(
+        "ptr-field-loop",
+        &[(
+            "main.tc",
+            concat!(
+                "Define struct Node with next as ptr<Node> and value as i64.\n",
+                "Define local first as Node.\nDefine local second as Node.\n",
+                "Set first.value to 1.\nSet second.value to 2.\n",
+                "Set first.next to address of second.\n",
+                "Set second.next to 0 as u64 as ptr<Node>.\n",
+                "Define local current as ptr<Node>.\ncurrent = address of first.\n",
+                "Define local count as i64.\n",
+                "While current as u64 != 0:\n",
+                "    count += current.value.\n",
+                "    current = current.next.\n",
+                "Return count.\n",
+            ),
+        )],
+        3,
+        b"",
+    );
+}
+
+#[test]
+fn imported_public_struct_pointer_field_indexes_correctly() {
+    assert_english(
+        "imported-field",
+        &[
+            (
+                "helper.tc",
+                "Public struct Buffer with data as ptr<u8> and len as u64.\n",
+            ),
+            (
+                "main.tc",
+                concat!(
+                    "Import helper.\n",
+                    "Define global bytes as array<u8, 4>.\n",
+                    "b is Buffer.\nSet b.data to address of bytes[0].\nSet b.len to 2.\n",
+                    "Set b.data[b.len] to 7.\n",
+                    "Return bytes[2] as i64.\n",
+                ),
+            ),
+        ],
+        7,
+        b"",
+    );
+}
+
+#[test]
+fn bare_call_statement_with_address_arguments_lowers_as_expression() {
+    assert_english(
+        "bare-call",
+        &[(
+            "main.tc",
+            concat!(
+                "Define function zzz taking target as ptr<i64> and value as i64 returning void:\n",
+                "    Set target[0] to value.\n",
+                "Define local x as i64.\n",
+                "zzz(address of x, 42).\n",
+                "Return x.\n",
+            ),
+        )],
+        42,
+        b"",
+    );
+}
+
+#[test]
+fn phrase_arguments_reorder_to_parameter_names() {
+    assert_english(
+        "phrase-reorder",
+        &[(
+            "main.tc",
+            concat!(
+                "Define function join taking left as i64 and right as i64 returning i64:\n",
+                "    Phrase: \"join <right> and <left>\"\n",
+                "    Return left * 10 + right.\n",
+                "Return join 2 and 1.\n",
+            ),
+        )],
+        12,
+        b"",
+    );
+}
+
+#[test]
+fn generic_call_infers_unconstrained_parameter_from_expected_type() {
+    assert_english(
+        "generic-expected",
+        &[(
+            "main.tc",
+            concat!(
+                "Define struct Pair of T and E with first as T and second as E.\n",
+                "Define function make of T and E taking value as T returning Pair<T, E>:\n",
+                "    Define local result_value as Pair<T, E>.\n",
+                "    Set result_value.first to value.\n",
+                "    Return result_value.\n",
+                "Define local p as Pair<i64, i64>.\n",
+                "p = make(5).\n",
+                "Return p.first.\n",
+            ),
+        )],
+        5,
+        b"",
+    );
+}
+
+#[test]
+fn signed_i64_min_literal_stays_negative() {
+    assert_english(
+        "i64-min",
+        &[(
+            "main.tc",
+            "If -9223372036854775808 < 0:\n    Return 1.\nReturn 0.\n",
+        )],
+        1,
+        b"",
+    );
+}
+
+#[test]
+fn phrase_result_assignment_with_is_lowers_as_call() {
+    assert_english(
+        "phrase-rhs",
+        &[(
+            "main.tc",
+            concat!(
+                "Define function twice taking x as i64 returning i64:\n",
+                "    Phrase: \"double value <x>\"\n",
+                "    Return x * 2.\n",
+                "result is double value 21.\n",
+                "Return result.\n",
+            ),
+        )],
+        42,
+        b"",
+    );
+}
+
+#[test]
+fn imported_public_union_metadata_is_available_to_main() {
+    assert_english(
+        "imported-union",
+        &[
+            (
+                "helper.tc",
+                "Public union Bits with f as f64 and u as u64.\n",
+            ),
+            (
+                "main.tc",
+                concat!(
+                    "Import helper.\n",
+                    "bits is Bits.\nSet bits.f to 1.5.\n",
+                    "Return ((bits.u shr 52) as i64) bitand 255.\n",
+                ),
+            ),
+        ],
+        255,
+        b"",
+    );
+}

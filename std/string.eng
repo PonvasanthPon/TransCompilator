@@ -1,0 +1,82 @@
+Import alloc.
+Import core.
+Import io.
+
+Public struct TcString with data as ptr<u8> and len as u64 and cap as u64.
+
+Public function str_new returning TcString:
+    Define local s as TcString.
+    Return s.
+
+Public function str_from_bytes taking p as ptr<u8> and n as u64 returning TcString:
+    Define local s as TcString.
+    s.len = n.
+    s.cap = n + 1.
+    s.data = heap_alloc(s.cap).
+    If n > 0:
+        Copy n bytes from p to s.data.
+    Set s.data[n] to 0.
+    Return s.
+
+Public function str_push_bytes taking s as ptr<TcString> and p as ptr<u8> and n as u64 returning void:
+    If n == 0:
+        Return.
+    Define local needed as u64.
+    needed = s.len + n + 1.
+    If needed > s.cap:
+        Define local new_cap as u64.
+        new_cap = s.cap * 2.
+        If new_cap < needed:
+            new_cap = needed.
+        If new_cap < 16:
+            new_cap = 16 as u64.
+        Define local old_cap as u64.
+        old_cap = s.cap.
+        s.data = heap_realloc(s.data, old_cap, new_cap).
+        s.cap = new_cap.
+    Copy n bytes from p to (s.data as u64 + s.len) as ptr<u8>.
+    s.len = s.len + n.
+    Set s.data[s.len] to 0.
+
+Public function str_concat taking a as ptr<TcString> and b as ptr<TcString> returning TcString:
+    Phrase: "join <a> and <b>"
+    Define local joined as TcString.
+    joined = str_from_bytes(a.data, a.len).
+    str_push_bytes(address of joined, b.data, b.len).
+    Return joined.
+
+Public function str_eq taking a as ptr<TcString> and b as ptr<TcString> returning bool:
+    If a.len != b.len:
+        Return false.
+    Return mem_eq(a.data, b.data, a.len).
+
+Public function str_len taking s as ptr<TcString> returning u64:
+    Phrase: "length of <s>"
+    Return s.len.
+
+Public function str_clone taking s as ptr<TcString> returning TcString:
+    Return str_from_bytes(s.data, s.len).
+
+Public function str_clear taking s as ptr<TcString> returning void:
+    s.len = 0.
+    If s.data as u64 != 0:
+        Set s.data[0] to 0.
+
+Public function str_free taking s as ptr<TcString> returning void:
+    If s.data as u64 != 0:
+        heap_free(s.data).
+    s.data = null.
+    s.len = 0.
+    s.cap = 0.
+
+function newline returning void:
+    syscall(1, 1, bytes_ptr("\n"), bytes_len("\n")).
+
+Public function print_str taking s as ptr<TcString> returning void:
+    Phrase: "say <s>"
+    Phrase: "show <s>"
+    Phrase: "print <s>"
+    Phrase: "display <s>"
+    If s.len > 0:
+        syscall(1, 1, s.data, s.len).
+    newline().

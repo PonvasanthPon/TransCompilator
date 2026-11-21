@@ -548,7 +548,7 @@ fn begins_with_determiner(text: &str) -> bool {
     )
 }
 
-fn is_call_expression(text: &str) -> bool {
+pub(crate) fn is_call_expression(text: &str) -> bool {
     let tokens = tokenize(text);
     let Some(open) = tokens.iter().position(|token| token.text == "(") else {
         return false;

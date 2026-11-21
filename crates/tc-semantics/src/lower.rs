@@ -696,6 +696,11 @@ pub(crate) fn collect_phrase_bindings(modules: &[ModuleJob]) -> Vec<Vec<PhraseBi
                     function: function.name.clone(),
                     vis: function.vis,
                     pattern: pattern.clone(),
+                    param_names: function
+                        .params
+                        .iter()
+                        .map(|(name, _)| name.clone())
+                        .collect(),
                     params: function.params.iter().map(|(_, ty)| ty.clone()).collect(),
                     type_params: function.type_params.clone(),
                 });
@@ -715,6 +720,11 @@ pub(crate) fn collect_phrase_bindings(modules: &[ModuleJob]) -> Vec<Vec<PhraseBi
                         function: function.name.clone(),
                         vis: Visibility::Public,
                         pattern: pattern.clone(),
+                        param_names: function
+                            .params
+                            .iter()
+                            .map(|(name, _)| name.clone())
+                            .collect(),
                         params: function.params.iter().map(|(_, ty)| ty.clone()).collect(),
                         type_params: function.type_params.clone(),
                     });
@@ -767,6 +777,7 @@ struct Lowerer<'a> {
     aggregates: HashMap<String, AggregateInfo>,
     module_names: Vec<String>,
     phrases: Vec<PhraseBinding>,
+    function_returns: HashMap<String, Option<AstType>>,
     scopes: Vec<Scope>,
     discourse: DiscourseStack,
     paraphrase_entries: Vec<ParaphraseEntry>,
@@ -779,6 +790,7 @@ struct Lowerer<'a> {
 }
 
 impl<'a> Lowerer<'a> {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         parser: &'a crate::LinkGrammarParser,
         module: &str,
@@ -787,6 +799,7 @@ impl<'a> Lowerer<'a> {
         aggregates: HashMap<String, AggregateInfo>,
         module_names: Vec<String>,
         phrases: Vec<PhraseBinding>,
+        function_returns: HashMap<String, Option<AstType>>,
     ) -> Self {
         Self {
             parser,
@@ -796,6 +809,7 @@ impl<'a> Lowerer<'a> {
             aggregates,
             module_names,
             phrases,
+            function_returns,
             scopes: vec![Scope::new()],
             discourse: DiscourseStack::new(),
             paraphrase_entries: Vec::new(),
@@ -1170,13 +1184,7 @@ impl<'a> Lowerer<'a> {
         self.parse_expr(text, span)
     }
 
-    fn type_compatibility(
-        &self,
-        param: &AstType,
-        actual: &AstType,
-        type_params: &[String],
-        expression: &AstExpr,
-    ) -> i8 {
+    fn structural_compatibility(param: &AstType, actual: &AstType, type_params: &[String]) -> i8 {
         if let AstType::Named { name, .. } = param {
             if type_params.iter().any(|generic| generic == name) {
                 return 2;
@@ -1184,6 +1192,79 @@ impl<'a> Lowerer<'a> {
         }
         if param == actual {
             return 2;
+        }
+        match (param, actual) {
+            (AstType::Ptr(left), AstType::Ptr(right))
+            | (AstType::Array(left, _), AstType::Array(right, _)) => {
+                if Self::structural_compatibility(left, right, type_params) > 0 {
+                    2
+                } else {
+                    0
+                }
+            }
+            (
+                AstType::Named {
+                    module: left_module,
+                    name: left_name,
+                    type_args: left_args,
+                },
+                AstType::Named {
+                    module: right_module,
+                    name: right_name,
+                    type_args: right_args,
+                },
+            ) => {
+                if left_module != right_module
+                    || left_name != right_name
+                    || left_args.len() != right_args.len()
+                {
+                    return 0;
+                }
+                if left_args.iter().zip(right_args).all(|(left, right)| {
+                    Self::structural_compatibility(left, right, type_params) > 0
+                }) {
+                    2
+                } else {
+                    0
+                }
+            }
+            (
+                AstType::FnPtr {
+                    params: left_params,
+                    ret: left_ret,
+                },
+                AstType::FnPtr {
+                    params: right_params,
+                    ret: right_ret,
+                },
+            ) => {
+                if left_params.len() != right_params.len() {
+                    return 0;
+                }
+                let params_ok = left_params.iter().zip(right_params).all(|(left, right)| {
+                    Self::structural_compatibility(left, right, type_params) > 0
+                });
+                if params_ok && Self::structural_compatibility(left_ret, right_ret, type_params) > 0
+                {
+                    2
+                } else {
+                    0
+                }
+            }
+            _ => 0,
+        }
+    }
+
+    fn type_compatibility(
+        &self,
+        param: &AstType,
+        actual: &AstType,
+        type_params: &[String],
+        expression: &AstExpr,
+    ) -> i8 {
+        let structural = Self::structural_compatibility(param, actual, type_params);
+        if structural > 0 {
+            return structural;
         }
         match (expression, param) {
             (
@@ -1285,52 +1366,18 @@ impl<'a> Lowerer<'a> {
         Ok(best.into_iter().next().map(|(_, _, candidate)| candidate))
     }
 
-    fn shallow_type(&self, expr: &AstExpr) -> AstType {
-        match expr {
-            AstExpr::ConstInt(_, Some(ty)) => ty.clone(),
-            AstExpr::ConstInt(..) => AstType::I64,
-            AstExpr::ConstUint(_, Some(ty)) => ty.clone(),
-            AstExpr::ConstUint(..) => AstType::U64,
-            AstExpr::ConstFloat(_, Some(ty)) => ty.clone(),
-            AstExpr::ConstFloat(..) => AstType::F64,
-            AstExpr::ConstBool(_) => AstType::Bool,
-            AstExpr::ConstNull(ty) => ty.clone(),
-            AstExpr::BytesLit(_) => AstType::ptr(AstType::U8),
-            AstExpr::BytesLen(_) => AstType::U64,
-            AstExpr::Zero(ty) => ty.clone(),
-            AstExpr::Var(name) => self.lookup(name).cloned().unwrap_or(AstType::I64),
-            AstExpr::Binary { op, lhs, .. } => {
-                if matches!(
-                    op,
-                    tc_ir::BinOp::Eq
-                        | tc_ir::BinOp::Ne
-                        | tc_ir::BinOp::Lt
-                        | tc_ir::BinOp::Le
-                        | tc_ir::BinOp::Gt
-                        | tc_ir::BinOp::Ge
-                        | tc_ir::BinOp::LogAnd
-                        | tc_ir::BinOp::LogOr
-                ) {
-                    AstType::Bool
-                } else {
-                    self.shallow_type(lhs)
-                }
+    fn shallow_type_opt(&self, expr: &AstExpr) -> Option<AstType> {
+        if let AstExpr::Call { name, .. } = expr {
+            if let Some(return_type) = self.function_returns.get(name) {
+                return return_type.clone();
             }
-            AstExpr::Unary { op, val } => {
-                if matches!(op, tc_ir::UnOp::LogNot) {
-                    AstType::Bool
-                } else {
-                    self.shallow_type(val)
-                }
-            }
-            AstExpr::Cast { to, .. } => to.clone(),
-            AstExpr::SizeOf(_) | AstExpr::AlignOf(_) => AstType::U64,
-            AstExpr::Load(pointer) => match self.shallow_type(pointer) {
-                AstType::Ptr(inner) => *inner,
-                _ => AstType::I64,
-            },
-            _ => AstType::I64,
         }
+        let env = self.expr_env();
+        env.expr_type(expr)
+    }
+
+    fn shallow_type(&self, expr: &AstExpr) -> AstType {
+        self.shallow_type_opt(expr).unwrap_or(AstType::I64)
     }
 
     fn trace_sentence(
@@ -1752,6 +1799,31 @@ impl<'a> Lowerer<'a> {
                 return Ok(IntentVerdict::Exec);
             }
             return Ok(base);
+        }
+        for keyword in ["is", "becomes", "equals"] {
+            if let Some((start, end)) = find_top_level_word(text, keyword) {
+                let left = text[..start].trim();
+                let right = text[end..].trim();
+                if is_lvalue_text(left)
+                    && !left.chars().any(char::is_whitespace)
+                    && !right.is_empty()
+                    && (crate::intent::is_call_expression(right)
+                        || self.match_phrase_typed(right, sentence.span)?.is_some())
+                {
+                    return Ok(IntentVerdict::Exec);
+                }
+            }
+        }
+        if let Some((start, end)) = find_top_level_symbol(text, "=") {
+            let left = text[..start].trim();
+            let right = text[end..].trim();
+            if is_lvalue_text(left)
+                && !right.is_empty()
+                && (crate::intent::is_call_expression(right)
+                    || self.match_phrase_typed(right, sentence.span)?.is_some())
+            {
+                return Ok(IntentVerdict::Exec);
+            }
         }
         if first == "its" {
             return Ok(IntentVerdict::Exec);
@@ -2860,6 +2932,10 @@ impl<'a> Lowerer<'a> {
                 "`Else`/`Otherwise` must follow an `If` block",
             ));
         }
+        if is_direct_call_statement(trimmed) {
+            let value = self.parse_value(trimmed, span)?;
+            return Ok(vec![AstStmt::Expr(value, self.span(span))]);
+        }
         if let Some(statements) = self.try_discourse_mutation(trimmed, span)? {
             return Ok(statements);
         }
@@ -3586,8 +3662,9 @@ impl<'a> Lowerer<'a> {
                 return Ok(vec![self.write_target(&Target::Global(name), value, span)]);
             }
             if let Some(outer) = self.lookup(&name).cloned() {
-                let value_ty = self.shallow_type(&value);
-                if outer == value_ty {
+                let value_ty = self.shallow_type_opt(&value);
+                let same_type = value_ty.as_ref().is_none_or(|value_ty| outer == *value_ty);
+                if same_type {
                     let target = if self.globals.contains_key(&name)
                         && !self
                             .scopes
@@ -3600,9 +3677,9 @@ impl<'a> Lowerer<'a> {
                     };
                     return Ok(vec![self.write_target(&target, value, span)]);
                 }
-                // A type-changing assignment in a nested block is a shadow,
-                // not a mutation of the outer binding.
-                let value_ty = self.shallow_type(&value);
+                // A known type-changing assignment in a nested block is a
+                // shadow, not a mutation of the outer binding.
+                let value_ty = value_ty.unwrap_or(AstType::I64);
                 self.declare(&name, value_ty.clone());
                 self.introduce_name(&name, &value_ty, span);
                 return Ok(vec![AstStmt::Let {
@@ -4106,6 +4183,30 @@ impl<'a> Lowerer<'a> {
     }
 }
 
+pub(crate) fn type_contains_params(ty: &AstType, params: &[String]) -> bool {
+    match ty {
+        AstType::Named {
+            name, type_args, ..
+        } => {
+            params.iter().any(|param| param == name)
+                || type_args
+                    .iter()
+                    .any(|arg| type_contains_params(arg, params))
+        }
+        AstType::Ptr(inner) | AstType::Array(inner, _) => type_contains_params(inner, params),
+        AstType::FnPtr {
+            params: arguments,
+            ret,
+        } => {
+            arguments
+                .iter()
+                .any(|argument| type_contains_params(argument, params))
+                || type_contains_params(ret, params)
+        }
+        _ => false,
+    }
+}
+
 fn zero_like(expr: &AstExpr) -> AstExpr {
     match expr {
         AstExpr::ConstFloat(..) => AstExpr::ConstFloat(0.0, None),
@@ -4124,6 +4225,45 @@ fn transform_operator(
         _ if predicate == VerbPredicate::Combine => Some(tc_ir::BinOp::Add),
         _ => Some(tc_ir::BinOp::Mul),
     }
+}
+
+fn is_direct_call_statement(text: &str) -> bool {
+    let tokens = tokenize(text);
+    let Some(first) = tokens.first() else {
+        return false;
+    };
+    if !first.is_word() {
+        return false;
+    }
+    let open = if tokens.get(1).is_some_and(|token| token.text == "(") {
+        1
+    } else if tokens.get(1).is_some_and(|token| token.text == ".")
+        && tokens.get(2).is_some_and(tc_syntax::Token::is_word)
+        && tokens.get(3).is_some_and(|token| token.text == "(")
+    {
+        3
+    } else {
+        return false;
+    };
+    let mut depth = 0_i32;
+    for token in &tokens[open..] {
+        if token.text == "(" {
+            depth += 1;
+        } else if token.text == ")" {
+            depth -= 1;
+            if depth < 0 {
+                return false;
+            }
+        }
+    }
+    if depth != 0 {
+        return false;
+    }
+    let last = tokens
+        .iter()
+        .rposition(|token| !matches!(token.text.as_str(), "." | ","))
+        .unwrap_or(0);
+    tokens[last].text == ")"
 }
 
 fn is_simple_name(text: &str) -> bool {
@@ -4238,11 +4378,15 @@ fn starts_action(text: &str) -> bool {
 }
 
 /// Runs the declaration and lowering passes for one module.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn lower_module(
     module: ModuleJob,
     parser: &crate::LinkGrammarParser,
     module_names: Vec<String>,
     phrases: Vec<PhraseBinding>,
+    external_returns: HashMap<String, Option<AstType>>,
+    external_types: HashSet<String>,
+    external_aggregates: HashMap<String, AggregateInfo>,
     is_entry: bool,
 ) -> (
     AstModule,
@@ -4256,13 +4400,15 @@ pub(crate) fn lower_module(
         .iter()
         .map(|global| (global.name.clone(), global.ty.clone()))
         .collect::<HashMap<_, _>>();
-    let types = module_ast
-        .structs
-        .iter()
-        .map(|value| value.name.clone())
-        .chain(module_ast.unions.iter().map(|value| value.name.clone()))
-        .collect::<HashSet<_>>();
-    let mut aggregates = HashMap::new();
+    let mut types = external_types;
+    types.extend(
+        module_ast
+            .structs
+            .iter()
+            .map(|value| value.name.clone())
+            .chain(module_ast.unions.iter().map(|value| value.name.clone())),
+    );
+    let mut aggregates = external_aggregates;
     for definition in &module_ast.structs {
         aggregates.insert(
             definition.name.clone(),
@@ -4281,6 +4427,14 @@ pub(crate) fn lower_module(
             },
         );
     }
+    let mut function_returns = external_returns;
+    for function in &module_ast.functions {
+        function_returns.insert(
+            function.name.clone(),
+            (!type_contains_params(&function.ret, &function.type_params))
+                .then(|| function.ret.clone()),
+        );
+    }
     let mut lowerer = Lowerer::new(
         parser,
         &module_ast.name,
@@ -4289,6 +4443,7 @@ pub(crate) fn lower_module(
         aggregates,
         module_names,
         phrases,
+        function_returns,
     );
     for job in module.functions {
         let function = &module_ast.functions[job.index];

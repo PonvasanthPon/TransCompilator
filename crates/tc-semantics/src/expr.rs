@@ -42,7 +42,7 @@ impl ExprEnv {
         !self.locals.contains_key(name) && self.globals.contains_key(name)
     }
 
-    fn expr_type(&self, expr: &AstExpr) -> Option<AstType> {
+    pub(crate) fn expr_type(&self, expr: &AstExpr) -> Option<AstType> {
         match expr {
             AstExpr::ConstInt(_, Some(ty)) => Some(ty.clone()),
             AstExpr::ConstInt(..) => Some(AstType::I64),
@@ -52,6 +52,7 @@ impl ExprEnv {
             AstExpr::ConstFloat(..) => Some(AstType::F64),
             AstExpr::ConstBool(_) => Some(AstType::Bool),
             AstExpr::ConstNull(ty) => Some(ty.clone()),
+            AstExpr::Zero(ty) => Some(ty.clone()),
             AstExpr::BytesLit(_) => Some(AstType::ptr(AstType::U8)),
             AstExpr::BytesLen(_) => Some(AstType::U64),
             AstExpr::Var(name) => self.type_of(name).cloned(),
@@ -98,6 +99,8 @@ impl ExprEnv {
             }
             AstExpr::Cast { to, .. } => Some(to.clone()),
             AstExpr::SizeOf(_) | AstExpr::AlignOf(_) => Some(AstType::U64),
+            AstExpr::FnAddr { .. } => None,
+            AstExpr::Call { .. } | AstExpr::IndirectCall { .. } | AstExpr::Syscall { .. } => None,
             AstExpr::Unary { op, val } => match op {
                 tc_ir::UnOp::LogNot => Some(AstType::Bool),
                 _ => self.expr_type(val),
@@ -119,7 +122,6 @@ impl ExprEnv {
                     self.expr_type(lhs)
                 }
             }
-            _ => None,
         }
     }
 }
@@ -406,9 +408,20 @@ impl<'a> Parser<'a> {
     fn parse_unary(&mut self) -> Result<AstExpr> {
         self.charge()?;
         if self.eat_symbol("-") {
+            let value = self.parse_unary()?;
+            if let AstExpr::ConstUint(integer, None) = value {
+                if integer <= (1_u64 << 63) {
+                    let signed = if integer == (1_u64 << 63) {
+                        i64::MIN
+                    } else {
+                        -(integer as i64)
+                    };
+                    return Ok(AstExpr::ConstInt(signed, None));
+                }
+            }
             return Ok(AstExpr::Unary {
                 op: UnOp::Neg,
-                val: Box::new(self.parse_unary()?),
+                val: Box::new(value),
             });
         }
         if self.eat_symbol("+") {

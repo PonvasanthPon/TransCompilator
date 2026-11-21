@@ -1,0 +1,89 @@
+Import alloc.
+Import core.
+
+Public struct List of T with data as ptr<T> and len as u64 and cap as u64.
+
+Public function list_new of T returning List<T>:
+    Define local created as List<T>.
+    Return created.
+
+Public function list_push of T taking items as ptr<List<T>> and val as T returning void:
+    Phrase: "push <val> to <items>"
+    Phrase: "append <val> to <items>"
+    If items.len == items.cap:
+        Define local new_cap as u64.
+        If items.cap == 0:
+            new_cap = 8 as u64.
+        Else:
+            new_cap = items.cap * 2.
+        Define local old_bytes as u64.
+        Define local new_bytes as u64.
+        old_bytes = items.cap * (size of T).
+        new_bytes = new_cap * (size of T).
+        items.data = heap_realloc(items.data as ptr<u8>, old_bytes, new_bytes) as ptr<T>.
+        items.cap = new_cap.
+    Set items.data[items.len] to val.
+    items.len += 1.
+
+Public function list_pop of T taking items as ptr<List<T>> returning T:
+    Phrase: "pop from <items>"
+    If items.len == 0:
+        panic(bytes_ptr("pop from empty list"), bytes_len("pop from empty list")).
+    items.len -= 1.
+    Return items.data[items.len].
+
+Public function list_get of T taking items as ptr<List<T>> and index as u64 returning T:
+    If index >= items.len:
+        panic(bytes_ptr("list index out of bounds"), bytes_len("list index out of bounds")).
+    Return items.data[index].
+
+Public function list_set of T taking items as ptr<List<T>> and index as u64 and val as T returning void:
+    If index >= items.len:
+        panic(bytes_ptr("list index out of bounds"), bytes_len("list index out of bounds")).
+    Set items.data[index] to val.
+
+Public function list_len of T taking items as ptr<List<T>> returning u64:
+    Phrase: "count of <items>"
+    Return items.len.
+
+Public function list_first of T taking items as ptr<List<T>> returning T:
+    Phrase: "first item of <items>"
+    If items.len == 0:
+        panic(bytes_ptr("first item of empty list"), bytes_len("first item of empty list")).
+    Return items.data[0].
+
+Public function list_last of T taking items as ptr<List<T>> returning T:
+    Phrase: "last item of <items>"
+    If items.len == 0:
+        panic(bytes_ptr("last item of empty list"), bytes_len("last item of empty list")).
+    Return items.data[items.len - 1].
+
+Public function list_clear of T taking items as ptr<List<T>> returning void:
+    items.len = 0.
+
+Public function list_free of T taking items as ptr<List<T>> returning void:
+    If items.data as u64 != 0:
+        heap_free(items.data as ptr<u8>).
+    items.data = 0 as u64 as ptr<T>.
+    items.len = 0.
+    items.cap = 0.
+
+Public function list_sort of T taking items as ptr<List<T>> and compare as fn(ptr<T>, ptr<T>) -> i64 returning void:
+    Define local outer as u64.
+    While outer < items.len:
+        Define local inner as u64.
+        inner = outer.
+        While inner > 0:
+            Define local left as ptr<T>.
+            Define local right as ptr<T>.
+            left = address of items.data[inner - 1].
+            right = address of items.data[inner].
+            If compare(right, left) < 0:
+                Define local temporary as T.
+                temporary = items.data[inner].
+                Set items.data[inner] to items.data[inner - 1].
+                Set items.data[inner - 1] to temporary.
+                inner -= 1.
+            Else:
+                break.
+        outer += 1.

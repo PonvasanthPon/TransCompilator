@@ -5,22 +5,29 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 3.6**: the Core-7 typed IR, exhaustive
-verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
-ELF64 backend, the high-level `tc-typeck` front end, the zero-ML
-`tc-lexicon` word/verb engine, and a finite English front end are implemented.
-English source now flows through vendored CMU Link Grammar 5.13.2,
-paragraph/block segmentation, a normalized clause tree, a strict three-way
-intent gate, a declarative `Phrase:` dispatcher, a DRS-style discourse
-referent stack (`it`, `its <field>`, `the <type>`), a comma-aware boolean
-condition parser, deterministic global/local quantifier lowering, and one
-unified recursive Core-7 statement lowerer. `tc build`, `tc run`, `tc interp`,
-`tc trace`, and `tc paraphrase` compile and inspect real English programs end
-to end. Differential parity suites in
+This repository is at **Phase 4**: the Core-7 typed IR, exhaustive verifier,
+byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
+backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
+word/verb engine, a finite English front end, the pure-English `std/`
+standard library, and a native terminal editor (`r1-editor`) are
+implemented. English source now flows through vendored
+CMU Link Grammar 5.13.2, paragraph/block segmentation, a normalized clause
+tree, a strict three-way intent gate, a declarative `Phrase:` dispatcher, a
+DRS-style discourse referent stack (`it`, `its <field>`, `the <type>`), a
+comma-aware boolean condition parser, deterministic global/local quantifier
+lowering, and one unified recursive Core-7 statement lowerer. `tc build`,
+`tc run`, `tc interp`, `tc trace`, and `tc paraphrase` compile and inspect
+real English programs end to end. Differential parity suites in
 `crates/tc-codegen-x86/tests/`, `crates/tc-typeck/tests/`, and
 `crates/tc-semantics/tests/` require exact exit-status/stdout/stderr
-agreement between the reference interpreter and compiled ELF64 binaries.
-The English `std/` library is not implemented yet.
+agreement between the reference interpreter and compiled ELF64 binaries,
+including sandboxed file creation, appends, seeks, and deletion.
+
+The standard library in `std/` is written entirely in `.eng` English. It
+provides `Option`/`Result` and panic helpers, a free-list allocator, exact
+console formatting and byte-safe input, heap strings, generic `List of T`,
+streaming file I/O, `sqrt`/integer math, and open-addressing `IntMap`/`StrMap`
+tables. Programs that import `std/` still compile to static zero-libc ELF64.
 
 ## Hard properties
 
@@ -53,7 +60,7 @@ tc_r1/
     tc-semantics/     # intent gate, phrase dispatch, unified Core-7 lowering
     tc-cli/           # end-to-end `tc` command-line driver
     tc-editor/        # native std-only R1 Editor (`r1-editor`) for .eng programs
-  std/                # English std/ sources (Phase 4)
+  std/                # pure-English standard library (8 modules)
   tests/              # additional integration tests
   docs/               # design documentation and the English language spec
 ```
@@ -68,9 +75,12 @@ tc-lexicon      (no dependencies)
 tc-syntax       -> tc-lexicon
 tc-semantics    -> tc-syntax, tc-lexicon, tc-typeck, tc-ir
 tc-cli          -> all six library crates (binary: tc)
+tc-editor       -> tc-ir, tc-codegen-x86, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
 ```
 
-The graph is strictly acyclic. `crates/tc-cli` produces the `tc` binary:
+The graph is strictly acyclic. The editor crate calls the compiler
+in-process; it never shells out to a compiler binary. `crates/tc-cli` produces
+the `tc` binary:
 
 - `tc --version` prints `tc_r1 0.1.0`.
 - `tc --audit` checks the workspace crate identities and reports the exact
@@ -188,8 +198,34 @@ make lint        # cargo clippy --workspace --all-targets -- -D warnings
 make fmt-check   # cargo fmt --all -- --check
 make audit       # zero-ML, zero-external-crate, zero-forbidden-reference checks
 make selftest    # verify + interpret + compile + execute + differential check
+make editor      # launch the terminal editor (r1-editor)
 make clean       # cargo clean
 ```
+
+## English standard library (`std/`)
+
+`Import io.`, `Import list.`, and the other `std/` modules are resolved
+automatically after the importing file's directory and any `-I` directories.
+The resolver checks `TC_STD_DIR`, walks up from `/proc/self/exe`, and falls
+back to the repository `std/` directory for `cargo test`. Transitive imports
+are loaded with cycle detection.
+
+```text
+std/core.eng     Option, Result, panic, assert_true, mem_zero, mem_eq
+std/alloc.eng    16-byte-aligned free-list heap over mmap/munmap
+std/io.eng       Say/Show/Print/Display formatting and byte-safe stdin
+std/string.eng   NUL-terminated TcString with growable capacity
+std/list.eng     Generic List of T: push, pop, get, set, sort, free
+std/fs.eng       Streaming File handles plus save/display/delete helpers
+std/math.eng     sqrt, abs, min, max, pow, clamp
+std/map.eng      Open-addressing IntMap of V and StrMap of V
+```
+
+The reference interpreter implements `openat`, `read`, `write`, `close`,
+`lseek`, and `unlinkat` inside a per-run working directory, so file programs
+produce byte-identical output and created-file bytes in both the interpreter
+and the static ELF64 binary. No libc or filesystem helper is used by the
+compiled program.
 
 
 ## R1 Editor (`.eng`)
@@ -202,7 +238,7 @@ spawns a browser, Python, or a GUI toolkit.
 make build
 ./target/debug/r1-editor                 # empty .eng buffer
 ./target/debug/r1-editor budget.eng      # open or create budget.eng
-./target/debug/r1-editor --list-presets  # five ready-to-run .eng programs
+./target/debug/r1-editor --list-presets  # eight ready-to-run .eng programs
 ./target/debug/r1-editor --check budget.eng
 ```
 
@@ -221,8 +257,11 @@ F9 / Ctrl+B    Build <stem>.elf
 
 The editor uses raw POSIX `termios`, an alternate screen, and RAII plus a
 panic hook that always restores the user's terminal. Imports resolve
-`<module>.eng` first and `<module>.tc` second, both in the active file's
-directory.
+`<module>.eng` first and `<module>.tc` second in the active file's directory,
+then in `-I` directories, then in the discovered `std/` directory. The three
+Phase 4 presets (`06_std_io_and_math.eng`, `07_std_generic_list.eng`, and
+`08_std_file_and_map.eng`) run through the same sandboxed parity path as the
+five Core presets.
 
 Build a standalone release binary with:
 
