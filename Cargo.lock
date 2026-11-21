@@ -22,6 +22,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tc-editor"
+version = "0.1.0"
+dependencies = [
+ "tc-codegen-x86",
+ "tc-ir",
+ "tc-lexicon",
+ "tc-semantics",
+ "tc-syntax",
+ "tc-typeck",
+]
+
+[[package]]
 name = "tc-ir"
 version = "0.1.0"
 

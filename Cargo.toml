@@ -8,6 +8,7 @@ members = [
     "crates/tc-syntax",
     "crates/tc-semantics",
     "crates/tc-cli",
+    "crates/tc-editor",
 ]
 
 [workspace.package]

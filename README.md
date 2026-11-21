@@ -52,6 +52,7 @@ tc_r1/
     tc-syntax/        # Link Grammar FFI, segmentation, clause normalization
     tc-semantics/     # intent gate, phrase dispatch, unified Core-7 lowering
     tc-cli/           # end-to-end `tc` command-line driver
+    tc-editor/        # native std-only R1 Editor (`r1-editor`) for .eng programs
   std/                # English std/ sources (Phase 4)
   tests/              # additional integration tests
   docs/               # design documentation and the English language spec
@@ -76,17 +77,20 @@ The graph is strictly acyclic. `crates/tc-cli` produces the `tc` binary:
   WordNet, VerbNet, morphology, and closed-class counts.
 - `tc --selftest` verifies, interprets, compiles, executes, and
   differentially checks a small Core-7 module, then prints `SELFTEST PASS`.
-- `tc build <file.tc> [-o <out_elf>] [-I <dir>]` compiles English to a
-  static zero-libc ELF64 binary.
-- `tc run <file.tc> [-I <dir>] [-- <args...>]` compiles and executes it.
-- `tc interp <file.tc> [-I <dir>] [-- <args...>]` executes the verified
-  Core-7 IR in the reference interpreter.
+- `tc build <file.eng|file.tc> [-o <out_elf>] [-I <dir>]` compiles English
+  to a static zero-libc ELF64 binary. `.eng` is the primary source extension;
+  `.tc` remains a compatible fallback.
+- `tc run <file.eng|file.tc> [-I <dir>] [-- <args...>]` compiles and
+  executes it.
+- `tc interp <file.eng|file.tc> [-I <dir>] [-- <args...>]` executes the
+  verified Core-7 IR in the reference interpreter.
 - `tc trace <file.tc> [-I <dir>] [--paraphrase]` prints per-sentence Link
   Grammar counts, lexicon provenance, intent verdicts, and formatted TC-IR;
   `--paraphrase` appends canonical resolved English.
-- `tc paraphrase <file.tc> [-I <dir>]` type-checks the program and prints the
-  deterministic paraphrase echo, including `[it -> cash]`, `[its x -> p.x]`,
-  `[the point -> origin]`, condition grouping, and omitted prose markers.
+- `tc paraphrase <file.eng|file.tc> [-I <dir>]` type-checks the program and
+  prints the deterministic paraphrase echo, including `[it -> cash]`,
+  `[its x -> p.x]`, `[the point -> origin]`, condition grouping, and omitted
+  prose markers.
 
 ## Core-7 IR and backend
 
@@ -185,4 +189,44 @@ make fmt-check   # cargo fmt --all -- --check
 make audit       # zero-ML, zero-external-crate, zero-forbidden-reference checks
 make selftest    # verify + interpret + compile + execute + differential check
 make clean       # cargo clean
+```
+
+
+## R1 Editor (`.eng`)
+
+`r1-editor` is a native, standalone, Rust `std`-only terminal editor for
+English `.eng` programs. It calls the compiler crates in-process and never
+spawns a browser, Python, or a GUI toolkit.
+
+```bash
+make build
+./target/debug/r1-editor                 # empty .eng buffer
+./target/debug/r1-editor budget.eng      # open or create budget.eng
+./target/debug/r1-editor --list-presets  # five ready-to-run .eng programs
+./target/debug/r1-editor --check budget.eng
+```
+
+Keybindings:
+
+```text
+Ctrl+S Save    Ctrl+O Open    Ctrl+N New     Ctrl+Q Quit
+Ctrl+Z Undo    Ctrl+Y Redo    Ctrl+F Find    Ctrl+E Pane
+F1 Help        F2 Presets     F3 Stdin
+F5 / Ctrl+R    Run native ELF64 + interpreter parity
+F6 / Ctrl+P    Paraphrase echo
+F7 / Ctrl+T    Trace + WordNet/VerbNet provenance
+F8 / Ctrl+I    Core-7 TC-IR
+F9 / Ctrl+B    Build <stem>.elf
+```
+
+The editor uses raw POSIX `termios`, an alternate screen, and RAII plus a
+panic hook that always restores the user's terminal. Imports resolve
+`<module>.eng` first and `<module>.tc` second, both in the active file's
+directory.
+
+Build a standalone release binary with:
+
+```bash
+CARGO_NET_OFFLINE=true cargo build --release --bin r1-editor
+./target/release/r1-editor
 ```
