@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use tc_editor::ui::render_rows;
 use tc_editor::{
-    EditorApp, KeyEvent, LineState, Theme, ThemeId, TokenStyle, decode_keys, highlight_line,
+    EditorApp, KeyEvent, LineState, Rgb, Theme, ThemeId, TokenStyle, decode_keys, highlight_line,
 };
 
 fn theme() -> Theme {
@@ -114,7 +114,7 @@ fn highlight_utf8_multibyte_safe() {
 }
 
 #[test]
-fn theme_cycle_f4_midnight_high_contrast_monochrome() {
+fn theme_cycle_f4_midnight_high_contrast_monochrome_light() {
     let mut app = EditorApp::with_theme(ThemeId::Midnight);
     assert_eq!(app.theme.id, ThemeId::Midnight);
     let _ = app.handle_key(KeyEvent::F(4));
@@ -122,8 +122,12 @@ fn theme_cycle_f4_midnight_high_contrast_monochrome() {
     let _ = app.handle_key(KeyEvent::F(4));
     assert_eq!(app.theme.id, ThemeId::Monochrome);
     let _ = app.handle_key(KeyEvent::F(4));
+    assert_eq!(app.theme.id, ThemeId::Light);
+    let _ = app.handle_key(KeyEvent::F(4));
     assert_eq!(app.theme.id, ThemeId::Midnight);
     assert_eq!(ThemeId::HighContrast.name(), "High-Contrast");
+    assert_eq!(ThemeId::Light.name(), "Light");
+    assert_eq!(Theme::from_id(ThemeId::Light).panel_bg, Rgb(255, 255, 255));
 }
 
 #[test]

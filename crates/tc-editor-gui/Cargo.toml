@@ -4,13 +4,14 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
-description = "Standalone std-only R1 Editor GUI for tc_r1 .eng programs"
+description = "Native eframe/egui R1 Editor GUI for tc_r1 .eng programs"
 
 [[bin]]
 name = "r1-editor-gui"
 path = "src/main.rs"
 
 [dependencies]
+eframe = { version = "0.31.1", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
 tc-editor = { path = "../tc-editor" }
 tc-ir = { path = "../tc-ir" }
 tc-codegen-x86 = { path = "../tc-codegen-x86" }

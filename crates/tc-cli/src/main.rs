@@ -529,8 +529,9 @@ fn run_audit() -> ExitCode {
         })
     });
     println!("  std modules     : {std_modules}");
-    println!("  dependencies    : std + local path only");
-    println!("  external crates : 0");
+    println!("  compiler deps   : std + local path only");
+    println!("  compiler external: 0");
+    println!("  GUI deps        : eframe/egui native window");
     println!("  ML runtime      : disabled");
     println!("  network         : disabled");
     ExitCode::SUCCESS
