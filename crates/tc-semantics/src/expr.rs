@@ -475,19 +475,36 @@ impl<'a> Parser<'a> {
         match token.kind {
             TokenKind::Number => {
                 self.position += 1;
-                if token.text.contains('.') || token.text.contains('e') || token.text.contains('E')
+                let normalized = token.text.replace('_', "");
+                let radix = if normalized.starts_with("0x") || normalized.starts_with("0X") {
+                    Some((16, &normalized[2..]))
+                } else if normalized.starts_with("0b") || normalized.starts_with("0B") {
+                    Some((2, &normalized[2..]))
+                } else if normalized.starts_with("0o") || normalized.starts_with("0O") {
+                    Some((8, &normalized[2..]))
+                } else {
+                    None
+                };
+                if let Some((radix, digits)) = radix {
+                    let value = u64::from_str_radix(digits, radix)
+                        .map_err(|_| format!("invalid integer `{}`", token.text))?;
+                    return Ok(if let Ok(value) = i64::try_from(value) {
+                        (AstExpr::ConstInt(value, None), None)
+                    } else {
+                        (AstExpr::ConstUint(value, None), None)
+                    });
+                }
+                if normalized.contains('.') || normalized.contains('e') || normalized.contains('E')
                 {
-                    let value = token
-                        .text
+                    let value = normalized
                         .parse::<f64>()
                         .map_err(|_| format!("invalid float `{}`", token.text))?;
                     return Ok((AstExpr::ConstFloat(value, None), None));
                 }
-                if let Ok(value) = token.text.parse::<i64>() {
+                if let Ok(value) = normalized.parse::<i64>() {
                     return Ok((AstExpr::ConstInt(value, None), None));
                 }
-                let value = token
-                    .text
+                let value = normalized
                     .parse::<u64>()
                     .map_err(|_| format!("invalid integer `{}`", token.text))?;
                 Ok((AstExpr::ConstUint(value, None), None))
@@ -675,6 +692,28 @@ impl<'a> Parser<'a> {
                 self.expect_symbol(">")?;
                 Ok(AstType::ptr(inner))
             }
+            "fn" | "function" => {
+                self.expect_symbol("(")?;
+                let mut params = Vec::new();
+                if !self.eat_symbol(")") {
+                    loop {
+                        params.push(self.parse_type()?);
+                        if self.eat_symbol(")") {
+                            break;
+                        }
+                        self.expect_symbol(",")?;
+                    }
+                }
+                let ret = if self.eat_symbol("->") || self.eat_word("returning") {
+                    self.parse_type()?
+                } else {
+                    AstType::Void
+                };
+                Ok(AstType::FnPtr {
+                    params,
+                    ret: Box::new(ret),
+                })
+            }
             "array" => {
                 if self.eat_word("of") {
                     let count = self
@@ -739,7 +778,14 @@ fn storage_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
                 Some(AstExpr::AddrOfVar(name.clone()))
             }
         }
-        AstExpr::Load(inner) => Some((**inner).clone()),
+        AstExpr::Load(inner) => {
+            if let AstExpr::GlobalAddr { name, .. } = inner.as_ref() {
+                if matches!(env.type_of(name), Some(AstType::Ptr(_))) {
+                    return Some(value.clone());
+                }
+            }
+            Some((**inner).clone())
+        }
         AstExpr::FieldAddr { .. } | AstExpr::IndexAddr { .. } => Some(value.clone()),
         _ => None,
     }
@@ -757,7 +803,14 @@ fn explicit_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
                 Some(AstExpr::AddrOfVar(name.clone()))
             }
         }
-        AstExpr::Load(inner) => Some((**inner).clone()),
+        AstExpr::Load(inner) => {
+            if let AstExpr::GlobalAddr { name, .. } = inner.as_ref() {
+                if matches!(env.type_of(name), Some(AstType::Ptr(_))) {
+                    return Some(value.clone());
+                }
+            }
+            Some((**inner).clone())
+        }
         AstExpr::FieldAddr { .. } | AstExpr::IndexAddr { .. } => Some(value.clone()),
         _ => None,
     }

@@ -5,7 +5,7 @@
 //! spelling of each captured expression so the expression parser can preserve
 //! string literals exactly.
 
-use tc_typeck::{PhrasePart, PhrasePattern, Visibility};
+use tc_typeck::{AstType, PhrasePart, PhrasePattern, Visibility};
 
 use crate::token::{Token, TokenKind, tokenize};
 
@@ -20,6 +20,10 @@ pub struct PhraseBinding {
     pub vis: Visibility,
     /// Pattern parts.
     pub pattern: PhrasePattern,
+    /// Function parameter types in declaration order.
+    pub params: Vec<AstType>,
+    /// Generic parameter names.
+    pub type_params: Vec<String>,
 }
 
 /// A successful phrase match.
@@ -33,6 +37,10 @@ pub struct PhraseMatch {
     pub args: Vec<String>,
     /// Number of literal words in the winning pattern.
     pub score: usize,
+    /// Parameter types of the matched function.
+    pub params: Vec<AstType>,
+    /// Generic parameter names of the matched function.
+    pub type_params: Vec<String>,
 }
 
 fn pattern_words(pattern: &PhrasePattern) -> impl Iterator<Item = &PhrasePart> {
@@ -128,25 +136,33 @@ fn match_binding(binding: &PhraseBinding, text: &str, tokens: &[Token]) -> Optio
         function: binding.function.clone(),
         args,
         score,
+        params: binding.params.clone(),
+        type_params: binding.type_params.clone(),
     })
+}
+
+/// Returns every full phrase match, in binding order.
+#[must_use]
+pub fn match_all(text: &str, bindings: &[PhraseBinding]) -> Vec<PhraseMatch> {
+    let tokens = tokenize(text);
+    if tokens.is_empty() {
+        return Vec::new();
+    }
+    bindings
+        .iter()
+        .filter_map(|binding| match_binding(binding, text, &tokens))
+        .collect()
 }
 
 /// Matches a cleaned clause against all in-scope phrase bindings, preferring
 /// patterns with the most literal words.
 #[must_use]
 pub fn match_phrase(text: &str, bindings: &[PhraseBinding]) -> Option<PhraseMatch> {
-    let tokens = tokenize(text);
-    if tokens.is_empty() {
-        return None;
-    }
-    bindings
-        .iter()
-        .filter_map(|binding| match_binding(binding, text, &tokens))
-        .max_by(|left, right| {
-            left.score
-                .cmp(&right.score)
-                .then_with(|| right.function.cmp(&left.function))
-        })
+    match_all(text, bindings).into_iter().max_by(|left, right| {
+        left.score
+            .cmp(&right.score)
+            .then_with(|| right.function.cmp(&left.function))
+    })
 }
 
 /// Returns true when the sentence starts with the literal `phrase` keyword.

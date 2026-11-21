@@ -10,7 +10,7 @@ use tc_typeck::{
 
 use crate::expr::{ExprEnv, parse_address, parse_expression, parse_type_text};
 use crate::intent::{IntentVerdict, classify};
-use crate::phrases::{PhraseBinding, PhraseMatch, match_phrase};
+use crate::phrases::{PhraseBinding, PhraseMatch, match_all};
 use crate::textutil::{
     find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_top_level,
     split_where, starts_with_word,
@@ -682,6 +682,8 @@ pub(crate) fn collect_phrase_bindings(modules: &[ModuleJob]) -> Vec<Vec<PhraseBi
                     function: function.name.clone(),
                     vis: function.vis,
                     pattern: pattern.clone(),
+                    params: function.params.iter().map(|(_, ty)| ty.clone()).collect(),
+                    type_params: function.type_params.clone(),
                 });
             }
         }
@@ -699,6 +701,8 @@ pub(crate) fn collect_phrase_bindings(modules: &[ModuleJob]) -> Vec<Vec<PhraseBi
                         function: function.name.clone(),
                         vis: Visibility::Public,
                         pattern: pattern.clone(),
+                        params: function.params.iter().map(|(_, ty)| ty.clone()).collect(),
+                        type_params: function.type_params.clone(),
                     });
                 }
             }
@@ -856,10 +860,96 @@ impl<'a> Lowerer<'a> {
     }
 
     fn parse_value(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
-        if let Some(phrase) = match_phrase(text, &self.phrases) {
+        if let Some(phrase) = self.match_phrase_typed(text) {
             return self.phrase_expression(&phrase, span);
         }
         self.parse_expr(text, span)
+    }
+
+    fn type_compatibility(
+        &self,
+        param: &AstType,
+        actual: &AstType,
+        type_params: &[String],
+        expression: &AstExpr,
+    ) -> i8 {
+        if let AstType::Named { name, .. } = param {
+            if type_params.iter().any(|generic| generic == name) {
+                return 2;
+            }
+        }
+        if param == actual {
+            return 2;
+        }
+        match (expression, param) {
+            (
+                AstExpr::ConstInt(_, None),
+                AstType::I8 | AstType::I16 | AstType::I32 | AstType::I64,
+            )
+            | (
+                AstExpr::ConstInt(_, None),
+                AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64,
+            )
+            | (
+                AstExpr::ConstUint(_, None),
+                AstType::I8 | AstType::I16 | AstType::I32 | AstType::I64,
+            )
+            | (
+                AstExpr::ConstUint(_, None),
+                AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64,
+            ) => 1,
+            (AstExpr::ConstFloat(_, None), AstType::F32 | AstType::F64) => 1,
+            (AstExpr::BytesLit(_), AstType::Ptr(inner)) if **inner == AstType::U8 => 1,
+            _ => 0,
+        }
+    }
+
+    fn match_phrase_typed(&self, text: &str) -> Option<PhraseMatch> {
+        let candidates = match_all(text, &self.phrases);
+        let max_score = candidates.iter().map(|candidate| candidate.score).max()?;
+        let candidates = candidates
+            .into_iter()
+            .filter(|candidate| candidate.score == max_score)
+            .collect::<Vec<_>>();
+        if candidates.len() == 1 {
+            return candidates.into_iter().next();
+        }
+        let env = self.expr_env();
+        let mut scored = candidates
+            .into_iter()
+            .map(|candidate| {
+                let mut compatibility = 0_i8;
+                let mut usable = true;
+                for (argument, param) in candidate.args.iter().zip(candidate.params.iter()) {
+                    let Ok(expression) = parse_expression(argument, &env) else {
+                        usable = false;
+                        break;
+                    };
+                    let actual = self.shallow_type(&expression);
+                    let score = self.type_compatibility(
+                        param,
+                        &actual,
+                        &candidate.type_params,
+                        &expression,
+                    );
+                    if score == 0 {
+                        usable = false;
+                        break;
+                    }
+                    compatibility += score;
+                }
+                (usable, compatibility, candidate)
+            })
+            .collect::<Vec<_>>();
+        scored.retain(|(usable, _, _)| *usable);
+        scored.sort_by(|left, right| {
+            right
+                .1
+                .cmp(&left.1)
+                .then_with(|| left.2.function.cmp(&right.2.function))
+                .then_with(|| left.2.module.cmp(&right.2.module))
+        });
+        scored.into_iter().next().map(|(_, _, candidate)| candidate)
     }
 
     fn shallow_type(&self, expr: &AstExpr) -> AstType {
@@ -975,7 +1065,7 @@ impl<'a> Lowerer<'a> {
                         continue;
                     }
                     let clause = analyze_clause(self.parser, sentence);
-                    let phrase = match_phrase(&sentence.text, &self.phrases);
+                    let phrase = self.match_phrase_typed(&sentence.text);
                     let verdict = self.trace_sentence(sentence, &clause, phrase.as_ref());
                     match verdict {
                         IntentVerdict::Exec => {
@@ -1005,7 +1095,7 @@ impl<'a> Lowerer<'a> {
                         continue;
                     }
                     let clause = analyze_clause(self.parser, header);
-                    let phrase = match_phrase(&header.text, &self.phrases);
+                    let phrase = self.match_phrase_typed(&header.text);
                     let verdict = self.trace_sentence(header, &clause, phrase.as_ref());
                     if !verdict.is_exec() {
                         index += 1;
@@ -1197,6 +1287,11 @@ impl<'a> Lowerer<'a> {
         }
         if starts_with_word(&lower, "syscall") {
             if let Some(statement) = self.try_syscall_with(trimmed, span)? {
+                return Ok(vec![statement]);
+            }
+        }
+        if starts_with_word(&lower, "copy") || starts_with_word(&lower, "memcopy") {
+            if let Some(statement) = self.try_memcopy(trimmed, span)? {
                 return Ok(vec![statement]);
             }
         }
@@ -1393,6 +1488,40 @@ impl<'a> Lowerer<'a> {
         }
         let value = self.parse_value(trimmed, span)?;
         Ok(vec![AstStmt::Expr(value, self.span(span))])
+    }
+
+    fn try_memcopy(&self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
+        let rest = if starts_with_word(text, "memcopy") {
+            strip_leading_word(text, "memcopy")
+        } else {
+            strip_leading_word(text, "copy")
+        };
+        let Some((bytes_start, bytes_end)) = find_top_level_word(rest, "bytes") else {
+            return Ok(None);
+        };
+        let Some((_, from_end)) = find_top_level_word(&rest[bytes_end..], "from") else {
+            return Ok(None);
+        };
+        let from_end = bytes_end + from_end;
+        let Some((to_start, to_end)) = find_top_level_word(&rest[from_end..], "to")
+            .or_else(|| find_top_level_word(&rest[from_end..], "into"))
+        else {
+            return Ok(None);
+        };
+        let to_start = from_end + to_start;
+        let to_end = from_end + to_end;
+        let size_text = rest[..bytes_start].trim();
+        let src_text = rest[from_end..to_start].trim();
+        let dst_text = rest[to_end..].trim();
+        if size_text.is_empty() || src_text.is_empty() || dst_text.is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(AstStmt::MemCopy {
+            dst: self.parse_value(dst_text, span)?,
+            src: self.parse_value(src_text, span)?,
+            size: self.parse_value(size_text, span)?,
+            span: self.span(span),
+        }))
     }
 
     fn try_syscall_with(&self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {

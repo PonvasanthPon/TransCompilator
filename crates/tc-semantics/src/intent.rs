@@ -94,6 +94,8 @@ fn is_control_anchor(word: &str) -> bool {
             | "continue"
             | "return"
             | "syscall"
+            | "copy"
+            | "memcopy"
             | "trap"
             | "define"
             | "public"
