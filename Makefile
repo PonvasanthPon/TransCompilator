@@ -27,7 +27,7 @@ selftest: build
 	./target/debug/tc --selftest
 
 audit:
-	@echo "tc_r1 phase0 audit"
+	@echo "tc_r1 audit"
 	@ml="$$(find . \( -path ./.git -o -path ./target \) -prune -o -type f \( -name '*.onnx' -o -name '*.pt' -o -name '*.binlm' -o -name '*.mem' -o -name '*.hmm' -o -name '*.gguf' -o -name '*.safetensors' \) -print)"; \
 	if [ -n "$$ml" ]; then echo "  FAIL: ML/model files found:"; echo "$$ml"; exit 1; fi; \
 	echo "  ML/model files                      : none"
