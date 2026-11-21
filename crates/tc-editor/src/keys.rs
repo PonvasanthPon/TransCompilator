@@ -23,6 +23,10 @@ pub enum KeyEvent {
     Left,
     /// Right arrow.
     Right,
+    /// Ctrl+Left word jump.
+    CtrlLeft,
+    /// Ctrl+Right word jump.
+    CtrlRight,
     /// Home.
     Home,
     /// End.
@@ -63,6 +67,8 @@ fn csi_key(sequence: &[u8]) -> Option<KeyEvent> {
         b"B" => Some(KeyEvent::Down),
         b"C" => Some(KeyEvent::Right),
         b"D" => Some(KeyEvent::Left),
+        b"1;5D" | b"5D" => Some(KeyEvent::CtrlLeft),
+        b"1;5C" | b"5C" => Some(KeyEvent::CtrlRight),
         b"H" => Some(KeyEvent::Home),
         b"F" => Some(KeyEvent::End),
         b"1~" => Some(KeyEvent::Home),

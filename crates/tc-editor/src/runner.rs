@@ -69,6 +69,10 @@ pub struct RunResult {
     pub summary: String,
     /// Output lines.
     pub lines: Vec<String>,
+    /// One-based source lines with diagnostics.
+    pub error_lines: Vec<usize>,
+    /// One-based narrative lines omitted by the intent gate.
+    pub omitted_lines: Vec<usize>,
 }
 
 impl RunResult {
@@ -77,8 +81,37 @@ impl RunResult {
             ok: false,
             summary: summary.into(),
             lines,
+            error_lines: Vec::new(),
+            omitted_lines: Vec::new(),
         }
     }
+
+    fn failure_with_lines(
+        summary: impl Into<String>,
+        lines: Vec<String>,
+        error_lines: Vec<usize>,
+    ) -> Self {
+        let mut result = Self::failure(summary, lines);
+        result.error_lines = normalized_lines(error_lines);
+        result
+    }
+}
+
+fn normalized_lines(mut lines: Vec<usize>) -> Vec<usize> {
+    lines.sort_unstable();
+    lines.dedup();
+    lines
+}
+
+fn error_lines_from_message(message: &str) -> Vec<usize> {
+    message
+        .lines()
+        .filter_map(|line| {
+            let rest = line.strip_prefix('[')?;
+            let (number, _) = rest.split_once(':')?;
+            number.parse::<usize>().ok()
+        })
+        .collect()
 }
 
 /// One built-in `.eng` starter program.
@@ -354,7 +387,11 @@ pub fn run_elf_with_parity(source: &str, file_path: Option<&Path>, stdin_text: &
     let compiled = match compile(source, file_path) {
         Ok(value) => value,
         Err(message) => {
-            return RunResult::failure("COMPILE FAILED", lines_of(&message));
+            return RunResult::failure_with_lines(
+                "COMPILE FAILED",
+                lines_of(&message),
+                error_lines_from_message(&message),
+            );
         }
     };
     if let Err(errors) = verify_module(&compiled.module) {
@@ -436,6 +473,13 @@ pub fn run_elf_with_parity(source: &str, file_path: Option<&Path>, stdin_text: &
         ok: parity,
         summary,
         lines,
+        error_lines: Vec::new(),
+        omitted_lines: compiled
+            .trace
+            .iter()
+            .filter(|entry| entry.intent.is_comment())
+            .map(|entry| entry.line as usize)
+            .collect(),
     }
 }
 
@@ -450,9 +494,20 @@ pub fn run_paraphrase(source: &str, file_path: Option<&Path>) -> RunResult {
                 ok: true,
                 summary: format!("PARAPHRASE ({} lines)", lines.len()),
                 lines,
+                error_lines: Vec::new(),
+                omitted_lines: compiled
+                    .trace
+                    .iter()
+                    .filter(|entry| entry.intent.is_comment())
+                    .map(|entry| entry.line as usize)
+                    .collect(),
             }
         }
-        Err(message) => RunResult::failure("PARAPHRASE FAILED", lines_of(&message)),
+        Err(message) => RunResult::failure_with_lines(
+            "PARAPHRASE FAILED",
+            lines_of(&message),
+            error_lines_from_message(&message),
+        ),
     }
 }
 
@@ -461,7 +516,13 @@ pub fn run_paraphrase(source: &str, file_path: Option<&Path>) -> RunResult {
 pub fn run_trace(source: &str, file_path: Option<&Path>) -> RunResult {
     let lowered = match lower(source, file_path) {
         Ok(value) => value,
-        Err(message) => return RunResult::failure("TRACE FAILED", lines_of(&message)),
+        Err(message) => {
+            return RunResult::failure_with_lines(
+                "TRACE FAILED",
+                lines_of(&message),
+                error_lines_from_message(&message),
+            );
+        }
     };
     let mut lines = Vec::new();
     for entry in &lowered.trace {
@@ -513,6 +574,18 @@ pub fn run_trace(source: &str, file_path: Option<&Path>) -> RunResult {
             }
         ),
         lines,
+        error_lines: lowered
+            .trace
+            .iter()
+            .filter(|entry| entry.intent.is_unsupported())
+            .map(|entry| entry.line as usize)
+            .collect(),
+        omitted_lines: lowered
+            .trace
+            .iter()
+            .filter(|entry| entry.intent.is_comment())
+            .map(|entry| entry.line as usize)
+            .collect(),
     }
 }
 
@@ -527,9 +600,20 @@ pub fn run_ir(source: &str, file_path: Option<&Path>) -> RunResult {
                 ok: true,
                 summary: format!("TC-IR ({} lines)", lines.len()),
                 lines,
+                error_lines: Vec::new(),
+                omitted_lines: compiled
+                    .trace
+                    .iter()
+                    .filter(|entry| entry.intent.is_comment())
+                    .map(|entry| entry.line as usize)
+                    .collect(),
             }
         }
-        Err(message) => RunResult::failure("IR FAILED", lines_of(&message)),
+        Err(message) => RunResult::failure_with_lines(
+            "IR FAILED",
+            lines_of(&message),
+            error_lines_from_message(&message),
+        ),
     }
 }
 
@@ -549,7 +633,13 @@ fn static_check(path: &Path) -> (bool, String) {
 pub fn build_elf_artifact(source: &str, file_path: Option<&Path>) -> RunResult {
     let compiled = match compile(source, file_path) {
         Ok(value) => value,
-        Err(message) => return RunResult::failure("BUILD FAILED", lines_of(&message)),
+        Err(message) => {
+            return RunResult::failure_with_lines(
+                "BUILD FAILED",
+                lines_of(&message),
+                error_lines_from_message(&message),
+            );
+        }
     };
     let target = file_path.map_or_else(
         || PathBuf::from("out.elf"),
@@ -576,6 +666,8 @@ pub fn build_elf_artifact(source: &str, file_path: Option<&Path>) -> RunResult {
             if static_ok { "yes" } else { "no" }
         ),
         lines,
+        error_lines: Vec::new(),
+        omitted_lines: Vec::new(),
     }
 }
 

@@ -354,6 +354,44 @@ impl TextBuffer {
         }
     }
 
+    /// Moves left by one word (Ctrl+Left).
+    pub fn move_word_left(&mut self) {
+        if self.cursor_col == 0 {
+            if self.cursor_row > 0 {
+                self.cursor_row -= 1;
+                self.cursor_col = char_count(&self.lines[self.cursor_row]);
+            }
+            return;
+        }
+        let chars = self.lines[self.cursor_row].chars().collect::<Vec<_>>();
+        let mut position = self.cursor_col;
+        while position > 0 && chars[position - 1].is_whitespace() {
+            position -= 1;
+        }
+        while position > 0 && !chars[position - 1].is_whitespace() {
+            position -= 1;
+        }
+        self.cursor_col = position;
+    }
+
+    /// Moves right by one word (Ctrl+Right).
+    pub fn move_word_right(&mut self) {
+        let chars = self.lines[self.cursor_row].chars().collect::<Vec<_>>();
+        let mut position = self.cursor_col;
+        while position < chars.len() && !chars[position].is_whitespace() {
+            position += 1;
+        }
+        while position < chars.len() && chars[position].is_whitespace() {
+            position += 1;
+        }
+        if position == chars.len() && self.cursor_row + 1 < self.lines.len() {
+            self.cursor_row += 1;
+            self.cursor_col = 0;
+        } else {
+            self.cursor_col = position;
+        }
+    }
+
     /// Moves to the first character of the line.
     pub fn move_home(&mut self) {
         self.cursor_col = 0;
