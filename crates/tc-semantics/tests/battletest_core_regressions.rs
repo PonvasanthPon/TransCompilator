@@ -347,3 +347,95 @@ fn recursive_aggregate_layout_is_a_clean_error() {
         "{errors:#?}"
     );
 }
+
+#[test]
+fn non_ascii_symbols_are_tokenized_without_panicking() {
+    for text in ["\u{feff}", "\u{feff}Return 0.\n", "“hello”\n", "🚀"] {
+        let tokens = tc_syntax::tokenize(text);
+        assert!(!tokens.is_empty() || text.is_empty());
+        let result = compile_english_to_ir(&[SourceFile::new("main.tc", text)], "main");
+        if let Err(errors) = result {
+            for error in errors {
+                assert!(!error.message.contains("panicked"));
+            }
+        }
+    }
+}
+
+#[test]
+fn very_long_expression_returns_a_clean_complexity_error() {
+    let text = format!(
+        "Return {}.\n",
+        (0..5000).map(|_| "1").collect::<Vec<_>>().join(" + ")
+    );
+    let errors = compile_english_to_ir(&[SourceFile::new("main.tc", text)], "main")
+        .expect_err("over-budget expression must fail cleanly");
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.message.contains("complexity limit")),
+        "{errors:#?}"
+    );
+}
+
+#[test]
+fn very_deep_type_syntax_returns_a_clean_limit_error() {
+    let mut ty = String::from("i64");
+    for _ in 0..200 {
+        ty = format!("array<{ty}, 2>");
+    }
+    let text = format!("Define global x as {ty}.\nReturn 0.\n");
+    let errors = compile_english_to_ir(&[SourceFile::new("main.tc", text)], "main")
+        .expect_err("over-deep type must fail cleanly");
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.message.contains("type nesting")),
+        "{errors:#?}"
+    );
+}
+
+#[test]
+fn numeric_passive_add_preserves_the_target() {
+    assert_english(
+        "numeric-passive",
+        &[("main.tc", "x is 10.\n1 is added to x.\nReturn x + 31.\n")],
+        42,
+        b"",
+    );
+}
+
+#[test]
+fn noun_subject_that_is_also_a_verb_does_not_hijack_passive_voice() {
+    assert_english(
+        "cash-passive",
+        &[(
+            "main.tc",
+            "cash is 42.\ncash is increased by 11.\nReturn cash.\n",
+        )],
+        53,
+        b"",
+    );
+}
+
+#[test]
+fn reserved_control_keywords_reject_trailing_operands() {
+    let project = lower_project(
+        &[SourceFile::new("main.tc", "continue 10 of x.\nReturn 0.\n")],
+        "main",
+    )
+    .expect("lower");
+    let entry = project
+        .trace
+        .iter()
+        .find(|entry| entry.text.starts_with("continue"))
+        .expect("trace");
+    assert!(entry.intent.is_unsupported(), "{entry:?}");
+    assert!(
+        compile_english_to_ir(
+            &[SourceFile::new("main.tc", "continue 10 of x.\nReturn 0.\n")],
+            "main"
+        )
+        .is_err()
+    );
+}

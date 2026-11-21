@@ -181,7 +181,7 @@ pub fn tokenize(text: &str) -> Vec<Token> {
             continue;
         }
         let mut symbol = character.to_string();
-        if index + 1 < bytes.len() {
+        if character.is_ascii() && index + 1 < bytes.len() {
             let pair = &text[index..index + 2];
             if matches!(
                 pair,
@@ -190,7 +190,7 @@ pub fn tokenize(text: &str) -> Vec<Token> {
                 symbol = pair.to_string();
             }
         }
-        if symbol.len() > 1 {
+        if character.is_ascii() && symbol.len() == 2 {
             index += 2;
         } else {
             index += character.len_utf8();

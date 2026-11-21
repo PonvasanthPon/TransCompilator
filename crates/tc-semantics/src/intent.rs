@@ -392,6 +392,12 @@ fn first_word_hit(text: &str) -> Option<VerbHit> {
     if is_auxiliary_word(&token.lower) || is_control_anchor(&token.lower) {
         return None;
     }
+    if tokens
+        .get(index + 1)
+        .is_some_and(|next| next.is_word() && is_auxiliary_word(&next.lower))
+    {
+        return None;
+    }
     let prep = next_preposition(&tokens, index + 1);
     let resolution = prep
         .as_deref()
@@ -422,8 +428,43 @@ fn clause_verb_hit(text: &str, clause: &ClauseTree) -> Option<VerbHit> {
     })
 }
 
+fn passive_verb_hit(text: &str) -> Option<VerbHit> {
+    let tokens = tokenize(text);
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind != TokenKind::Word
+            || is_auxiliary_word(&token.lower)
+            || is_control_anchor(&token.lower)
+        {
+            continue;
+        }
+        let preceded_by_copula = index > 0
+            && tokens.get(index - 1).is_some_and(|previous| {
+                previous.is_word()
+                    && matches!(
+                        previous.lower.as_str(),
+                        "am" | "is" | "are" | "was" | "were" | "be" | "been" | "being"
+                    )
+            });
+        if !preceded_by_copula {
+            continue;
+        }
+        let prep = next_preposition(&tokens, index + 1);
+        let resolution = prep
+            .as_deref()
+            .and_then(|prep| classify_verb(&token.lower, Some(prep)))
+            .or_else(|| classify_verb(&token.lower, None))?;
+        if resolution.predicate.is_some() || resolution.concept.is_some() {
+            return Some(VerbHit { resolution, index });
+        }
+    }
+    None
+}
+
 fn main_verb_hit(text: &str, clause: &ClauseTree) -> Option<VerbHit> {
     if let Some(hit) = first_word_hit(text) {
+        return Some(hit);
+    }
+    if let Some(hit) = passive_verb_hit(text) {
         return Some(hit);
     }
     clause_verb_hit(text, clause)
@@ -562,6 +603,20 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         };
     }
     let first = first_word(trimmed);
+    if matches!(first.as_str(), "break" | "continue" | "trap") {
+        let tokens = tokenize(trimmed);
+        let has_operand = tokens
+            .iter()
+            .skip(1)
+            .any(|token| token.kind != TokenKind::Symbol);
+        if has_operand {
+            return IntentVerdict::Unsupported {
+                reason: format!(
+                    "reserved control keyword `{first}` takes no operands; define a Phrase: signature instead"
+                ),
+            };
+        }
+    }
     if is_control_anchor(&first) {
         return IntentVerdict::Exec;
     }
