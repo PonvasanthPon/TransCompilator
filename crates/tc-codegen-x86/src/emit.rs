@@ -919,60 +919,75 @@ impl<'a, 'b> FunctionEmitter<'a, 'b> {
             return Ok(());
         }
         if from.is_float() && to.is_integer() {
-            let from_f32 = *from == Type::F32;
-            let unsigned_wide = *to == Type::U64;
-            if unsigned_wide {
-                let low = self.label("float_to_u64_low");
-                let done = self.label("float_to_u64_done");
-                if from_f32 {
-                    writeln!(self.out, "    mov eax, 1593835520")
-                        .expect("writing to String cannot fail");
-                    writeln!(self.out, "    movd xmm1, eax")
-                        .expect("writing to String cannot fail");
-                    writeln!(self.out, "    ucomiss xmm0, xmm1")
-                        .expect("writing to String cannot fail");
-                } else {
-                    writeln!(self.out, "    mov rax, 4890909195324358656")
-                        .expect("writing to String cannot fail");
-                    writeln!(self.out, "    movq xmm1, rax")
-                        .expect("writing to String cannot fail");
-                    writeln!(self.out, "    ucomisd xmm0, xmm1")
-                        .expect("writing to String cannot fail");
-                }
-                writeln!(self.out, "    jb {low}").expect("writing to String cannot fail");
-                if from_f32 {
-                    writeln!(self.out, "    subss xmm0, xmm1")
-                        .expect("writing to String cannot fail");
-                    writeln!(self.out, "    cvttss2si rax, xmm0")
-                        .expect("writing to String cannot fail");
-                } else {
-                    writeln!(self.out, "    subsd xmm0, xmm1")
-                        .expect("writing to String cannot fail");
-                    writeln!(self.out, "    cvttsd2si rax, xmm0")
-                        .expect("writing to String cannot fail");
-                }
-                writeln!(self.out, "    mov rcx, -9223372036854775808")
+            // The reference interpreter uses Rust's saturating float-to-int
+            // semantics.  x86 `cvtt*2si` instead yields INT64_MIN for NaN and
+            // out-of-range values, so clamp explicitly before converting.
+            if *from == Type::F32 {
+                writeln!(self.out, "    cvtss2sd xmm0, xmm0")
                     .expect("writing to String cannot fail");
-                writeln!(self.out, "    or rax, rcx").expect("writing to String cannot fail");
-                writeln!(self.out, "    jmp {done}").expect("writing to String cannot fail");
-                writeln!(self.out, "{low}:").expect("writing to String cannot fail");
-                if from_f32 {
-                    writeln!(self.out, "    cvttss2si rax, xmm0")
-                        .expect("writing to String cannot fail");
-                } else {
-                    writeln!(self.out, "    cvttsd2si rax, xmm0")
-                        .expect("writing to String cannot fail");
-                }
-                writeln!(self.out, "{done}:").expect("writing to String cannot fail");
-            } else if from_f32 {
-                writeln!(self.out, "    cvttss2si rax, xmm0")
-                    .expect("writing to String cannot fail");
-                self.normalize_rax(to);
-            } else {
-                writeln!(self.out, "    cvttsd2si rax, xmm0")
-                    .expect("writing to String cannot fail");
-                self.normalize_rax(to);
             }
+            let nan = self.label("f2i_nan");
+            let low = self.label("f2i_low");
+            let high = self.label("f2i_high");
+            let done = self.label("f2i_done");
+
+            // NaN -> 0.
+            writeln!(self.out, "    ucomisd xmm0, xmm0").expect("writing to String cannot fail");
+            writeln!(self.out, "    jp {nan}").expect("writing to String cannot fail");
+
+            let (lower, upper, lower_bits, upper_bits) = match to {
+                Type::I8 => (-128.0_f64, 128.0_f64, (-128_i64) as u64, 127_u64),
+                Type::I16 => (-32768.0_f64, 32768.0_f64, (-32768_i64) as u64, 32767_u64),
+                Type::I32 => (
+                    -2_147_483_648.0_f64,
+                    2_147_483_648.0_f64,
+                    (-2_147_483_648_i64) as u64,
+                    2_147_483_647_u64,
+                ),
+                Type::I64 => (
+                    -9_223_372_036_854_775_808.0_f64,
+                    9_223_372_036_854_775_808.0_f64,
+                    i64::MIN as u64,
+                    i64::MAX as u64,
+                ),
+                Type::U8 => (0.0_f64, 256.0_f64, 0, 255_u64),
+                Type::U16 => (0.0_f64, 65536.0_f64, 0, 65535_u64),
+                Type::U32 => (0.0_f64, 4_294_967_296.0_f64, 0, 4_294_967_295_u64),
+                Type::U64 => (0.0_f64, 18_446_744_073_709_551_616.0_f64, 0, u64::MAX),
+                _ => {
+                    return Err(CodegenError::Emit(format!(
+                        "unsupported float cast target {to:?}"
+                    )));
+                }
+            };
+
+            writeln!(self.out, "    mov rax, {}", lower.to_bits())
+                .expect("writing to String cannot fail");
+            writeln!(self.out, "    movq xmm1, rax").expect("writing to String cannot fail");
+            writeln!(self.out, "    ucomisd xmm0, xmm1").expect("writing to String cannot fail");
+            writeln!(self.out, "    jb {low}").expect("writing to String cannot fail");
+
+            writeln!(self.out, "    mov rax, {}", upper.to_bits())
+                .expect("writing to String cannot fail");
+            writeln!(self.out, "    movq xmm1, rax").expect("writing to String cannot fail");
+            writeln!(self.out, "    ucomisd xmm0, xmm1").expect("writing to String cannot fail");
+            writeln!(self.out, "    jae {high}").expect("writing to String cannot fail");
+
+            writeln!(self.out, "    cvttsd2si rax, xmm0").expect("writing to String cannot fail");
+            self.normalize_rax(to);
+            writeln!(self.out, "    jmp {done}").expect("writing to String cannot fail");
+
+            writeln!(self.out, "{nan}:").expect("writing to String cannot fail");
+            writeln!(self.out, "    xor eax, eax").expect("writing to String cannot fail");
+            writeln!(self.out, "    jmp {done}").expect("writing to String cannot fail");
+            writeln!(self.out, "{low}:").expect("writing to String cannot fail");
+            writeln!(self.out, "    mov rax, {lower_bits}").expect("writing to String cannot fail");
+            self.normalize_rax(to);
+            writeln!(self.out, "    jmp {done}").expect("writing to String cannot fail");
+            writeln!(self.out, "{high}:").expect("writing to String cannot fail");
+            writeln!(self.out, "    mov rax, {upper_bits}").expect("writing to String cannot fail");
+            self.normalize_rax(to);
+            writeln!(self.out, "{done}:").expect("writing to String cannot fail");
             return Ok(());
         }
         match (from, to) {
