@@ -617,6 +617,15 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
             };
         }
     }
+    if first == "for" {
+        let tokens = tokenize(trimmed);
+        if tokens
+            .get(1)
+            .is_some_and(|token| token.is_word() && (token.is("every") || token.is("each")))
+        {
+            return IntentVerdict::Exec;
+        }
+    }
     if is_control_anchor(&first) {
         return IntentVerdict::Exec;
     }

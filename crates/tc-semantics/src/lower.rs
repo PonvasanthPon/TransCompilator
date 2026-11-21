@@ -8,11 +8,23 @@ use tc_typeck::{
     PhrasePart, PhrasePattern, Visibility,
 };
 
+use crate::cond::{
+    CondAst, LoweredCond, parse_condition, render_cond_child_text, render_expr,
+    split_header_condition, strip_outer_parentheses,
+};
+use crate::discourse::{
+    DiscourseStack, ReferentKind, ResolvedAnaphor, ResolvedFieldAnaphor, ScopeKind,
+};
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
 };
 use crate::intent::{IntentVerdict, classify};
+use crate::paraphrase::{ParaphraseDoc, ParaphraseEntry, canonicalize_statement};
 use crate::phrases::{PhraseBinding, PhraseMatch, match_all};
+use crate::quantifier::{
+    GlobalQuantifier, LocalQuantKind, LocalQuantSpec, PredSpec, QuantDomainSpec,
+    parse_global as parse_global_quantifier,
+};
 use crate::textutil::{
     find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_top_level,
     split_type_list, split_where, starts_with_word,
@@ -756,6 +768,10 @@ struct Lowerer<'a> {
     module_names: Vec<String>,
     phrases: Vec<PhraseBinding>,
     scopes: Vec<Scope>,
+    discourse: DiscourseStack,
+    paraphrase_entries: Vec<ParaphraseEntry>,
+    active_entry: Option<usize>,
+    synthetic_depth: usize,
     trace: Vec<SentenceTrace>,
     errors: Vec<SemanticError>,
     temp_counter: usize,
@@ -781,6 +797,10 @@ impl<'a> Lowerer<'a> {
             module_names,
             phrases,
             scopes: vec![Scope::new()],
+            discourse: DiscourseStack::new(),
+            paraphrase_entries: Vec::new(),
+            active_entry: None,
+            synthetic_depth: 0,
             trace: Vec::new(),
             errors: Vec::new(),
             temp_counter: 0,
@@ -801,20 +821,288 @@ impl<'a> Lowerer<'a> {
         semantic_error(&self.module, span, kind, message)
     }
 
-    fn push_scope(&mut self) {
+    fn push_scope(&mut self, kind: ScopeKind) {
         self.scopes.push(Scope::new());
+        self.discourse.push_scope(kind);
     }
 
     fn pop_scope(&mut self) {
         if self.scopes.len() > 1 {
             self.scopes.pop();
         }
+        self.discourse.pop_scope();
     }
 
     fn declare(&mut self, name: &str, ty: AstType) {
         if let Some(scope) = self.scopes.last_mut() {
             scope.vars.insert(name.to_string(), ty);
         }
+    }
+
+    fn declare_temp(&mut self, name: &str, ty: AstType) {
+        self.declare(name, ty);
+    }
+
+    fn referent_meta(&self, ty: &AstType) -> (ReferentKind, Option<String>, bool) {
+        match ty {
+            AstType::Named { name, .. } if self.types.contains(name) => {
+                (ReferentKind::Aggregate, Some(name.clone()), false)
+            }
+            AstType::Ptr(inner) => match inner.as_ref() {
+                AstType::Named { name, .. } if self.types.contains(name) => {
+                    (ReferentKind::Aggregate, Some(name.clone()), true)
+                }
+                _ => (ReferentKind::Scalar, None, false),
+            },
+            AstType::Array(..) => (ReferentKind::Array, None, false),
+            _ => (ReferentKind::Scalar, None, false),
+        }
+    }
+
+    fn introduce_name(&mut self, name: &str, ty: &AstType, span: Span) {
+        let (kind, type_name, is_ptr) = self.referent_meta(ty);
+        self.discourse
+            .introduce(name, Some(ty.clone()), type_name, is_ptr, kind, span);
+    }
+
+    fn touch_name(&mut self, name: &str, span: Span) {
+        if self.discourse.touch(name) {
+            return;
+        }
+        if let Some(ty) = self.globals.get(name).cloned() {
+            self.introduce_name(name, &ty, span);
+        }
+    }
+
+    fn touch_target_text(&mut self, text: &str, span: Span) {
+        if let Some(token) = tokenize(text)
+            .into_iter()
+            .find(|token| token.kind == TokenKind::Word)
+        {
+            let name = token.lower.clone();
+            if self.lookup(&name).is_some() || self.globals.contains_key(&name) {
+                self.touch_name(&name, span);
+            }
+        }
+    }
+
+    fn push_paraphrase(
+        &mut self,
+        sentence: &RawSentence,
+        verdict: IntentVerdict,
+        canonical: String,
+    ) {
+        let entry = ParaphraseEntry {
+            span: sentence.span,
+            original: sentence.text.clone(),
+            verdict,
+            canonical,
+            resolutions: Vec::new(),
+        };
+        self.paraphrase_entries.push(entry);
+        self.active_entry = Some(self.paraphrase_entries.len() - 1);
+    }
+
+    fn add_annotation(&mut self, annotation: String) {
+        if let Some(index) = self.active_entry {
+            if let Some(entry) = self.paraphrase_entries.get_mut(index) {
+                if !entry.resolutions.contains(&annotation) {
+                    entry.resolutions.push(annotation);
+                }
+            }
+        }
+    }
+
+    fn set_canonical(&mut self, canonical: String) {
+        if self.synthetic_depth > 0 {
+            return;
+        }
+        if let Some(index) = self.active_entry {
+            if let Some(entry) = self.paraphrase_entries.get_mut(index) {
+                entry.canonical = canonical;
+            }
+        }
+    }
+
+    fn anaphor_error(&self, error: &crate::discourse::AnaphorError, span: Span) -> SemanticError {
+        let _ = span;
+        self.error(span, SemanticErrorKind::Lowering, error.to_string())
+    }
+
+    fn resolve_it(&mut self, span: Span) -> Result<ResolvedAnaphor, SemanticError> {
+        match self.discourse.resolve_it(span) {
+            Ok(resolved) => {
+                self.add_annotation(resolved.annotation.clone());
+                Ok(resolved)
+            }
+            Err(error) => Err(self.anaphor_error(&error, span)),
+        }
+    }
+
+    fn resolve_its_field(
+        &mut self,
+        field: &str,
+        span: Span,
+    ) -> Result<ResolvedFieldAnaphor, SemanticError> {
+        match self
+            .discourse
+            .resolve_its_field(field, &self.aggregates, span)
+        {
+            Ok(resolved) => {
+                self.add_annotation(resolved.annotation.clone());
+                Ok(resolved)
+            }
+            Err(error) => Err(self.anaphor_error(&error, span)),
+        }
+    }
+
+    fn resolve_definite(
+        &mut self,
+        type_word: &str,
+        span: Span,
+    ) -> Result<ResolvedAnaphor, SemanticError> {
+        match self.discourse.resolve_definite_type(type_word, span) {
+            Ok(resolved) => {
+                self.add_annotation(resolved.annotation.clone());
+                Ok(resolved)
+            }
+            Err(error) => Err(self.anaphor_error(&error, span)),
+        }
+    }
+
+    fn resolve_appositive(
+        &mut self,
+        type_word: &str,
+        var_name: &str,
+        span: Span,
+    ) -> Result<ResolvedAnaphor, SemanticError> {
+        match self.discourse.resolve_appositive(type_word, var_name, span) {
+            Ok(resolved) => {
+                self.add_annotation(resolved.annotation.clone());
+                Ok(resolved)
+            }
+            Err(error) => Err(self.anaphor_error(&error, span)),
+        }
+    }
+
+    fn is_declared_type(&self, word: &str) -> bool {
+        self.types.contains(word)
+    }
+
+    fn token_at(tokens: &[Token], index: usize) -> Option<&Token> {
+        tokens.get(index)
+    }
+
+    /// Rewrites `it`, `its <field>`, `the <type>` and appositive noun phrases
+    /// into canonical variable references, recording each resolution.
+    fn resolve_anaphors(&mut self, text: &str, span: Span) -> Result<String, SemanticError> {
+        let tokens = tokenize(text);
+        let mut replacements: Vec<(usize, usize, String)> = Vec::new();
+        let mut index = 0;
+        while index < tokens.len() {
+            let token = &tokens[index];
+            if token.kind != TokenKind::Word {
+                index += 1;
+                continue;
+            }
+            if token.is("it") {
+                let negation = Self::token_at(&tokens, index + 1)
+                    .is_some_and(|value| value.is("is"))
+                    && Self::token_at(&tokens, index + 2).is_some_and(|value| value.is("false"))
+                    && Self::token_at(&tokens, index + 3).is_some_and(|value| value.is("that"));
+                if negation {
+                    index += 1;
+                    continue;
+                }
+                let resolved = self.resolve_it(span)?;
+                replacements.push((token.start, token.end, resolved.target_var));
+                index += 1;
+                continue;
+            }
+            if token.is("its") {
+                let Some(field) =
+                    Self::token_at(&tokens, index + 1).filter(|value| value.is_word())
+                else {
+                    return Err(self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        "UNRESOLVED_ANAPHOR: 'its' requires a field name (e.g. `its x`)",
+                    ));
+                };
+                let resolved = self.resolve_its_field(&field.lower, span)?;
+                let _ = resolved.is_ptr;
+                replacements.push((
+                    token.start,
+                    field.end,
+                    format!("{}.{}", resolved.base_var, resolved.field),
+                ));
+                index += 2;
+                continue;
+            }
+            if token.is("the") {
+                let Some(next) = Self::token_at(&tokens, index + 1) else {
+                    index += 1;
+                    continue;
+                };
+                if next.kind != TokenKind::Word {
+                    index += 1;
+                    continue;
+                }
+                let type_word = next.lower.clone();
+                if self.is_declared_type(&type_word) {
+                    let after = Self::token_at(&tokens, index + 2);
+                    let appositive_name = after
+                        .filter(|value| value.is_word())
+                        .map(|value| value.lower.clone());
+                    let appositive_followed_by_field = appositive_name.as_ref().is_some_and(|_| {
+                        Self::token_at(&tokens, index + 3)
+                            .is_some_and(|value| value.text == "'s" || value.text == ".")
+                    });
+                    let appositive_at_end = appositive_name.is_some()
+                        && Self::token_at(&tokens, index + 3).is_none_or(|value| {
+                            value.kind == TokenKind::Symbol
+                                && matches!(value.text.as_str(), "," | "." | ":" | ";")
+                        });
+                    if appositive_followed_by_field || appositive_at_end {
+                        let var_name = appositive_name.unwrap_or_default();
+                        let resolved = self.resolve_appositive(&type_word, &var_name, span)?;
+                        replacements.push((
+                            token.start,
+                            after.map_or(next.end, |value| value.end),
+                            resolved.target_var,
+                        ));
+                        index += 3;
+                        continue;
+                    }
+                    let resolved = self.resolve_definite(&type_word, span)?;
+                    replacements.push((token.start, next.end, resolved.target_var));
+                    index += 2;
+                    continue;
+                }
+                // A definite article before an ordinary identifier is simply
+                // dropped: `the salary` denotes the variable `salary`.
+                replacements.push((token.start, token.end, String::new()));
+                index += 1;
+                continue;
+            }
+            index += 1;
+        }
+        if replacements.is_empty() {
+            return Ok(text.trim().to_string());
+        }
+        replacements.sort_by_key(|(start, _, _)| *start);
+        let mut output = String::with_capacity(text.len());
+        let mut cursor = 0;
+        for (start, end, replacement) in replacements {
+            if start < cursor {
+                continue;
+            }
+            output.push_str(&text[cursor..start]);
+            output.push_str(&replacement);
+            cursor = end;
+        }
+        output.push_str(&text[cursor..]);
+        Ok(output.trim().to_string())
     }
 
     fn lookup(&self, name: &str) -> Option<&AstType> {
@@ -846,13 +1134,19 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    fn parse_expr(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+    fn parse_expr(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        let resolved = self.resolve_anaphors(text, span)?;
+        parse_expression(&resolved, &self.expr_env())
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))
+    }
+
+    fn parse_expr_raw(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         parse_expression(text, &self.expr_env())
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))
     }
 
     fn phrase_expression(
-        &self,
+        &mut self,
         phrase: &PhraseMatch,
         span: Span,
     ) -> Result<AstExpr, SemanticError> {
@@ -869,7 +1163,7 @@ impl<'a> Lowerer<'a> {
         })
     }
 
-    fn parse_value(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+    fn parse_value(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         if let Some(phrase) = self.match_phrase_typed(text, span)? {
             return self.phrase_expression(&phrase, span);
         }
@@ -915,7 +1209,7 @@ impl<'a> Lowerer<'a> {
     }
 
     fn match_phrase_typed(
-        &self,
+        &mut self,
         text: &str,
         span: Span,
     ) -> Result<Option<PhraseMatch>, SemanticError> {
@@ -923,21 +1217,26 @@ impl<'a> Lowerer<'a> {
         let Some(max_score) = candidates.iter().map(|candidate| candidate.score).max() else {
             return Ok(None);
         };
-        let candidates = candidates
+        let mut candidates = candidates
             .into_iter()
             .filter(|candidate| candidate.score == max_score)
             .collect::<Vec<_>>();
+        let max_params = candidates
+            .iter()
+            .map(|candidate| candidate.params.len())
+            .max()
+            .unwrap_or(0);
+        candidates.retain(|candidate| candidate.params.len() == max_params);
         if candidates.len() == 1 {
             return Ok(candidates.into_iter().next());
         }
-        let env = self.expr_env();
         let mut scored = candidates
             .into_iter()
             .map(|candidate| {
                 let mut compatibility = 0_i8;
                 let mut usable = true;
                 for (argument, param) in candidate.args.iter().zip(candidate.params.iter()) {
-                    let Ok(expression) = parse_expression(argument, &env) else {
+                    let Ok(expression) = self.parse_expr(argument, span) else {
                         usable = false;
                         break;
                     };
@@ -1039,8 +1338,9 @@ impl<'a> Lowerer<'a> {
         sentence: &RawSentence,
         clause: &ClauseTree,
         phrase: Option<&PhraseMatch>,
+        verdict: IntentVerdict,
     ) -> IntentVerdict {
-        let verdict = classify(&sentence.text, clause, phrase);
+        let _ = phrase;
         let mut predicate = None;
         let mut concept = None;
         let mut class_id = None;
@@ -1101,22 +1401,34 @@ impl<'a> Lowerer<'a> {
                     }
                     let clause = analyze_clause(self.parser, sentence);
                     let phrase = self.match_phrase_typed(&sentence.text, sentence.span)?;
-                    let verdict = self.trace_sentence(sentence, &clause, phrase.as_ref());
-                    match verdict {
-                        IntentVerdict::Exec => {
-                            if let Some(phrase) = phrase {
-                                statements.push(self.lower_phrase_call(&phrase, sentence.span)?);
-                            } else {
-                                statements.extend(self.lower_stmt(
-                                    sentence,
-                                    None,
-                                    None,
-                                    depth + 1,
-                                )?);
+                    let base = classify(&sentence.text, &clause, phrase.as_ref());
+                    let verdict = match self.discourse_intent_override(sentence, &clause, base) {
+                        Ok(verdict) => verdict,
+                        Err(error) => {
+                            self.errors.push(error);
+                            index += 1;
+                            continue;
+                        }
+                    };
+                    let _ =
+                        self.trace_sentence(sentence, &clause, phrase.as_ref(), verdict.clone());
+                    if verdict.is_exec() {
+                        let canonical = canonicalize_statement(&sentence.text);
+                        self.push_paraphrase(sentence, verdict.clone(), canonical);
+                        if let Some(phrase) = phrase {
+                            self.add_annotation(format!("[phrase: \"{}\"]", phrase.pattern));
+                            match self.lower_phrase_call(&phrase, sentence.span) {
+                                Ok(statement) => statements.push(statement),
+                                Err(error) => self.errors.push(error),
+                            }
+                        } else {
+                            match self.lower_stmt(sentence, None, None, depth + 1) {
+                                Ok(mut lowered) => statements.append(&mut lowered),
+                                Err(error) => self.errors.push(error),
                             }
                         }
-                        IntentVerdict::CommentOmitted { .. } => {}
-                        IntentVerdict::Unsupported { .. } => {}
+                    } else {
+                        self.push_paraphrase(sentence, verdict.clone(), String::new());
                     }
                     index += 1;
                 }
@@ -1131,11 +1443,26 @@ impl<'a> Lowerer<'a> {
                     }
                     let clause = analyze_clause(self.parser, header);
                     let phrase = self.match_phrase_typed(&header.text, header.span)?;
-                    let verdict = self.trace_sentence(header, &clause, phrase.as_ref());
+                    let base = classify(&header.text, &clause, phrase.as_ref());
+                    let verdict = match self.discourse_intent_override(header, &clause, base) {
+                        Ok(verdict) => verdict,
+                        Err(error) => {
+                            self.errors.push(error);
+                            index += 1;
+                            continue;
+                        }
+                    };
+                    let _ = self.trace_sentence(header, &clause, phrase.as_ref(), verdict.clone());
                     if !verdict.is_exec() {
+                        self.push_paraphrase(header, verdict.clone(), String::new());
                         index += 1;
                         continue;
                     }
+                    self.push_paraphrase(
+                        header,
+                        verdict.clone(),
+                        canonicalize_statement(&header.text),
+                    );
                     let lower = header.text.to_ascii_lowercase();
                     let mut else_items = None;
                     if starts_with_word(&lower, "if") {
@@ -1146,14 +1473,21 @@ impl<'a> Lowerer<'a> {
                                     || starts_with_word(&next_lower, "otherwise")
                                 {
                                     let next_clause = analyze_clause(self.parser, next_header);
-                                    let _ = self.trace_sentence(next_header, &next_clause, None);
+                                    let next_verdict =
+                                        classify(&next_header.text, &next_clause, None);
+                                    let _ = self.trace_sentence(
+                                        next_header,
+                                        &next_clause,
+                                        None,
+                                        next_verdict,
+                                    );
                                     else_items = Some(next.items.as_slice());
                                     index += 1;
                                 }
                             }
                         }
                     }
-                    let is_control = ["if", "unless", "while", "repeat", "loop"]
+                    let is_control = ["if", "unless", "while", "repeat", "loop", "for"]
                         .iter()
                         .any(|keyword| starts_with_word(&lower, keyword));
                     if !is_control {
@@ -1163,12 +1497,10 @@ impl<'a> Lowerer<'a> {
                             format!("unsupported block header `{}`", header.text),
                         ));
                     }
-                    statements.extend(self.lower_stmt(
-                        header,
-                        Some(&block.items),
-                        else_items,
-                        depth + 1,
-                    )?);
+                    match self.lower_stmt(header, Some(&block.items), else_items, depth + 1) {
+                        Ok(mut lowered) => statements.append(&mut lowered),
+                        Err(error) => self.errors.push(error),
+                    }
                     index += 1;
                 }
             }
@@ -1176,12 +1508,285 @@ impl<'a> Lowerer<'a> {
         Ok(statements)
     }
 
+    fn contains_anaphor_tokens(&self, tokens: &[Token]) -> bool {
+        let mut index = 0;
+        while index < tokens.len() {
+            let token = &tokens[index];
+            if token.kind == TokenKind::Word {
+                if token.is("it") || token.is("its") {
+                    return true;
+                }
+                if token.is("the") {
+                    if let Some(next) = tokens.get(index + 1) {
+                        if next.is_word() && self.is_declared_type(&next.lower) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            index += 1;
+        }
+        false
+    }
+
+    fn rhs_is_pure_expression(&self, text: &str) -> bool {
+        let tokens = tokenize(text);
+        if tokens.is_empty() {
+            return false;
+        }
+        let mut has_value = false;
+        let mut index = 0;
+        while index < tokens.len() {
+            let token = &tokens[index];
+            match token.kind {
+                TokenKind::Number | TokenKind::String => has_value = true,
+                TokenKind::Word => {
+                    let allowed = matches!(
+                        token.lower.as_str(),
+                        "it" | "its"
+                            | "true"
+                            | "false"
+                            | "null"
+                            | "as"
+                            | "function"
+                            | "size"
+                            | "align"
+                            | "of"
+                            | "address"
+                            | "deref"
+                            | "bitnot"
+                            | "twice"
+                            | "half"
+                            | "square"
+                            | "sum"
+                            | "product"
+                            | "difference"
+                            | "between"
+                            | "and"
+                            | "or"
+                            | "not"
+                            | "plus"
+                            | "minus"
+                            | "times"
+                            | "over"
+                            | "mod"
+                            | "percent"
+                            | "per"
+                            | "cent"
+                            | "multiplied"
+                            | "divided"
+                            | "by"
+                            | "bytes_ptr"
+                            | "bytes_len"
+                            | "syscall"
+                            | "bitand"
+                            | "bitor"
+                            | "bitxor"
+                            | "shl"
+                            | "shr"
+                            | "i8"
+                            | "i16"
+                            | "i32"
+                            | "i64"
+                            | "u8"
+                            | "u16"
+                            | "u32"
+                            | "u64"
+                            | "f32"
+                            | "f64"
+                            | "bool"
+                            | "ptr"
+                            | "fn"
+                            | "array"
+                    );
+                    let is_variable = self.lookup(&token.lower).is_some()
+                        || self.globals.contains_key(&token.lower);
+                    let is_call = tokens.get(index + 1).is_some_and(|next| next.text == "(");
+                    if !allowed && !is_variable && !is_call {
+                        return false;
+                    }
+                    if is_variable || is_call || matches!(token.lower.as_str(), "true" | "false") {
+                        has_value = true;
+                    }
+                }
+                TokenKind::Symbol => {
+                    if !matches!(
+                        token.text.as_str(),
+                        "(" | ")"
+                            | "["
+                            | "]"
+                            | "."
+                            | "'s"
+                            | ","
+                            | "+"
+                            | "-"
+                            | "*"
+                            | "/"
+                            | "%"
+                            | "<"
+                            | ">"
+                            | "<="
+                            | ">="
+                            | "=="
+                            | "!="
+                            | "&&"
+                            | "||"
+                            | "&"
+                            | "!"
+                            | "->"
+                    ) {
+                        return false;
+                    }
+                }
+            }
+            index += 1;
+        }
+        has_value
+    }
+
+    fn is_create_declaration(&self, tokens: &[Token]) -> bool {
+        let words = tokens
+            .iter()
+            .filter(|token| token.is_word())
+            .collect::<Vec<_>>();
+        if words.len() < 4 {
+            return false;
+        }
+        let mut index = 1;
+        if words[index].is("a") || words[index].is("an") {
+            index += 1;
+        }
+        if index >= words.len() {
+            return false;
+        }
+        let type_word = &words[index].lower;
+        let known_type = self.types.contains(type_word) || parse_type_text(type_word).is_ok();
+        if !known_type {
+            return false;
+        }
+        index += 1;
+        if index < words.len() && (words[index].is("called") || words[index].is("named")) {
+            index += 1;
+        }
+        index < words.len()
+    }
+
+    fn discourse_intent_override(
+        &mut self,
+        sentence: &RawSentence,
+        clause: &ClauseTree,
+        base: IntentVerdict,
+    ) -> Result<IntentVerdict, SemanticError> {
+        if base.is_exec() {
+            return Ok(base);
+        }
+        let text = sentence.text.trim();
+        let tokens = tokenize(text);
+        let first = tokens
+            .first()
+            .filter(|token| token.is_word())
+            .map(|token| token.lower.clone())
+            .unwrap_or_default();
+        if classify_verb(&first, None)
+            .is_some_and(|resolution| resolution.predicate == Some(VerbPredicate::Create))
+            && self.is_create_declaration(&tokens)
+        {
+            return Ok(IntentVerdict::Exec);
+        }
+        if first == "it" {
+            let second = tokens
+                .get(1)
+                .map(|token| token.lower.clone())
+                .unwrap_or_default();
+            if matches!(
+                second.as_str(),
+                "was"
+                    | "were"
+                    | "had"
+                    | "been"
+                    | "seemed"
+                    | "looked"
+                    | "might"
+                    | "could"
+                    | "would"
+                    | "should"
+                    | "may"
+                    | "must"
+                    | "has"
+                    | "have"
+            ) {
+                return Ok(IntentVerdict::CommentOmitted {
+                    reason: "expletive prose without computational directive".to_string(),
+                });
+            }
+            let negation = tokens.get(1).is_some_and(|token| token.is("is"))
+                && tokens.get(2).is_some_and(|token| token.is("false"))
+                && tokens.get(3).is_some_and(|token| token.is("that"));
+            if negation {
+                return Ok(IntentVerdict::Exec);
+            }
+            if second == "is" {
+                if self.discourse.resolve_it(sentence.span).is_err() {
+                    return Ok(base);
+                }
+                let rhs = text[tokens[1].end..].trim();
+                if !self.rhs_is_pure_expression(rhs) {
+                    return Ok(IntentVerdict::CommentOmitted {
+                        reason: "expletive prose without computational directive".to_string(),
+                    });
+                }
+                return Ok(IntentVerdict::Exec);
+            }
+            if matches!(
+                second.as_str(),
+                "becomes" | "equals" | "=" | "+=" | "-=" | "*=" | "/="
+            ) {
+                if self.discourse.resolve_it(sentence.span).is_ok() {
+                    return Ok(IntentVerdict::Exec);
+                }
+                return Ok(base);
+            }
+            if (second == "goes" || second == "go")
+                && self.discourse.resolve_it(sentence.span).is_ok()
+            {
+                return Ok(IntentVerdict::Exec);
+            }
+            return Ok(base);
+        }
+        if first == "its" {
+            return Ok(IntentVerdict::Exec);
+        }
+        if first == "the"
+            && tokens
+                .get(1)
+                .is_some_and(|token| token.is_word() && self.is_declared_type(&token.lower))
+        {
+            return Ok(IntentVerdict::Exec);
+        }
+        if base.is_unsupported() || self.contains_anaphor_tokens(&tokens) {
+            let resolved = self.resolve_anaphors(text, sentence.span)?;
+            let resolved_sentence = RawSentence {
+                text: resolved.clone(),
+                raw: String::new(),
+                span: sentence.span,
+                fillers: Vec::new(),
+            };
+            let resolved_clause = analyze_clause(self.parser, &resolved_sentence);
+            let verdict = classify(&resolved, &resolved_clause, None);
+            if verdict.is_exec() {
+                return Ok(IntentVerdict::Exec);
+            }
+        }
+        let _ = clause;
+        Ok(base)
+    }
+
     fn next_temp(&mut self, label: &str) -> String {
         self.temp_counter += 1;
         format!("__{label}_{}", self.temp_counter)
     }
 
-    fn lower_repeat_count(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+    fn lower_repeat_count(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         let rest = strip_leading_word(text, "repeat");
         let count_text = if let Some((start, _)) = find_top_level_word(rest, "times") {
             rest[..start].trim()
@@ -1191,7 +1796,29 @@ impl<'a> Lowerer<'a> {
         self.parse_expr(count_text, span)
     }
 
-    fn lower_condition(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+    fn is_integer_type(ty: &AstType) -> bool {
+        matches!(
+            ty,
+            AstType::I8
+                | AstType::I16
+                | AstType::I32
+                | AstType::I64
+                | AstType::U8
+                | AstType::U16
+                | AstType::U32
+                | AstType::U64
+        )
+    }
+
+    fn constant_i64(expr: &AstExpr) -> Option<i64> {
+        match expr {
+            AstExpr::ConstInt(value, _) => Some(*value),
+            AstExpr::ConstUint(value, _) => i64::try_from(*value).ok(),
+            _ => None,
+        }
+    }
+
+    fn lower_condition(&mut self, text: &str, span: Span) -> Result<LoweredCond, SemanticError> {
         let (condition, where_clause) = split_where(text);
         if where_clause.is_some() {
             return Err(self.error(
@@ -1203,11 +1830,499 @@ impl<'a> Lowerer<'a> {
         let condition = condition
             .strip_prefix(',')
             .map_or(condition.as_str(), str::trim);
-        self.parse_expr(condition, span)
+        let parsed = parse_condition(condition)
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+        self.lower_cond_ast(&parsed, span)
+    }
+
+    fn lower_cond_ast(&mut self, node: &CondAst, span: Span) -> Result<LoweredCond, SemanticError> {
+        match node {
+            CondAst::Atom(text) => {
+                let resolved = self.resolve_anaphors(text, span)?;
+                let expr = self.parse_expr_raw(&resolved, span)?;
+                let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                Ok(LoweredCond {
+                    prelude: Vec::new(),
+                    expr,
+                    paraphrase,
+                })
+            }
+            CondAst::Not(inner) => {
+                let inner = self.lower_cond_ast(inner, span)?;
+                Ok(LoweredCond {
+                    prelude: inner.prelude,
+                    expr: AstExpr::Unary {
+                        op: tc_ir::UnOp::LogNot,
+                        val: Box::new(inner.expr),
+                    },
+                    paraphrase: format!("not {{{}}}", inner.paraphrase),
+                })
+            }
+            CondAst::And(lhs, rhs) => self.lower_cond_pair(lhs, rhs, span, true),
+            CondAst::Or(lhs, rhs) => self.lower_cond_pair(lhs, rhs, span, false),
+            CondAst::Quantifier(spec) => self.lower_local_quantifier(spec, span),
+        }
+    }
+
+    fn lower_cond_pair(
+        &mut self,
+        lhs: &CondAst,
+        rhs: &CondAst,
+        span: Span,
+        conjunction: bool,
+    ) -> Result<LoweredCond, SemanticError> {
+        let lhs = self.lower_cond_ast(lhs, span)?;
+        let rhs = self.lower_cond_ast(rhs, span)?;
+        let operator = if conjunction { "and" } else { "or" };
+        let paraphrase = format!(
+            "{{{0} {operator} {1}}}",
+            render_cond_child_text(&lhs.paraphrase),
+            render_cond_child_text(&rhs.paraphrase)
+        );
+        if rhs.prelude.is_empty() {
+            return Ok(LoweredCond {
+                prelude: lhs.prelude,
+                expr: AstExpr::Binary {
+                    op: if conjunction {
+                        tc_ir::BinOp::LogAnd
+                    } else {
+                        tc_ir::BinOp::LogOr
+                    },
+                    lhs: Box::new(lhs.expr),
+                    rhs: Box::new(rhs.expr),
+                },
+                paraphrase,
+            });
+        }
+        // Preserve short-circuiting: the right quantifier prelude only runs
+        // when the left operand does not already decide the result.
+        let temp = self.next_temp("sc");
+        self.declare_temp(&temp, AstType::Bool);
+        let mut prelude = lhs.prelude;
+        prelude.push(AstStmt::Let {
+            name: temp.clone(),
+            ty: Some(AstType::Bool),
+            init: AstExpr::ConstBool(!conjunction),
+            span: self.span(span),
+        });
+        let mut then_body = rhs.prelude;
+        then_body.push(AstStmt::Assign {
+            name: temp.clone(),
+            val: rhs.expr,
+            span: self.span(span),
+        });
+        let condition = if conjunction {
+            lhs.expr
+        } else {
+            AstExpr::Unary {
+                op: tc_ir::UnOp::LogNot,
+                val: Box::new(lhs.expr),
+            }
+        };
+        prelude.push(AstStmt::If {
+            cond: condition,
+            then_body,
+            else_body: Vec::new(),
+            span: self.span(span),
+        });
+        Ok(LoweredCond {
+            prelude,
+            expr: AstExpr::Var(temp),
+            paraphrase,
+        })
+    }
+
+    fn lower_local_quantifier(
+        &mut self,
+        spec: &LocalQuantSpec,
+        span: Span,
+    ) -> Result<LoweredCond, SemanticError> {
+        match &spec.domain {
+            QuantDomainSpec::Range { start, end, step } => {
+                self.lower_local_range(spec, start, end, step.as_deref(), span)
+            }
+            QuantDomainSpec::Array { arr } => self.lower_local_array(spec, arr, span),
+        }
+    }
+
+    fn lower_local_range(
+        &mut self,
+        spec: &LocalQuantSpec,
+        start_text: &str,
+        end_text: &str,
+        step_text: Option<&str>,
+        span: Span,
+    ) -> Result<LoweredCond, SemanticError> {
+        let start = self.parse_expr(start_text, span)?;
+        let end = self.parse_expr(end_text, span)?;
+        let step = if let Some(text) = step_text {
+            self.parse_expr(text, span)?
+        } else {
+            AstExpr::ConstInt(1, None)
+        };
+        let start_ty = self.shallow_type(&start);
+        if !Self::is_integer_type(&start_ty) {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "range quantifier bounds must be integers",
+            ));
+        }
+        if Self::constant_i64(&step) == Some(0) {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "quantifier step cannot be 0",
+            ));
+        }
+        let res = self.next_temp("q_res");
+        let cur = self.next_temp("q_cur");
+        let end_temp = self.next_temp("q_end");
+        let step_temp = self.next_temp("q_step");
+        let first = self.next_temp("q_first");
+        self.declare_temp(&res, AstType::Bool);
+        self.declare_temp(&cur, start_ty.clone());
+        self.declare_temp(&end_temp, start_ty.clone());
+        self.declare_temp(&step_temp, start_ty.clone());
+        self.declare_temp(&first, AstType::Bool);
+        let mut prelude = vec![
+            AstStmt::Let {
+                name: res.clone(),
+                ty: Some(AstType::Bool),
+                init: AstExpr::ConstBool(matches!(
+                    spec.kind,
+                    LocalQuantKind::Every | LocalQuantKind::No
+                )),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: cur.clone(),
+                ty: Some(start_ty.clone()),
+                init: start,
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: end_temp.clone(),
+                ty: Some(start_ty.clone()),
+                init: end,
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: step_temp.clone(),
+                ty: Some(start_ty.clone()),
+                init: step.clone(),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: first.clone(),
+                ty: Some(AstType::Bool),
+                init: AstExpr::ConstBool(true),
+                span: self.span(span),
+            },
+        ];
+        if Self::constant_i64(&step).is_none() {
+            prelude.push(AstStmt::If {
+                cond: AstExpr::Binary {
+                    op: tc_ir::BinOp::Eq,
+                    lhs: Box::new(AstExpr::Var(step_temp.clone())),
+                    rhs: Box::new(AstExpr::ConstInt(0, None)),
+                },
+                then_body: vec![AstStmt::Trap(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            });
+        }
+        self.push_scope(ScopeKind::QuantifierBody);
+        self.declare(&spec.var, start_ty.clone());
+        self.introduce_name(&spec.var, &start_ty, span);
+        let predicate_text = match &spec.pred {
+            PredSpec::Implicit(text) => format!("{} {text}", spec.var),
+            PredSpec::Explicit(text) => text.clone(),
+        };
+        let parsed_predicate = parse_condition(&predicate_text)
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message));
+        let predicate = match parsed_predicate {
+            Ok(value) => self.lower_cond_ast(&value, span),
+            Err(error) => {
+                self.pop_scope();
+                return Err(error);
+            }
+        };
+        self.pop_scope();
+        let predicate = predicate?;
+        let termination = Self::range_termination(&cur, &end_temp, &step_temp, &step);
+        let mut loop_body = vec![
+            AstStmt::If {
+                cond: AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(AstExpr::Var(first.clone())),
+                },
+                then_body: vec![AstStmt::Assign {
+                    name: cur.clone(),
+                    val: AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(AstExpr::Var(cur.clone())),
+                        rhs: Box::new(AstExpr::Var(step_temp.clone())),
+                    },
+                    span: self.span(span),
+                }],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: first,
+                val: AstExpr::ConstBool(false),
+                span: self.span(span),
+            },
+            AstStmt::If {
+                cond: termination,
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: spec.var.clone(),
+                ty: Some(start_ty),
+                init: AstExpr::Var(cur),
+                span: self.span(span),
+            },
+        ];
+        loop_body.extend(predicate.prelude);
+        let (check, result) = match spec.kind {
+            LocalQuantKind::Every => (
+                AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(predicate.expr),
+                },
+                false,
+            ),
+            LocalQuantKind::Some => (predicate.expr, true),
+            LocalQuantKind::No => (predicate.expr, false),
+        };
+        loop_body.push(AstStmt::If {
+            cond: check,
+            then_body: vec![
+                AstStmt::Assign {
+                    name: res.clone(),
+                    val: AstExpr::ConstBool(result),
+                    span: self.span(span),
+                },
+                AstStmt::Break(self.span(span)),
+            ],
+            else_body: Vec::new(),
+            span: self.span(span),
+        });
+        prelude.push(AstStmt::Loop {
+            body: loop_body,
+            span: self.span(span),
+        });
+        Ok(LoweredCond {
+            prelude,
+            expr: AstExpr::Var(res),
+            paraphrase: spec.display.clone(),
+        })
+    }
+
+    fn range_termination(cur: &str, end: &str, step: &str, step_expr: &AstExpr) -> AstExpr {
+        match Self::constant_i64(step_expr) {
+            Some(value) if value > 0 => AstExpr::Binary {
+                op: tc_ir::BinOp::Gt,
+                lhs: Box::new(AstExpr::Var(cur.to_string())),
+                rhs: Box::new(AstExpr::Var(end.to_string())),
+            },
+            Some(_) => AstExpr::Binary {
+                op: tc_ir::BinOp::Lt,
+                lhs: Box::new(AstExpr::Var(cur.to_string())),
+                rhs: Box::new(AstExpr::Var(end.to_string())),
+            },
+            None => AstExpr::Binary {
+                op: tc_ir::BinOp::LogOr,
+                lhs: Box::new(AstExpr::Binary {
+                    op: tc_ir::BinOp::LogAnd,
+                    lhs: Box::new(AstExpr::Binary {
+                        op: tc_ir::BinOp::Gt,
+                        lhs: Box::new(AstExpr::Var(step.to_string())),
+                        rhs: Box::new(AstExpr::ConstInt(0, None)),
+                    }),
+                    rhs: Box::new(AstExpr::Binary {
+                        op: tc_ir::BinOp::Gt,
+                        lhs: Box::new(AstExpr::Var(cur.to_string())),
+                        rhs: Box::new(AstExpr::Var(end.to_string())),
+                    }),
+                }),
+                rhs: Box::new(AstExpr::Binary {
+                    op: tc_ir::BinOp::LogAnd,
+                    lhs: Box::new(AstExpr::Binary {
+                        op: tc_ir::BinOp::Lt,
+                        lhs: Box::new(AstExpr::Var(step.to_string())),
+                        rhs: Box::new(AstExpr::ConstInt(0, None)),
+                    }),
+                    rhs: Box::new(AstExpr::Binary {
+                        op: tc_ir::BinOp::Lt,
+                        lhs: Box::new(AstExpr::Var(cur.to_string())),
+                        rhs: Box::new(AstExpr::Var(end.to_string())),
+                    }),
+                }),
+            },
+        }
+    }
+
+    fn lower_local_array(
+        &mut self,
+        spec: &LocalQuantSpec,
+        arr: &str,
+        span: Span,
+    ) -> Result<LoweredCond, SemanticError> {
+        let Some(ty) = self.lookup(arr).cloned() else {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                format!("quantifier array `{arr}` is not in scope"),
+            ));
+        };
+        let AstType::Array(element, len) = ty else {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                format!("quantifier domain `{arr}` is not a fixed-size array"),
+            ));
+        };
+        let res = self.next_temp("q_res");
+        let idx = self.next_temp("q_idx");
+        let first = self.next_temp("q_first");
+        self.declare_temp(&res, AstType::Bool);
+        self.declare_temp(&idx, AstType::I64);
+        self.declare_temp(&first, AstType::Bool);
+        let base = if self.globals.contains_key(arr)
+            && !self.scopes.iter().any(|scope| scope.vars.contains_key(arr))
+        {
+            AstExpr::GlobalAddr {
+                module: None,
+                name: arr.to_string(),
+            }
+        } else {
+            AstExpr::AddrOfVar(arr.to_string())
+        };
+        let mut prelude = vec![
+            AstStmt::Let {
+                name: res.clone(),
+                ty: Some(AstType::Bool),
+                init: AstExpr::ConstBool(matches!(
+                    spec.kind,
+                    LocalQuantKind::Every | LocalQuantKind::No
+                )),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: idx.clone(),
+                ty: Some(AstType::I64),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: first.clone(),
+                ty: Some(AstType::Bool),
+                init: AstExpr::ConstBool(true),
+                span: self.span(span),
+            },
+        ];
+        self.push_scope(ScopeKind::QuantifierBody);
+        self.declare(&spec.var, (*element).clone());
+        self.introduce_name(&spec.var, &element, span);
+        let predicate_text = match &spec.pred {
+            PredSpec::Implicit(text) => format!("{} {text}", spec.var),
+            PredSpec::Explicit(text) => text.clone(),
+        };
+        let predicate = match parse_condition(&predicate_text) {
+            Ok(value) => self.lower_cond_ast(&value, span),
+            Err(message) => Err(self.error(span, SemanticErrorKind::Lowering, message)),
+        };
+        self.pop_scope();
+        let predicate = predicate?;
+        let mut loop_body = vec![
+            AstStmt::If {
+                cond: AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(AstExpr::Var(first.clone())),
+                },
+                then_body: vec![AstStmt::Assign {
+                    name: idx.clone(),
+                    val: AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(AstExpr::Var(idx.clone())),
+                        rhs: Box::new(AstExpr::ConstInt(1, None)),
+                    },
+                    span: self.span(span),
+                }],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: first,
+                val: AstExpr::ConstBool(false),
+                span: self.span(span),
+            },
+            AstStmt::If {
+                cond: AstExpr::Binary {
+                    op: tc_ir::BinOp::Ge,
+                    lhs: Box::new(AstExpr::Var(idx.clone())),
+                    rhs: Box::new(AstExpr::ConstInt(
+                        i64::try_from(len).unwrap_or(i64::MAX),
+                        None,
+                    )),
+                },
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: spec.var.clone(),
+                ty: Some((*element).clone()),
+                init: AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                    base_ptr: Box::new(base),
+                    index: Box::new(AstExpr::Var(idx)),
+                })),
+                span: self.span(span),
+            },
+        ];
+        loop_body.extend(predicate.prelude);
+        let (check, result) = match spec.kind {
+            LocalQuantKind::Every => (
+                AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(predicate.expr),
+                },
+                false,
+            ),
+            LocalQuantKind::Some => (predicate.expr, true),
+            LocalQuantKind::No => (predicate.expr, false),
+        };
+        loop_body.push(AstStmt::If {
+            cond: check,
+            then_body: vec![
+                AstStmt::Assign {
+                    name: res.clone(),
+                    val: AstExpr::ConstBool(result),
+                    span: self.span(span),
+                },
+                AstStmt::Break(self.span(span)),
+            ],
+            else_body: Vec::new(),
+            span: self.span(span),
+        });
+        prelude.push(AstStmt::Loop {
+            body: loop_body,
+            span: self.span(span),
+        });
+        Ok(LoweredCond {
+            prelude,
+            expr: AstExpr::Var(res),
+            paraphrase: spec.display.clone(),
+        })
     }
 
     fn lower_phrase_call(
-        &self,
+        &mut self,
         phrase: &PhraseMatch,
         span: Span,
     ) -> Result<AstStmt, SemanticError> {
@@ -1233,10 +2348,71 @@ impl<'a> Lowerer<'a> {
         }
         let (core, where_clause) = split_where(&sentence.text);
         if let Some(bindings) = where_clause {
+            self.push_scope(ScopeKind::WhereClause);
             let mut block = self.lower_where_bindings(&bindings, sentence.span)?;
-            let inner = self.lower_core(&core, sentence.span, then_items, else_items, depth + 1)?;
-            block.extend(inner);
-            return Ok(vec![AstStmt::Block(block, self.span(sentence.span))]);
+            let existing_vars = self
+                .scopes
+                .last()
+                .map(|scope| scope.vars.keys().cloned().collect::<HashSet<_>>())
+                .unwrap_or_default();
+            let referent_checkpoint = self.discourse.current_referent_count();
+            let inner = self.lower_core(&core, sentence.span, then_items, else_items, depth + 1);
+            let mut moved_vars = Vec::new();
+            if let Some(scope) = self.scopes.last_mut() {
+                let declared = scope
+                    .vars
+                    .keys()
+                    .filter(|name| !existing_vars.contains(*name))
+                    .cloned()
+                    .collect::<Vec<_>>();
+                for name in declared {
+                    if let Some(ty) = scope.vars.remove(&name) {
+                        moved_vars.push((name, ty));
+                    }
+                }
+            }
+            let moved_referents = self.discourse.take_referents_since(referent_checkpoint);
+            let transformed = inner.map(|mut statements| {
+                let mut outer = Vec::new();
+                for statement in &mut statements {
+                    if let AstStmt::Let {
+                        name,
+                        ty,
+                        init,
+                        span,
+                    } = statement.clone()
+                    {
+                        if existing_vars.contains(&name) {
+                            continue;
+                        }
+                        let declared = ty.unwrap_or_else(|| self.shallow_type(&init));
+                        *statement = AstStmt::Assign {
+                            name: name.clone(),
+                            val: init,
+                            span: span.clone(),
+                        };
+                        outer.push(AstStmt::Let {
+                            name,
+                            ty: Some(declared.clone()),
+                            init: AstExpr::Zero(declared),
+                            span,
+                        });
+                    }
+                }
+                (outer, statements)
+            });
+            self.pop_scope();
+            if let Some(parent) = self.scopes.last_mut() {
+                for (name, ty) in moved_vars {
+                    parent.vars.insert(name, ty);
+                }
+            }
+            self.discourse.append_referents(moved_referents);
+            let (outer, mut inner) = transformed?;
+            block.append(&mut inner);
+            let mut all = outer;
+            all.push(AstStmt::Block(block, self.span(sentence.span)));
+            return Ok(all);
         }
         self.lower_core(&core, sentence.span, then_items, else_items, depth + 1)
     }
@@ -1269,7 +2445,8 @@ impl<'a> Lowerer<'a> {
             let value_text = binding[end..].trim();
             let value = self.parse_expr(value_text, span)?;
             let ty = self.shallow_type(&value);
-            self.declare(&name, ty);
+            self.declare(&name, ty.clone());
+            self.introduce_name(&name, &ty, span);
             statements.push(AstStmt::Let {
                 name,
                 ty: None,
@@ -1288,17 +2465,39 @@ impl<'a> Lowerer<'a> {
         else_items: Option<&[RawItem]>,
         depth: usize,
     ) -> Result<Vec<AstStmt>, SemanticError> {
-        let trimmed = text.trim().trim_end_matches(['.', ',']).trim();
-        if trimmed.is_empty() {
+        let original = text.trim().trim_end_matches(['.', ',']).trim();
+        if original.is_empty() {
             return Ok(Vec::new());
         }
+        let original_lower = original.to_ascii_lowercase();
+        if original_lower == "end" {
+            return Ok(Vec::new());
+        }
+        if starts_with_word(&original_lower, "for") {
+            let global = parse_global_quantifier(original)
+                .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+            if let Some(global) = global {
+                return self.lower_global_quantifier(global, then_items, span, depth);
+            }
+        }
+        let control_scope = starts_with_word(&original_lower, "if")
+            || starts_with_word(&original_lower, "unless")
+            || starts_with_word(&original_lower, "while")
+            || starts_with_word(&original_lower, "repeat")
+            || starts_with_word(&original_lower, "loop");
+        let resolved_text = if control_scope {
+            original.to_string()
+        } else {
+            self.resolve_anaphors(original, span)?
+        };
+        let trimmed = resolved_text.as_str();
         let lower = trimmed.to_ascii_lowercase();
+        self.set_canonical(crate::paraphrase::canonicalize_statement(trimmed));
         if lower == "end" {
             return Ok(Vec::new());
         }
         if starts_with_word(&lower, "return") {
-            let rest = strip_leading_word(trimmed, "return");
-            let rest = rest.trim();
+            let rest = strip_leading_word(trimmed, "return").trim();
             let value = if rest.is_empty() {
                 None
             } else {
@@ -1320,6 +2519,15 @@ impl<'a> Lowerer<'a> {
                 return Ok(statements);
             }
         }
+        let first_word_lower = first_word(&lower);
+        if classify_verb(&first_word_lower, None)
+            .is_some_and(|resolution| resolution.predicate == Some(VerbPredicate::Create))
+            && self.is_create_declaration(&tokenize(trimmed))
+        {
+            if let Some(statements) = self.try_create_declaration(trimmed, span)? {
+                return Ok(statements);
+            }
+        }
         if starts_with_word(&lower, "syscall") {
             if let Some(statement) = self.try_syscall_with(trimmed, span)? {
                 return Ok(vec![statement]);
@@ -1331,91 +2539,215 @@ impl<'a> Lowerer<'a> {
             }
         }
         if starts_with_word(&lower, "if") {
+            let rest = strip_leading_word(trimmed, "if");
+            let (condition_text, body_text) = split_header_condition(rest);
             if let Some(items) = then_items {
-                let condition = self.lower_condition(strip_leading_word(trimmed, "if"), span)?;
-                self.push_scope();
+                self.push_scope(ScopeKind::IfCondition);
+                let condition = match self.lower_condition(&condition_text, span) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        self.pop_scope();
+                        return Err(error);
+                    }
+                };
+                self.set_canonical(format!("If {}, then:", condition.paraphrase));
+                self.push_scope(ScopeKind::IfThen);
                 let then_body = self.lower_items(items, depth + 1);
+                self.pop_scope();
                 self.pop_scope();
                 let then_body = then_body?;
                 let else_body = if let Some(items) = else_items {
-                    self.push_scope();
+                    self.push_scope(ScopeKind::IfElse);
                     let body = self.lower_items(items, depth + 1);
                     self.pop_scope();
                     body?
                 } else {
                     Vec::new()
                 };
-                return Ok(vec![AstStmt::If {
-                    cond: condition,
+                let mut statements = condition.prelude;
+                statements.push(AstStmt::If {
+                    cond: condition.expr,
                     then_body,
                     else_body,
                     span: self.span(span),
-                }]);
+                });
+                return Ok(statements);
             }
-            return self.lower_inline_if(trimmed, span, depth);
+            let mut then_text = body_text;
+            let mut else_text = None;
+            for marker in ["otherwise", "else"] {
+                if let Some((start, end)) = find_top_level_word(&then_text, marker) {
+                    let before = then_text[..start].trim().to_string();
+                    let after = then_text[end..].trim().to_string();
+                    if !after.is_empty() && !before.is_empty() {
+                        then_text = before;
+                        else_text = Some(after);
+                        break;
+                    }
+                }
+            }
+            if then_text.is_empty() {
+                return Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    "`If` requires a then branch after the condition",
+                ));
+            }
+            self.push_scope(ScopeKind::IfCondition);
+            let condition = match self.lower_condition(&condition_text, span) {
+                Ok(value) => value,
+                Err(error) => {
+                    self.pop_scope();
+                    return Err(error);
+                }
+            };
+            self.push_scope(ScopeKind::IfThen);
+            let then_result = self.lower_actions_capturing(&then_text, span, depth);
+            self.pop_scope();
+            self.pop_scope();
+            let (then_body, then_lines) = then_result?;
+            let (else_body, else_lines) = if let Some(actions) = else_text {
+                self.push_scope(ScopeKind::IfElse);
+                let result = self.lower_actions_capturing(&actions, span, depth);
+                self.pop_scope();
+                result?
+            } else {
+                (Vec::new(), Vec::new())
+            };
+            let mut canonical = format!("If {}, then:", condition.paraphrase);
+            for line in then_lines {
+                canonical.push_str("\n       ");
+                canonical.push_str(&line);
+            }
+            if !else_lines.is_empty() {
+                canonical.push_str("\n   otherwise:");
+                for line in else_lines {
+                    canonical.push_str("\n       ");
+                    canonical.push_str(&line);
+                }
+            }
+            self.set_canonical(canonical);
+            let mut statements = condition.prelude;
+            statements.push(AstStmt::If {
+                cond: condition.expr,
+                then_body,
+                else_body,
+                span: self.span(span),
+            });
+            return Ok(statements);
         }
         if starts_with_word(&lower, "unless") {
+            let rest = strip_leading_word(trimmed, "unless");
+            let (condition_text, body_text) = split_header_condition(rest);
             if let Some(items) = then_items {
-                let condition =
-                    self.lower_condition(strip_leading_word(trimmed, "unless"), span)?;
-                self.push_scope();
+                self.push_scope(ScopeKind::IfCondition);
+                let condition = match self.lower_condition(&condition_text, span) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        self.pop_scope();
+                        return Err(error);
+                    }
+                };
+                self.set_canonical(format!("Unless {}:", condition.paraphrase));
+                self.push_scope(ScopeKind::IfThen);
                 let body = self.lower_items(items, depth + 1);
                 self.pop_scope();
-                return Ok(vec![AstStmt::If {
+                self.pop_scope();
+                let mut statements = condition.prelude;
+                statements.push(AstStmt::If {
                     cond: AstExpr::Unary {
                         op: tc_ir::UnOp::LogNot,
-                        val: Box::new(condition),
+                        val: Box::new(condition.expr),
                     },
                     then_body: body?,
                     else_body: Vec::new(),
                     span: self.span(span),
-                }]);
+                });
+                return Ok(statements);
             }
-            let (condition, actions) =
-                self.split_condition_actions(strip_leading_word(trimmed, "unless"), span)?;
-            let cond = AstExpr::Unary {
-                op: tc_ir::UnOp::LogNot,
-                val: Box::new(self.parse_expr(&condition, span)?),
+            if body_text.is_empty() {
+                return Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    "`Unless` requires a body after the condition",
+                ));
+            }
+            self.push_scope(ScopeKind::IfCondition);
+            let condition = match self.lower_condition(&condition_text, span) {
+                Ok(value) => value,
+                Err(error) => {
+                    self.pop_scope();
+                    return Err(error);
+                }
             };
-            self.push_scope();
-            let body = self.lower_actions(&actions, span, depth);
+            self.push_scope(ScopeKind::IfThen);
+            let body_result = self.lower_actions_capturing(&body_text, span, depth);
             self.pop_scope();
-            return Ok(vec![AstStmt::If {
-                cond,
-                then_body: body?,
-                else_body: Vec::new(),
-                span: self.span(span),
-            }]);
-        }
-        if starts_with_word(&lower, "while") {
-            let (cond, body) = if let Some(items) = then_items {
-                let cond = self.lower_condition(strip_leading_word(trimmed, "while"), span)?;
-                self.loop_depth += 1;
-                self.push_scope();
-                let body = self.lower_items(items, depth + 1);
-                self.pop_scope();
-                self.loop_depth -= 1;
-                (cond, body?)
-            } else {
-                let (condition, actions) =
-                    self.split_condition_actions(strip_leading_word(trimmed, "while"), span)?;
-                let cond = self.parse_expr(&condition, span)?;
-                self.loop_depth += 1;
-                self.push_scope();
-                let body = self.lower_actions(&actions, span, depth);
-                self.pop_scope();
-                self.loop_depth -= 1;
-                (cond, body?)
-            };
-            let mut loop_body = vec![AstStmt::If {
+            self.pop_scope();
+            let (body, body_lines) = body_result?;
+            let mut canonical = format!("Unless {}:", condition.paraphrase);
+            for line in body_lines {
+                canonical.push_str("\n       ");
+                canonical.push_str(&line);
+            }
+            self.set_canonical(canonical);
+            let mut statements = condition.prelude;
+            statements.push(AstStmt::If {
                 cond: AstExpr::Unary {
                     op: tc_ir::UnOp::LogNot,
-                    val: Box::new(cond),
+                    val: Box::new(condition.expr),
+                },
+                then_body: body,
+                else_body: Vec::new(),
+                span: self.span(span),
+            });
+            return Ok(statements);
+        }
+        if starts_with_word(&lower, "while") {
+            let rest = strip_leading_word(trimmed, "while");
+            let (condition_text, body_text) = split_header_condition(rest);
+            self.push_scope(ScopeKind::IfCondition);
+            let condition = match self.lower_condition(&condition_text, span) {
+                Ok(value) => value,
+                Err(error) => {
+                    self.pop_scope();
+                    return Err(error);
+                }
+            };
+            self.pop_scope();
+            self.loop_depth += 1;
+            self.push_scope(ScopeKind::LoopBody);
+            let body_result = if let Some(items) = then_items {
+                self.lower_items(items, depth + 1)
+                    .map(|body| (body, Vec::new()))
+            } else if body_text.is_empty() {
+                Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    "`While` requires a body after the condition",
+                ))
+            } else {
+                self.lower_actions_capturing(&body_text, span, depth)
+            };
+            self.pop_scope();
+            self.loop_depth -= 1;
+            let (body, body_lines) = body_result?;
+            let mut canonical = format!("While {}, do:", condition.paraphrase);
+            for line in body_lines {
+                canonical.push_str("\n       ");
+                canonical.push_str(&line);
+            }
+            self.set_canonical(canonical);
+            let mut loop_body = condition.prelude;
+            loop_body.push(AstStmt::If {
+                cond: AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(condition.expr),
                 },
                 then_body: vec![AstStmt::Break(self.span(span))],
                 else_body: Vec::new(),
                 span: self.span(span),
-            }];
+            });
             loop_body.extend(body);
             return Ok(vec![AstStmt::Loop {
                 body: loop_body,
@@ -1443,7 +2775,7 @@ impl<'a> Lowerer<'a> {
             };
             let counter = self.next_temp("repeat");
             let counter_ty = self.shallow_type(&count);
-            self.declare(&counter, counter_ty);
+            self.declare_temp(&counter, counter_ty);
             let mut loop_body = vec![AstStmt::If {
                 cond: AstExpr::Unary {
                     op: tc_ir::UnOp::LogNot,
@@ -1458,15 +2790,27 @@ impl<'a> Lowerer<'a> {
                 span: self.span(span),
             }];
             self.loop_depth += 1;
-            self.push_scope();
-            let body = if let Some(items) = then_items {
+            self.push_scope(ScopeKind::LoopBody);
+            let body_result = if let Some(items) = then_items {
                 self.lower_items(items, depth + 1)
+                    .map(|body| (body, Vec::new()))
             } else {
-                self.lower_actions(&inline.expect("inline repeat").1, span, depth)
+                self.lower_actions_capturing(
+                    &inline.as_ref().expect("inline repeat").1,
+                    span,
+                    depth,
+                )
             };
             self.pop_scope();
             self.loop_depth -= 1;
-            loop_body.extend(body?);
+            let (body, body_lines) = body_result?;
+            let mut canonical = format!("Repeat {} times:", render_expr(&count));
+            for line in body_lines {
+                canonical.push_str("\n       ");
+                canonical.push_str(&line);
+            }
+            self.set_canonical(canonical);
+            loop_body.extend(body);
             loop_body.push(AstStmt::Assign {
                 name: counter.clone(),
                 val: AstExpr::Binary {
@@ -1495,7 +2839,7 @@ impl<'a> Lowerer<'a> {
         if starts_with_word(&lower, "loop") {
             let body = if let Some(items) = then_items {
                 self.loop_depth += 1;
-                self.push_scope();
+                self.push_scope(ScopeKind::LoopBody);
                 let body = self.lower_items(items, depth + 1);
                 self.pop_scope();
                 self.loop_depth -= 1;
@@ -1503,6 +2847,7 @@ impl<'a> Lowerer<'a> {
             } else {
                 Vec::new()
             };
+            self.set_canonical("Loop forever:".to_string());
             return Ok(vec![AstStmt::Loop {
                 body,
                 span: self.span(span),
@@ -1515,6 +2860,9 @@ impl<'a> Lowerer<'a> {
                 "`Else`/`Otherwise` must follow an `If` block",
             ));
         }
+        if let Some(statements) = self.try_discourse_mutation(trimmed, span)? {
+            return Ok(statements);
+        }
         if let Some(statement) = self.try_assignment(trimmed, span)? {
             return Ok(statement);
         }
@@ -1525,7 +2873,387 @@ impl<'a> Lowerer<'a> {
         Ok(vec![AstStmt::Expr(value, self.span(span))])
     }
 
-    fn try_memcopy(&self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
+    fn parse_create_type(&self, text: &str) -> Option<AstType> {
+        let trimmed = text.trim();
+        if let Ok(ty) = parse_type_text(trimmed) {
+            return Some(ty);
+        }
+        let (start, end) = find_top_level_word(trimmed, "of")?;
+        let base = trimmed[..start].trim();
+        let mut arguments = Vec::new();
+        for comma in split_type_list(trimmed[end..].trim(), ",") {
+            arguments.extend(split_type_list(&comma, "and"));
+        }
+        if base.is_empty() || arguments.is_empty() {
+            return None;
+        }
+        let generic = format!("{base}<{}>", arguments.join(", "));
+        parse_type_text(&generic).ok()
+    }
+
+    fn try_create_declaration(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let tokens = tokenize(text);
+        let words = tokens
+            .iter()
+            .enumerate()
+            .filter(|(_, token)| token.is_word())
+            .collect::<Vec<_>>();
+        if words.len() < 3 {
+            return Ok(None);
+        }
+        let mut index = 1;
+        if words[index].1.is("a") || words[index].1.is("an") {
+            index += 1;
+        }
+        if index >= words.len() {
+            return Ok(None);
+        }
+        let type_start = words[index].1.start;
+        let marker = words
+            .iter()
+            .position(|(_, token)| token.is("called") || token.is("named"));
+        let (type_end, name_index) = if let Some(marker) = marker {
+            if marker + 1 >= words.len() {
+                return Ok(None);
+            }
+            (words[marker].1.start, marker + 1)
+        } else {
+            (words[words.len() - 1].1.start, words.len() - 1)
+        };
+        if name_index >= words.len() || type_start >= type_end {
+            return Ok(None);
+        }
+        let type_text = text[type_start..type_end].trim();
+        let Some(ty) = self.parse_create_type(type_text) else {
+            return Ok(None);
+        };
+        let name_token = words[name_index].1;
+        let name = lower_name(&name_token.text);
+        if !name
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || character == '_')
+        {
+            return Ok(None);
+        }
+        Ok(Some(vec![self.declare_local(&name, ty, span)]))
+    }
+
+    fn try_discourse_mutation(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let tokens = tokenize(text);
+        if tokens.len() < 5 {
+            return Ok(None);
+        }
+        if !tokens[0].is_word() {
+            return Ok(None);
+        }
+        let target = lower_name(&tokens[0].text);
+        if self.lookup(&target).is_none() && !self.globals.contains_key(&target) {
+            return Ok(None);
+        }
+        let (go_verb, up) = if tokens[1].is("goes") || tokens[1].is("go") {
+            if tokens[2].is("up") {
+                (true, true)
+            } else if tokens[2].is("down") {
+                (true, false)
+            } else {
+                (false, false)
+            }
+        } else {
+            (false, false)
+        };
+        if !go_verb || !tokens[3].is("by") {
+            return Ok(None);
+        }
+        let value_text = text[tokens[3].end..].trim();
+        let value = self.parse_expr(value_text, span)?;
+        let operator = if up {
+            tc_ir::BinOp::Add
+        } else {
+            tc_ir::BinOp::Sub
+        };
+        Ok(Some(self.write_arithmetic(&target, operator, value, span)?))
+    }
+
+    fn lower_global_quantifier(
+        &mut self,
+        global: GlobalQuantifier,
+        block_items: Option<&[RawItem]>,
+        span: Span,
+        depth: usize,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        enum Domain {
+            Range {
+                start: AstExpr,
+                end: AstExpr,
+                step: AstExpr,
+                var_ty: AstType,
+                step_constant: Option<i64>,
+            },
+            Array {
+                element: AstType,
+                len: usize,
+                base: AstExpr,
+            },
+        }
+        let domain = match &global.domain {
+            QuantDomainSpec::Range { start, end, step } => {
+                let start = self.parse_expr(start, span)?;
+                let end = self.parse_expr(end, span)?;
+                let step = if let Some(text) = step {
+                    self.parse_expr(text, span)?
+                } else {
+                    AstExpr::ConstInt(1, None)
+                };
+                let var_ty = self.shallow_type(&start);
+                if !Self::is_integer_type(&var_ty) {
+                    return Err(self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        "range quantifier bounds must be integers",
+                    ));
+                }
+                let step_constant = Self::constant_i64(&step);
+                if step_constant == Some(0) {
+                    return Err(self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        "quantifier step cannot be 0",
+                    ));
+                }
+                Domain::Range {
+                    start,
+                    end,
+                    step,
+                    var_ty,
+                    step_constant,
+                }
+            }
+            QuantDomainSpec::Array { arr } => {
+                let Some(ty) = self.lookup(arr).cloned() else {
+                    return Err(self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        format!("quantifier array `{arr}` is not in scope"),
+                    ));
+                };
+                let AstType::Array(element, len) = ty else {
+                    return Err(self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        format!("quantifier domain `{arr}` is not a fixed-size array"),
+                    ));
+                };
+                let base = if self.globals.contains_key(arr)
+                    && !self.scopes.iter().any(|scope| scope.vars.contains_key(arr))
+                {
+                    AstExpr::GlobalAddr {
+                        module: None,
+                        name: arr.clone(),
+                    }
+                } else {
+                    AstExpr::AddrOfVar(arr.clone())
+                };
+                Domain::Array {
+                    element: *element,
+                    len,
+                    base,
+                }
+            }
+        };
+        let var_ty = match &domain {
+            Domain::Range { var_ty, .. } => var_ty.clone(),
+            Domain::Array { element, .. } => element.clone(),
+        };
+        let mut prelude = Vec::new();
+        let (counter, end_temp, step_temp, first) = match &domain {
+            Domain::Range { .. } => (
+                self.next_temp("q_cur"),
+                self.next_temp("q_end"),
+                self.next_temp("q_step"),
+                self.next_temp("q_first"),
+            ),
+            Domain::Array { .. } => (
+                self.next_temp("q_idx"),
+                String::new(),
+                String::new(),
+                self.next_temp("q_first"),
+            ),
+        };
+        match &domain {
+            Domain::Range {
+                start,
+                end,
+                step,
+                var_ty,
+                step_constant,
+            } => {
+                self.declare_temp(&counter, var_ty.clone());
+                self.declare_temp(&end_temp, var_ty.clone());
+                self.declare_temp(&step_temp, var_ty.clone());
+                self.declare_temp(&first, AstType::Bool);
+                prelude.push(AstStmt::Let {
+                    name: counter.clone(),
+                    ty: Some(var_ty.clone()),
+                    init: start.clone(),
+                    span: self.span(span),
+                });
+                prelude.push(AstStmt::Let {
+                    name: end_temp.clone(),
+                    ty: Some(var_ty.clone()),
+                    init: end.clone(),
+                    span: self.span(span),
+                });
+                prelude.push(AstStmt::Let {
+                    name: step_temp.clone(),
+                    ty: Some(var_ty.clone()),
+                    init: step.clone(),
+                    span: self.span(span),
+                });
+                prelude.push(AstStmt::Let {
+                    name: first.clone(),
+                    ty: Some(AstType::Bool),
+                    init: AstExpr::ConstBool(true),
+                    span: self.span(span),
+                });
+                if step_constant.is_none() {
+                    prelude.push(AstStmt::If {
+                        cond: AstExpr::Binary {
+                            op: tc_ir::BinOp::Eq,
+                            lhs: Box::new(AstExpr::Var(step_temp.clone())),
+                            rhs: Box::new(AstExpr::ConstInt(0, None)),
+                        },
+                        then_body: vec![AstStmt::Trap(self.span(span))],
+                        else_body: Vec::new(),
+                        span: self.span(span),
+                    });
+                }
+            }
+            Domain::Array { len, .. } => {
+                self.declare_temp(&counter, AstType::I64);
+                self.declare_temp(&first, AstType::Bool);
+                prelude.push(AstStmt::Let {
+                    name: counter.clone(),
+                    ty: Some(AstType::I64),
+                    init: AstExpr::ConstInt(0, None),
+                    span: self.span(span),
+                });
+                prelude.push(AstStmt::Let {
+                    name: first.clone(),
+                    ty: Some(AstType::Bool),
+                    init: AstExpr::ConstBool(true),
+                    span: self.span(span),
+                });
+                let _ = len;
+            }
+        }
+        let termination = match &domain {
+            Domain::Range { step, .. } => {
+                Self::range_termination(&counter, &end_temp, &step_temp, step)
+            }
+            Domain::Array { len, .. } => AstExpr::Binary {
+                op: tc_ir::BinOp::Ge,
+                lhs: Box::new(AstExpr::Var(counter.clone())),
+                rhs: Box::new(AstExpr::ConstInt(
+                    i64::try_from(*len).unwrap_or(i64::MAX),
+                    None,
+                )),
+            },
+        };
+        let mut loop_body = vec![
+            AstStmt::If {
+                cond: AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(AstExpr::Var(first.clone())),
+                },
+                then_body: vec![AstStmt::Assign {
+                    name: counter.clone(),
+                    val: match &domain {
+                        Domain::Range { .. } => AstExpr::Binary {
+                            op: tc_ir::BinOp::Add,
+                            lhs: Box::new(AstExpr::Var(counter.clone())),
+                            rhs: Box::new(AstExpr::Var(step_temp.clone())),
+                        },
+                        Domain::Array { .. } => AstExpr::Binary {
+                            op: tc_ir::BinOp::Add,
+                            lhs: Box::new(AstExpr::Var(counter.clone())),
+                            rhs: Box::new(AstExpr::ConstInt(1, None)),
+                        },
+                    },
+                    span: self.span(span),
+                }],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: first,
+                val: AstExpr::ConstBool(false),
+                span: self.span(span),
+            },
+            AstStmt::If {
+                cond: termination,
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+        ];
+        let init = match &domain {
+            Domain::Range { .. } => AstExpr::Var(counter.clone()),
+            Domain::Array { base, .. } => AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                base_ptr: Box::new(base.clone()),
+                index: Box::new(AstExpr::Var(counter.clone())),
+            })),
+        };
+        loop_body.push(AstStmt::Let {
+            name: global.var.clone(),
+            ty: Some(var_ty.clone()),
+            init,
+            span: self.span(span),
+        });
+        self.push_scope(ScopeKind::QuantifierBody);
+        self.declare(&global.var, var_ty.clone());
+        self.introduce_name(&global.var, &var_ty, span);
+        self.loop_depth += 1;
+        let inline_body = global
+            .body
+            .as_deref()
+            .filter(|text| !text.trim().is_empty());
+        let body_result = match (block_items, inline_body) {
+            (Some(items), _) if !items.is_empty() => self
+                .lower_items(items, depth + 1)
+                .map(|body| (body, Vec::new())),
+            (_, Some(text)) => self.lower_actions_capturing(text, span, depth),
+            _ => Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "`For every` requires an inline body or an indented block",
+            )),
+        };
+        self.loop_depth -= 1;
+        self.pop_scope();
+        let (body, body_lines) = body_result?;
+        let mut canonical = format!("{}:", global.display);
+        for line in body_lines {
+            canonical.push_str("\n       ");
+            canonical.push_str(&line);
+        }
+        self.set_canonical(canonical);
+        loop_body.extend(body);
+        prelude.push(AstStmt::Loop {
+            body: loop_body,
+            span: self.span(span),
+        });
+        Ok(vec![AstStmt::Block(prelude, self.span(span))])
+    }
+
+    fn try_memcopy(&mut self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
         let rest = if starts_with_word(text, "memcopy") {
             strip_leading_word(text, "memcopy")
         } else {
@@ -1559,7 +3287,11 @@ impl<'a> Lowerer<'a> {
         }))
     }
 
-    fn try_syscall_with(&self, text: &str, span: Span) -> Result<Option<AstStmt>, SemanticError> {
+    fn try_syscall_with(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<AstStmt>, SemanticError> {
         let rest = strip_leading_word(text, "syscall");
         let Some((start, end)) = find_top_level_word(rest, "with") else {
             return Ok(None);
@@ -1584,89 +3316,64 @@ impl<'a> Lowerer<'a> {
         text: &str,
         span: Span,
     ) -> Result<(String, String), SemanticError> {
-        let text = text.trim();
-        let pieces = split_top_level(text, ",");
-        if pieces.len() >= 2 {
-            return Ok((pieces[0].clone(), pieces[1..].join(", ")));
+        let (condition, action) = split_header_condition(text.trim());
+        if condition.is_empty() || action.is_empty() {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                format!("cannot separate condition from action in `{}`", text.trim()),
+            ));
         }
-        // No comma: find the longest prefix that parses as a condition and
-        // leaves a non-empty action.
-        let tokens = tokenize(text);
-        for split in (1..tokens.len()).rev() {
-            let boundary = tokens[split].start;
-            let condition = text[..boundary].trim();
-            let action = text[boundary..].trim();
-            if condition.is_empty() || action.is_empty() {
-                continue;
-            }
-            if self.parse_expr(condition, span).is_ok() {
-                return Ok((condition.to_string(), action.to_string()));
-            }
-        }
-        Err(self.error(
-            span,
-            SemanticErrorKind::Lowering,
-            format!("cannot separate condition from action in `{text}`"),
-        ))
+        Ok((condition, action))
     }
 
-    fn lower_inline_if(
+    fn lower_actions_capturing(
         &mut self,
         text: &str,
         span: Span,
         depth: usize,
-    ) -> Result<Vec<AstStmt>, SemanticError> {
-        let rest = strip_leading_word(text, "if");
-        let (condition_part, mut remainder) = self.split_condition_actions(rest, span)?;
-        let mut else_actions = None;
-        for marker in ["otherwise", "else"] {
-            if let Some((start, end)) = find_top_level_word(&remainder, marker) {
-                let before = remainder[..start].trim().to_string();
-                let after = remainder[end..].trim().to_string();
-                if !after.is_empty() && !before.is_empty() {
-                    remainder = before;
-                    else_actions = Some(after);
-                    break;
-                }
-            }
-        }
-        let cond = self.parse_expr(&condition_part, span)?;
-        self.push_scope();
-        let then_body = self.lower_actions(&remainder, span, depth)?;
-        self.pop_scope();
-        let else_body = if let Some(actions) = else_actions {
-            self.push_scope();
-            let body = self.lower_actions(&actions, span, depth);
-            self.pop_scope();
-            body?
-        } else {
-            Vec::new()
-        };
-        Ok(vec![AstStmt::If {
-            cond,
-            then_body,
-            else_body,
-            span: self.span(span),
-        }])
-    }
-
-    fn lower_actions(
-        &mut self,
-        text: &str,
-        span: Span,
-        depth: usize,
-    ) -> Result<Vec<AstStmt>, SemanticError> {
+    ) -> Result<(Vec<AstStmt>, Vec<String>), SemanticError> {
+        self.synthetic_depth += 1;
+        self.push_scope(ScopeKind::Block);
         let mut statements = Vec::new();
+        let mut canonical = Vec::new();
+        let mut error = None;
         for action in split_actions(text) {
+            let control = starts_control(&action);
+            let resolved = if control {
+                action
+            } else {
+                match self.resolve_anaphors(&action, span) {
+                    Ok(value) => value,
+                    Err(failure) => {
+                        error = Some(failure);
+                        break;
+                    }
+                }
+            };
             let sentence = RawSentence {
-                text: action,
+                text: resolved.clone(),
                 raw: String::new(),
                 span,
                 fillers: Vec::new(),
             };
-            statements.extend(self.lower_stmt(&sentence, None, None, depth + 1)?);
+            match self.lower_stmt(&sentence, None, None, depth + 1) {
+                Ok(mut lowered) => {
+                    statements.append(&mut lowered);
+                    canonical.push(canonicalize_statement(&resolved));
+                }
+                Err(failure) => {
+                    error = Some(failure);
+                    break;
+                }
+            }
         }
-        Ok(statements)
+        self.pop_scope();
+        self.synthetic_depth -= 1;
+        match error {
+            Some(failure) => Err(failure),
+            None => Ok((statements, canonical)),
+        }
     }
 
     fn declaration_type(&self, text: &str) -> Option<AstType> {
@@ -1712,6 +3419,7 @@ impl<'a> Lowerer<'a> {
             _ => AstExpr::ConstInt(0, Some(ty.clone())),
         };
         self.declare(name, ty.clone());
+        self.introduce_name(name, &ty, span);
         AstStmt::Let {
             name: name.to_string(),
             ty: Some(ty),
@@ -1748,6 +3456,25 @@ impl<'a> Lowerer<'a> {
         None
     }
 
+    fn lower_quantifier_value(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<(Vec<AstStmt>, AstExpr)>, SemanticError> {
+        let tokens = tokenize(text);
+        let has_quantifier = tokens.iter().any(|token| {
+            token.kind == TokenKind::Word
+                && matches!(token.lower.as_str(), "every" | "each" | "some" | "no")
+        });
+        if !has_quantifier {
+            return Ok(None);
+        }
+        let parsed = parse_condition(text)
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+        let lowered = self.lower_cond_ast(&parsed, span)?;
+        Ok(Some((lowered.prelude, lowered.expr)))
+    }
+
     fn try_assignment(
         &mut self,
         text: &str,
@@ -1776,6 +3503,19 @@ impl<'a> Lowerer<'a> {
             if let Some((start, end)) = find_top_level_word(rest, "be") {
                 let target = rest[..start].trim();
                 let value_text = rest[end..].trim();
+                if is_simple_name(target) {
+                    let name = lower_name(target);
+                    if let Some(ty) = self.declaration_type(value_text) {
+                        if self.lookup(&name).is_none() {
+                            return Ok(Some(vec![self.declare_local(&name, ty, span)]));
+                        }
+                    }
+                }
+                if let Some((mut prelude, value)) = self.lower_quantifier_value(value_text, span)? {
+                    let mut assigned = self.assign_text(target, value, span, true)?;
+                    prelude.append(&mut assigned);
+                    return Ok(Some(prelude));
+                }
                 let value = self.parse_value(value_text, span)?;
                 return Ok(Some(self.assign_text(target, value, span, true)?));
             }
@@ -1798,6 +3538,11 @@ impl<'a> Lowerer<'a> {
                         }
                     }
                 }
+                if let Some((mut prelude, value)) = self.lower_quantifier_value(value_text, span)? {
+                    let mut assigned = self.assign_text(target, value, span, true)?;
+                    prelude.append(&mut assigned);
+                    return Ok(Some(prelude));
+                }
                 let Ok(value) = self.parse_value(value_text, span) else {
                     continue;
                 };
@@ -1808,6 +3553,11 @@ impl<'a> Lowerer<'a> {
             let target = text[..start].trim();
             let value_text = text[end..].trim();
             if is_lvalue_text(target) && !value_text.is_empty() {
+                if let Some((mut prelude, value)) = self.lower_quantifier_value(value_text, span)? {
+                    let mut assigned = self.assign_text(target, value, span, true)?;
+                    prelude.append(&mut assigned);
+                    return Ok(Some(prelude));
+                }
                 let value = self.parse_value(value_text, span)?;
                 return Ok(Some(self.assign_text(target, value, span, true)?));
             }
@@ -1852,7 +3602,9 @@ impl<'a> Lowerer<'a> {
                 }
                 // A type-changing assignment in a nested block is a shadow,
                 // not a mutation of the outer binding.
-                self.declare(&name, value_ty);
+                let value_ty = self.shallow_type(&value);
+                self.declare(&name, value_ty.clone());
+                self.introduce_name(&name, &value_ty, span);
                 return Ok(vec![AstStmt::Let {
                     name,
                     ty: None,
@@ -1862,7 +3614,8 @@ impl<'a> Lowerer<'a> {
             }
             if allow_declare {
                 let ty = self.shallow_type(&value);
-                self.declare(&name, ty);
+                self.declare(&name, ty.clone());
+                self.introduce_name(&name, &ty, span);
                 return Ok(vec![AstStmt::Let {
                     name,
                     ty: None,
@@ -1878,6 +3631,7 @@ impl<'a> Lowerer<'a> {
         }
         let address = parse_address(target_text, &self.expr_env())
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+        self.touch_target_text(target_text, span);
         Ok(vec![AstStmt::Store {
             ptr: address,
             val: value,
@@ -1901,6 +3655,7 @@ impl<'a> Lowerer<'a> {
         };
         let mut statements = prelude;
         statements.push(self.write_target(&target, combined, span));
+        self.touch_target_text(target_text, span);
         Ok(statements)
     }
 
@@ -1922,6 +3677,7 @@ impl<'a> Lowerer<'a> {
                 return Ok((Vec::new(), Target::Local(name)));
             }
             self.declare(&name, AstType::I64);
+            self.introduce_name(&name, &AstType::I64, span);
             return Ok((
                 vec![AstStmt::Let {
                     name: name.clone(),
@@ -1937,21 +3693,27 @@ impl<'a> Lowerer<'a> {
         Ok((Vec::new(), Target::Memory(address)))
     }
 
-    fn write_target(&self, target: &Target, value: AstExpr, span: Span) -> AstStmt {
+    fn write_target(&mut self, target: &Target, value: AstExpr, span: Span) -> AstStmt {
         match target {
-            Target::Local(name) => AstStmt::Assign {
-                name: name.clone(),
-                val: value,
-                span: self.span(span),
-            },
-            Target::Global(name) => AstStmt::Store {
-                ptr: AstExpr::GlobalAddr {
-                    module: None,
+            Target::Local(name) => {
+                self.touch_name(name, span);
+                AstStmt::Assign {
                     name: name.clone(),
-                },
-                val: value,
-                span: self.span(span),
-            },
+                    val: value,
+                    span: self.span(span),
+                }
+            }
+            Target::Global(name) => {
+                self.touch_name(name, span);
+                AstStmt::Store {
+                    ptr: AstExpr::GlobalAddr {
+                        module: None,
+                        name: name.clone(),
+                    },
+                    val: value,
+                    span: self.span(span),
+                }
+            }
             Target::Memory(address) => AstStmt::Store {
                 ptr: address.clone(),
                 val: value,
@@ -2151,6 +3913,16 @@ impl<'a> Lowerer<'a> {
                     let before = text[after_verb_start..tokens[*prep_index].start].trim();
                     let after = text[tokens[*prep_index].end..].trim();
                     let chosen_role = prep_role(&tokens[*prep_index].lower);
+                    let locative = matches!(
+                        tokens[*prep_index].lower.as_str(),
+                        "in" | "into" | "onto" | "inside"
+                    );
+                    if locative && is_lvalue_text(after) {
+                        if let Ok(value) = self.parse_expr(before, span) {
+                            chosen = Some((after, value, chosen_role));
+                            break;
+                        }
+                    }
                     if is_lvalue_text(before) {
                         if let Ok(value) = self.parse_expr(after, span) {
                             chosen = Some((before, value, chosen_role));
@@ -2386,23 +4158,59 @@ fn strip_leading_word<'t>(text: &'t str, word: &str) -> &'t str {
 }
 
 fn split_actions(text: &str) -> Vec<String> {
+    let tokens = tokenize(text);
     let mut result = Vec::new();
-    for comma_piece in split_top_level(text, ",") {
-        let mut remaining = comma_piece.trim().to_string();
-        while let Some((start, end)) = find_top_level_word(&remaining, "and") {
-            let left = remaining[..start].trim().to_string();
-            let right = remaining[end..].trim().to_string();
-            if left.is_empty() || right.is_empty() || !starts_action(&right) {
-                break;
+    let mut start = 0;
+    let mut depth = 0_i32;
+    let mut index = 0;
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                "," if depth == 0 => {
+                    let action = text[start..token.start].trim();
+                    if starts_control(action) {
+                        result.push(text[start..].trim().to_string());
+                        return result;
+                    }
+                    if !action.is_empty() {
+                        result.push(action.to_string());
+                    }
+                    start = token.end;
+                }
+                _ => {}
             }
-            result.push(left);
-            remaining = right;
+            index += 1;
+            continue;
         }
-        if !remaining.trim().is_empty() {
-            result.push(remaining.trim().to_string());
+        if depth == 0 && token.is_word() && token.is("and") {
+            let action = text[start..token.start].trim();
+            let rest = text[token.end..].trim();
+            if starts_control(action) {
+                result.push(text[start..].trim().to_string());
+                return result;
+            }
+            if !action.is_empty() && !rest.is_empty() && starts_action(rest) {
+                result.push(action.to_string());
+                start = token.end;
+            }
         }
+        index += 1;
+    }
+    let tail = text[start..].trim();
+    if !tail.is_empty() {
+        result.push(tail.to_string());
     }
     result
+}
+
+fn starts_control(text: &str) -> bool {
+    matches!(
+        first_word(text).as_str(),
+        "if" | "unless" | "while" | "repeat" | "loop" | "for"
+    )
 }
 
 fn starts_action(text: &str) -> bool {
@@ -2436,7 +4244,12 @@ pub(crate) fn lower_module(
     module_names: Vec<String>,
     phrases: Vec<PhraseBinding>,
     is_entry: bool,
-) -> (AstModule, Vec<SentenceTrace>, Vec<SemanticError>) {
+) -> (
+    AstModule,
+    Vec<SentenceTrace>,
+    Vec<SemanticError>,
+    ParaphraseDoc,
+) {
     let mut module_ast = module.module;
     let globals = module_ast
         .globals
@@ -2480,13 +4293,17 @@ pub(crate) fn lower_module(
     for job in module.functions {
         let function = &module_ast.functions[job.index];
         lowerer.scopes = vec![Scope::new()];
+        lowerer.discourse = DiscourseStack::new();
+        lowerer.push_scope(ScopeKind::Function);
         for (name, ty) in &function.params {
             lowerer.declare(name, ty.clone());
+            lowerer.introduce_name(name, ty, Span::new(function.span.line, function.span.col));
         }
         let body = lowerer.lower_items(&job.body, 0).unwrap_or_else(|error| {
             lowerer.errors.push(error);
             Vec::new()
         });
+        lowerer.pop_scope();
         module_ast.functions[job.index].body = body;
     }
     let has_main = module_ast
@@ -2503,12 +4320,15 @@ pub(crate) fn lower_module(
             ));
         } else {
             lowerer.scopes = vec![Scope::new()];
+            lowerer.discourse = DiscourseStack::new();
+            lowerer.push_scope(ScopeKind::ModuleTopLevel);
             let mut body = lowerer
                 .lower_items(&module.executable, 0)
                 .unwrap_or_else(|error| {
                     lowerer.errors.push(error);
                     Vec::new()
                 });
+            lowerer.pop_scope();
             if !body
                 .iter()
                 .any(|statement| matches!(statement, AstStmt::Return(..)))
@@ -2544,5 +4364,9 @@ pub(crate) fn lower_module(
             span: tc_typeck::Span::new(&module_ast.name, 1, 1),
         });
     }
-    (module_ast, lowerer.trace, lowerer.errors)
+    let doc = ParaphraseDoc {
+        module: module_ast.name.clone(),
+        entries: lowerer.paraphrase_entries,
+    };
+    (module_ast, lowerer.trace, lowerer.errors, doc)
 }

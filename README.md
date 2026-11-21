@@ -5,15 +5,18 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 3**: the Core-7 typed IR, exhaustive verifier,
-byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
-backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
-word/verb engine, and a finite English front end are implemented. English
-source now flows through vendored CMU Link Grammar 5.13.2, paragraph/block
-segmentation, a normalized clause tree, a strict three-way intent gate, a
-declarative `Phrase:` dispatcher, and one unified recursive Core-7 statement
-lowerer. `tc build`, `tc run`, `tc interp`, and `tc trace` compile real
-English programs end to end. Differential parity suites in
+This repository is at **Phase 3.6**: the Core-7 typed IR, exhaustive
+verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
+ELF64 backend, the high-level `tc-typeck` front end, the zero-ML
+`tc-lexicon` word/verb engine, and a finite English front end are implemented.
+English source now flows through vendored CMU Link Grammar 5.13.2,
+paragraph/block segmentation, a normalized clause tree, a strict three-way
+intent gate, a declarative `Phrase:` dispatcher, a DRS-style discourse
+referent stack (`it`, `its <field>`, `the <type>`), a comma-aware boolean
+condition parser, deterministic global/local quantifier lowering, and one
+unified recursive Core-7 statement lowerer. `tc build`, `tc run`, `tc interp`,
+`tc trace`, and `tc paraphrase` compile and inspect real English programs end
+to end. Differential parity suites in
 `crates/tc-codegen-x86/tests/`, `crates/tc-typeck/tests/`, and
 `crates/tc-semantics/tests/` require exact exit-status/stdout/stderr
 agreement between the reference interpreter and compiled ELF64 binaries.
@@ -51,7 +54,7 @@ tc_r1/
     tc-cli/           # end-to-end `tc` command-line driver
   std/                # English std/ sources (Phase 4)
   tests/              # additional integration tests
-  docs/               # design documentation
+  docs/               # design documentation and the English language spec
 ```
 
 ## Dependency graph
@@ -78,8 +81,12 @@ The graph is strictly acyclic. `crates/tc-cli` produces the `tc` binary:
 - `tc run <file.tc> [-I <dir>] [-- <args...>]` compiles and executes it.
 - `tc interp <file.tc> [-I <dir>] [-- <args...>]` executes the verified
   Core-7 IR in the reference interpreter.
-- `tc trace <file.tc> [-I <dir>]` prints per-sentence Link Grammar counts,
-  lexicon provenance, intent verdicts, and formatted TC-IR.
+- `tc trace <file.tc> [-I <dir>] [--paraphrase]` prints per-sentence Link
+  Grammar counts, lexicon provenance, intent verdicts, and formatted TC-IR;
+  `--paraphrase` appends canonical resolved English.
+- `tc paraphrase <file.tc> [-I <dir>]` type-checks the program and prints the
+  deterministic paraphrase echo, including `[it -> cash]`, `[its x -> p.x]`,
+  `[the point -> origin]`, condition grouping, and omitted prose markers.
 
 ## Core-7 IR and backend
 

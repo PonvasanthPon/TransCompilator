@@ -30,6 +30,7 @@ fn main() -> ExitCode {
         Some("run") => run_run(args.collect()),
         Some("interp") => run_interp(args.collect()),
         Some("trace") => run_trace(args.collect()),
+        Some("paraphrase") => run_paraphrase(args.collect()),
         Some(argument) => {
             eprintln!("tc: unrecognized argument `{argument}`");
             usage();
@@ -44,7 +45,7 @@ fn main() -> ExitCode {
 
 fn usage() {
     eprintln!(
-        "usage: tc <build|run|interp|trace> <file.tc> [-o <out_elf>] [-I <dir>] [-- <args...>]\n       tc [--version|--audit|--selftest]"
+        "usage: tc <build|run|interp|trace|paraphrase> <file.tc> [-o <out_elf>] [-I <dir>] [--paraphrase] [-- <args...>]\n       tc [--version|--audit|--selftest]"
     );
 }
 
@@ -54,6 +55,7 @@ struct CommandLine {
     output: Option<PathBuf>,
     includes: Vec<PathBuf>,
     program_args: Vec<String>,
+    paraphrase: bool,
 }
 
 fn parse_command_line(args: Vec<String>, allow_output: bool) -> Result<CommandLine, String> {
@@ -86,6 +88,10 @@ fn parse_command_line(args: Vec<String>, allow_output: bool) -> Result<CommandLi
                     .get(index)
                     .ok_or_else(|| "-I requires a directory".to_string())?;
                 parsed.includes.push(PathBuf::from(value));
+                index += 1;
+            }
+            "--paraphrase" => {
+                parsed.paraphrase = true;
                 index += 1;
             }
             value if value.starts_with('-') && value.len() > 1 => {
@@ -377,6 +383,12 @@ fn run_trace(args: Vec<String>) -> ExitCode {
         Ok(module) => {
             println!("--- TC-IR ---");
             println!("{}", tc_ir::format_module(&module));
+            if command.paraphrase {
+                println!("=== Paraphrase ===");
+                for doc in &lowered.paraphrase {
+                    print!("{}", tc_semantics::format_paraphrase_entries(&doc.entries));
+                }
+            }
             if unsupported {
                 ExitCode::FAILURE
             } else {
@@ -390,6 +402,25 @@ fn run_trace(args: Vec<String>) -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+fn run_paraphrase(args: Vec<String>) -> ExitCode {
+    let command = match parse_command_line(args, false) {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("tc paraphrase: {message}");
+            return ExitCode::from(2);
+        }
+    };
+    let compiled = match compile_file(&command) {
+        Ok(compiled) => compiled,
+        Err(message) => {
+            eprintln!("tc paraphrase: {message}");
+            return ExitCode::FAILURE;
+        }
+    };
+    print!("{}", tc_semantics::format_paraphrase(&compiled.paraphrase));
+    ExitCode::SUCCESS
 }
 
 fn run_audit() -> ExitCode {
