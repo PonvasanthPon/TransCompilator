@@ -1,0 +1,22 @@
+[package]
+name = "tc-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Command-line driver for the tc_r1 compiler (Phase 0 scaffold)"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "tc"
+path = "src/main.rs"
+
+[dependencies]
+tc-ir = { path = "../tc-ir" }
+tc-codegen-x86 = { path = "../tc-codegen-x86" }
+tc-typeck = { path = "../tc-typeck" }
+tc-lexicon = { path = "../tc-lexicon" }
+tc-syntax = { path = "../tc-syntax" }
+tc-semantics = { path = "../tc-semantics" }

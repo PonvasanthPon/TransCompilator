@@ -1,0 +1,16 @@
+[package]
+name = "tc-semantics"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Semantic analysis for tc_r1 (Phase 0 scaffold)"
+
+[lints]
+workspace = true
+
+[dependencies]
+tc-ir = { path = "../tc-ir" }
+tc-lexicon = { path = "../tc-lexicon" }
+tc-syntax = { path = "../tc-syntax" }
+tc-typeck = { path = "../tc-typeck" }

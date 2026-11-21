@@ -1,0 +1,13 @@
+[package]
+name = "tc-codegen-x86"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Static x86_64 ELF64 code generation for tc_r1 (Phase 0 scaffold)"
+
+[lints]
+workspace = true
+
+[dependencies]
+tc-ir = { path = "../tc-ir" }
