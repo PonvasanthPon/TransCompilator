@@ -89,7 +89,7 @@ fn sweep_wordnet(parser: &LinkGrammarParser) -> WordNetResult {
         result.verbs += 1;
         let imperative_to = format!("{} 10 to x.", entry.lemma);
         let imperative_from = format!("{} 10 from x.", entry.lemma);
-        let narrative = format!("Yesterday Sam {} 2 apples.", past_form(entry.lemma));
+        let narrative = format!("Yesterday Sam {} 2 more.", past_form(entry.lemma));
         let outcome = catch_unwind(AssertUnwindSafe(|| {
             (
                 classify(parser, &imperative_to),

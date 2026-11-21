@@ -127,6 +127,9 @@ See `CORE_LIMITS.md` / `CORE_LIMITS.json`. All seven boundaries fail cleanly or 
 ## Commits on `battletest-core`
 
 ```text
+550ec1f battletest-core: finalize campaign state and dashboard
+6298881 battletest-core: C10 Core limits catalog, full evidence, and Phase 4 final report
+07ac7f0 battletest-core(BUG-CORE-025): infer pointer-typed aggregate field places
 92ab292 battletest-core: C8/C9 evidence, fuzz harnesses, and 511-case crash corpus
 c733ce0 battletest-core(BUG-CORE-019..024): UTF-8 token safety, complexity guards, passive fallback, and control-keyword validation
 5c49166 battletest-core: add 446-program C1-C7 corpus, harnesses, and evidence
