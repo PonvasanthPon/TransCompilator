@@ -5,13 +5,17 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 0**: the Core-7 typed IR, exhaustive verifier,
-deterministic formatter, byte-accurate reference interpreter, and direct
-x86_64 static zero-libc ELF64 backend are implemented. The differential
-parity suite in `crates/tc-codegen-x86/tests/` runs every program both in the
-reference interpreter and as a compiled ELF64 binary, requiring identical
-exit status, stdout, and stderr. English parsing and the `std/` library are
-not implemented yet.
+This repository is at **Phase 1**: the Core-7 typed IR, exhaustive verifier,
+byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
+backend, and the high-level `tc-typeck` front end are implemented. The type
+checker provides multi-file modules with visibility and import-cycle
+validation, lexical scoping, strict type checking, type-directed overload
+resolution, declarative phrase metadata, and compile-time monomorphization
+of generic structs, unions, and functions. Differential parity suites in
+`crates/tc-codegen-x86/tests/` and `crates/tc-typeck/tests/` require exact
+exit-status/stdout/stderr agreement between the reference interpreter and
+compiled ELF64 binaries. English parsing and the `std/` library are not
+implemented yet.
 
 ## Hard properties
 
@@ -38,14 +42,14 @@ tc_r1/
   crates/
     tc-ir/            # intermediate representation
     tc-codegen-x86/   # ELF64 x86_64 backend
-    tc-typeck/        # type checking
+    tc-typeck/        # typed AST, modules, generics, lowering
     tc-lexicon/       # lexical model
     tc-syntax/        # syntax analysis
     tc-semantics/     # semantic analysis
     tc-cli/           # `tc` command-line driver
-  std/                # English std/ sources (empty in Phase 0)
-  tests/              # integration tests (empty in Phase 0)
-  docs/               # design documentation (empty in Phase 0)
+  std/                # English std/ sources (empty in Phase 1)
+  tests/              # integration tests (empty in Phase 1)
+  docs/               # design documentation (empty in Phase 1)
 ```
 
 ## Dependency graph
@@ -63,7 +67,7 @@ tc-cli          -> all six library crates (binary: tc)
 The graph is strictly acyclic. `crates/tc-cli` produces the `tc` binary:
 
 - `tc --version` prints `tc_r1 0.1.0`.
-- `tc --audit` checks the Phase 0 crate identities and reports scaffold
+- `tc --audit` checks the workspace crate identities and reports scaffold
   status.
 - `tc --selftest` verifies, interprets, compiles, executes, and
   differentially checks a small Core-7 module, then prints `SELFTEST PASS`.
@@ -82,6 +86,24 @@ argument/return conventions, spillover stack arguments, nested-call-safe
 argument evaluation, indirect function calls, width- and sign-accurate
 integer operations, IEEE-754 `f32`/`f64`, aggregates in memory, and raw
 Linux syscalls with the `r10` fourth-argument convention.
+
+## High-level front end
+
+`tc-typeck` is a language-agnostic front end over the Core-7 IR:
+
+- `ast` — typed high-level AST, declarative phrase patterns, spans, errors.
+- `resolve` — module table, import DAG validation, aliases, visibility.
+- `check` — lexical scopes, local inference, strict type checking,
+  type-directed overloads, and generic type-argument inference.
+- `mono` — demand-driven, deterministic monomorphization with an
+  infinite-instantiation depth guard.
+- `lower` — verified lowering to `tc-ir`, including `.rodata`
+  deduplication and an internal pointer ABI for aggregate parameters and
+  returns.
+
+`check_and_lower` is the public AST-to-IR entry point;
+`collect_phrases` validates and exports declarative English phrase
+signatures for Phase 3.
 
 ## Anti-hardcoding bans
 

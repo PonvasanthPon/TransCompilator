@@ -50,5 +50,6 @@ dependencies = [
 name = "tc-typeck"
 version = "0.1.0"
 dependencies = [
+ "tc-codegen-x86",
  "tc-ir",
 ]
