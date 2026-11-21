@@ -906,11 +906,20 @@ impl<'a> Vm<'a> {
             });
         }
         if from.is_float() && to.is_integer() {
+            // Match Rust's saturating float-to-integer semantics at the
+            // target width.  Converting through i64 first would truncate
+            // rather than saturate for i8/i16/i32/u8/u16/u32.
             let float = value.as_f64();
-            let raw = if to.is_signed_int() {
-                (float as i64) as u64
-            } else {
-                float as u64
+            let raw = match to {
+                Type::I8 => (float as i8) as u64,
+                Type::I16 => (float as i16) as u64,
+                Type::I32 => (float as i32) as u64,
+                Type::I64 => (float as i64) as u64,
+                Type::U8 => (float as u8) as u64,
+                Type::U16 => (float as u16) as u64,
+                Type::U32 => (float as u32) as u64,
+                Type::U64 => float as u64,
+                _ => 0,
             };
             return Ok(Value::int(to, raw));
         }
