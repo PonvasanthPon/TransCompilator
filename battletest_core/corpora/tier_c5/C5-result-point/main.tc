@@ -1,0 +1,8 @@
+Define struct Point with x as i64 and y as i64.
+Define struct Result of T and E with is_ok as bool and ok as T and err as E.
+r is Result<Point, i64>.
+Set r.is_ok to true.
+Set r.ok.x to 4.
+Set r.ok.y to 5.
+Set r.err to 0.
+Return r.ok.x + r.ok.y.

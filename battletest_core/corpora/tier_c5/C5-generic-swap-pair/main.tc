@@ -1,0 +1,11 @@
+Define struct Pair of T and U with first as T and second as U.
+Define function swap_pair of T and U taking p as Pair<T, U> returning Pair<U, T>:
+    r is Pair<U, T>.
+    Set r.first to p.second.
+    Set r.second to p.first.
+    Return r.
+p is Pair<i64, f64>.
+Set p.first to 4.
+Set p.second to 2.5.
+q is swap_pair(p).
+Return (q.first as i64) + q.second.

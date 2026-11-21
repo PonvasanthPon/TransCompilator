@@ -1,0 +1,7 @@
+Define function ack taking m as i64 and n as i64 returning i64:
+    If m is 0:
+        Return n + 1.
+    If n is 0:
+        Return ack(m - 1, 1).
+    Return ack(m - 1, ack(m, n - 1)).
+Return ack(3, 4).

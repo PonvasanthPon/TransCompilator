@@ -1,0 +1,4 @@
+Define function read_ptr of T taking p as ptr<T> returning T:
+    Return *p.
+x is 7.
+Return read_ptr(address of x).

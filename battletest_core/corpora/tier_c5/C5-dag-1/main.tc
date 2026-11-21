@@ -1,0 +1,5 @@
+Import a.
+Import b.
+Import d.
+d.base is 10.
+Return a.a_sum(5) + b.b_sum(3).

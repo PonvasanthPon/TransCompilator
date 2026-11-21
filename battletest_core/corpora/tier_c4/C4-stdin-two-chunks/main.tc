@@ -1,0 +1,6 @@
+Define global buf as ptr<u8>.
+Set buf to syscall(9, 0, 64, 3, 0x22, -1, 0) as u64 as ptr<u8>.
+a is syscall(0, 0, buf, 2) as i64.
+b is syscall(0, 0, address of buf[2], 2) as i64.
+syscall(1, 1, buf, (a + b) as u64).
+Return a + b.

@@ -1,0 +1,8 @@
+Define struct Pair of T and U with first as T and second as U.
+Define function make_pair of T taking x as T returning Pair<T, i64>:
+    r is Pair<T, i64>.
+    Set r.first to x.
+    Set r.second to 2.
+    Return r.
+p is make_pair(2.5).
+Return (p.first as i64) + p.second.

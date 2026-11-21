@@ -1,0 +1,5 @@
+Define local x as i64.
+Set x to 300.
+Define local y as i8.
+Set y to x as i8.
+Return (y as i64) bitand 255.

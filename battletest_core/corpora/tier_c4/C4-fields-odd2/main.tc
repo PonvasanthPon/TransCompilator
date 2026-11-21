@@ -1,0 +1,8 @@
+Define struct Odd2 with a as u8 and b as u16 and c as u8 and d as u32 and e as u8.
+x is Odd2.
+Set x.a to 1.
+Set x.b to 2.
+Set x.c to 3.
+Set x.d to 4.
+Set x.e to 5.
+Return (x.a as i64) + (x.b as i64) + (x.c as i64) + (x.d as i64) + (x.e as i64).

@@ -1,0 +1,8 @@
+x is 21.
+If true:
+    x is 2.5.
+    If true:
+        x is 4.
+        If true:
+            x is true.
+Return x.

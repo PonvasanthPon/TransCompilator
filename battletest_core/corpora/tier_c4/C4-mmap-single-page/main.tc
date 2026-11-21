@@ -1,0 +1,6 @@
+Define global p as ptr<u8>.
+Set p to syscall(9, 0, 8192, 3, 0x22, -1, 0) as u64 as ptr<u8>.
+Set p[0] to 11.
+Set p[4096] to 22.
+Set p[8191] to 33.
+Return (p[0] as i64) + (p[4096] as i64) + (p[8191] as i64).

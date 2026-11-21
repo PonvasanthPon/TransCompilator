@@ -1,0 +1,4 @@
+Define local x as i8.
+Set x to 127.
+Set x to x + 1.
+Return (((x as i64) bitand 255) + (((x as i64) shr 8) bitand 255)) bitand 255.

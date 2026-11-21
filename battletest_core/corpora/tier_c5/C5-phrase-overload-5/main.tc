@@ -1,0 +1,7 @@
+Import a.
+Import b.
+Import c.
+Emit 1.
+Emit 2.
+Emit 3.5.
+Return 4.

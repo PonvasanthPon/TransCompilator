@@ -1,0 +1,12 @@
+total is 0.
+i is 0.
+Loop:
+    i += 1.
+    If i is at least 5, Break.
+    j is 0.
+    Loop:
+        j += 1.
+        If j is at least 7, Break.
+        If (i + j) mod 3 is 0, Continue.
+        total += 1.
+Return total.

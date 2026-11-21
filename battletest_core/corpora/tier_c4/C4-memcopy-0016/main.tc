@@ -1,0 +1,7 @@
+Define struct Buf16 with data as array<u8, 16>.
+src is Buf16.
+dst is Buf16.
+Set src.data[0] to 1.
+Set src.data[15] to 2.
+Copy 16 bytes from address of src to address of dst.
+Return (dst.data[0] as i64) + (dst.data[15] as i64).

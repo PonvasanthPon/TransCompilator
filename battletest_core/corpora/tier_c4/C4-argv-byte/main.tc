@@ -1,0 +1,2 @@
+Define function main taking argc as i64 and argv as ptr<ptr<u8>> and envp as ptr<ptr<u8>> returning i64:
+    Return argv[1][0] as i64.
