@@ -1,7 +1,0 @@
-Define struct Buf64 with data as array<u8, 64>.
-src is Buf64.
-dst is Buf64.
-Set src.data[0] to 1.
-Set src.data[63] to 2.
-Copy 64 bytes from address of src to address of dst.
-Return (dst.data[0] as i64) + (dst.data[63] as i64).

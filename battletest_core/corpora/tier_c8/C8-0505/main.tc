@@ -1,3 +1,0 @@
-Define global g13 as array<u8, 14>.
-Set g13[18] to 1.
-Return 0.

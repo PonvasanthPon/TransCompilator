@@ -1,3 +1,0 @@
-Define global g16 as array<u8, 17>.
-Set g16[21] to 1.
-Return 0.

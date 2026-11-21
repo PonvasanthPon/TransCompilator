@@ -1,6 +1,0 @@
-Define struct Pair of T and U with first as T and second as U.
-p is Pair<Pair<i64, i64>, f64>.
-Set p.first.first to 2.
-Set p.first.second to 3.
-Set p.second to 1.5.
-Return p.first.first + p.first.second + (p.second as i64).

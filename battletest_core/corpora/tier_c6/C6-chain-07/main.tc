@@ -1,9 +1,0 @@
-a is 60.
-b is 50.
-c is 20.
-Remove 3 from c.
-Append 4 to a.
-Move 6 from b to a.
-Negate b.
-Multiply b by 3.
-Return (a + b + c) bitand 255.

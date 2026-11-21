@@ -1,3 +1,0 @@
-Public function emit taking x as f64 returning i64:
-    Phrase: "emit <x>"
-    Return x as i64.

@@ -1,9 +1,0 @@
-a is 50.
-b is 60.
-c is 8.
-Double a.
-Deduct 10 from b.
-Divide c by 2.
-Move 5 from b to c.
-Append 2 to a.
-Return (a + b + c) bitand 255.

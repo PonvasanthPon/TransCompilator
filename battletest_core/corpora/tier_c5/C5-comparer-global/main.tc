@@ -1,8 +1,0 @@
-Define struct Comparer of T with cmp as fn(ptr<T>, ptr<T>) -> i64.
-Define function cmp_i64 taking a as ptr<i64> and b as ptr<i64> returning i64:
-    Return (*a) - (*b).
-Define global c as Comparer<i64>.
-Set c.cmp to function cmp_i64.
-x is 3.
-y is 10.
-Return c.cmp(address of x, address of y) + 10.

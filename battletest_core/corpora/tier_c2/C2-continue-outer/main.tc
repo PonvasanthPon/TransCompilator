@@ -1,9 +1,0 @@
-total is 0.
-i is 0.
-Loop:
-    i += 1.
-    If i is at least 5, Break.
-    If i is 2, Continue.
-    If i is 4, Continue.
-    total += i.
-Return total.

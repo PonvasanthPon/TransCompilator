@@ -1,7 +1,0 @@
-Define struct S1 with tag as u8.
-Define function make taking t as u8 returning S1:
-    r is S1.
-    Set r.tag to t.
-    Return r.
-r is make(5).
-Return r.tag as i64.

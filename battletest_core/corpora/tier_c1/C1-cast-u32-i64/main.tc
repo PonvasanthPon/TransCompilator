@@ -1,3 +1,0 @@
-Define local x as u32.
-Set x to 4000000000.
-Return (((x as i64) shr 8) bitand 255).

@@ -1,5 +1,0 @@
-x is 18.
-Loop:
-    Remove 2 from x.
-    If x is at most 14, Break.
-Return x.

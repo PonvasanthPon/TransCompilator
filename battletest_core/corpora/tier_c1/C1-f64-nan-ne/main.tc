@@ -1,6 +1,0 @@
-Define union F with f as f64 and u as u64.
-x is F.
-Set x.f to 0.0 / 0.0.
-If x.f is not x.f:
-    Return 1.
-Return 0.

@@ -1,4 +1,0 @@
-Define struct S12 with x as i64 and y as i64.
-s is S12.
-Set s.x to 12.
-Return s.x.

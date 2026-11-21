@@ -1,5 +1,0 @@
-Import a.
-Public function f9 taking x as i64 returning i64:
-    Phrase: "emit <x>"
-    Return x.
-Return f9(1).

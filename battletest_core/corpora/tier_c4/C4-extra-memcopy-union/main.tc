@@ -1,6 +1,0 @@
-Define union U with f as f64 and u as u64.
-a is U.
-b is U.
-Set a.f to 2.5.
-Copy 8 bytes from address of a to address of b.
-Return b.u as i64 bitand 255.

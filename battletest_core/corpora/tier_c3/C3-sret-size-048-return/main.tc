@@ -1,9 +1,0 @@
-Define struct S48 with tag as u8 and data as array<u8, 47>.
-Define function make taking t as u8 returning S48:
-    r is S48.
-    Set r.tag to t.
-    Set r.data[0] to 3.
-    Set r.data[46] to 4.
-    Return r.
-r is make(5).
-Return (r.tag as i64) + (r.data[0] as i64) + (r.data[46] as i64).

@@ -450,7 +450,7 @@ fn main() -> std::process::ExitCode {
     let mut args = std::env::args().skip(1);
     let mut start = 1_u64;
     let mut end = 2000_u64;
-    let mut log = PathBuf::from("battletest_core/FUZZ_LOG.jsonl");
+    let mut log = std::env::temp_dir().join("tc_r1_fuzz_log.jsonl");
     while let Some(argument) = args.next() {
         match argument.as_str() {
             "--start" => {

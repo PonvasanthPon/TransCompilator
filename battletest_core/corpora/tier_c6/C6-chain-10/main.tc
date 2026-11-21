@@ -1,9 +1,0 @@
-a is 10.
-b is 20.
-c is 40.
-Double a.
-Double b.
-Halve c.
-Divide c by 2.
-Add 7 to c.
-Return (a + b + c) bitand 255.

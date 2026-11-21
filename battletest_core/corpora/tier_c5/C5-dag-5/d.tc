@@ -1,4 +1,0 @@
-Public global base as i64.
-Public function plus_base taking x as i64 returning i64:
-    Return x + base.
-Public struct Pair of T and U with first as T and second as U.

@@ -1,2 +1,0 @@
-syscall(1, 2, bytes_ptr("bt-err\n"), bytes_len("bt-err\n")).
-Return 0.

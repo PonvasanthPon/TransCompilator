@@ -258,7 +258,7 @@ fn json_escape(value: &str) -> String {
 }
 
 fn main() -> std::process::ExitCode {
-    let mut output = PathBuf::from("battletest_core/LEXICON_SWEEP.json");
+    let mut output = std::env::temp_dir().join("tc_r1_lexicon_sweep.json");
     let mut args = std::env::args().skip(1);
     while let Some(argument) = args.next() {
         if argument == "--output" {

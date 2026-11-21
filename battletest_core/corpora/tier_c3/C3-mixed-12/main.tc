@@ -1,4 +1,0 @@
-x is 0.
-Define function mixed taking a as i8 and b as f32 and c as i64 and d as f64 and e as u16 and f as f64 and g as ptr<i64> and h as i32 and i as f32 and j as u64 and k as f64 and l as i64 returning i64:
-    Return (a as i64) + (b as i64) + c + (d as i64) + (e as i64) + (f as i64) + (h as i64) + (i as i64) + (j as i64) + (k as i64) + l.
-Return mixed(1 as i8, 2.5 as f32, 3, 4.5, 5 as u16, 6.5, address of x, -8 as i32, 9.5 as f32, 10 as u64, 11.5, 12).

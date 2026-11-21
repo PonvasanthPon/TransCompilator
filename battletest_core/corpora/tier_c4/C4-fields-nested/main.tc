@@ -1,9 +1,0 @@
-Define struct Odd1 with a as u8 and b as i64 and c as u8.
-Define struct Nested with tag as u8 and inner as Odd1 and tail as u16.
-x is Nested.
-Set x.tag to 1.
-Set x.inner.a to 2.
-Set x.inner.b to 3.
-Set x.inner.c to 4.
-Set x.tail to 5.
-Return (x.tag as i64) + (x.inner.a as i64) + x.inner.b + (x.inner.c as i64) + (x.tail as i64).

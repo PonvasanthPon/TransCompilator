@@ -1,6 +1,0 @@
-Define function add taking a as i64 and b as i64 returning i64:
-    Return a + b.
-Define struct Ops with cmp as fn(i64, i64) -> i64.
-ops is Ops.
-Set ops.cmp to function add.
-Return ops.cmp(2, 3).

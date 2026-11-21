@@ -1,4 +1,0 @@
-Define local p as ptr<i64>.
-If p is not null and *p is 42:
-    Return 99.
-Return 1.

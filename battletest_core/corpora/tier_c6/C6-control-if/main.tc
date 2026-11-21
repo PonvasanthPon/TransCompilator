@@ -1,6 +1,0 @@
-x is 10.
-If x more than 5:
-    Remove 3 from x.
-Else:
-    Add 3 to x.
-Return x.

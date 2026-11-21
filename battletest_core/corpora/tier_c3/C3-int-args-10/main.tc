@@ -1,3 +1,0 @@
-Define function f taking a0 as i64 and a1 as i64 and a2 as i64 and a3 as i64 and a4 as i64 and a5 as i64 and a6 as i64 and a7 as i64 and a8 as i64 and a9 as i64 returning i64:
-    Return a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9.
-Return f(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).

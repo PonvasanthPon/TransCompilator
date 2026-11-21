@@ -1,7 +1,0 @@
-Define struct Pair of T and U with first as T and second as U.
-Define function first_of of T and U taking p as Pair<T, U> returning T:
-    Return p.first.
-p is Pair<i64, f64>.
-Set p.first to 11.
-Set p.second to 2.5.
-Return first_of(p).

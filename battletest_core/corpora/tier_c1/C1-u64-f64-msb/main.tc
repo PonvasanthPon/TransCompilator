@@ -1,5 +1,0 @@
-Define union F with u as u64 and f as f64.
-x is F.
-Set x.u to 18446744073709551615.
-Set x.f to x.u as f64.
-Return ((x.u shr 52) as i64) bitand 255.

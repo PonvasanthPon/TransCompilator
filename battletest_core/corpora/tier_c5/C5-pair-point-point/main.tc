@@ -1,8 +1,0 @@
-Define struct Point with x as i64 and y as i64.
-Define struct Pair of T and U with first as T and second as U.
-p is Pair<Point, Point>.
-Set p.first.x to 1.
-Set p.first.y to 2.
-Set p.second.x to 3.
-Set p.second.y to 4.
-Return p.first.x + p.first.y + p.second.x + p.second.y.

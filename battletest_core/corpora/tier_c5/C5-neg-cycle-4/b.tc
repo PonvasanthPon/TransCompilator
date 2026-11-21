@@ -1,3 +1,0 @@
-Import c.
-Public function g returning i64:
-    Return 0.

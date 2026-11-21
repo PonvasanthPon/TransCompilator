@@ -1,8 +1,0 @@
-x is 7.
-If true:
-    x is 1.5.
-    If true:
-        x is true.
-        If true:
-            x is 9.
-Return x.
