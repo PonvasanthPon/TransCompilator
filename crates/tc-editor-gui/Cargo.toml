@@ -1,0 +1,23 @@
+[package]
+name = "tc-editor-gui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Standalone std-only R1 Editor GUI for tc_r1 .eng programs"
+
+[[bin]]
+name = "r1-editor-gui"
+path = "src/main.rs"
+
+[dependencies]
+tc-editor = { path = "../tc-editor" }
+tc-ir = { path = "../tc-ir" }
+tc-codegen-x86 = { path = "../tc-codegen-x86" }
+tc-typeck = { path = "../tc-typeck" }
+tc-lexicon = { path = "../tc-lexicon" }
+tc-syntax = { path = "../tc-syntax" }
+tc-semantics = { path = "../tc-semantics" }
+
+[lints]
+workspace = true
