@@ -192,10 +192,10 @@ fn gui_app_error_updates_gutter_and_clears_on_edit() {
     editor.set_editor_text("Add 10 to it.\n");
     editor.run();
     assert!(!editor.error_lines().is_empty());
-    assert!(editor.gutter_text().contains('✗'));
+    assert!(editor.gutter_text().contains('!'));
     editor.set_editor_text("Return 0.\n");
     assert!(editor.error_lines().is_empty());
-    assert!(!editor.gutter_text().contains('✗'));
+    assert!(!editor.gutter_text().contains('!'));
     let _ = fs::remove_dir_all(dir);
 }
 
@@ -553,7 +553,7 @@ fn gui_output_cards_include_status_and_stdout_sections() {
     editor.run();
     let cards = editor.output_cards();
     assert_eq!(cards[0].kind, CardKind::StatusPass);
-    assert!(cards[0].body.starts_with("✓ PASS"));
+    assert!(cards[0].body.starts_with("[OK] PASS"));
     assert!(
         cards
             .iter()
@@ -579,8 +579,8 @@ fn gui_output_cards_show_empty_state_then_error() {
     editor.run();
     let cards = editor.output_cards();
     assert_eq!(cards[0].kind, CardKind::StatusError);
-    assert!(cards[0].body.starts_with("✗ ERROR"));
-    assert!(editor.status_card_text().starts_with("✗ ERROR"));
+    assert!(cards[0].body.starts_with("[!] ERROR"));
+    assert!(editor.status_card_text().starts_with("[!] ERROR"));
     let _ = fs::remove_dir_all(dir);
 }
 
@@ -590,7 +590,7 @@ fn gui_status_card_reports_exact_parity_on_pass() {
     editor.set_editor_text("Return 0.\n");
     editor.run();
     let text = editor.status_card_text();
-    assert!(text.starts_with("✓ PASS"), "{text}");
+    assert!(text.starts_with("[OK] PASS"), "{text}");
     assert!(text.contains("PARITY: EXACT MATCH"), "{text}");
     let _ = fs::remove_dir_all(dir);
 }
@@ -599,10 +599,10 @@ fn gui_status_card_reports_exact_parity_on_pass() {
 fn gui_toolbar_has_three_groups_and_no_inspector_duplicates() {
     let spec = toolbar_spec();
     assert_eq!(spec.left, &["R1 Editor", "New", "Open", "Save"]);
-    assert_eq!(spec.center, &["▶ Run", "Build .elf"]);
+    assert_eq!(spec.center, &["> Run", "Build .elf"]);
     assert_eq!(
         spec.right,
-        &["Presets ▾", "Wrap", "std/ Docs", "Light / Dark"]
+        &["Presets v", "Wrap", "std/ Docs", "Light / Dark"]
     );
     for group in [spec.left, spec.center, spec.right] {
         for forbidden in ["Paraphrase", "Trace", "Core-7 IR"] {
@@ -786,4 +786,32 @@ fn gui_highlight_marks_update_and_giving_as_control_anchors() {
         .collect::<Vec<_>>();
     assert!(anchors.contains(&"Update"), "{anchors:?}");
     assert!(anchors.contains(&"giving"), "{anchors:?}");
+}
+
+#[test]
+fn gui_source_has_no_unsupported_tofu_glyphs() {
+    let mut pending = vec![workspace_root().join("crates/tc-editor-gui/src")];
+    let forbidden = ['●', '✗', '▾', '✓', '▶', '·', '“', '”'];
+    let mut checked = 0;
+    while let Some(path) = pending.pop() {
+        if path.is_dir() {
+            for entry in fs::read_dir(&path).expect("read gui source directory") {
+                pending.push(entry.expect("directory entry").path());
+            }
+            continue;
+        }
+        if path.extension().and_then(|value| value.to_str()) != Some("rs") {
+            continue;
+        }
+        let source = fs::read_to_string(&path).expect("read gui source");
+        for glyph in forbidden {
+            assert!(
+                !source.contains(glyph),
+                "{} still contains unsupported glyph {glyph:?}",
+                path.display()
+            );
+        }
+        checked += 1;
+    }
+    assert!(checked >= 3, "expected to scan the GUI source tree");
 }
