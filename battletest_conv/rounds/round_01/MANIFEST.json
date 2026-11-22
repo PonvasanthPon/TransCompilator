@@ -1,0 +1,1234 @@
+[
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_01.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_02.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_03.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_04.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_05.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_06.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_07.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_08.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_09.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_10.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_11.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_12.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_13.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_14.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_15.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B1",
+    "name": "b1_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_1_basic/b1_16.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_01.eng",
+    "expect": "run",
+    "prose": [
+      "It was raining heavily.",
+      "We waited 20 minutes for the bus.",
+      "The kettle boiled for five minutes.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_02.eng",
+    "expect": "run",
+    "prose": [
+      "It is 3 pm.",
+      "The shop was very busy because of rain.",
+      "The report was late.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_03.eng",
+    "expect": "run",
+    "prose": [
+      "My brother drank 2 teas.",
+      "My sister bought fresh milk yesterday.",
+      "It is late.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_04.eng",
+    "expect": "run",
+    "prose": [
+      "We waited 20 minutes for the bus.",
+      "The kettle boiled for five minutes.",
+      "Yesterday Ravi called me twice.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_05.eng",
+    "expect": "run",
+    "prose": [
+      "The shop was very busy because of rain.",
+      "The report was late.",
+      "It was raining heavily.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_06.eng",
+    "expect": "run",
+    "prose": [
+      "My sister bought fresh milk yesterday.",
+      "It is late.",
+      "It is 3 pm.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_07.eng",
+    "expect": "run",
+    "prose": [
+      "The kettle boiled for five minutes.",
+      "Yesterday Ravi called me twice.",
+      "My brother drank 2 teas.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_08.eng",
+    "expect": "run",
+    "prose": [
+      "The report was late.",
+      "It was raining heavily.",
+      "We waited 20 minutes for the bus.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_09.eng",
+    "expect": "run",
+    "prose": [
+      "It is late.",
+      "It is 3 pm.",
+      "The shop was very busy because of rain.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_10.eng",
+    "expect": "run",
+    "prose": [
+      "Yesterday Ravi called me twice.",
+      "My brother drank 2 teas.",
+      "My sister bought fresh milk yesterday.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_11.eng",
+    "expect": "run",
+    "prose": [
+      "It was raining heavily.",
+      "We waited 20 minutes for the bus.",
+      "The kettle boiled for five minutes.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_12.eng",
+    "expect": "run",
+    "prose": [
+      "It is 3 pm.",
+      "The shop was very busy because of rain.",
+      "The report was late.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_13.eng",
+    "expect": "run",
+    "prose": [
+      "My brother drank 2 teas.",
+      "My sister bought fresh milk yesterday.",
+      "It is late.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_14.eng",
+    "expect": "run",
+    "prose": [
+      "We waited 20 minutes for the bus.",
+      "The kettle boiled for five minutes.",
+      "Yesterday Ravi called me twice.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_15.eng",
+    "expect": "run",
+    "prose": [
+      "The shop was very busy because of rain.",
+      "The report was late.",
+      "It was raining heavily.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B2",
+    "name": "b2_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_2_casual/b2_16.eng",
+    "expect": "run",
+    "prose": [
+      "My sister bought fresh milk yesterday.",
+      "It is late.",
+      "It is 3 pm.",
+      "It is evening now."
+    ],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_01.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_02.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_03.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_04.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_05.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_06.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_07.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_08.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_09.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_10.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_11.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_12.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_13.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_14.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_15.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B3",
+    "name": "b3_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_3_lexical/b3_16.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_01.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_02.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_03.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_04.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_05.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_06.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_07.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_08.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_09.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_10.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_11.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_12.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_13.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_14.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_15.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B4",
+    "name": "b4_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_4_anaphora/b4_16.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_01.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_02.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_03.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_04.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_05.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_06.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_07.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_08.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_09.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_10.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_11.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_12.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_13.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_14.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_15.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B5",
+    "name": "b5_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_5_compound/b5_16.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_01.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_02.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_03.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_04.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_05.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_06.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_07.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_08.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_09.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_10.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_11.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_12.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_13.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_14.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_15.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B6",
+    "name": "b6_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_6_complex/b6_16.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_01.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_01.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_02.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_02.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_03.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_03.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_04.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_04.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_05.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_05.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_06.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_06.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_07.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_07.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_08.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_08.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_09.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_09.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_10.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_10.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_11.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_11.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_12.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_12.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_13.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_13.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_14.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_14.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_15.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_15.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B7",
+    "name": "b7_16.eng",
+    "program": "battletest_conv/rounds/round_01/band_7_fullstack/b7_16.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_01_unresolved_it.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_01_unresolved_it.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_02_unresolved_its.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_02_unresolved_its.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_03_unresolved_the.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_03_unresolved_the.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_04_zero_step.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_04_zero_step.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_05_deep_parens.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_05_deep_parens.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_06_unclosed_quote.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_06_unclosed_quote.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_07_bad_import.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_07_bad_import.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_08_recursive_struct.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_08_recursive_struct.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_09_bad_update.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_09_bad_update.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_10_bad_condition.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_10_bad_condition.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_11_conflicting_types.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_11_conflicting_types.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_12_bad_phrase_call.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_12_bad_phrase_call.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_13_empty_update.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_13_empty_update.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_14_deep_not.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_14_deep_not.eng",
+    "expect": "clean_error",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_15_list_oob_trap.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_15_list_oob_trap.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  },
+  {
+    "round": 1,
+    "band": "B8",
+    "name": "b8_16_negative_sqrt_trap.eng",
+    "program": "battletest_conv/rounds/round_01/band_8_adversarial/b8_16_negative_sqrt_trap.eng",
+    "expect": "run",
+    "prose": [],
+    "stdin": ""
+  }
+]

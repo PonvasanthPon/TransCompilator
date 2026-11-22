@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tc_r1 Convergence Mission Control</title>
+<style>
+:root { --ink:#172033; --muted:#657089; --line:#dce3ef; --bg:#f4f7fb; --card:#ffffff; --blue:#1f5fd6; --green:#0b8457; --amber:#b56a00; --red:#c33636; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+header { background:linear-gradient(135deg,#fff 0%,#eaf1ff 100%); border-bottom:1px solid var(--line); padding:26px 30px 22px; }
+header h1 { margin:0 0 6px; font-size:25px; letter-spacing:-.02em; }
+header .sub { color:var(--muted); font-size:13px; }
+.banner { display:flex; flex-wrap:wrap; gap:12px 22px; align-items:center; margin-top:18px; }
+.pill { display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid var(--line); background:#fff; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--amber); }
+.pill.converged .dot { background:var(--green); }
+.pill.converging .dot { background:var(--amber); animation:pulse 1.8s infinite; }
+@keyframes pulse { 50% { opacity:.35; } }
+.meta { color:var(--muted); font-size:12px; }
+main { max-width:1500px; margin:0 auto; padding:22px 26px 50px; }
+section { margin-bottom:22px; }
+h2 { font-size:14px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:12px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:15px 16px; box-shadow:0 1px 2px rgba(23,32,51,.04); }
+.kpi .label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+.kpi .value { font-size:25px; font-weight:750; margin-top:5px; letter-spacing:-.02em; }
+.kpi .foot { color:var(--muted); font-size:11px; margin-top:3px; }
+.good { color:var(--green); } .warn { color:var(--amber); } .bad { color:var(--red); }
+table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:12px; }
+th { text-align:left; background:#f7f9fd; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; padding:10px 12px; border-bottom:1px solid var(--line); }
+td { padding:10px 12px; border-bottom:1px solid #edf1f8; vertical-align:top; }
+tr:last-child td { border-bottom:0; }
+.two { display:grid; grid-template-columns:1.45fr 1fr; gap:16px; }
+@media (max-width:1000px) { .two { grid-template-columns:1fr; } }
+.band { display:flex; align-items:center; gap:9px; padding:9px 11px; border:1px solid var(--line); border-radius:9px; background:#fff; margin-bottom:7px; font-size:12px; }
+.band .id { font-weight:800; color:var(--blue); width:24px; }
+.band .count { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
+.bar { height:5px; background:#edf1f8; border-radius:4px; overflow:hidden; width:100%; margin-top:6px; }
+.bar > i { display:block; height:100%; background:var(--green); width:0%; }
+pre.feed { margin:0; max-height:310px; overflow:auto; background:#0f172a; color:#d7e2f4; padding:13px; border-radius:11px; font-size:11px; line-height:1.55; white-space:pre-wrap; }
+.tabs { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:8px; }
+button.tab { border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:8px; padding:6px 10px; font-size:11px; cursor:pointer; }
+button.tab.active { color:#fff; background:var(--blue); border-color:var(--blue); }
+.empty { color:var(--muted); font-size:12px; padding:14px; border:1px dashed var(--line); border-radius:9px; background:#fff; }
+.activity { font-size:13px; color:var(--ink); background:#fff; border-left:4px solid var(--blue); padding:11px 14px; border-radius:8px; margin-bottom:12px; }
+.small { font-size:11px; color:var(--muted); }
+code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; background:#f4f7fb; padding:1px 4px; border-radius:4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>tc_r1 — Zero-Bug Convergence Mission Control</h1>
+  <div class="sub">Fixed-point battle-test · Simple Basic Casual English → Advanced Compound-Complex Sentences</div>
+  <div class="banner">
+    <span id="status-pill" class="pill converging"><span class="dot"></span><span id="status-text">CONVERGING</span></span>
+    <span class="meta">Branch <b id="branch">…</b></span>
+    <span class="meta">HEAD <code id="head">…</code></span>
+    <span class="meta">Round <b id="round">…</b></span>
+    <span class="meta">Band / Engine <b id="band">…</b></span>
+    <span class="meta">Sessions <b id="sessions">…</b></span>
+    <span class="meta" id="updated">…</span>
+  </div>
+</header>
+<main>
+  <div id="activity" class="activity">Loading campaign state…</div>
+
+  <section>
+    <h2>Current Round KPIs</h2>
+    <div class="grid" id="kpis"></div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>Round-by-Round Convergence</h2>
+      <table>
+        <thead><tr><th>Round</th><th>Seed Range</th><th>Fresh Programs</th><th>Fuzz Seeds</th><th>Bugs Found</th><th>Bugs Fixed</th><th>Verdict</th></tr></thead>
+        <tbody id="rounds"><tr><td colspan="7" class="empty">Round 1 is in progress.</td></tr></tbody>
+      </table>
+    </div>
+    <div>
+      <h2>8-Band English Variety Spectrum</h2>
+      <div id="bands"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Live Activity</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="programs">Program Feed</button>
+      <button class="tab" data-tab="fuzz">Fuzz Batches</button>
+      <button class="tab" data-tab="bugs">Bug Tracker</button>
+      <button class="tab" data-tab="limits">Limits Catalog</button>
+      <button class="tab" data-tab="journal">Journal Tail</button>
+    </div>
+    <pre class="feed" id="feed">Waiting for campaign data…</pre>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let tab = "programs";
+let state = null;
+const fmt = (n) => (n === undefined || n === null) ? "0" : Number(n).toLocaleString();
+const esc = (s) => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+async function get(path) { const r = await fetch(path, {cache:"no-store"}); if (!r.ok) throw new Error(path); return r.json(); }
+function kpi(label, value, foot, cls="") { return `<div class="card kpi"><div class="label">${label}</div><div class="value ${cls}">${value}</div><div class="foot">${foot}</div></div>`; }
+async function refresh() {
+  try {
+    const [s, rounds, bugs, limits, journal] = await Promise.all([
+      get("/api/state"), get("/api/rounds"), get("/api/bugs"), get("/api/limits"), get("/api/journal?tail=60")
+    ]);
+    state = s;
+    const converged = s.status === "CONVERGED";
+    $("status-pill").className = "pill " + (converged ? "converged" : "converging");
+    $("status-text").textContent = converged ? `CONVERGED — bug-free Round ${s.current_round}` : `CONVERGING (Round ${s.current_round})`;
+    $("branch").textContent = s.branch || "—";
+    $("head").textContent = (s.head_sha || "—").slice(0, 8);
+    $("round").textContent = s.current_round ?? "—";
+    $("band").textContent = s.current_band || "—";
+    $("sessions").textContent = fmt(s.sessions_count);
+    $("updated").textContent = "Updated " + (s.updated_at || "—");
+    $("activity").textContent = s.current_activity || "Idle";
+    const rm = s.round_metrics || {}, cm = s.cumulative_metrics || {};
+    const bugsThis = rm.bugs_found_this_round || 0;
+    $("kpis").innerHTML = [
+      kpi("Fresh Programs", `${fmt(rm.programs_done)} / ${fmt(rm.programs_target)}`, "8 bands × 16 minimum"),
+      kpi("Differential Fuzz", `${fmt(rm.fuzz_diff_done)} / ${fmt(rm.fuzz_diff_target)}`, "ELF64 == interpreter"),
+      kpi("Paraphrase Fuzz", `${fmt(rm.fuzz_paraphrase_done)} / ${fmt(rm.fuzz_paraphrase_target)}`, "4-way byte parity"),
+      kpi("Prose Injection", `${fmt(rm.fuzz_prose_done)} / ${fmt(rm.fuzz_prose_target)}`, "prose omitted, output identical"),
+      kpi("Crash / FFI Fuzz", `${fmt(rm.fuzz_crash_done)} / ${fmt(rm.fuzz_crash_target)}`, "no panic, signal, or hang"),
+      kpi("Bugs Found This Round", fmt(bugsThis), bugsThis ? "round is DIRTY → next round" : "clean so far", bugsThis ? "bad" : "good"),
+      kpi("Cumulative Fixed", fmt(cm.total_bugs_fixed), `${fmt(cm.bugs_open)} open`),
+      kpi("Regression Tests", fmt(cm.regression_tests), "655 baseline preserved"),
+      kpi("Panics / Leaks / Drops", `${fmt(cm.panics_or_segfaults)} / ${fmt(cm.memory_leaks_open)} / ${fmt(cm.silent_drops_open)}`, "must stay zero", (cm.panics_or_segfaults||cm.memory_leaks_open||cm.silent_drops_open) ? "bad" : "good")
+    ].join("");
+    $("rounds").innerHTML = rounds.length ? rounds.map(r => `<tr><td><b>${r.round}</b></td><td>${esc(r.seed_range)}</td><td>${fmt(r.fresh_programs)}</td><td>${fmt(r.fuzz_seeds)}</td><td class="${r.bugs_found ? "warn": "good"}">${fmt(r.bugs_found)}</td><td>${fmt(r.bugs_fixed)}</td><td><b class="${r.verdict && r.verdict.includes("CLEAN") ? "good":"warn"}">${esc(r.verdict)}</b></td></tr>`).join("") : `<tr><td colspan="7" class="empty">Round 1 is in progress.</td></tr>`;
+    const bands = s.bands || [];
+    $("bands").innerHTML = bands.map(b => {
+      const pct = b.target ? Math.min(100, Math.round((b.tested||0)/b.target*100)) : 0;
+      return `<div class="band"><span class="id">${b.id}</span><span>${esc(b.name)}</span><span class="count">${fmt(b.tested)}/${fmt(b.target)}${b.bugs ? " · "+b.bugs+" bug" : ""}</span></div><div class="bar"><i style="width:${pct}%"></i></div>`;
+    }).join("");
+    window._journal = journal;
+    window._bugs = bugs;
+    window._limits = limits;
+    await refreshFeed();
+  } catch (err) {
+    $("activity").textContent = "Dashboard error: " + err.message;
+  }
+}
+async function refreshFeed() {
+  const el = $("feed");
+  if (tab === "programs") {
+    const rows = await get("/api/programs?limit=45");
+    el.textContent = rows.length ? rows.map(r => `${r.ok ? "PASS" : "FAIL"}  ${r.round ? "R"+r.round+" " : ""}${r.band || ""}  ${r.name || r.program}  ${r.stage || ""}  ${Number(r.elapsed||0).toFixed(2)}s`).join("\n") : "No programs logged yet.";
+  } else if (tab === "fuzz") {
+    const rows = await get("/api/fuzz?limit=60");
+    el.textContent = rows.length ? rows.map(r => `${r.engine ? "E"+r.engine : ""}  ${r.start ?? ""}..${r.end ?? ""}  pass ${r.passed ?? "?"}/${(r.passed??0)+(r.failed??0)}  ${r.elapsed_seconds ?? r.elapsed ?? ""}s`).join("\n") : "No fuzz batches logged yet.";
+  } else if (tab === "bugs") {
+    el.textContent = window._bugs?.length ? JSON.stringify(window._bugs, null, 2) : "No bugs found — target state.";
+  } else if (tab === "limits") {
+    el.textContent = window._limits?.length ? window._limits.map(l => `${l.id} [${l.area}]  ${l.summary}\n    probe: ${l.probe}  →  ${l.behavior}`).join("\n\n") : "No limits cataloged.";
+  } else {
+    el.textContent = (window._journal || []).join("\n") || "Journal is empty.";
+  }
+}
+document.querySelectorAll("button.tab").forEach(btn => btn.addEventListener("click", async () => {
+  document.querySelectorAll("button.tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active"); tab = btn.dataset.tab; await refreshFeed();
+}));
+refresh(); setInterval(refresh, 2000);
+</script>
+</body>
+</html>

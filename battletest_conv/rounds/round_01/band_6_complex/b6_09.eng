@@ -1,0 +1,12 @@
+Use io.
+
+Let total be 0.
+Let skipped be 0.
+For every k from 1 to 17:
+    If k is between 4 and 16 and k modulo 2 equals 0:
+        Add k to total.
+    Otherwise:
+        Add 1 to skipped.
+Say total.
+Say skipped.
+Give back 0.

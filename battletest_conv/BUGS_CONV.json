@@ -1,0 +1,41 @@
+[
+  {
+    "id": "BUG-CONV-001",
+    "round_found": 1,
+    "band_or_engine": "B5",
+    "layer": "SEMANTICS",
+    "class": "silent action-chain loss / unresolved anaphor",
+    "status": "FIXED",
+    "repro": "Put 100 in cash, add 50 to it, remove 20 from it, and say it.",
+    "root_cause": "The prose normalizer did not split a multi-action chain whose first verb was Put, so the core parser saw one unsupported sentence and the new referent was never registered.",
+    "fix_sha": "ad35f4b",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::compound_put_chains_share_the_new_referent",
+    "found_at": "2026-11-22T12:05:24+05:30"
+  },
+  {
+    "id": "BUG-CONV-002",
+    "round_found": 1,
+    "band_or_engine": "B3",
+    "layer": "STDLIB",
+    "class": "missing output-synonym overloads",
+    "status": "FIXED",
+    "repro": "Use alloc, core, io, string.\nLet name be create text from \"hello\" of length 5.\nShow 42.\nPrint 4.5.\nDisplay true.\nShow address of name.",
+    "root_cause": "std/io and std/string exposed only say/print_str; Show, Print, and Display resolved as Emit verbs but had no matching public phrase.",
+    "fix_sha": "a61e492",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::output_synonyms_resolve_across_standard_types",
+    "found_at": "2026-11-22T12:05:24+05:30"
+  },
+  {
+    "id": "BUG-CONV-003",
+    "round_found": 1,
+    "band_or_engine": "B1",
+    "layer": "SEMANTICS",
+    "class": "direct string-literal emission",
+    "status": "FIXED",
+    "repro": "Use io.\nIf cash is more than 500, say \"good\".\nGive back 0.",
+    "root_cause": "A direct Say with a string literal produced no pointer/length pair even though the equivalent bytes phrase existed; the normalizer now emits that canonical bytes call.",
+    "fix_sha": "019bf9a",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::say_accepts_a_direct_string_literal",
+    "found_at": "2026-11-22T12:05:24+05:30"
+  }
+]
