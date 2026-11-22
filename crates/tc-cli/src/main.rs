@@ -9,7 +9,7 @@ use std::process::{Command, ExitCode, Stdio};
 
 use tc_ir::{
     BinOp, CallTarget, Expr, FnId, Function, LocalDef, LocalId, Module, RodataDef, Stmt, Type,
-    interpret, verify_module,
+    interpret, interpret_in_dir, verify_module,
 };
 use tc_semantics::{CompiledProject, LoweredProject, SourceFile};
 
@@ -45,7 +45,7 @@ fn main() -> ExitCode {
 
 fn usage() {
     eprintln!(
-        "usage: tc <build|run|interp|trace|paraphrase> <file.eng|file.tc> [-o <out_elf>] [-I <dir>] [--paraphrase] [-- <args...>]\n       tc [--version|--audit|--selftest]"
+        "usage: tc <build|run|interp|trace|paraphrase> <file.eng|file.tc> [-o <out_elf>] [-I <dir>] [--cwd <dir>] [--paraphrase] [-- <args...>]\n       tc [--version|--audit|--selftest]"
     );
 }
 
@@ -56,6 +56,7 @@ struct CommandLine {
     includes: Vec<PathBuf>,
     program_args: Vec<String>,
     paraphrase: bool,
+    interpreter_cwd: Option<PathBuf>,
 }
 
 fn parse_command_line(args: Vec<String>, allow_output: bool) -> Result<CommandLine, String> {
@@ -88,6 +89,14 @@ fn parse_command_line(args: Vec<String>, allow_output: bool) -> Result<CommandLi
                     .get(index)
                     .ok_or_else(|| "-I requires a directory".to_string())?;
                 parsed.includes.push(PathBuf::from(value));
+                index += 1;
+            }
+            "--cwd" => {
+                index += 1;
+                let value = args
+                    .get(index)
+                    .ok_or_else(|| "--cwd requires a directory".to_string())?;
+                parsed.interpreter_cwd = Some(PathBuf::from(value));
                 index += 1;
             }
             "--paraphrase" => {
@@ -376,7 +385,11 @@ fn run_interp(args: Vec<String>) -> ExitCode {
             .map_or_else(|| "program".to_string(), |path| path.display().to_string()),
     ];
     program_argv.extend(command.program_args);
-    match interpret(&compiled.module, &program_argv, &stdin, 50_000_000) {
+    let interpreted = match command.interpreter_cwd.as_deref() {
+        Some(cwd) => interpret_in_dir(&compiled.module, &program_argv, &stdin, cwd, 50_000_000),
+        None => interpret(&compiled.module, &program_argv, &stdin, 50_000_000),
+    };
+    match interpreted {
         Ok(output) => {
             let _ = std::io::stdout().write_all(&output.stdout);
             let _ = std::io::stderr().write_all(&output.stderr);
