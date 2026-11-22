@@ -23,16 +23,17 @@ use crate::expr::{
 use crate::intent::{IntentVerdict, classify};
 use crate::paraphrase::{ParaphraseDoc, ParaphraseEntry, canonicalize_statement};
 use crate::phrases::{PhraseBinding, PhraseMatch, match_all};
+use crate::place::{canonical_assignment_target, parse_place};
 use crate::quantifier::{
     GlobalQuantifier, LocalQuantKind, LocalQuantSpec, PredSpec, QuantDomainSpec,
     parse_global as parse_global_quantifier,
 };
 use crate::textutil::{
-    canonical_assignment_target, canonical_bare_assignment_target, find_top_level_symbol,
-    find_top_level_word, first_word, is_lvalue_text, split_top_level, split_type_list, split_where,
-    starts_with_word,
+    find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_top_level,
+    split_type_list, split_where, starts_with_word,
 };
 use crate::token::{Token, TokenKind, decode_string_token, tokenize};
+use crate::value::ValueContext;
 use crate::{
     ClauseTree, RawItem, RawSentence, SemanticError, SemanticErrorKind, SentenceTrace, SourceFile,
     Span, Voice, analyze_clause, segment_source,
@@ -2677,14 +2678,14 @@ impl Scope {
 }
 
 #[derive(Debug, Clone)]
-enum Target {
+pub(crate) enum Target {
     Local(String),
     Global(String),
     Memory(AstExpr),
 }
 
 impl Target {
-    fn read(&self) -> AstExpr {
+    pub(crate) fn read(&self) -> AstExpr {
         match self {
             Self::Local(name) => AstExpr::Var(name.clone()),
             Self::Global(name) => AstExpr::Load(Box::new(AstExpr::GlobalAddr {
@@ -2696,7 +2697,7 @@ impl Target {
     }
 }
 
-struct Lowerer<'a> {
+pub(crate) struct Lowerer<'a> {
     parser: &'a crate::LinkGrammarParser,
     module: String,
     globals: HashMap<String, AstType>,
@@ -2749,17 +2750,17 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    fn span(&self, span: Span) -> tc_typeck::Span {
+    pub(crate) fn span(&self, span: Span) -> tc_typeck::Span {
         type_span(&self.module, span)
     }
 
-    fn error(
+    pub(crate) fn error(
         &self,
         span: Span,
         kind: SemanticErrorKind,
         message: impl Into<String>,
     ) -> SemanticError {
-        semantic_error(&self.module, span, kind, message)
+        semantic_error(&self.module, span, kind, message.into())
     }
 
     fn push_scope(&mut self, kind: ScopeKind) {
@@ -2780,7 +2781,7 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    fn declare_temp(&mut self, name: &str, ty: AstType) {
+    pub(crate) fn declare_temp(&mut self, name: &str, ty: AstType) {
         self.declare(name, ty);
     }
 
@@ -2815,7 +2816,7 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    fn touch_target_text(&mut self, text: &str, span: Span) {
+    pub(crate) fn touch_target_text(&mut self, text: &str, span: Span) {
         let canonical = canonical_assignment_target(text);
         if let Some(token) = tokenize(&canonical)
             .into_iter()
@@ -3186,11 +3187,8 @@ impl<'a> Lowerer<'a> {
         })
     }
 
-    fn parse_value(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
-        if let Some(phrase) = self.match_phrase_typed(text, span)? {
-            return self.phrase_expression(&phrase, span);
-        }
-        self.parse_expr(text, span)
+    pub(crate) fn parse_value(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        crate::value::parse_value(self, text, span)
     }
 
     fn structural_compatibility(param: &AstType, actual: &AstType, type_params: &[String]) -> i8 {
@@ -3385,7 +3383,7 @@ impl<'a> Lowerer<'a> {
         env.expr_type(expr)
     }
 
-    fn shallow_type(&self, expr: &AstExpr) -> AstType {
+    pub(crate) fn shallow_type(&self, expr: &AstExpr) -> AstType {
         self.shallow_type_opt(expr).unwrap_or(AstType::I64)
     }
 
@@ -3862,7 +3860,7 @@ impl<'a> Lowerer<'a> {
         Ok(base)
     }
 
-    fn next_temp(&mut self, label: &str) -> String {
+    pub(crate) fn next_temp(&mut self, label: &str) -> String {
         self.temp_counter += 1;
         format!("__{label}_{}", self.temp_counter)
     }
@@ -4969,6 +4967,9 @@ impl<'a> Lowerer<'a> {
         if let Some(statement) = self.try_assignment(trimmed, span)? {
             return Ok(statement);
         }
+        if let Some(statements) = self.try_semantic_frame(trimmed, span)? {
+            return Ok(statements);
+        }
         if let Some(statement) = self.try_computational(trimmed, span)? {
             return Ok(statement);
         }
@@ -5703,101 +5704,6 @@ impl<'a> Lowerer<'a> {
         Ok(Some((lowered.prelude, lowered.expr)))
     }
 
-    fn split_update_clauses(&self, text: &str) -> Vec<String> {
-        let mut clauses = Vec::new();
-        for comma_piece in split_top_level(text, ",") {
-            let tokens = tokenize(&comma_piece);
-            let mut start = 0;
-            let mut depth = 0_i32;
-            for (index, token) in tokens.iter().enumerate() {
-                match token.text.as_str() {
-                    "(" | "[" | "{" => depth += 1,
-                    ")" | "]" | "}" => depth -= 1,
-                    _ => {}
-                }
-                if depth == 0
-                    && token.is("and")
-                    && tokens
-                        .get(index + 1)
-                        .is_some_and(|next| next.is("its") || next.is("the"))
-                {
-                    let clause = comma_piece[start..token.start].trim();
-                    if !clause.is_empty() {
-                        clauses.push(clause.to_string());
-                    }
-                    start = token.end;
-                }
-            }
-            let tail = comma_piece[start..].trim();
-            if !tail.is_empty() {
-                clauses.push(tail.to_string());
-            }
-        }
-        clauses
-    }
-
-    fn try_update(
-        &mut self,
-        text: &str,
-        span: Span,
-    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
-        if !starts_with_word(text, "update") {
-            return Ok(None);
-        }
-        let rest = strip_leading_word(text, "update");
-        let Some((start, end)) = find_top_level_word(rest, "so") else {
-            return Ok(None);
-        };
-        let canonical_target = canonical_assignment_target(rest[..start].trim());
-        let target = canonical_target.as_str();
-        let clauses_text = rest[end..].trim();
-        if target.is_empty() || clauses_text.is_empty() {
-            return Ok(None);
-        }
-        self.touch_target_text(target, span);
-        let mut statements = Vec::new();
-        for clause in self.split_update_clauses(clauses_text) {
-            let clause = clause.trim().trim_start_matches("and").trim();
-            let Some((marker_start, marker_end)) = find_top_level_word(clause, "is")
-                .or_else(|| find_top_level_word(clause, "becomes"))
-            else {
-                return Err(self.error(
-                    span,
-                    SemanticErrorKind::Lowering,
-                    format!("update clause `{clause}` must use `its <field> is <value>`"),
-                ));
-            };
-            let field_text = clause[..marker_start].trim();
-            let value_text = clause[marker_end..].trim();
-            let field_text = field_text.strip_prefix("its ").map_or_else(
-                || {
-                    field_text
-                        .strip_prefix("the ")
-                        .unwrap_or(field_text)
-                        .to_string()
-                },
-                ToString::to_string,
-            );
-            let field = field_text
-                .rsplit("'s")
-                .next()
-                .map_or(field_text.as_str(), str::trim);
-            if field.is_empty() || value_text.is_empty() {
-                return Err(self.error(
-                    span,
-                    SemanticErrorKind::Lowering,
-                    format!("update clause `{clause}` is missing a field or value"),
-                ));
-            }
-            let field = canonical_bare_assignment_target(field);
-            let value = self.parse_value(value_text, span)?;
-            let target_text = format!("{target}'s {field}");
-            statements.extend(self.assign_text(&target_text, value, span, false)?);
-        }
-        self.touch_target_text(target, span);
-        Ok(Some(statements))
-    }
-
     fn try_assignment(
         &mut self,
         text: &str,
@@ -5840,7 +5746,8 @@ impl<'a> Lowerer<'a> {
                     return Ok(Some(prelude));
                 }
                 let value = self.parse_value(value_text, span)?;
-                return Ok(Some(self.assign_text(target, value, span, true)?));
+                let assigned = self.assign_text(target, value, span, true);
+                return Ok(Some(assigned?));
             }
         }
         for keyword in ["is", "becomes", "equals"] {
@@ -5881,19 +5788,22 @@ impl<'a> Lowerer<'a> {
                     return Ok(Some(prelude));
                 }
                 let value = self.parse_value(value_text, span)?;
-                return Ok(Some(self.assign_text(target, value, span, true)?));
+                let assigned = self.assign_text(target, value, span, true);
+                return Ok(Some(assigned?));
             }
         }
         Ok(None)
     }
 
-    fn assign_text(
+    pub(crate) fn assign_text(
         &mut self,
         target_text: &str,
         value: AstExpr,
         span: Span,
         allow_declare: bool,
     ) -> Result<Vec<AstStmt>, SemanticError> {
+        let _place = parse_place(target_text)
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
         let canonical_target = canonical_assignment_target(target_text);
         let target_text = canonical_target.as_str();
         if is_simple_name(target_text) {
@@ -5964,7 +5874,7 @@ impl<'a> Lowerer<'a> {
         }])
     }
 
-    fn write_arithmetic(
+    pub(crate) fn write_arithmetic(
         &mut self,
         target_text: &str,
         operator: tc_ir::BinOp,
@@ -5984,11 +5894,13 @@ impl<'a> Lowerer<'a> {
         Ok(statements)
     }
 
-    fn resolve_target(
+    pub(crate) fn resolve_target(
         &mut self,
         text: &str,
         span: Span,
     ) -> Result<(Vec<AstStmt>, Target), SemanticError> {
+        let _place = parse_place(text)
+            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
         let canonical_target = canonical_assignment_target(text);
         let text = canonical_target.as_str();
         if is_simple_name(text) {
@@ -6020,7 +5932,7 @@ impl<'a> Lowerer<'a> {
         Ok((Vec::new(), Target::Memory(address)))
     }
 
-    fn write_target(&mut self, target: &Target, value: AstExpr, span: Span) -> AstStmt {
+    pub(crate) fn write_target(&mut self, target: &Target, value: AstExpr, span: Span) -> AstStmt {
         match target {
             Target::Local(name) => {
                 self.touch_name(name, span);
@@ -6550,7 +6462,7 @@ fn join_tokens(tokens: &[Token]) -> String {
         .join(" ")
 }
 
-fn strip_leading_word<'t>(text: &'t str, word: &str) -> &'t str {
+pub(crate) fn strip_leading_word<'t>(text: &'t str, word: &str) -> &'t str {
     let trimmed = text.trim_start();
     if trimmed.len() >= word.len() && trimmed[..word.len()].eq_ignore_ascii_case(word) {
         trimmed[word.len()..].trim_start()
@@ -6794,6 +6706,28 @@ pub(crate) fn lower_module(
         entries: lowerer.paraphrase_entries,
     };
     (module_ast, lowerer.trace, lowerer.errors, doc)
+}
+
+impl ValueContext for Lowerer<'_> {
+    fn match_value_phrase(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<PhraseMatch>, SemanticError> {
+        self.match_phrase_typed(text, span)
+    }
+
+    fn value_phrase_expression(
+        &mut self,
+        phrase: &PhraseMatch,
+        span: Span,
+    ) -> Result<AstExpr, SemanticError> {
+        self.phrase_expression(phrase, span)
+    }
+
+    fn value_expression(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        self.parse_expr(text, span)
+    }
 }
 
 #[cfg(test)]
