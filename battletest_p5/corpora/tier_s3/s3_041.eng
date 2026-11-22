@@ -1,0 +1,28 @@
+Use alloc, core.
+
+Let first be allocate 64 bytes.
+Let second be allocate 64 bytes.
+Let third be allocate 64 bytes.
+Let fourth be allocate 64 bytes.
+Set first[0] to 1.
+Set fourth[0] to 4.
+Release memory at second.
+Release memory at third.
+Let merged be allocate 96 bytes.
+If merged is empty.
+Stop with error "coalesce null".
+End the condition.
+If first[0] is not 1.
+Stop with error "coalesce corrupted first".
+End the condition.
+If fourth[0] is not 4.
+Stop with error "coalesce corrupted fourth".
+End the condition.
+Release memory at first.
+Release memory at fourth.
+Release memory at merged.
+Let used be bytes in use.
+If used is not 0.
+Stop with error "coalesce leak".
+End the condition.
+Give back 0.

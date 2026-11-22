@@ -51,10 +51,12 @@ Publicly, to find the length of s (a pointer to TcString), named str_len, giving
 Give back s's len.
 
 Publicly, to copy text s (a pointer to TcString), named str_clone, giving TcString.
+Call this as "copy text <s>".
 Let copied be create text from s's data of length s's len.
 Give back copied.
 
 Publicly, to clear text s (a pointer to TcString), named str_clear.
+Call this as "clear text <s>".
 Set s's len to 0 as an unsigned number.
 If s's data is not empty, set item 0 of s's data to 0.
 

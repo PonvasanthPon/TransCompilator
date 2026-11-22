@@ -1,0 +1,14 @@
+Use core, io.
+
+A record Node has a size (a whole number) and a next link (a pointer to Node).
+Keep a shared first node as Node.
+Keep a shared second node as Node.
+Set first node's size to 58.
+Set second node's size to 59.
+Set first node's next link to address of second node.
+Let p be address of first node.
+Add p's next link's size to p's size.
+If p's size is not 117.
+Stop with error "nested possessive".
+End the condition.
+Give back p's size.

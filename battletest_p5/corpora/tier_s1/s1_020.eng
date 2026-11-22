@@ -1,0 +1,11 @@
+Use core, io.
+
+A record Account has a monthly rent (a whole number), a remaining balance (a whole number), and a next link (a pointer to Account).
+Keep a shared total spent as a whole number.
+Let account be Account.
+Update account so its monthly rent is 23, its remaining balance is account's remaining balance plus 23, and its next link is no address.
+Add account's remaining balance to total spent.
+If total spent is not 23.
+Stop with error "bad total".
+End the condition.
+Give back total spent.

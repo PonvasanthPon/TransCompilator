@@ -1,0 +1,8 @@
+Use io.
+Let n be 6.
+Let count be 0.
+If no d from 2 to n - 1 satisfies n % d == 0.
+Add 1 to count.
+End the condition.
+Say count.
+Give back 0.

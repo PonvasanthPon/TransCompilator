@@ -1,0 +1,4 @@
+Use io and inventory.
+Let left be stock_left(31, 5).
+Say left.
+Give back 0.
