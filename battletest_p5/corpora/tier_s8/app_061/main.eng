@@ -1,0 +1,5 @@
+Use io and pricing.
+Let total be price_total(185, 12).
+Let tax be tax_total(total).
+Say total plus tax.
+Give back 0.

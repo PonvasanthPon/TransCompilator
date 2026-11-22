@@ -1,0 +1,20 @@
+Use alloc, core, io, list.
+
+Let nums be List of whole number.
+Let i be 0.
+While i is less than 9.
+Push i to address of nums.
+Add 1 to i.
+End the loop.
+Let count be count of address of nums.
+Say count.
+Let first be first item of address of nums.
+Say first.
+Let last be last item of address of nums.
+Say last.
+Free list address of nums.
+Let used be bytes in use.
+If used is not 0.
+Stop with error "list leak".
+End the condition.
+Give back 0.

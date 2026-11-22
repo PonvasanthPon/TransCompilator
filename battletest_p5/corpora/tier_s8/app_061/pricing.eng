@@ -1,0 +1,5 @@
+Publicly, to price given quantity as a whole number, rate as a whole number, named price_total, giving a whole number.
+Give back quantity times rate.
+
+Publicly, to tax given amount as a whole number, named tax_total, giving a whole number.
+Give back amount times 5 divided by 100.

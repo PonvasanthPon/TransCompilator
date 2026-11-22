@@ -1,0 +1,6 @@
+Use core, io.
+
+Let i be 0.
+Let total be 0.
+Until i is at least 1, add i to total, add 1 to i.
+Give back total if total is less than 100, otherwise give back total minus 100.

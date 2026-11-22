@@ -1,0 +1,6 @@
+Use alloc, core, and string.
+Publicly, to tag given s as a pointer to TcString, named tag_text, giving TcString.
+Let prefix be create text from "#" of length 1.
+Let joined be join address of prefix and s.
+Release text address of prefix.
+Give back joined.
