@@ -44,6 +44,18 @@ pub enum SemanticConcept {
     Double,
     /// Halving.
     Halve,
+    /// Increment by one or a supplied amount.
+    Increment,
+    /// Decrement by one or a supplied amount.
+    Decrement,
+    /// Reset/clear to zero.
+    Reset,
+    /// Copy/duplicate a value.
+    Copy,
+    /// Convert a value to another type.
+    Convert,
+    /// Adjust/alter/modify a value.
+    Adjust,
     /// Assignment/storage.
     Assign,
     /// Transfer between places or owners.
@@ -303,28 +315,39 @@ fn concept_priority(concept: SemanticConcept) -> u8 {
         SemanticConcept::Negate => 5,
         SemanticConcept::Double => 6,
         SemanticConcept::Halve => 7,
-        SemanticConcept::Assign => 8,
-        SemanticConcept::Transfer => 9,
-        SemanticConcept::Swap => 10,
-        SemanticConcept::CompareGt => 11,
-        SemanticConcept::CompareLt => 12,
-        SemanticConcept::CompareEq => 13,
-        SemanticConcept::CompareNe => 14,
-        SemanticConcept::Create => 15,
-        SemanticConcept::Destroy => 16,
-        SemanticConcept::Output => 17,
-        SemanticConcept::Input => 18,
-        SemanticConcept::Loop => 19,
-        SemanticConcept::Return => 20,
-        SemanticConcept::Branch => 21,
+        SemanticConcept::Increment => 8,
+        SemanticConcept::Decrement => 9,
+        SemanticConcept::Reset => 10,
+        SemanticConcept::Copy => 5,
+        SemanticConcept::Convert => 12,
+        SemanticConcept::Adjust => 13,
+        SemanticConcept::Assign => 14,
+        SemanticConcept::Transfer => 15,
+        SemanticConcept::Swap => 16,
+        SemanticConcept::CompareGt => 17,
+        SemanticConcept::CompareLt => 18,
+        SemanticConcept::CompareEq => 19,
+        SemanticConcept::CompareNe => 20,
+        SemanticConcept::Create => 21,
+        SemanticConcept::Destroy => 22,
+        SemanticConcept::Output => 23,
+        SemanticConcept::Input => 24,
+        SemanticConcept::Loop => 25,
+        SemanticConcept::Return => 26,
+        SemanticConcept::Branch => 27,
     }
 }
 
 fn concept_predicate(concept: SemanticConcept) -> Option<VerbPredicate> {
     match concept {
-        SemanticConcept::Add => Some(VerbPredicate::TransferAdd),
-        SemanticConcept::Sub => Some(VerbPredicate::TransferSub),
-        SemanticConcept::Assign => Some(VerbPredicate::Assign),
+        SemanticConcept::Add | SemanticConcept::Increment | SemanticConcept::Adjust => {
+            Some(VerbPredicate::TransferAdd)
+        }
+        SemanticConcept::Sub | SemanticConcept::Decrement => Some(VerbPredicate::TransferSub),
+        SemanticConcept::Reset | SemanticConcept::Copy | SemanticConcept::Assign => {
+            Some(VerbPredicate::Assign)
+        }
+        SemanticConcept::Convert => Some(VerbPredicate::Transform),
         SemanticConcept::Transfer => Some(VerbPredicate::TransferMove),
         SemanticConcept::Create => Some(VerbPredicate::Create),
         SemanticConcept::Destroy => Some(VerbPredicate::Destroy),

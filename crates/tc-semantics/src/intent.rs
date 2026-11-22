@@ -350,17 +350,22 @@ fn supported_concept(
     passive: bool,
 ) -> bool {
     match resolution.concept {
-        Some(SemanticConcept::Add) => {
+        Some(SemanticConcept::Add | SemanticConcept::Increment | SemanticConcept::Adjust) => {
             has_preposition(text) || passive || !verb_region_is_empty(text, verb_index)
         }
-        Some(SemanticConcept::Sub) => {
+        Some(SemanticConcept::Sub | SemanticConcept::Decrement) => {
             prep_roles(text).contains(&tc_lexicon::PrepRole::Source)
                 || passive
                 || !verb_region_is_empty(text, verb_index)
         }
-        Some(SemanticConcept::Assign | SemanticConcept::Transfer) => {
-            has_preposition(text) || passive || !verb_region_is_empty(text, verb_index)
-        }
+        Some(
+            SemanticConcept::Assign
+            | SemanticConcept::Transfer
+            | SemanticConcept::Reset
+            | SemanticConcept::Copy
+            | SemanticConcept::Convert,
+        ) => has_preposition(text) || passive || !verb_region_is_empty(text, verb_index),
+        Some(SemanticConcept::Swap) => false,
         Some(SemanticConcept::Mul | SemanticConcept::Div) => {
             prep_roles(text).contains(&tc_lexicon::PrepRole::Extent)
         }
@@ -371,7 +376,6 @@ fn supported_concept(
             SemanticConcept::Mod
             | SemanticConcept::Output
             | SemanticConcept::Input
-            | SemanticConcept::Swap
             | SemanticConcept::CompareGt
             | SemanticConcept::CompareLt
             | SemanticConcept::CompareEq
@@ -475,6 +479,20 @@ fn main_verb_hit(text: &str, clause: &ClauseTree) -> Option<VerbHit> {
 
 fn supported_computational_operation(text: &str, clause: &ClauseTree) -> Option<VerbHit> {
     let hit = main_verb_hit(text, clause)?;
+    if matches!(
+        hit.resolution.concept,
+        Some(
+            SemanticConcept::Increment
+                | SemanticConcept::Decrement
+                | SemanticConcept::Reset
+                | SemanticConcept::Copy
+                | SemanticConcept::Convert
+                | SemanticConcept::Adjust
+                | SemanticConcept::Swap
+        )
+    ) {
+        return (clause.voice == Voice::Imperative).then_some(hit);
+    }
     let tokens = tokenize(text);
     let be_auxiliary = hit.index > 0
         && tokens.get(hit.index - 1).is_some_and(|token| {
@@ -692,6 +710,23 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
             };
         }
     }
+    if let Some(hit) = first_word_hit(core)
+        && hit.index == 0
+        && matches!(
+            hit.resolution.concept,
+            Some(
+                SemanticConcept::Increment
+                    | SemanticConcept::Decrement
+                    | SemanticConcept::Reset
+                    | SemanticConcept::Copy
+                    | SemanticConcept::Convert
+                    | SemanticConcept::Adjust
+                    | SemanticConcept::Swap
+            )
+        )
+    {
+        return IntentVerdict::Exec;
+    }
     if assignment_shape(core) {
         return IntentVerdict::Exec;
     }
@@ -699,9 +734,26 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         return IntentVerdict::Exec;
     }
     if let Some(hit) = main_verb_hit(core, clause) {
-        if clause.voice != Voice::Imperative && narrative(clause) {
+        if clause.voice == Voice::Active && narrative(clause) {
             return IntentVerdict::CommentOmitted {
                 reason: "past-tense or third-person narrative prose".to_string(),
+            };
+        }
+        if clause.voice != Voice::Imperative
+            && matches!(
+                hit.resolution.concept,
+                Some(
+                    SemanticConcept::Increment
+                        | SemanticConcept::Decrement
+                        | SemanticConcept::Reset
+                        | SemanticConcept::Copy
+                        | SemanticConcept::Convert
+                        | SemanticConcept::Adjust
+                )
+            )
+        {
+            return IntentVerdict::CommentOmitted {
+                reason: "non-imperative prose using a computational noun/verb".to_string(),
             };
         }
         let reason = format!(

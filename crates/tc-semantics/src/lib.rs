@@ -7,10 +7,13 @@
 mod cond;
 mod discourse;
 mod expr;
+mod frame;
 mod lower;
 mod paraphrase;
+mod place;
 mod quantifier;
 mod textutil;
+mod value;
 
 pub mod intent;
 pub mod phrases;
