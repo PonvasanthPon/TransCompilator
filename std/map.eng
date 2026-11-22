@@ -6,12 +6,14 @@ A public record IntMap of V has keys as a pointer to whole number, values as a p
 A public record StrMap of V has keys as a pointer to pointer to TcString, values as a pointer to V, states as a pointer to byte, a cap as an unsigned number, and a len as an unsigned number.
 
 To int_hash given key as a whole number, named int_hash, returning an unsigned number.
+Call this as "hash integer <key>".
 Let value be key as an unsigned number.
 Set value to exclusive or of value and (shift value right by 33).
 Set value to value * 11400714819323198485 as an unsigned number.
 Give back value.
 
 To str_hash given key as a pointer to TcString, named str_hash, returning an unsigned number.
+Call this as "hash text <key>".
 Let value be 1469598103934665603 as an unsigned number.
 Let index be 0 as an unsigned number.
 While index is less than key's len.
@@ -21,7 +23,8 @@ Add 1 to index.
 End the loop.
 Give back value.
 
-To intmap_prepare for V given table as a pointer to IntMap of V, returning nothing.
+To intmap_prepare for V given table as a pointer to IntMap of V, named intmap_prepare, returning nothing.
+Call this as "prepare int map <table>".
 If table's cap equals 0.
 Let cap be 256 as an unsigned number.
 Let keys be allocate cap times 8 bytes.
@@ -38,8 +41,8 @@ created is IntMap of V.
 Give back created.
 
 Publicly, to intmap_put for V given table as a pointer to IntMap of V, key as a whole number, val as V, named intmap_put, returning nothing.
-intmap_prepare(table).
-Let hash_value be int_hash(key).
+Prepare int map table.
+Let hash_value be hash integer key.
 Let index be hash_value modulo table's cap.
 Let probes be 0 as an unsigned number.
 Let found be false.
@@ -58,9 +61,10 @@ End the loop.
 End the condition.
 
 Publicly, to intmap_get for V given table as a pointer to IntMap of V, key as a whole number, named intmap_get, returning Option of V.
+Call this as "look up <key> in <table>".
 answer is Option of V.
 If table's cap equals 0, give back answer.
-Let hash_value be int_hash(key).
+Let hash_value be hash integer key.
 Let index be hash_value modulo table's cap.
 Let probes be 0 as an unsigned number.
 While probes is less than table's cap.
@@ -72,12 +76,12 @@ End the loop.
 Give back answer.
 
 Publicly, to intmap_contains for V given table as a pointer to IntMap of V, key as a whole number, named intmap_contains, returning a truth value.
-Let got be intmap_get(table, key).
+Let got be look up key in table.
 Give back got's has_value.
 
 Publicly, to intmap_remove for V given table as a pointer to IntMap of V, key as a whole number, named intmap_remove, returning a truth value.
 If table's cap equals 0, give back false.
-Let hash_value be int_hash(key).
+Let hash_value be hash integer key.
 Let index be hash_value modulo table's cap.
 Let probes be 0 as an unsigned number.
 While probes is less than table's cap.
@@ -99,7 +103,8 @@ Set table's states to no address as a pointer to byte.
 Set table's cap to 0 as an unsigned number.
 Set table's len to 0 as an unsigned number.
 
-To strmap_prepare for V given table as a pointer to StrMap of V, returning nothing.
+To strmap_prepare for V given table as a pointer to StrMap of V, named strmap_prepare, returning nothing.
+Call this as "prepare text map <table>".
 If table's cap equals 0.
 Let cap be 256 as an unsigned number.
 Let keys be allocate cap times 8 bytes.
@@ -113,7 +118,7 @@ created is StrMap of V.
 Give back created.
 
 Publicly, to strmap_put for V given table as a pointer to StrMap of V, key as a pointer to TcString, val as V, named strmap_put, returning nothing.
-strmap_prepare(table).
+Prepare text map table.
 Let index be 0 as an unsigned number.
 While index is less than table's len.
 Let same be text item index of table's keys matches text key.
@@ -125,6 +130,7 @@ Set item table's len of table's values to val.
 Add 1 to table's len.
 
 Publicly, to strmap_get for V given table as a pointer to StrMap of V, key as a pointer to TcString, named strmap_get, returning Option of V.
+Call this as "look up text <key> in <table>".
 answer is Option of V.
 Let index be 0 as an unsigned number.
 While index is less than table's len.
@@ -135,7 +141,7 @@ End the loop.
 Give back answer.
 
 Publicly, to strmap_contains for V given table as a pointer to StrMap of V, key as a pointer to TcString, named strmap_contains, returning a truth value.
-Let got be strmap_get(table, key).
+Let got be look up text key in table.
 Give back got's has_value.
 
 Publicly, to strmap_remove for V given table as a pointer to StrMap of V, key as a pointer to TcString, named strmap_remove, returning a truth value.

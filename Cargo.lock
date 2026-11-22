@@ -2287,6 +2287,7 @@ name = "tc-semantics"
 version = "0.1.0"
 dependencies = [
  "tc-codegen-x86",
+ "tc-editor",
  "tc-ir",
  "tc-lexicon",
  "tc-syntax",
