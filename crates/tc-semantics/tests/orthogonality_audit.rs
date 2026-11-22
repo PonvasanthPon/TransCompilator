@@ -341,9 +341,9 @@ fn scoped_program(statement: Statement, target: Target, scope: Scope) -> String 
             scoped.push_str(&operation);
             scoped.push('\n');
             let _ = writeln!(scoped, "Say {}.", parts.read);
-            scoped.push_str("Add 1 to loop.");
+            scoped.push_str("Add 1 to counter.");
             format!(
-                "Use io.\n{}\n{}\nLet loop be 0.\nWhile loop is less than 1:\n{}\nGive back 0.\n",
+                "Use io.\n{}\n{}\nLet counter be 0.\nWhile counter is less than 1:\n{}\nGive back 0.\n",
                 parts.type_setup,
                 parts.instance_setup,
                 indent(&scoped, 4)
@@ -357,7 +357,7 @@ fn scoped_program(statement: Statement, target: Target, scope: Scope) -> String 
                 "Put 10 in x, "
             };
             format!(
-                "Use io.\n{}\n{}\nLet source be 5.\nLet other be 5.\nLet loop be 0.\nUntil loop is at least 1, {}{}, Say {}, Add 1 to loop.\nGive back 0.\n",
+                "Use io.\n{}\n{}\nLet source be 5.\nLet other be 5.\nLet counter be 0.\nUntil counter is at least 1, {}{}, Say {}, Add 1 to counter.\nGive back 0.\n",
                 parts.type_setup, parts.instance_setup, seed, inline_op, parts.read
             )
         }
@@ -371,7 +371,7 @@ fn scoped_program(statement: Statement, target: Target, scope: Scope) -> String 
             scoped.push('\n');
             let _ = write!(scoped, "Say {}.", parts.read);
             format!(
-                "Use io.\n{}\n{}\nFor every loop from 1 to 1:\n{}\nGive back 0.\n",
+                "Use io.\n{}\n{}\nFor every counter from 1 to 1:\n{}\nGive back 0.\n",
                 parts.type_setup,
                 parts.instance_setup,
                 indent(&scoped, 4)
