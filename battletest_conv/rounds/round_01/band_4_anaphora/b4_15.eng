@@ -1,0 +1,11 @@
+Use io.
+
+A record Purchase has a unit price (a whole number), a quantity (a whole number), and a total price (a whole number).
+Let purchase be Purchase.
+Update purchase so its unit price is 35, its quantity is 2, and its total price is purchase's unit price times purchase's quantity.
+Let basket total be purchase's total price.
+Say basket total.
+Update purchase so its quantity is purchase's quantity plus 1, and its total price is purchase's unit price times purchase's quantity.
+Add purchase's total price to basket total.
+Say basket total.
+Give back 0.

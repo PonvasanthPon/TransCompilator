@@ -1,0 +1,11 @@
+Use alloc, core, io, string.
+
+Let name be create text from "round one" of length 9.
+Say 12.
+Show 13.
+Print 12.5.
+Display true.
+Say address of name.
+Show address of name.
+Release text address of name.
+Give back 0.

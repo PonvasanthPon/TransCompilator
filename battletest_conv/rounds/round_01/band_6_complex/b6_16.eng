@@ -1,0 +1,8 @@
+Use io.
+
+Let a be 16.
+Let b be 19.
+Let c be 23.
+Let result be the sum of a and b and c, where a is 32, b is 48, and c is 64.
+Say result.
+Give back 0.

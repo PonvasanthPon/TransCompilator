@@ -1,0 +1,12 @@
+[
+  {
+    "round": 1,
+    "seed_range": "10001..13000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 3,
+    "bugs_fixed": 3,
+    "regression_tests_after": 658,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  }
+]

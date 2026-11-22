@@ -1,0 +1,7 @@
+Use io.
+
+To smaller given a as a whole number, b as a whole number, named smaller, giving a whole number.
+Give back a if a is less than b, otherwise give back b.
+
+Say smaller(31, 46).
+Give back 0.

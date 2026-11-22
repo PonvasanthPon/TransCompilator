@@ -1,0 +1,6 @@
+Use alloc, core, io, list.
+Let nums be List of whole number.
+Push 1 to address of nums.
+Say count of address of nums.
+Free list address of nums.
+Give back 0.
