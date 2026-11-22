@@ -40,3 +40,42 @@ fn say_accepts_a_direct_string_literal() {
         result.lines
     );
 }
+
+#[test]
+fn output_synonyms_resolve_across_standard_types() {
+    let source = concat!(
+        "Use alloc, core, io, string.\n",
+        "Let name be create text from \"hello\" of length 5.\n",
+        "Show 42.\n",
+        "Print 4.5.\n",
+        "Display true.\n",
+        "Say address of name.\n",
+        "Show address of name.\n",
+        "Print address of name.\n",
+        "Display address of name.\n",
+        "Release text address of name.\n",
+        "Give back 0.\n",
+    );
+    let result = run_elf_with_parity(source, None, "");
+    assert!(result.ok, "{}", result.summary);
+    assert!(
+        result.lines.iter().any(|line| line == "42"),
+        "{:?}",
+        result.lines
+    );
+    assert!(
+        result.lines.iter().any(|line| line == "4.5000"),
+        "{:?}",
+        result.lines
+    );
+    assert!(
+        result.lines.iter().any(|line| line == "true"),
+        "{:?}",
+        result.lines
+    );
+    assert!(
+        result.lines.iter().filter(|line| *line == "hello").count() == 4,
+        "{:?}",
+        result.lines
+    );
+}
