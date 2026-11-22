@@ -1,0 +1,12 @@
+Use io.
+Let total be 0.
+Let hits be 0.
+For every i from 1 to 21:
+    For every j from 1 to 5:
+        If i plus j is more than 24:
+            Add j to hits.
+        Otherwise:
+            Add i to total.
+Say total.
+Say hits.
+Give back 0.

@@ -1,0 +1,10 @@
+Use io.
+Let total be 0.
+For every i from 51 to 1 by -2:
+    If i is between 12 and 28:
+        Continue.
+    If i is less than 7:
+        Break.
+    Add i to total.
+Say total.
+Give back 0.

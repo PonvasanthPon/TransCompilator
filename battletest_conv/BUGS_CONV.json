@@ -76,5 +76,18 @@
     "fix_sha": "a35d01b",
     "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::parenthesized_division_is_one_transfer_operand",
     "found_at": "2026-11-22T13:09:54+05:30"
+  },
+  {
+    "id": "BUG-CONV-007",
+    "round_found": 4,
+    "band_or_engine": "B8/crash",
+    "layer": "SEMANTICS",
+    "class": "stack exhaustion on deep expression nesting",
+    "status": "FIXED",
+    "repro": "Use io.\nLet x be ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))).\nSay x.\nGive back 0.\n",
+    "root_cause": "The expression parser recursed through parenthesized groups without a depth guard; 150 nested groups exhausted the Rust stack in the CLI and the smaller test-thread stack.",
+    "fix_sha": "feead65",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::deeply_nested_parentheses_fail_cleanly",
+    "found_at": "2026-11-22T13:29:18+05:30"
   }
 ]

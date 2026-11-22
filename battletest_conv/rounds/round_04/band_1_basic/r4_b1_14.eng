@@ -1,0 +1,10 @@
+Use io.
+Data is 7.
+Pack is 54.
+Credit is 19.
+Add pack to data.
+If data is more than 8, say "data full".
+Data left is data minus 3.
+Say data.
+Say data left.
+Give back 0.

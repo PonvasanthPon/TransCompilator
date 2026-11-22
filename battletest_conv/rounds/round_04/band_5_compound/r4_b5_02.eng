@@ -1,0 +1,6 @@
+Use io.
+Put (310 plus 40) in cash, add (11 times 2) to it, remove (2 plus 17) from it, and say it.
+If cash is more than 300, and cash is less than 900, say "middle total".
+If cash is more than 900, or cash is less than 200, say "outer total".
+Say cash.
+Give back 0.

@@ -33,3 +33,10 @@
 - 2026-11-22T13:05:56+05:30 — Round 3 fuzz engine 2 seeds 17001..17750: 750/750 in 211.9s.
 - 2026-11-22T13:09:33+05:30 — Round 3 fuzz engine 3 seeds 17751..18500: 750/750 in 216.8s.
 - 2026-11-22T13:09:54+05:30 — Round 3 DIRTY (BUG-CONV-005 and 006, a35d01b); 128/128 programs, 3000/3000 seeds rerun on final code, 662 tests. Advancing to Round 4 with seeds 19001..22000.
+- 2026-11-22T13:10:57+05:30 — Round 4 corpus: 127/128 passed; 1 failures logged.
+- 2026-11-22T13:12:55+05:30 — Round 4 corpus: 128/128 passed; 0 failures logged.
+- 2026-11-22T13:13:56+05:30 — Round 4 fuzz engine 4 seeds 21501..22000: 500/500 in 52.4s.
+- 2026-11-22T13:18:52+05:30 — Round 4 fuzz engine 1 seeds 19001..20000: 1000/1000 in 295.9s.
+- 2026-11-22T13:23:53+05:30 — Round 4 fuzz engine 2 seeds 20001..20750: 750/750 in 296.8s.
+- 2026-11-22T13:28:13+05:30 — Round 4 fuzz engine 3 seeds 20751..21500: 750/750 in 260.3s.
+- 2026-11-22T13:29:18+05:30 — Round 4 DIRTY (BUG-CONV-007 feead65); 128/128 programs, 3000/3000 seeds, 663 tests. Advancing to Round 5 with seeds 22001..25000.

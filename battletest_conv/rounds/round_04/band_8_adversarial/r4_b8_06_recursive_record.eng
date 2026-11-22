@@ -1,0 +1,5 @@
+Use io.
+A record Loop has a child (a Loop).
+Let loop be Loop.
+Say loop's child.
+Give back 0.
