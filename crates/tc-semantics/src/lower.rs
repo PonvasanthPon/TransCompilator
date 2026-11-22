@@ -1766,6 +1766,7 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         first_word(trimmed).as_str(),
         "add"
             | "remove"
+            | "put"
             | "give"
             | "return"
             | "clear"
