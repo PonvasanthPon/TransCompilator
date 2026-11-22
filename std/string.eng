@@ -64,6 +64,15 @@ Publicly, to release text s (a pointer to TcString), named str_free.
 If s's data is not empty, release memory at s's data.
 Update s so its data is no address, its len is 0 as an unsigned number, and its cap is 0 as an unsigned number.
 
+Publicly, to show s (a pointer to TcString), named show_str.
+Say s.
+
+Publicly, to print s (a pointer to TcString), named print_synonym_str.
+Say s.
+
+Publicly, to display s (a pointer to TcString), named display_str.
+Say s.
+
 Publicly, to say s (a pointer to TcString), named print_str.
 If s's len is more than 0, ask Linux kernel 1 with 1, s's data, and s's len.
 Ask Linux kernel 1 with 1, "\n", and 1.
