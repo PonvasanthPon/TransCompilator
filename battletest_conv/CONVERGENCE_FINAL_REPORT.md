@@ -135,7 +135,7 @@ reproducible, clean-failure probes:
 ## Repository and dashboard state
 
 - `main` remains at `883432b03ddaf2d7d27bacb191cd467e3361e606`, exactly the Phase 0 archive commit.
-- `battletest-convergence` contains all code fixes, regressions, corpora, fuzz logs, harnesses, dashboard, limits, and reports.
+- `battletest-convergence` contains all code fixes, regressions, corpora, fuzz logs, harnesses, dashboard, limits, and reports. Its working tree is clean at finalization.
 - `/home/ponvasanth/TransCompilator/`, `/home/ponvasanth/rbmt-sandbox/`, and `/home/ponvasanth/Project FROZEN/` were never read or written by this campaign.
 - Live dashboard: `http://127.0.0.1:8798/` — HTTP 200, `CONVERGED`, Round 5, 640 programs, 15,000 seeds, 7 bugs fixed, 0 open.
 
