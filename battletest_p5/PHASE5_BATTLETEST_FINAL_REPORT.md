@@ -3,6 +3,7 @@
 **Branch:** `battletest-p5` (from `main` @ `27e57cc`; `main` untouched)
 **Campaign start:** 2026-11-22
 **Status:** COMPLETED
+**Campaign commit:** `e678e79`
 
 ## Executive metrics
 
