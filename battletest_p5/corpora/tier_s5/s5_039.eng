@@ -1,0 +1,13 @@
+Use alloc, core, io, list.
+
+A record Point has an x (a whole number) and a y (a whole number).
+Let points be List of Point.
+Let p be Point.
+Set p's x to 39.
+Set p's y to 40.
+Push p to address of points.
+Let q be pop from address of points.
+Say q's x.
+Say q's y.
+Free list address of points.
+Give back 0.

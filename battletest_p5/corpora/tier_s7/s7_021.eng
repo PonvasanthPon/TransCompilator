@@ -1,0 +1,14 @@
+Use alloc, core, io, map.
+
+A record Point has an x (a whole number) and a y (a whole number).
+Let table be IntMap of Point.
+Let p be Point.
+Set p's x to 21.
+Set p's y to 22.
+Put p into int map address of table for key 1.
+Let found be look up 1 in int map address of table.
+If found.has_value, say 1, otherwise say 0.
+Say found.value.x.
+Say found.value.y.
+Free int map address of table.
+Give back 0.

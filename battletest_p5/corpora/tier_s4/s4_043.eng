@@ -1,0 +1,11 @@
+Use io, math.
+
+Let root be square root of 8.75.
+Say root.
+Let power be pow_i64(2, 3).
+Say power.
+Let absolute be abs_i64(0 minus 43).
+Say absolute.
+Let clamped be clamp_i64(43, 3, 17).
+Say clamped.
+Give back 0.

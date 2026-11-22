@@ -1,0 +1,4 @@
+Use budget, io.
+Let amount be add_interest(500, 18).
+Say amount.
+Give back 0.

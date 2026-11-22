@@ -1,0 +1,20 @@
+Use alloc, core, io, map, string.
+
+Let table be StrMap of whole number.
+Let alpha be create text from "alpha23" of length 7.
+Let beta be create text from "beta23" of length 6.
+Put 23 into text map address of table for text address of alpha.
+Put 24 into text map address of table for text address of beta.
+Let found be look up text address of alpha in text map address of table.
+If found.has_value, say 1, otherwise say 0.
+Say found.value.
+Let removed be strmap_remove(address of table, address of beta).
+Say removed.
+Free text map address of table.
+Release text address of alpha.
+Release text address of beta.
+Let used be bytes in use.
+If used is not 0.
+Stop with error "strmap leak".
+End the condition.
+Give back 0.

@@ -1,0 +1,10 @@
+Use io.
+
+Let a be 4.
+Let b be 4.
+Say a.
+Say b.
+Say a times b.
+Say a divided by 3.
+Say a modulo 3.
+Give back 0.

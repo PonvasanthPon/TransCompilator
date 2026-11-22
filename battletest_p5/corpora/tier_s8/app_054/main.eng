@@ -1,0 +1,7 @@
+Use geometry, io, and model.
+Let p be Point.
+Set p's x to 1.
+Set p's y to 6.
+Let distance be distance_squared(address of p).
+Say distance.
+Give back 0.

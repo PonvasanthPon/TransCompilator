@@ -1,0 +1,7 @@
+Use io.
+
+Let a be read a whole number from input.
+Let b be read a whole number from input.
+Say a plus b.
+Say a minus b.
+Give back 0.

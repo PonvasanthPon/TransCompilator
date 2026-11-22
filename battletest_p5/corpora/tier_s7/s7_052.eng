@@ -1,0 +1,12 @@
+Use alloc, core, io, map.
+
+Let table be IntMap of decimal.
+Put 1.5 into int map address of table for key 1.
+Put 2.25 into int map address of table for key 2.
+Let found be look up 2 in int map address of table.
+If found.has_value, say 1, otherwise say 0.
+Let result be 0.0.
+Set result to found.value.
+Say result.
+Free int map address of table.
+Give back 0.
