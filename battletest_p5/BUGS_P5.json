@@ -9,7 +9,7 @@
     "repro": "battletest_p5/corpora/tier_s6/probe_display_roundtrip.eng",
     "root_cause": "run_interp called tc_ir::interpret (cwd=None) instead of interpret_in_dir, disabling sandboxed openat/read/write/close/lseek.",
     "fix": "Added --cwd <dir> to tc interp and routed it through interpret_in_dir.",
-    "fix_sha": "2f07684",
+    "fix_sha": "71df9fd",
     "regression": "crates/tc-cli/tests/battletest_p5_regressions.rs::interp_cwd_enables_sandboxed_file_syscalls"
   }
 ]
