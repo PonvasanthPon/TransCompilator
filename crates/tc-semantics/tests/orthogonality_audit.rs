@@ -102,9 +102,14 @@ enum Statement {
     Transfer,
     Update,
     Output,
+    Increment,
+    Decrement,
+    Reset,
+    Copy,
+    Swap,
 }
 
-const STATEMENTS: [Statement; 12] = [
+const STATEMENTS: [Statement; 17] = [
     Statement::Let,
     Statement::Put,
     Statement::Set,
@@ -117,6 +122,11 @@ const STATEMENTS: [Statement; 12] = [
     Statement::Transfer,
     Statement::Update,
     Statement::Output,
+    Statement::Increment,
+    Statement::Decrement,
+    Statement::Reset,
+    Statement::Copy,
+    Statement::Swap,
 ];
 
 #[derive(Clone, Copy, Debug)]
@@ -238,6 +248,11 @@ fn statement_operation(statement: Statement, target: Target, target_text: &str) 
             _ => "Update pondy so its distance is 20 and its toll is 2.".to_string(),
         },
         Statement::Output => format!("Say {target_text}."),
+        Statement::Increment => format!("Increment {target_text}."),
+        Statement::Decrement => format!("Decrement {target_text}."),
+        Statement::Reset => format!("Reset {target_text}."),
+        Statement::Copy => format!("Copy 5 into {target_text}."),
+        Statement::Swap => format!("Swap {target_text} and other."),
     }
 }
 
@@ -262,7 +277,7 @@ fn scoped_program(statement: Statement, target: Target, scope: Scope) -> String 
         body.push_str(parts.instance_setup);
         body.push('\n');
     }
-    body.push_str("Let source be 5.\n");
+    body.push_str("Let source be 5.\nLet other be 5.\n");
     if !it_seed.is_empty() {
         body.push_str(it_seed);
         body.push('\n');
@@ -342,7 +357,7 @@ fn scoped_program(statement: Statement, target: Target, scope: Scope) -> String 
                 "Put 10 in x, "
             };
             format!(
-                "Use io.\n{}\n{}\nLet source be 5.\nLet loop be 0.\nUntil loop is at least 1, {}{}, Say {}, Add 1 to loop.\nGive back 0.\n",
+                "Use io.\n{}\n{}\nLet source be 5.\nLet other be 5.\nLet loop be 0.\nUntil loop is at least 1, {}{}, Say {}, Add 1 to loop.\nGive back 0.\n",
                 parts.type_setup, parts.instance_setup, seed, inline_op, parts.read
             )
         }
@@ -395,7 +410,7 @@ fn statement_target_scope_orthogonality_matrix() {
             }
         }
     }
-    assert_eq!(passed, 553, "valid matrix cells");
+    assert_eq!(passed, 798, "valid matrix cells");
     assert_eq!(not_applicable, 35, "structurally inapplicable cells");
-    assert_eq!(passed + not_applicable, 12 * 7 * 7);
+    assert_eq!(passed + not_applicable, 17 * 7 * 7);
 }

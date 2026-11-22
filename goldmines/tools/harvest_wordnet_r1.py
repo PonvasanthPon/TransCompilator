@@ -28,6 +28,30 @@ DEFAULT_OUT = REPO / "crates" / "tc-lexicon" / "src" / "generated"
 DIRECT_ANCHORS = [
     ("Add", "oewn-00156409-v"),       # increase
     ("Sub", "oewn-00151509-v"),       # decrease
+    # Post-v1.0 computational anchors.  These are direct-only anchors so new
+    # verbs do not open broad but semantically unrelated hyponym trees.
+    ("Increment", "oewn-00156409-v"),  # increase (increment derives from this)
+    ("Decrement", "oewn-00151509-v"),  # decrease (decrement derives from this)
+    ("Reset", "oewn-00949623-v"),      # reset
+    ("Reset", "oewn-00298288-v"),      # zero
+    ("Reset", "oewn-00181809-v"),      # clear (scalar reset; bitwise clear stays structural)
+    ("Swap", "oewn-02262178-v"),       # exchange
+    ("Swap", "oewn-02262575-v"),       # interchange
+    ("Copy", "oewn-01751182-v"),       # copy
+    ("Convert", "oewn-00381684-v"),    # convert
+    ("Adjust", "oewn-00296959-v"),     # adjust
+    ("Adjust", "oewn-00126072-v"),     # alter
+    ("Adjust", "oewn-00169614-v"),     # modify
+]
+
+# OEWN 2025 has noun entries for increment/decrement but no verb lemmas.  The
+# imperative aliases carry the exact increase/decrease synset provenance and
+# are emitted as explicit derived rows; this is data curation, not a Rust verb
+# list.
+DERIVED_ALIASES = [
+    ("increment", "oewn-00156409-v", "Increment"),
+    ("decrement", "oewn-00151509-v", "Decrement"),
+    ("duplicate", "oewn-01751182-v", "Copy"),
 ]
 
 # One anchor per SemanticConcept.  The two extra anchors for Create and
@@ -128,6 +152,7 @@ POS_ORDER = {"Verb": 0, "Noun": 1, "Adj": 2, "Adv": 3}
 CONCEPT_ORDER = {
     name: index for index, name in enumerate([
         "Add", "Sub", "Mul", "Div", "Mod", "Negate", "Double", "Halve",
+        "Increment", "Decrement", "Reset", "Copy", "Convert", "Adjust",
         "Assign", "Transfer", "Swap", "CompareGt", "CompareLt", "CompareEq",
         "CompareNe", "Create", "Destroy", "Output", "Input", "Loop",
         "Branch", "Return",
@@ -250,6 +275,8 @@ def main() -> int:
         (lemma, pos, concept, synset, depth)
         for (lemma, pos, concept), (depth, synset) in best.items()
     ]
+    for lemma, synset, concept in DERIVED_ALIASES:
+        entries.append((lemma, "Verb", concept, synset, 0))
     entries.sort(key=lambda item: (
         item[0], POS_ORDER[item[1]], CONCEPT_ORDER[item[2]], item[4], item[3]
     ))
