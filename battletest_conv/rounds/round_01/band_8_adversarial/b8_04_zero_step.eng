@@ -1,0 +1,7 @@
+Use io.
+Let total be 0.
+For every i from 1 to 5 by 0.
+Add i to total.
+End the loop.
+Say total.
+Give back 0.

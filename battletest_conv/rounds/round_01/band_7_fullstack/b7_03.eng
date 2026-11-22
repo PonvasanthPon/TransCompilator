@@ -1,0 +1,18 @@
+Use alloc, core, io, map.
+
+Let table be IntMap of whole number.
+Let k be 0.
+While k is less than 313.
+Put (k times 5) modulo 997 into int map address of table for key k.
+Add 1 to k.
+End the loop.
+Let found be look up 303 in int map address of table.
+If found.has_value, say found.value, otherwise say -1.
+Let map size be count of int map address of table.
+Say map size.
+Let removed be intmap_remove(address of table, 8).
+Say removed.
+Free int map address of table.
+Let used be bytes in use.
+Say used.
+Give back 0.

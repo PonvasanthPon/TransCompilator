@@ -1,0 +1,10 @@
+Use io.
+Bank is 1695.
+Wallet is 85.
+Transfer 255 from bank to wallet.
+Move 50 from bank to wallet.
+Spend 12 from wallet.
+Print bank.
+Show wallet.
+Say "transfer done".
+Give back 0.

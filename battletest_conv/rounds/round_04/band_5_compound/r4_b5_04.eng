@@ -1,0 +1,11 @@
+Use io.
+Let a be 4.
+Let b be 6.
+Let c be 8.
+Let d be 10.
+Let result be 0.
+If a is more than 0, and b is more than 0, and c is more than 0, and d is more than 0, add 1 to result.
+If a is more than 50 or b is more than 50, and c is more than 50, or d is more than 50, add 2 to result.
+If it is false that a is more than 50 and b is more than 50, add 4 to result.
+Print result.
+Give back 0.

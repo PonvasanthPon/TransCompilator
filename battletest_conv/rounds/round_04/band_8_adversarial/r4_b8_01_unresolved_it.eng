@@ -1,0 +1,6 @@
+Use io.
+If 3 is more than 2:
+    Let inner be 7.
+    Say inner.
+Say it.
+Give back 0.

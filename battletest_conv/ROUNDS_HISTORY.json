@@ -1,0 +1,52 @@
+[
+  {
+    "round": 1,
+    "seed_range": "10001..13000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 3,
+    "bugs_fixed": 3,
+    "regression_tests_after": 658,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  },
+  {
+    "round": 2,
+    "seed_range": "13001..16000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 1,
+    "bugs_fixed": 1,
+    "regression_tests_after": 660,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  },
+  {
+    "round": 3,
+    "seed_range": "16001..19000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 2,
+    "bugs_fixed": 2,
+    "regression_tests_after": 662,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  },
+  {
+    "round": 4,
+    "seed_range": "19001..22000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 1,
+    "bugs_fixed": 1,
+    "regression_tests_after": 663,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  },
+  {
+    "round": 5,
+    "seed_range": "22001..25000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 0,
+    "bugs_fixed": 0,
+    "regression_tests_after": 663,
+    "verdict": "CLEAN_CONVERGED"
+  }
+]

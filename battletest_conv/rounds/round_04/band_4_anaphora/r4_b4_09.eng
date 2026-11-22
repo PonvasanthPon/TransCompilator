@@ -1,0 +1,11 @@
+Use io.
+A record Employee has a monthly pay (a whole number), a tax (a whole number), a total tax (a whole number), and a bonus (a whole number).
+Let employee be Employee.
+Update employee so its monthly pay is 7261, its tax is 359, its total tax is 1445, and its bonus is 129.
+Let take home be employee's monthly pay minus employee's total tax.
+Say take home.
+Add employee's bonus to it.
+Say it.
+Remove 39 from it.
+Say take home.
+Give back 0.

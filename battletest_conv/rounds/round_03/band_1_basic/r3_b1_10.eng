@@ -1,0 +1,10 @@
+Use io.
+Data is 4.
+Pack is 60.
+Balance is 20.
+Add pack to data.
+If data is more than 6, say "data loaded".
+Data left is data minus 2.
+Say data.
+Say data left.
+Give back 0.

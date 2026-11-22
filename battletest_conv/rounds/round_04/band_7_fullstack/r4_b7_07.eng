@@ -1,0 +1,24 @@
+Use alloc, core, io, list.
+Let nums be List of whole number.
+Let i be 0.
+While i is less than 187.
+Push (i times 10) modulo 401 to address of nums.
+Add 1 to i.
+End the loop.
+Let total be 0.
+Let idx be 0 as an unsigned number.
+Let size be count of address of nums.
+While idx is less than size.
+Let value be item idx of nums's data.
+Add value to total.
+Add 1 to idx.
+End the loop.
+Say size.
+Say total.
+list_clear(address of nums).
+Let remaining be count of address of nums.
+Say remaining.
+Free list address of nums.
+Let used be bytes in use.
+Say used.
+Give back 0.

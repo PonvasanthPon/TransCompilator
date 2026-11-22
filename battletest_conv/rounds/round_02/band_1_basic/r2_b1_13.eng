@@ -1,0 +1,9 @@
+Use io.
+Tomato is 25.
+Potato is 33.
+Wallet is 358.
+Add tomato to wallet.
+Remove 48 from wallet.
+If wallet is more than 250, say "enough cash".
+Say wallet.
+Give back 0.

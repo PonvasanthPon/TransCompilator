@@ -1,0 +1,11 @@
+Use io.
+Exam is 58.
+Project is 28.
+Total is exam plus project.
+If total is more than 70, say "pass".
+If total is at most 70, say "retry".
+Passes is 0.
+If total is more than 70, add 1 to passes.
+Say total.
+Say passes.
+Give back 0.

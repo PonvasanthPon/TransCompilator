@@ -1,0 +1,33 @@
+Use alloc, core, fs, io, string.
+Let name be create text from "round_three_16.bin" of length 18.
+Let p be allocate 16496 bytes.
+Set p[0] to 16.
+Set p[16495] to 16.
+Let opened be file_open_write(address of name).
+If not opened's is_ok.
+Stop with error "open write failed".
+End the condition.
+Let handle be File.
+Set handle to opened's ok_val.
+Let written be file_write_bytes(address of handle, p, 16496).
+Say written.
+file_close(address of handle).
+Let reader be file_open_read(address of name).
+If not reader's is_ok.
+Stop with error "open read failed".
+End the condition.
+Let read handle be File.
+Set read handle to reader's ok_val.
+Let size read be file_seek(address of read handle, 0, 2).
+Say size read.
+file_seek(address of read handle, 0, 0).
+Let buffer be block of 8 byte.
+Let count read be file_read_bytes(address of read handle, address of item 0 of buffer, 8).
+Say count read.
+file_close(address of read handle).
+Release memory at p.
+Delete file address of name.
+Release text address of name.
+Let used be bytes in use.
+Say used.
+Give back 0.

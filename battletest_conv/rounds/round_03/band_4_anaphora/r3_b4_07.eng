@@ -1,0 +1,10 @@
+Use io.
+A record Purchase has a unit price (a whole number), a quantity (a whole number), a discount (a whole number), and a net total (a whole number).
+Let purchase be Purchase.
+Update purchase so its unit price is 67, its quantity is 3, its discount is 17, and its net total is purchase's unit price times purchase's quantity minus purchase's discount.
+Let amount due be purchase's net total.
+Say amount due.
+Update purchase so its quantity is purchase's quantity plus 3, and its net total is purchase's unit price times purchase's quantity minus purchase's discount.
+Add purchase's net total to amount due.
+Say amount due.
+Give back 0.

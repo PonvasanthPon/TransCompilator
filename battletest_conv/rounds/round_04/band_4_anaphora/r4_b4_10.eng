@@ -1,0 +1,14 @@
+Use io.
+A record Point has an x (a whole number) and a y (a whole number).
+A record Circle has a radius (a whole number) and a centre x (a whole number).
+Let point be Point.
+Let circle be Circle.
+Update point so its x is 13 and its y is 16.
+Update circle so its radius is 19 and its centre x is 22.
+Let combined be point's x plus circle's centre x.
+Say combined.
+Add point's y to it.
+Say it.
+Add circle's radius to combined.
+Say combined.
+Give back 0.

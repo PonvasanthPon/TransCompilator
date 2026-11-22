@@ -1,0 +1,12 @@
+Use io.
+
+Let total be 0.
+Let i be 0.
+Until i is at least 9, add 1 to total, add 1 to i.
+Let a be 8.
+Let b be 13.
+Let c be 17.
+Let result be the sum of a and b and c, where a is 16, b is 24, and c is 32.
+Say total.
+Say result.
+Give back 0.
