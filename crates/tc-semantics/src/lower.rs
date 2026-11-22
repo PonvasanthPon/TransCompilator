@@ -1779,6 +1779,7 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         "add"
             | "remove"
             | "put"
+            | "set"
             | "give"
             | "return"
             | "clear"
@@ -6478,6 +6479,13 @@ fn starts_control(text: &str) -> bool {
 }
 
 fn starts_action(text: &str) -> bool {
+    if !text
+        .chars()
+        .next()
+        .is_some_and(|character| character.is_ascii_alphabetic())
+    {
+        return false;
+    }
     let word = first_word(text);
     if word.is_empty() {
         return false;
