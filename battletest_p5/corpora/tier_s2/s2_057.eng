@@ -1,8 +1,0 @@
-Use io.
-A record Point has an x (a whole number) and a y (a whole number).
-Let point be Point.
-Set point's x to 57.
-Set point's y to 59.
-Say the point's x.
-Say point's y.
-Give back 0.

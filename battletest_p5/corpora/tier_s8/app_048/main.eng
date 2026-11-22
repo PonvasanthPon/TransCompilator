@@ -1,7 +1,0 @@
-Use alloc, core, io, string, and texts.
-Let name be create text from "item48" of length 6.
-Let tagged be tag_text(address of name).
-Say address of tagged.
-Release text address of tagged.
-Release text address of name.
-Give back 0.

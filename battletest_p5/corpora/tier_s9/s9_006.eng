@@ -1,7 +1,0 @@
-Use io and math.
-The room is 3 metres wide.
-Let width be 3.0.
-Let height be 4.0.
-Let diagonal be square root of width times width plus height times height.
-Say diagonal.
-Give back 0.
