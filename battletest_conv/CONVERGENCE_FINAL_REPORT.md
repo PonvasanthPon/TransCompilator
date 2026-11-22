@@ -4,7 +4,8 @@
 **Branch:** `battletest-convergence`  
 **Main base:** `883432b03ddaf2d7d27bacb191cd467e3361e606` (untouched after Phase 0)  
 **Status:** **CONVERGED** — clean Round 5  
-**Last code-fix commit:** `feead65`  
+**Last code-fix commit:** `feead65`
+**Final campaign artifacts commit:** `640eead`  
 **Date:** 2026-11-22
 
 ## Executive verdict
