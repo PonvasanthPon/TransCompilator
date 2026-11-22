@@ -1,0 +1,15 @@
+Use alloc, core, io, string.
+
+Let amount be 101 as an unsigned number.
+Let ratio be 1.25.
+Let flag be true.
+Let label be create text from "round two output" of length 16.
+Say 1.
+Show 11.
+Print 1.75.
+Display flag.
+Show amount.
+Print ratio.
+Display address of label.
+Release text address of label.
+Give back 0.

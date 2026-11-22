@@ -37,5 +37,18 @@
     "fix_sha": "019bf9a",
     "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::say_accepts_a_direct_string_literal",
     "found_at": "2026-11-22T12:05:24+05:30"
+  },
+  {
+    "id": "BUG-CONV-004",
+    "round_found": 2,
+    "band_or_engine": "B5/B7",
+    "layer": "SEMANTICS",
+    "class": "compound Set action chains and parenthesized operand splitting",
+    "status": "FIXED",
+    "repro": "Set cash to 100, add 50 to it, remove 25 from it, and say it.",
+    "root_cause": "The normalizer omitted Set from multi-action splitting; adding it exposed that starts_action treated a leading parenthesized expression as a new action, breaking exclusive-or Set expressions in std/map.",
+    "fix_sha": "5951466",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::{compound_set_chains_share_the_new_referent,set_expressions_with_parenthesized_operands_stay_one_action}",
+    "found_at": "2026-11-22T12:39:53+05:30"
   }
 ]

@@ -1,0 +1,34 @@
+Use alloc, core, fs, io, string.
+
+Let name be create text from "round_two_8.bin" of length 15.
+Let p be allocate 12232 bytes.
+Set p[0] to 8.
+Set p[12231] to 8.
+Let opened be file_open_write(address of name).
+If not opened's is_ok.
+Stop with error "open write failed".
+End the condition.
+Let handle be File.
+Set handle to opened's ok_val.
+Let written be file_write_bytes(address of handle, p, 12232).
+Say written.
+file_close(address of handle).
+Let reader be file_open_read(address of name).
+If not reader's is_ok.
+Stop with error "open read failed".
+End the condition.
+Let read handle be File.
+Set read handle to reader's ok_val.
+Let size read be file_seek(address of read handle, 0, 2).
+Say size read.
+file_seek(address of read handle, 0, 0).
+Let buffer be block of 4 byte.
+Let count read be file_read_bytes(address of read handle, address of item 0 of buffer, 4).
+Say count read.
+file_close(address of read handle).
+Release memory at p.
+Delete file address of name.
+Release text address of name.
+Let remaining bytes be bytes in use.
+Say remaining bytes.
+Give back 0.

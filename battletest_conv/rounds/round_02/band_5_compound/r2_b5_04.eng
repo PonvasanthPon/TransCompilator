@@ -1,0 +1,11 @@
+Use io.
+
+Let a be 4.
+Let b be 7.
+Let c be 10.
+Let d be 13.
+Let result be 0.
+If a is more than 0, and b is more than 0, and c is less than 30, and d is less than 33, add 1 to result.
+If a is more than 100 or b is more than 100, and c is more than 0, or d is more than 0, add 2 to result.
+Say result.
+Give back 0.
