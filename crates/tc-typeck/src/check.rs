@@ -8,6 +8,7 @@ use crate::ast::{
     AstExpr, AstFn, AstStmt, AstType, PhraseEntry, PhrasePart, Span, TypeError, TypeErrorKind,
 };
 use crate::resolve::{ConcreteType, FnItem, ResolvedModule, ResolvedProgram, TypeItem};
+use crate::suggest::{closest_match, humanize};
 
 /// A typed expression.
 #[derive(Debug, Clone, PartialEq)]
@@ -430,6 +431,28 @@ impl Checker<'_, '_> {
         }
     }
 
+    fn undefined_variable(&self, name: &str, span: &Span) -> TypeError {
+        let mut candidates = self
+            .scopes
+            .iter()
+            .flat_map(|scope| scope.keys().map(String::as_str))
+            .collect::<Vec<_>>();
+        candidates.extend(
+            self.resolved.modules[self.module]
+                .globals
+                .keys()
+                .map(String::as_str),
+        );
+        let hint = closest_match(name, candidates, 2).map_or_else(String::new, |candidate| {
+            format!(" — did you mean '{}'?", humanize(candidate))
+        });
+        TypeError::new(
+            span.clone(),
+            TypeErrorKind::UndefinedVariable,
+            format!("variable `{name}` is not in scope{hint}"),
+        )
+    }
+
     fn push_scope(&mut self) {
         self.scopes.push(HashMap::new());
     }
@@ -492,13 +515,10 @@ impl Checker<'_, '_> {
                 })
             }
             AstStmt::Assign { name, val, span } => {
-                let expected = self.lookup_var(name).cloned().ok_or_else(|| {
-                    TypeError::new(
-                        span.clone(),
-                        TypeErrorKind::UndefinedVariable,
-                        format!("variable `{name}` is not in scope"),
-                    )
-                })?;
+                let expected = self
+                    .lookup_var(name)
+                    .cloned()
+                    .ok_or_else(|| self.undefined_variable(name, span))?;
                 let val = self.check_expr(val, Some(&expected), span)?;
                 Ok(TStmt::Assign {
                     name: name.clone(),
@@ -735,13 +755,10 @@ impl Checker<'_, '_> {
                 }
             }
             AstExpr::Var(name) => {
-                let ty = self.lookup_var(name).cloned().ok_or_else(|| {
-                    TypeError::new(
-                        span.clone(),
-                        TypeErrorKind::UndefinedVariable,
-                        format!("variable `{name}` is not in scope"),
-                    )
-                })?;
+                let ty = self
+                    .lookup_var(name)
+                    .cloned()
+                    .ok_or_else(|| self.undefined_variable(name, span))?;
                 TExpr {
                     ty,
                     kind: TExprKind::Var(name.clone()),
@@ -768,13 +785,10 @@ impl Checker<'_, '_> {
                 }
             }
             AstExpr::AddrOfVar(name) => {
-                let ty = self.lookup_var(name).cloned().ok_or_else(|| {
-                    TypeError::new(
-                        span.clone(),
-                        TypeErrorKind::UndefinedVariable,
-                        format!("variable `{name}` is not in scope"),
-                    )
-                })?;
+                let ty = self
+                    .lookup_var(name)
+                    .cloned()
+                    .ok_or_else(|| self.undefined_variable(name, span))?;
                 TExpr {
                     ty: ConcreteType::Ptr(Box::new(ty)),
                     kind: TExprKind::AddrOfVar(name.clone()),
@@ -1961,6 +1975,26 @@ pub(crate) fn resolve_type_in(
     }
 }
 
+fn field_hint(fields: &[(String, AstType)], field: &str) -> String {
+    let names = fields
+        .iter()
+        .map(|(name, _)| name.as_str())
+        .collect::<Vec<_>>();
+    let suggestion = closest_match(field, names.iter().copied(), 2)
+        .map_or_else(String::new, |candidate| {
+            format!(" — did you mean '{}'?", humanize(candidate))
+        });
+    let mut available = names.iter().map(|name| humanize(name)).collect::<Vec<_>>();
+    available.sort();
+    available.dedup();
+    available.truncate(6);
+    if available.is_empty() {
+        suggestion
+    } else {
+        format!("{suggestion} (available fields: {})", available.join(", "))
+    }
+}
+
 fn resolve_field_type(
     resolved: &ResolvedProgram<'_>,
     aggregate: &ConcreteType,
@@ -2003,7 +2037,10 @@ fn resolve_field_type(
                     TypeError::new(
                         span.clone(),
                         TypeErrorKind::UndefinedField,
-                        format!("struct `{name}` has no field `{field}`"),
+                        format!(
+                            "struct `{name}` has no field `{field}`{}",
+                            field_hint(&def.fields, field)
+                        ),
                     )
                 })?;
             let type_map = def
@@ -2050,7 +2087,10 @@ fn resolve_field_type(
                     TypeError::new(
                         span.clone(),
                         TypeErrorKind::UndefinedField,
-                        format!("union `{name}` has no member `{field}`"),
+                        format!(
+                            "union `{name}` has no member `{field}`{}",
+                            field_hint(&def.fields, field)
+                        ),
                     )
                 })?;
             let type_map = def

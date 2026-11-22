@@ -172,6 +172,11 @@ pub(crate) fn parse_place(text: &str) -> Result<PlaceSpec, String> {
             .unwrap_or(base_text)
             .trim()
             .to_ascii_lowercase();
+        if crate::suggest::is_reserved_control_word(&base) {
+            return Err(format!(
+                "'{base}' is a reserved control word — choose a different variable name (for example, 'counter')"
+            ));
+        }
         return Ok(PlaceSpec::NamedField {
             base,
             is_definite_type: definite,
@@ -180,6 +185,11 @@ pub(crate) fn parse_place(text: &str) -> Result<PlaceSpec, String> {
     }
     if let Some(dot) = tokens.iter().position(|token| token.text == ".") {
         let base = canonical[..tokens[dot].start].trim().to_ascii_lowercase();
+        if crate::suggest::is_reserved_control_word(&base) {
+            return Err(format!(
+                "'{base}' is a reserved control word — choose a different variable name (for example, 'counter')"
+            ));
+        }
         let Some(field) = field_after(&canonical, &tokens[dot]) else {
             return Err("dotted target is missing a field".to_string());
         };
@@ -225,8 +235,14 @@ pub(crate) fn parse_place(text: &str) -> Result<PlaceSpec, String> {
             }
         }
     }
+    let name = canonical.to_ascii_lowercase();
+    if crate::suggest::is_reserved_control_word(&name) {
+        return Err(format!(
+            "'{name}' is a reserved control word — choose a different variable name (for example, 'counter')"
+        ));
+    }
     Ok(PlaceSpec::Var {
-        name: canonical.to_ascii_lowercase(),
+        name,
         is_new_multiword: trimmed.split_whitespace().count() > 1 && canonical.contains('_'),
     })
 }

@@ -6,6 +6,7 @@ mod check;
 mod lower;
 mod mono;
 mod resolve;
+pub mod suggest;
 
 use tc_ir::Module;
 
