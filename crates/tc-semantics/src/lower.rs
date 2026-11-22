@@ -2285,7 +2285,7 @@ fn normalize_natural_source(text: &str) -> String {
                 control_blocks.push(control_indent + 4);
                 continue;
             }
-            let effective = indent.max(control_indent + 4);
+            let effective = control_indent + 4 + indent;
             for line in normalize_prose_line(trimmed, effective) {
                 output.push_str(&line);
                 output.push('\n');
@@ -2301,8 +2301,7 @@ fn normalize_natural_source(text: &str) -> String {
                 control_blocks.push(header_indent + 4);
                 continue;
             }
-            let desired = header_indent + 4;
-            let effective = indent.max(desired);
+            let effective = header_indent + 4 + indent;
             for line in normalize_prose_line(trimmed, effective) {
                 output.push_str(&line);
                 output.push('\n');
@@ -6112,13 +6111,13 @@ impl<'a> Lowerer<'a> {
                         }
                     }
                     if is_lvalue_text(before) {
-                        if let Ok(value) = self.parse_expr(after, span) {
+                        if let Ok(value) = self.parse_value(after, span) {
                             chosen = Some((before, value, chosen_role));
                             break;
                         }
                     }
                     if is_lvalue_text(after) {
-                        if let Ok(value) = self.parse_expr(before, span) {
+                        if let Ok(value) = self.parse_value(before, span) {
                             chosen = Some((after, value, chosen_role));
                             break;
                         }
