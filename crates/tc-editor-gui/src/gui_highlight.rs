@@ -79,6 +79,7 @@ pub fn highlight_job(
         if spans.is_empty() {
             let mut format = span_format(theme, TokenStyle::Identifier, font_size);
             if state == LineState::Error {
+                format.color = theme.error_line;
                 format.background = theme.error_bg;
             }
             job.append("", 0.0, format);
@@ -86,6 +87,7 @@ pub fn highlight_job(
             for span in spans {
                 let mut format = span_format(theme, span.kind, font_size);
                 if state == LineState::Error {
+                    format.color = theme.error_line;
                     format.background = theme.error_bg;
                 }
                 job.append(&span.text, 0.0, format);
@@ -94,6 +96,7 @@ pub fn highlight_job(
         if newline {
             let mut format = span_format(theme, TokenStyle::Identifier, font_size);
             if state == LineState::Error {
+                format.color = theme.error_line;
                 format.background = theme.error_bg;
             }
             job.append("\n", 0.0, format);
