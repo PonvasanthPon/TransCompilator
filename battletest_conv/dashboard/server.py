@@ -1,12 +1,26 @@
 #!/usr/bin/env python3
 """Offline convergence mission-control dashboard (Python stdlib only)."""
-import json, pathlib
+import json, pathlib, subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DASH = pathlib.Path(__file__).resolve().parent
 HOST, PORT = "127.0.0.1", 8798
+
+def live_git():
+    try:
+        head = subprocess.check_output(
+            ["git", "-C", str(ROOT.parent), "rev-parse", "HEAD"],
+            text=True, timeout=2,
+        ).strip()
+        count = subprocess.check_output(
+            ["git", "-C", str(ROOT.parent), "rev-list", "--count", "main..HEAD"],
+            text=True, timeout=2,
+        ).strip()
+        return head, int(count)
+    except Exception:
+        return None, None
 
 def read_json(path, fallback):
     try:
@@ -44,7 +58,13 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
         elif url.path == "/api/state":
-            self.send_json(read_json(ROOT / "STATE.json", {"status": "MISSING"}))
+            state = read_json(ROOT / "STATE.json", {"status": "MISSING"})
+            head, count = live_git()
+            if head:
+                state["head_sha"] = head
+            if count is not None:
+                state.setdefault("cumulative_metrics", {})["commits_on_branch"] = count
+            self.send_json(state)
         elif url.path == "/api/rounds":
             self.send_json(read_json(ROOT / "ROUNDS_HISTORY.json", []))
         elif url.path == "/api/bugs":
