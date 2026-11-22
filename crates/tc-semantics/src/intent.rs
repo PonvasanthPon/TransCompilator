@@ -98,6 +98,7 @@ fn is_control_anchor(word: &str) -> bool {
             | "memcopy"
             | "trap"
             | "define"
+            | "update"
             | "public"
             | "private"
     )
