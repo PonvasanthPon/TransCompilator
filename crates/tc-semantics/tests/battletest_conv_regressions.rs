@@ -118,3 +118,37 @@ fn set_expressions_with_parenthesized_operands_stay_one_action() {
         result.lines
     );
 }
+
+#[test]
+fn comma_before_and_keeps_the_condition_together_for_string_bodies() {
+    let source = concat!(
+        "Use io.\n",
+        "Let cash be 600.\n",
+        "If cash is more than 500, and cash is less than 900, say \"middle band\".\n",
+        "Give back 0.\n",
+    );
+    let result = run_elf_with_parity(source, None, "");
+    assert!(result.ok, "{}", result.summary);
+    assert!(
+        result.lines.iter().any(|line| line == "middle band"),
+        "{:?}",
+        result.lines
+    );
+}
+
+#[test]
+fn parenthesized_division_is_one_transfer_operand() {
+    let source = concat!(
+        "Use io.\n",
+        "Let cash be 100.\n",
+        "Remove (cash divided by 4) from cash, add 3 to it, and say it.\n",
+        "Give back 0.\n",
+    );
+    let result = run_elf_with_parity(source, None, "");
+    assert!(result.ok, "{}", result.summary);
+    assert!(
+        result.lines.iter().any(|line| line == "78"),
+        "{:?}",
+        result.lines
+    );
+}
