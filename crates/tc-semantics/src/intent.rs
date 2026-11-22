@@ -12,8 +12,8 @@ use tc_lexicon::{
 
 use crate::phrases::PhraseMatch;
 use crate::textutil::{
-    find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_where,
-    starts_with_word,
+    canonical_assignment_target, find_top_level_symbol, find_top_level_word, first_word,
+    is_lvalue_text, split_where, starts_with_word,
 };
 use crate::token::{Token, TokenKind, tokenize};
 use crate::{ClauseTree, Voice};
@@ -189,8 +189,10 @@ fn target_side_lvalue(text: &str, verb_index: usize) -> bool {
         .map_or(text.len(), |token| token.start);
     let before_prep = text[after_verb..tokens[prep_index].start].trim();
     let after_prep = text[tokens[prep_index].end..].trim();
-    (!before_prep.is_empty() && is_lvalue_text(before_prep))
-        || (!after_prep.is_empty() && is_lvalue_text(after_prep))
+    let canonical_before = canonical_assignment_target(before_prep);
+    let canonical_after = canonical_assignment_target(after_prep);
+    (!canonical_before.is_empty() && is_lvalue_text(&canonical_before))
+        || (!canonical_after.is_empty() && is_lvalue_text(&canonical_after))
 }
 fn has_preposition(text: &str) -> bool {
     tokenize(text).iter().any(|token| {
@@ -241,29 +243,29 @@ fn assignment_shape(text: &str) -> bool {
     let (core, _) = split_where(text);
     for symbol in ["+=", "-=", "*=", "/="] {
         if let Some((start, end)) = find_top_level_symbol(&core, symbol) {
-            let lhs = core[..start].trim();
+            let lhs = canonical_assignment_target(core[..start].trim());
             let rhs = core[end..].trim();
-            return is_lvalue_text(lhs) && !rhs.is_empty();
+            return is_lvalue_text(&lhs) && !rhs.is_empty();
         }
     }
     if starts_with_word(&core, "let") {
         if let Some((start, end)) = find_top_level_word(&core, "be") {
-            let lhs = core[4..start].trim();
+            let lhs = canonical_assignment_target(core[4..start].trim());
             let rhs = core[end..].trim();
-            return is_lvalue_text(lhs) && !rhs.is_empty();
+            return is_lvalue_text(&lhs) && !rhs.is_empty();
         }
     }
     for keyword in ["is", "becomes", "equals"] {
         if let Some((start, end)) = find_top_level_word(&core, keyword) {
-            let lhs = core[..start].trim();
+            let lhs = canonical_assignment_target(core[..start].trim());
             let rhs = core[end..].trim();
             if lhs.is_empty() || rhs.is_empty() {
                 continue;
             }
-            if !is_lvalue_text(lhs) || lhs.chars().any(char::is_whitespace) {
+            if !is_lvalue_text(&lhs) {
                 continue;
             }
-            let left_lower = first_word(lhs);
+            let left_lower = first_word(&lhs);
             if left_lower != "i"
                 && matches!(lookup_closed_class(&left_lower), Some(ClosedClass::Pronoun))
             {
@@ -276,9 +278,9 @@ fn assignment_shape(text: &str) -> bool {
         }
     }
     if let Some((start, end)) = find_top_level_symbol(&core, "=") {
-        let lhs = core[..start].trim();
+        let lhs = canonical_assignment_target(core[..start].trim());
         let rhs = core[end..].trim();
-        if is_lvalue_text(lhs) && !rhs.is_empty() {
+        if is_lvalue_text(&lhs) && !rhs.is_empty() {
             return true;
         }
     }

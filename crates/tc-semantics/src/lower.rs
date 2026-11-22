@@ -28,8 +28,9 @@ use crate::quantifier::{
     parse_global as parse_global_quantifier,
 };
 use crate::textutil::{
-    find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_top_level,
-    split_type_list, split_where, starts_with_word,
+    canonical_assignment_target, canonical_bare_assignment_target, find_top_level_symbol,
+    find_top_level_word, first_word, is_lvalue_text, split_top_level, split_type_list, split_where,
+    starts_with_word,
 };
 use crate::token::{Token, TokenKind, decode_string_token, tokenize};
 use crate::{
@@ -1628,15 +1629,21 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
     if trimmed.ends_with(':') {
         return vec![format!("{spaces}{trimmed}")];
     }
-    if let Some((start, end)) = find_top_level_word(trimmed, "becomes") {
-        let target = trimmed[..start].trim();
-        let value = trimmed[end..].trim();
-        let target_lower = target.to_ascii_lowercase();
-        if !target.is_empty()
-            && !value.is_empty()
-            && (target_lower.starts_with("its ") || target.contains("'s"))
-        {
-            return normalize_prose_line(&format!("Set {target} to {value}"), indent);
+    if !lower.starts_with("until ")
+        && !lower.starts_with("while ")
+        && !lower.starts_with("if ")
+        && !lower.starts_with("for ")
+    {
+        if let Some((start, end)) = find_top_level_word(trimmed, "becomes") {
+            let target = trimmed[..start].trim();
+            let value = trimmed[end..].trim();
+            let target_lower = target.to_ascii_lowercase();
+            if !target.is_empty()
+                && !value.is_empty()
+                && (target_lower.starts_with("its ") || target.contains("'s"))
+            {
+                return normalize_prose_line(&format!("Set {target} to {value}"), indent);
+            }
         }
     }
     if let Some(rest) = trimmed
@@ -1744,8 +1751,39 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         .or_else(|| trimmed.strip_prefix("make "))
     {
         let rest = rest.strip_prefix("be ").unwrap_or(rest);
-        if let Some((target, value)) = rest.split_once(' ') {
-            return vec![format!("{spaces}Set {target} to {value}.")];
+        let tokens = tokenize(rest);
+        let value_start = tokens.iter().skip(1).find_map(|token| {
+            let starts_value = token.kind == TokenKind::Number
+                || token.kind == TokenKind::String
+                || token.text == "("
+                || matches!(
+                    token.lower.as_str(),
+                    "it" | "true"
+                        | "false"
+                        | "no"
+                        | "null"
+                        | "square"
+                        | "root"
+                        | "sum"
+                        | "product"
+                        | "difference"
+                        | "create"
+                        | "address"
+                );
+            starts_value.then_some(token.start)
+        });
+        let split = value_start.or_else(|| {
+            tokens
+                .get(1)
+                .map(|token| token.start)
+                .filter(|_| tokens.len() > 1)
+        });
+        if let Some(split) = split {
+            let target = rest[..split].trim();
+            let value = rest[split..].trim();
+            if !target.is_empty() && !value.is_empty() {
+                return vec![format!("{spaces}Set {target} to {value}.")];
+            }
         }
     }
     if let Some(rest) = trimmed
@@ -2778,7 +2816,8 @@ impl<'a> Lowerer<'a> {
     }
 
     fn touch_target_text(&mut self, text: &str, span: Span) {
-        if let Some(token) = tokenize(text)
+        let canonical = canonical_assignment_target(text);
+        if let Some(token) = tokenize(&canonical)
             .into_iter()
             .find(|token| token.kind == TokenKind::Word)
         {
@@ -2898,7 +2937,87 @@ impl<'a> Lowerer<'a> {
 
     /// Rewrites `it`, `its <field>`, `the <type>` and appositive noun phrases
     /// into canonical variable references, recording each resolution.
+    fn rewrite_known_names(&self, text: &str) -> String {
+        let mut names = self
+            .scopes
+            .iter()
+            .flat_map(|scope| scope.vars.keys())
+            .chain(self.globals.keys())
+            .filter(|name| name.contains('_'))
+            .cloned()
+            .collect::<Vec<_>>();
+        names.sort_by(|left, right| {
+            right
+                .matches('_')
+                .count()
+                .cmp(&left.matches('_').count())
+                .then_with(|| right.len().cmp(&left.len()))
+        });
+        names.dedup();
+        if names.is_empty() {
+            return text.to_string();
+        }
+        let mappings = names
+            .into_iter()
+            .filter_map(|name| {
+                let words = name.split('_').map(ToString::to_string).collect::<Vec<_>>();
+                (2..=4).contains(&words.len()).then_some((words, name))
+            })
+            .collect::<Vec<_>>();
+        if mappings.is_empty() {
+            return text.to_string();
+        }
+        let tokens = tokenize(text);
+        let mut output = String::new();
+        let mut cursor = 0;
+        let mut index = 0;
+        while index < tokens.len() {
+            let token = &tokens[index];
+            if token.kind != TokenKind::Word {
+                index += 1;
+                continue;
+            }
+            let mut best: Option<(usize, String)> = None;
+            for (words, canonical) in &mappings {
+                let length = words.len();
+                if index + length > tokens.len() {
+                    continue;
+                }
+                let slice = &tokens[index..index + length];
+                if !slice
+                    .iter()
+                    .all(|candidate| candidate.kind == TokenKind::Word)
+                    || !slice
+                        .windows(2)
+                        .all(|pair| text[pair[0].end..pair[1].start].trim().is_empty())
+                {
+                    continue;
+                }
+                if slice
+                    .iter()
+                    .map(|candidate| candidate.lower.as_str())
+                    .eq(words.iter().map(String::as_str))
+                {
+                    best = Some((length, canonical.clone()));
+                    break;
+                }
+            }
+            if let Some((length, canonical)) = best {
+                output.push_str(&text[cursor..token.start]);
+                output.push_str(&canonical);
+                cursor = tokens[index + length - 1].end;
+                index += length;
+            } else {
+                index += 1;
+            }
+        }
+        output.push_str(&text[cursor..]);
+        output
+    }
+
     fn resolve_anaphors(&mut self, text: &str, span: Span) -> Result<String, SemanticError> {
+        let rewritten = self.rewrite_known_names(text);
+        let text = rewritten.as_str();
         let tokens = tokenize(text);
         let mut replacements: Vec<(usize, usize, String)> = Vec::new();
         let mut index = 0;
@@ -3044,7 +3163,8 @@ impl<'a> Lowerer<'a> {
     }
 
     fn parse_expr_raw(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
-        parse_expression(text, &self.expr_env())
+        let rewritten = self.rewrite_known_names(text);
+        parse_expression(&rewritten, &self.expr_env())
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))
     }
 
@@ -3691,10 +3811,9 @@ impl<'a> Lowerer<'a> {
         }
         for keyword in ["is", "becomes", "equals"] {
             if let Some((start, end)) = find_top_level_word(text, keyword) {
-                let left = text[..start].trim();
+                let left = canonical_assignment_target(text[..start].trim());
                 let right = text[end..].trim();
-                if is_lvalue_text(left)
-                    && !left.chars().any(char::is_whitespace)
+                if is_lvalue_text(&left)
                     && !right.is_empty()
                     && (crate::intent::is_call_expression(right)
                         || self.match_phrase_typed(right, sentence.span)?.is_some())
@@ -3706,7 +3825,8 @@ impl<'a> Lowerer<'a> {
         if let Some((start, end)) = find_top_level_symbol(text, "=") {
             let left = text[..start].trim();
             let right = text[end..].trim();
-            if is_lvalue_text(left)
+            let left = canonical_assignment_target(left);
+            if is_lvalue_text(&left)
                 && !right.is_empty()
                 && (crate::intent::is_call_expression(right)
                     || self.match_phrase_typed(right, sentence.span)?.is_some())
@@ -5628,7 +5748,8 @@ impl<'a> Lowerer<'a> {
         let Some((start, end)) = find_top_level_word(rest, "so") else {
             return Ok(None);
         };
-        let target = rest[..start].trim();
+        let canonical_target = canonical_assignment_target(rest[..start].trim());
+        let target = canonical_target.as_str();
         let clauses_text = rest[end..].trim();
         if target.is_empty() || clauses_text.is_empty() {
             return Ok(None);
@@ -5668,6 +5789,7 @@ impl<'a> Lowerer<'a> {
                     format!("update clause `{clause}` is missing a field or value"),
                 ));
             }
+            let field = canonical_bare_assignment_target(field);
             let value = self.parse_value(value_text, span)?;
             let target_text = format!("{target}'s {field}");
             statements.extend(self.assign_text(&target_text, value, span, false)?);
@@ -5723,12 +5845,10 @@ impl<'a> Lowerer<'a> {
         }
         for keyword in ["is", "becomes", "equals"] {
             if let Some((start, end)) = find_top_level_word(text, keyword) {
-                let target = text[..start].trim();
+                let canonical_target = canonical_assignment_target(text[..start].trim());
+                let target = canonical_target.as_str();
                 let value_text = text[end..].trim();
-                if target.is_empty()
-                    || !is_lvalue_text(target)
-                    || target.chars().any(char::is_whitespace)
-                {
+                if target.is_empty() || !is_lvalue_text(target) {
                     continue;
                 }
                 if is_simple_name(target) {
@@ -5751,7 +5871,8 @@ impl<'a> Lowerer<'a> {
             }
         }
         if let Some((start, end)) = find_top_level_symbol(text, "=") {
-            let target = text[..start].trim();
+            let canonical_target = canonical_assignment_target(text[..start].trim());
+            let target = canonical_target.as_str();
             let value_text = text[end..].trim();
             if is_lvalue_text(target) && !value_text.is_empty() {
                 if let Some((mut prelude, value)) = self.lower_quantifier_value(value_text, span)? {
@@ -5773,6 +5894,8 @@ impl<'a> Lowerer<'a> {
         span: Span,
         allow_declare: bool,
     ) -> Result<Vec<AstStmt>, SemanticError> {
+        let canonical_target = canonical_assignment_target(target_text);
+        let target_text = canonical_target.as_str();
         if is_simple_name(target_text) {
             let name = lower_name(target_text);
             if self.current_scope_contains(&name) {
@@ -5866,6 +5989,8 @@ impl<'a> Lowerer<'a> {
         text: &str,
         span: Span,
     ) -> Result<(Vec<AstStmt>, Target), SemanticError> {
+        let canonical_target = canonical_assignment_target(text);
+        let text = canonical_target.as_str();
         if is_simple_name(text) {
             let name = lower_name(text);
             if self.globals.contains_key(&name) {
@@ -6124,26 +6249,28 @@ impl<'a> Lowerer<'a> {
                 for prep_index in &prep_indices {
                     let before = text[after_verb_start..tokens[*prep_index].start].trim();
                     let after = text[tokens[*prep_index].end..].trim();
+                    let canonical_before = canonical_assignment_target(before);
+                    let canonical_after = canonical_assignment_target(after);
                     let chosen_role = prep_role(&tokens[*prep_index].lower);
                     let locative = matches!(
                         tokens[*prep_index].lower.as_str(),
                         "in" | "into" | "onto" | "inside"
                     );
-                    if locative && is_lvalue_text(after) {
+                    if locative && is_lvalue_text(&canonical_after) {
                         if let Ok(value) = self.parse_expr(before, span) {
-                            chosen = Some((after, value, chosen_role));
+                            chosen = Some((canonical_after, value, chosen_role));
                             break;
                         }
                     }
-                    if is_lvalue_text(before) {
+                    if is_lvalue_text(&canonical_before) {
                         if let Ok(value) = self.parse_value(after, span) {
-                            chosen = Some((before, value, chosen_role));
+                            chosen = Some((canonical_before, value, chosen_role));
                             break;
                         }
                     }
-                    if is_lvalue_text(after) {
+                    if is_lvalue_text(&canonical_after) {
                         if let Ok(value) = self.parse_value(before, span) {
-                            chosen = Some((after, value, chosen_role));
+                            chosen = Some((canonical_after, value, chosen_role));
                             break;
                         }
                     }
@@ -6160,7 +6287,7 @@ impl<'a> Lowerer<'a> {
                 };
                 if chosen_role == Some(tc_lexicon::PrepRole::Location) {
                     let address =
-                        parse_store_address(target, &self.expr_env()).map_err(|message| {
+                        parse_store_address(&target, &self.expr_env()).map_err(|message| {
                             self.error(span, SemanticErrorKind::Lowering, message)
                         })?;
                     return Ok(Some(vec![AstStmt::Store {
@@ -6169,7 +6296,7 @@ impl<'a> Lowerer<'a> {
                         span: self.span(span),
                     }]));
                 }
-                Ok(Some(self.assign_text(target, value, span, true)?))
+                Ok(Some(self.assign_text(&target, value, span, true)?))
             }
             VerbPredicate::TransferAdd => Ok(Some(self.lower_transfer(
                 resolution.concept,
