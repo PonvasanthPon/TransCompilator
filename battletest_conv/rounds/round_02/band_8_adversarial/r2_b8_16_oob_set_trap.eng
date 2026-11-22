@@ -1,0 +1,7 @@
+Use alloc, core, io, list.
+
+Let nums be List of whole number.
+Push 4 to address of nums.
+list_set(address of nums, 4, 9).
+Free list address of nums.
+Give back 0.

@@ -8,5 +8,15 @@
     "bugs_fixed": 3,
     "regression_tests_after": 658,
     "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  },
+  {
+    "round": 2,
+    "seed_range": "13001..16000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 1,
+    "bugs_fixed": 1,
+    "regression_tests_after": 660,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
   }
 ]

@@ -1,0 +1,11 @@
+Use io.
+
+Let total be 0.
+For every i from 40 to 3 by -3:
+    If i is between 8 and 20:
+        Continue.
+    If i is less than 5:
+        Break.
+    Add i to total.
+Say total.
+Give back 0.

@@ -1,0 +1,12 @@
+Use io.
+
+A record Ledger has a base (a whole number) and a rate (a whole number).
+Let ledger be Ledger.
+Update ledger so its base is 544 and its rate is 3.
+Let result be ledger's base times ledger's rate.
+Say result.
+Add ledger's rate to result.
+Say it.
+Add 19 to it.
+Say result.
+Give back 0.
