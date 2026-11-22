@@ -2,7 +2,7 @@
 
 #![allow(clippy::redundant_closure_for_method_calls)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use tc_lexicon::{SemanticConcept, VerbPredicate, classify_verb, prep_role};
 use tc_typeck::{
@@ -177,45 +177,182 @@ fn split_as(text: &str) -> Option<(String, String)> {
     Some((left.to_string(), right.to_string()))
 }
 
+fn canonical_name_phrase(text: &str) -> String {
+    let mut words = tokenize(text)
+        .into_iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower)
+        .collect::<Vec<_>>();
+    if words.len() > 1 && matches!(words.first().map(String::as_str), Some("a" | "an" | "the")) {
+        words.remove(0);
+    }
+    words.join("_")
+}
+
+fn original_name_phrase(text: &str) -> String {
+    let mut words = tokenize(text)
+        .into_iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower)
+        .collect::<Vec<_>>();
+    if words.len() > 1 && matches!(words.first().map(String::as_str), Some("a" | "an" | "the")) {
+        words.remove(0);
+    }
+    words.join(" ")
+}
+
+fn split_parenthetical_type(text: &str) -> Option<(String, String)> {
+    let trimmed = text.trim();
+    if !trimmed.ends_with(')') {
+        return None;
+    }
+    let tokens = tokenize(trimmed);
+    let close = tokens.iter().rposition(|token| token.text == ")")?;
+    if close + 1 != tokens.len() {
+        return None;
+    }
+    let mut depth = 0_i32;
+    let mut open = None;
+    for index in (0..=close).rev() {
+        match tokens[index].text.as_str() {
+            ")" => depth += 1,
+            "(" => {
+                depth -= 1;
+                if depth == 0 {
+                    open = Some(index);
+                    break;
+                }
+            }
+            _ => {}
+        }
+    }
+    let open = open?;
+    let name = trimmed[tokens.first()?.start..tokens[open].start]
+        .trim()
+        .to_string();
+    let ty = trimmed[tokens[open].end..tokens[close].start]
+        .trim()
+        .to_string();
+    if name.is_empty() || ty.is_empty() {
+        None
+    } else {
+        Some((name, ty))
+    }
+}
+
+fn validate_field_name(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || character == '_')
+}
+
+fn parse_field_specs(
+    text: &str,
+    module: &str,
+    span: Span,
+) -> Result<Vec<(String, String)>, SemanticError> {
+    let mut specs = Vec::new();
+    for comma_piece in split_type_list(text, ",") {
+        let piece = comma_piece
+            .trim()
+            .trim_start_matches("and ")
+            .trim()
+            .trim_end_matches('.')
+            .trim();
+        if piece.is_empty() {
+            continue;
+        }
+        let parenthetical_groups = tokenize(piece)
+            .iter()
+            .filter(|token| token.text == "(")
+            .count();
+        if top_level_word_count(piece, "as") > 1 || parenthetical_groups > 1 {
+            for and_piece in split_type_list(piece, "and") {
+                for inner in split_type_list(&and_piece, "or") {
+                    let inner = inner.trim();
+                    if inner.is_empty() {
+                        continue;
+                    }
+                    let Some((name_text, ty)) =
+                        split_as(inner).or_else(|| split_parenthetical_type(inner))
+                    else {
+                        return Err(semantic_error(
+                            module,
+                            span,
+                            SemanticErrorKind::Declaration,
+                            format!(
+                                "field declaration `{inner}` must use `<name> as <type>` or `<name> (<type>)`"
+                            ),
+                        ));
+                    };
+                    let name = tokenize(&name_text)
+                        .into_iter()
+                        .filter(|token| token.is_word())
+                        .find(|token| !matches!(token.lower.as_str(), "a" | "an" | "the"))
+                        .map_or_else(|| canonical_name_phrase(&name_text), |token| token.lower);
+                    specs.push((name, ty.trim().to_string()));
+                }
+            }
+            continue;
+        }
+        if let Some((name_text, ty_text)) = split_as(piece) {
+            let name = tokenize(&name_text)
+                .into_iter()
+                .filter(|token| token.is_word())
+                .find(|token| !matches!(token.lower.as_str(), "a" | "an" | "the"))
+                .map_or_else(|| canonical_name_phrase(&name_text), |token| token.lower);
+            if !validate_field_name(&name) {
+                return Err(semantic_error(
+                    module,
+                    span,
+                    SemanticErrorKind::Declaration,
+                    format!("invalid field name `{name}`"),
+                ));
+            }
+            specs.push((name, ty_text.trim().to_string()));
+            continue;
+        }
+        let Some((name_text, ty_text)) = split_parenthetical_type(piece) else {
+            return Err(semantic_error(
+                module,
+                span,
+                SemanticErrorKind::Declaration,
+                format!(
+                    "field declaration `{piece}` must use `<name> as <type>` or `<name> (<type>)`"
+                ),
+            ));
+        };
+        let names = if top_level_word_count(&name_text, "and") > 0 {
+            split_type_list(&name_text, "and")
+        } else {
+            vec![name_text]
+        };
+        for raw_name in names {
+            let name = canonical_name_phrase(raw_name.trim());
+            if !validate_field_name(&name) {
+                return Err(semantic_error(
+                    module,
+                    span,
+                    SemanticErrorKind::Declaration,
+                    format!("invalid field name `{name}`"),
+                ));
+            }
+            specs.push((name, ty_text.trim().to_string()));
+        }
+    }
+    Ok(specs)
+}
+
 fn parse_fields(
     text: &str,
     module: &str,
     span: Span,
 ) -> Result<Vec<(String, AstType)>, SemanticError> {
     let mut fields = Vec::new();
-    let mut pieces = Vec::new();
-    for comma_piece in split_type_list(text, ",") {
-        for and_piece in split_type_list(&comma_piece, "and") {
-            pieces.extend(split_type_list(&and_piece, "or"));
-        }
-    }
-    for piece in pieces {
-        let Some((name, ty_text)) = split_as(&piece) else {
-            return Err(semantic_error(
-                module,
-                span,
-                SemanticErrorKind::Declaration,
-                format!("field declaration `{piece}` must use `<name> as <type>`"),
-            ));
-        };
-        let raw_name = name.trim();
-        let name = tokenize(raw_name)
-            .into_iter()
-            .filter(|token| token.is_word())
-            .find(|token| !matches!(token.lower.as_str(), "a" | "an" | "the"))
-            .map_or_else(|| lower_name(raw_name), |token| lower_name(&token.text));
-        if !name
-            .chars()
-            .all(|character| character.is_ascii_alphanumeric() || character == '_')
-        {
-            return Err(semantic_error(
-                module,
-                span,
-                SemanticErrorKind::Declaration,
-                format!("invalid field name `{name}`"),
-            ));
-        }
-        let ty = parse_type_text(ty_text.trim()).map_err(|message| {
+    for (name, ty_text) in parse_field_specs(text, module, span)? {
+        let ty_text = normalize_type_text_words(&ty_text);
+        let ty = parse_type_text(&ty_text).map_err(|message| {
             semantic_error(module, span, SemanticErrorKind::Declaration, message)
         })?;
         fields.push((name, ty));
@@ -627,7 +764,6 @@ fn v2_type_indicator(word: &str, type_params: &[String]) -> bool {
             | "small"
             | "short"
             | "byte"
-            | "bytes"
             | "decimal"
             | "decimals"
             | "real"
@@ -790,12 +926,253 @@ fn extract_embedded_parameters(
     params
 }
 
+#[derive(Debug, Clone)]
+struct ParentheticalParam {
+    canonical_names: Vec<String>,
+    original_names: Vec<String>,
+    ty: String,
+    replace_start: usize,
+    close_index: usize,
+    plural: bool,
+}
+
+fn is_parameter_run_stop(word: &str) -> bool {
+    matches!(
+        word,
+        "of" | "from"
+            | "for"
+            | "to"
+            | "with"
+            | "at"
+            | "in"
+            | "on"
+            | "by"
+            | "into"
+            | "as"
+            | "given"
+            | "bytes"
+            | "text"
+            | "file"
+            | "named"
+            | "called"
+            | "giving"
+            | "returning"
+            | "if"
+            | "unless"
+            | "while"
+    )
+}
+
+fn type_parameter_span(tokens: &[Token], to_index: usize) -> Option<(usize, usize)> {
+    let mut index = to_index + 1;
+    while index + 1 < tokens.len() {
+        if matches!(
+            tokens[index].lower.as_str(),
+            "given" | "giving" | "returning" | "named" | "called"
+        ) {
+            break;
+        }
+        if tokens[index].is("for") || tokens[index].is("of") {
+            let next = tokens.get(index + 1)?;
+            if next.is_word() && next.text.chars().next().is_some_and(char::is_uppercase) {
+                let start = index;
+                let mut end = index + 1;
+                while end < tokens.len() {
+                    let token = &tokens[end];
+                    if token.is("and")
+                        || token.text == ","
+                        || (token.is_word()
+                            && token.text.chars().next().is_some_and(char::is_uppercase))
+                    {
+                        end += 1;
+                    } else {
+                        break;
+                    }
+                }
+                return Some((start, end));
+            }
+        }
+        index += 1;
+    }
+    None
+}
+
+fn outer_return_position(tokens: &[Token]) -> Option<usize> {
+    for index in (0..tokens.len()).rev() {
+        if !(tokens[index].is("returning") || tokens[index].is("giving")) {
+            continue;
+        }
+        let segment_start = tokens[..index]
+            .iter()
+            .rposition(|token| token.text == "," || token.is("given"))
+            .map_or(0, |position| position + 1);
+        let inside_function_type = tokens[segment_start..index]
+            .iter()
+            .any(|token| token.is("taking"));
+        if !inside_function_type {
+            return Some(index);
+        }
+    }
+    None
+}
+
+fn parenthetical_parameters(text: &str) -> Vec<ParentheticalParam> {
+    let tokens = tokenize(text);
+    let Some(to_index) = tokens.iter().position(|token| token.is("to")) else {
+        return Vec::new();
+    };
+    let minimum_start = to_index + 2;
+    let mut params = Vec::new();
+    let mut index = 0;
+    while index < tokens.len() {
+        if tokens[index].text == "(" {
+            {
+                let open = index;
+                let mut close = None;
+                let mut inner_depth = 0_i32;
+                for (cursor, token) in tokens.iter().enumerate().skip(open) {
+                    match token.text.as_str() {
+                        "(" => inner_depth += 1,
+                        ")" => {
+                            inner_depth -= 1;
+                            if inner_depth == 0 {
+                                close = Some(cursor);
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                let Some(close) = close else {
+                    break;
+                };
+                let mut run_start = open;
+                while run_start > minimum_start {
+                    let previous = &tokens[run_start - 1];
+                    if previous.kind != TokenKind::Word || is_parameter_run_stop(&previous.lower) {
+                        break;
+                    }
+                    run_start -= 1;
+                }
+                if run_start < open {
+                    let mut words = tokens[run_start..open]
+                        .iter()
+                        .map(|token| token.lower.clone())
+                        .collect::<Vec<_>>();
+                    if words.first().is_some_and(|word| word == "and") {
+                        words.remove(0);
+                    }
+                    let type_text = normalize_type_text_words(
+                        text[tokens[open].end..tokens[close].start].trim(),
+                    );
+                    let plural = words.iter().any(|word| word == "and");
+                    let multi_word = !plural && run_start == minimum_start && words.len() >= 2;
+                    let (canonical_names, original_names, replace_start) = if plural {
+                        let mut names = Vec::new();
+                        let mut originals = Vec::new();
+                        for piece in split_type_list(&words.join(" "), "and") {
+                            let original = original_name_phrase(&piece);
+                            let canonical = canonical_name_phrase(&piece);
+                            if !canonical.is_empty() {
+                                originals.push(original);
+                                names.push(canonical);
+                            }
+                        }
+                        (names, originals, run_start)
+                    } else if multi_word {
+                        let original = original_name_phrase(&words.join(" "));
+                        let canonical = canonical_name_phrase(&words.join(" "));
+                        (vec![canonical], vec![original], run_start)
+                    } else {
+                        let original = words.last().cloned().unwrap_or_default();
+                        let canonical = canonical_name_phrase(&original);
+                        (vec![canonical], vec![original], open - 1)
+                    };
+                    if canonical_names.iter().all(|name| !name.is_empty()) {
+                        params.push(ParentheticalParam {
+                            canonical_names,
+                            original_names,
+                            ty: type_text,
+                            replace_start,
+                            close_index: close,
+                            plural,
+                        });
+                    }
+                }
+                index = close + 1;
+                continue;
+            }
+        }
+        index += 1;
+    }
+    params
+}
+
+fn derive_function_name(text: &str, params: &[ParentheticalParam]) -> Option<String> {
+    let tokens = tokenize(text);
+    let to_index = tokens.iter().position(|token| token.is("to"))?;
+    let end = tokens
+        .iter()
+        .position(|token| {
+            token.is("giving") || token.is("returning") || token.is("named") || token.is("called")
+        })
+        .unwrap_or(tokens.len());
+    let mut skip = vec![false; tokens.len()];
+    for param in params {
+        for slot in &mut skip[param.replace_start..=param.close_index] {
+            *slot = true;
+        }
+    }
+    if let Some((start, span_end)) = type_parameter_span(&tokens, to_index) {
+        for slot in &mut skip[start..span_end.min(end)] {
+            *slot = true;
+        }
+    }
+    let mut words = Vec::new();
+    for (index, token) in tokens.iter().enumerate().take(end).skip(to_index + 1) {
+        if skip[index] || (!token.is_word() && token.kind != TokenKind::Number) {
+            continue;
+        }
+        if matches!(
+            token.lower.as_str(),
+            "a" | "an"
+                | "the"
+                | "and"
+                | "or"
+                | "given"
+                | "as"
+                | "named"
+                | "called"
+                | "giving"
+                | "returning"
+        ) {
+            continue;
+        }
+        words.push(token.lower.clone());
+    }
+    while words.last().is_some_and(|word| {
+        matches!(
+            word.as_str(),
+            "of" | "for" | "from" | "to" | "with" | "at" | "in" | "on" | "by" | "into"
+        )
+    }) {
+        words.pop();
+    }
+    if words.is_empty() {
+        return tokens
+            .get(to_index + 1)
+            .filter(|token| token.is_word())
+            .map(|token| token.lower.clone());
+    }
+    Some(words.join("_"))
+}
+
 fn normalize_function_header(
     text: &str,
     module: &str,
     span: Span,
 ) -> Result<String, SemanticError> {
-    let mut clean = text.to_string();
+    let mut clean = text.trim().trim_end_matches('.').to_string();
     let mut canonical_name = None;
     for keyword in ["named", "called"] {
         if let Some((start, end)) = find_top_level_word(&clean, keyword) {
@@ -830,37 +1207,44 @@ fn normalize_function_header(
             "natural function name is missing",
         ));
     };
-    let name = canonical_name.unwrap_or_else(|| lower_name(&name_token.text));
-    let mut index = to_index + 2;
-    let mut type_params = Vec::new();
-    if tokens
-        .get(index)
-        .is_some_and(|token| token.is("for") || token.is("of"))
-    {
-        index += 1;
-        let start = tokens.get(index).map_or(text.len(), |token| token.start);
-        let mut end = text.len();
-        while index < tokens.len() {
-            if tokens[index].is("given") || tokens[index].is("returning") || tokens[index].is(":") {
-                end = tokens[index].start;
-                break;
-            }
-            index += 1;
+    let parenthetical = parenthetical_parameters(text);
+    let name = canonical_name.unwrap_or_else(|| {
+        if parenthetical.is_empty() {
+            lower_name(&name_token.text)
+        } else {
+            derive_function_name(text, &parenthetical)
+                .unwrap_or_else(|| lower_name(&name_token.text))
         }
-        type_params = parse_type_params(&text[start..end], module, span)?
-            .into_iter()
-            .collect::<Vec<_>>();
+    });
+    let mut type_params = Vec::new();
+    if let Some((start_index, end_index)) = type_parameter_span(&tokens, to_index) {
+        let start = tokens
+            .get(start_index)
+            .map_or(text.len(), |token| token.end);
+        let end = tokens
+            .get(end_index)
+            .map_or(text.len(), |token| token.start);
+        type_params = parse_type_params(&text[start..end], module, span)?;
     }
     let mut params = Vec::new();
-    let outer_returning = tokens.iter().rposition(|token| token.is("returning"));
-    if let Some(given_index) = tokens.iter().position(|token| token.is("given")) {
-        let start = tokens
-            .get(given_index + 1)
-            .map_or(text.len(), |token| token.start);
-        let end = outer_returning
-            .and_then(|position| tokens.get(position))
-            .map_or(text.len(), |token| token.start);
-        params = split_natural_parameters(&text[start..end], module, span)?;
+    let outer_returning = outer_return_position(&tokens);
+    if !parenthetical.is_empty() {
+        for param in &parenthetical {
+            for canonical in &param.canonical_names {
+                params.push((canonical.clone(), param.ty.clone()));
+            }
+        }
+    }
+    if params.is_empty() {
+        if let Some(given_index) = tokens.iter().position(|token| token.is("given")) {
+            let start = tokens
+                .get(given_index + 1)
+                .map_or(text.len(), |token| token.start);
+            let end = outer_returning
+                .and_then(|position| tokens.get(position))
+                .map_or(text.len(), |token| token.start);
+            params = split_natural_parameters(&text[start..end], module, span)?;
+        }
     }
     if params.is_empty() {
         let phrase_start = tokens
@@ -1060,7 +1444,7 @@ fn v2_action_start(text: &str) -> bool {
     if word.is_empty()
         || matches!(
             word.as_str(),
-            "returning" | "given" | "named" | "called" | "taking" | "of"
+            "returning" | "giving" | "given" | "named" | "called" | "taking" | "of"
         )
     {
         return false;
@@ -1124,8 +1508,9 @@ fn split_inline_function_body(text: &str) -> Option<(String, String)> {
                     let header = text[..token.start].trim();
                     let body = text[token.end..].trim();
                     let header_lower = header.to_ascii_lowercase();
-                    let pending_given =
-                        header_lower.contains(" given ") && !header_lower.contains("returning");
+                    let pending_given = (header_lower.contains(" given ")
+                        || header_lower.contains(" giving "))
+                        && !header_lower.contains("returning");
                     if !header.is_empty() && !pending_given && v2_action_start(body) {
                         return Some((header.to_string(), body.to_string()));
                     }
@@ -1230,6 +1615,17 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
     }
     if trimmed.ends_with(':') {
         return vec![format!("{spaces}{trimmed}")];
+    }
+    if let Some((start, end)) = find_top_level_word(trimmed, "becomes") {
+        let target = trimmed[..start].trim();
+        let value = trimmed[end..].trim();
+        let target_lower = target.to_ascii_lowercase();
+        if !target.is_empty()
+            && !value.is_empty()
+            && (target_lower.starts_with("its ") || target.contains("'s"))
+        {
+            return normalize_prose_line(&format!("Set {target} to {value}"), indent);
+        }
     }
     if let Some(rest) = trimmed
         .strip_prefix("Until ")
@@ -1409,40 +1805,397 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
 }
 
 #[allow(dead_code)]
-fn auto_phrase_for_header(text: &str) -> Option<String> {
-    if find_top_level_word(text, "named").is_some() || find_top_level_word(text, "called").is_some()
-    {
-        return None;
-    }
-    let tokens = tokenize(text);
-    let to_index = tokens.iter().position(|token| token.is("to"))?;
-    let given_index = tokens.iter().position(|token| token.is("given"))?;
-    let phrase_start = tokens.get(to_index + 1)?.start;
-    let phrase_end = tokens.get(given_index)?.start;
-    let mut words = tokens
+fn pattern_parts_to_text(parts: &[PhrasePart]) -> String {
+    parts
         .iter()
-        .filter(|token| token.start >= phrase_start && token.start < phrase_end && token.is_word())
-        .map(|token| token.lower.clone())
-        .filter(|word| !matches!(word.as_str(), "a" | "an" | "the"))
+        .map(|part| match part {
+            PhrasePart::Word(word) => word.clone(),
+            PhrasePart::Param(name) => format!("<{name}>"),
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn auto_phrase_has_safe_prefix(parts: &[PhrasePart]) -> bool {
+    let literals = parts
+        .iter()
+        .filter_map(|part| match part {
+            PhrasePart::Word(word) => Some(word.as_str()),
+            PhrasePart::Param(_) => None,
+        })
         .collect::<Vec<_>>();
-    let params_start = tokens.get(given_index + 1)?.start;
-    let params_end = tokens
+    let Some(first) = literals.first() else {
+        return false;
+    };
+    if matches!(
+        *first,
+        "set"
+            | "let"
+            | "put"
+            | "add"
+            | "remove"
+            | "if"
+            | "unless"
+            | "while"
+            | "until"
+            | "repeat"
+            | "for"
+            | "return"
+            | "give"
+            | "update"
+            | "make"
+            | "move"
+            | "start"
+            | "stop"
+            | "break"
+            | "continue"
+            | "clear"
+            | "copy"
+            | "ask"
+    ) {
+        return false;
+    }
+    literals.len() >= 2 || !matches!(*first, "it" | "its" | "the" | "a" | "an")
+}
+
+fn auto_phrase_patterns(text: &str, canonical_header: &str) -> Vec<String> {
+    let params = parenthetical_parameters(text);
+    let tokens = tokenize(text);
+    let Some(to_index) = tokens.iter().position(|token| token.is("to")) else {
+        return Vec::new();
+    };
+    if params.is_empty() && canonical_header.contains(" taking ") {
+        return Vec::new();
+    }
+    let end = tokens
         .iter()
-        .find(|token| token.is("returning"))
-        .map_or(text.len(), |token| token.start);
-    let params =
-        split_natural_parameters(&text[params_start..params_end], "main", Span::default()).ok()?;
-    if words.is_empty() || params.is_empty() {
-        return None;
+        .position(|token| {
+            token.is("named") || token.is("called") || token.is("giving") || token.is("returning")
+        })
+        .unwrap_or(tokens.len());
+    let mut by_start = std::collections::HashMap::new();
+    for param in &params {
+        by_start.insert(param.replace_start, param);
     }
-    words.push(format!("<{}>", params[0].0));
-    let mut pattern = words.join(" ");
-    for param in params.iter().skip(1) {
-        pattern.push_str(" and <");
-        pattern.push_str(&param.0);
-        pattern.push('>');
+    let type_span = type_parameter_span(&tokens, to_index);
+    let mut parts = Vec::new();
+    let mut index = to_index + 1;
+    while index < end {
+        if let Some((start, span_end)) = type_span {
+            if index >= start && index < span_end {
+                index = span_end;
+                continue;
+            }
+        }
+        if let Some(param) = by_start.get(&index) {
+            if param.plural {
+                for (position, name) in param.canonical_names.iter().enumerate() {
+                    if position > 0 {
+                        parts.push(PhrasePart::Word("and".to_string()));
+                    }
+                    parts.push(PhrasePart::Param(name.clone()));
+                }
+            } else {
+                parts.push(PhrasePart::Param(param.canonical_names[0].clone()));
+            }
+            index = param.close_index + 1;
+            continue;
+        }
+        let token = &tokens[index];
+        if token.is_word() {
+            if matches!(
+                token.lower.as_str(),
+                "given" | "as" | "named" | "called" | "giving" | "returning"
+            ) {
+                index += 1;
+                continue;
+            }
+            parts.push(PhrasePart::Word(token.lower.clone()));
+        } else if token.kind == TokenKind::Number {
+            parts.push(PhrasePart::Word(token.lower.clone()));
+        }
+        index += 1;
     }
-    Some(pattern)
+    if !auto_phrase_has_safe_prefix(&parts) {
+        return Vec::new();
+    }
+    let mut patterns = vec![pattern_parts_to_text(&parts)];
+    if parts
+        .first()
+        .is_some_and(|part| matches!(part, PhrasePart::Word(word) if word == "find"))
+    {
+        let drop = if matches!(parts.get(1), Some(PhrasePart::Word(word)) if word == "the") {
+            2
+        } else {
+            1
+        };
+        if drop < parts.len()
+            && parts[drop..]
+                .iter()
+                .any(|part| matches!(part, PhrasePart::Param(_)))
+        {
+            let alias = pattern_parts_to_text(&parts[drop..]);
+            if alias != patterns[0] {
+                patterns.push(alias);
+            }
+        }
+    }
+    patterns
+}
+
+#[derive(Debug, Default, Clone)]
+struct NamePhrases {
+    global: BTreeMap<Vec<String>, String>,
+    local: BTreeMap<Vec<String>, String>,
+}
+
+impl NamePhrases {
+    fn words(text: &str) -> Vec<String> {
+        let mut words = tokenize(text)
+            .into_iter()
+            .filter(|token| token.is_word())
+            .map(|token| token.lower)
+            .collect::<Vec<_>>();
+        if words.len() > 1 && matches!(words.first().map(String::as_str), Some("a" | "an" | "the"))
+        {
+            words.remove(0);
+        }
+        words
+    }
+
+    fn register(&mut self, text: &str, global: bool) -> Option<String> {
+        let words = Self::words(text);
+        if words.is_empty() {
+            return None;
+        }
+        let canonical = words.join("_");
+        if (2..=4).contains(&words.len()) {
+            if global {
+                self.global.insert(words, canonical.clone());
+            } else {
+                self.local.insert(words, canonical.clone());
+            }
+        }
+        Some(canonical)
+    }
+
+    fn clear_local(&mut self) {
+        self.local.clear();
+    }
+
+    fn rewrite(&self, text: &str) -> String {
+        let tokens = tokenize(text);
+        if tokens.is_empty() {
+            return text.to_string();
+        }
+        let mut output = String::new();
+        let mut cursor = 0;
+        let mut index = 0;
+        while index < tokens.len() {
+            let token = &tokens[index];
+            if token.kind != TokenKind::Word {
+                index += 1;
+                continue;
+            }
+            let mut best: Option<(usize, String)> = None;
+            for length in (2..=4).rev() {
+                if index + length > tokens.len() {
+                    continue;
+                }
+                let slice = &tokens[index..index + length];
+                if !slice.iter().all(|token| token.kind == TokenKind::Word) {
+                    continue;
+                }
+                if !slice
+                    .windows(2)
+                    .all(|pair| text[pair[0].end..pair[1].start].trim().is_empty())
+                {
+                    continue;
+                }
+                let words = slice
+                    .iter()
+                    .map(|token| token.lower.clone())
+                    .collect::<Vec<_>>();
+                if let Some(canonical) = self.local.get(&words).or_else(|| self.global.get(&words))
+                {
+                    best = Some((length, canonical.clone()));
+                    break;
+                }
+            }
+            if let Some((length, canonical)) = best {
+                output.push_str(&text[cursor..token.start]);
+                output.push_str(&canonical);
+                cursor = tokens[index + length - 1].end;
+                index += length;
+            } else {
+                index += 1;
+            }
+        }
+        output.push_str(&text[cursor..]);
+        output
+    }
+
+    fn register_record_fields(&mut self, line: &str) {
+        let tokens = tokenize(line);
+        let Some(keyword) = tokens
+            .iter()
+            .position(|token| token.is("record") || token.is("struct") || token.is("union"))
+        else {
+            return;
+        };
+        let rest_start = tokens
+            .get(keyword + 2)
+            .map_or(line.len(), |token| token.start);
+        let rest = &line[rest_start..];
+        let Some((_, after)) = find_top_level_word(rest, "has")
+            .or_else(|| find_top_level_word(rest, "holds"))
+            .or_else(|| find_top_level_word(rest, "with"))
+        else {
+            return;
+        };
+        let fields = &rest[after..];
+        for comma_piece in split_type_list(fields, ",") {
+            let piece = comma_piece
+                .trim()
+                .trim_start_matches("and ")
+                .trim()
+                .trim_end_matches('.')
+                .trim();
+            if piece.is_empty() {
+                continue;
+            }
+            let groups = tokenize(piece)
+                .iter()
+                .filter(|token| token.text == "(")
+                .count();
+            if groups > 1 || top_level_word_count(piece, "as") > 1 {
+                for inner in split_type_list(piece, "and") {
+                    let inner = inner.trim();
+                    if inner.is_empty() {
+                        continue;
+                    }
+                    if let Some((name, _)) = split_parenthetical_type(inner) {
+                        let names = if top_level_word_count(&name, "and") > 0 {
+                            split_type_list(&name, "and")
+                        } else {
+                            vec![name]
+                        };
+                        for name in names {
+                            self.register(&name, true);
+                        }
+                    }
+                }
+                continue;
+            }
+            let Some((name, _)) = split_parenthetical_type(piece) else {
+                continue;
+            };
+            let names = if top_level_word_count(&name, "and") > 0 {
+                split_type_list(&name, "and")
+            } else {
+                vec![name]
+            };
+            for name in names {
+                self.register(&name, true);
+            }
+        }
+    }
+
+    fn register_shared_global(&mut self, line: &str) {
+        let tokens = tokenize(line);
+        let Some(shared) = tokens
+            .iter()
+            .position(|token| token.is("shared") || token.is("global"))
+        else {
+            return;
+        };
+        let start = tokens
+            .get(shared + 1)
+            .map_or(line.len(), |token| token.start);
+        let Some((as_start, _)) = find_top_level_word(&line[start..], "as") else {
+            return;
+        };
+        let name = line[start..start + as_start].trim();
+        if !name.is_empty() {
+            self.register(name, true);
+        }
+    }
+
+    fn register_let(&mut self, line: &str) {
+        let trimmed = line.trim_start();
+        let lower = trimmed.to_ascii_lowercase();
+        if !lower.starts_with("let ") {
+            return;
+        }
+        let rest = &trimmed[4..];
+        let Some((be_start, _)) = find_top_level_word(rest, "be") else {
+            return;
+        };
+        let name = rest[..be_start].trim();
+        if !name.is_empty() {
+            self.register(name, false);
+        }
+    }
+
+    fn register_created(&mut self, line: &str) {
+        let tokens = tokenize(line);
+        let Some(marker) = tokens
+            .iter()
+            .position(|token| token.is("called") || token.is("named"))
+        else {
+            return;
+        };
+        let start = tokens
+            .get(marker + 1)
+            .map_or(line.len(), |token| token.start);
+        let name = line[start..].trim().trim_end_matches('.').trim();
+        if !name.is_empty() {
+            self.register(name, false);
+        }
+    }
+
+    fn register_function_header(&mut self, line: &str) {
+        for param in parenthetical_parameters(line) {
+            for original in param.original_names {
+                self.register(&original, false);
+            }
+        }
+    }
+
+    fn register_declarations(&mut self, line: &str) {
+        let trimmed = line.trim_start();
+        if trimmed.is_empty() {
+            return;
+        }
+        if natural_function_header(trimmed) {
+            self.register_function_header(trimmed);
+            return;
+        }
+        let lower = trimmed.to_ascii_lowercase();
+        if lower.starts_with("a record ")
+            || lower.starts_with("a public record ")
+            || lower.starts_with("a union ")
+            || lower.starts_with("a public union ")
+            || lower.starts_with("public record ")
+            || lower.starts_with("record ")
+            || lower.starts_with("public union ")
+            || lower.starts_with("union ")
+        {
+            self.register_record_fields(trimmed);
+            return;
+        }
+        if lower.starts_with("keep ") {
+            self.register_shared_global(trimmed);
+            return;
+        }
+        if lower.starts_with("let ") {
+            self.register_let(trimmed);
+            return;
+        }
+        if lower.starts_with("create ") || lower.starts_with("make a ") {
+            self.register_created(trimmed);
+        }
+    }
 }
 
 fn top_level_declaration(text: &str) -> bool {
@@ -1475,12 +2228,14 @@ fn normalize_natural_source(text: &str) -> String {
     let mut output = String::new();
     let mut natural_function: Option<usize> = None;
     let mut control_blocks: Vec<usize> = Vec::new();
+    let mut names = NamePhrases::default();
     for raw_line in text.lines() {
         let indent = raw_line.len() - raw_line.trim_start().len();
         let trimmed = raw_line.trim_start();
         if trimmed.is_empty() {
             control_blocks.clear();
             natural_function = None;
+            names.clear_local();
             output.push('\n');
             continue;
         }
@@ -1495,6 +2250,7 @@ fn normalize_natural_source(text: &str) -> String {
         {
             control_blocks.clear();
             natural_function = None;
+            names.clear_local();
             continue;
         }
         if matches!(
@@ -1509,6 +2265,17 @@ fn normalize_natural_source(text: &str) -> String {
             control_blocks.pop();
             continue;
         }
+        if natural_function.is_some() && top_level_declaration(trimmed) {
+            natural_function = None;
+            control_blocks.clear();
+            names.clear_local();
+        }
+        if natural_function_header(trimmed) {
+            names.clear_local();
+        }
+        names.register_declarations(trimmed);
+        let rewritten = names.rewrite(trimmed);
+        let trimmed = rewritten.as_str();
         if let Some(&control_indent) = control_blocks.last() {
             if paragraph_control_header(trimmed) {
                 let header = trimmed.trim_end_matches('.').trim();
@@ -1524,10 +2291,6 @@ fn normalize_natural_source(text: &str) -> String {
                 output.push('\n');
             }
             continue;
-        }
-        if natural_function.is_some() && top_level_declaration(trimmed) {
-            natural_function = None;
-            control_blocks.clear();
         }
         if let Some(header_indent) = natural_function {
             if paragraph_control_header(trimmed) {
@@ -1555,6 +2318,12 @@ fn normalize_natural_source(text: &str) -> String {
                 output.push_str(&" ".repeat(indent));
                 output.push_str(&header);
                 output.push('\n');
+                for pattern in auto_phrase_patterns(&header_text, &header) {
+                    output.push_str(&" ".repeat(indent + 4));
+                    output.push_str("Phrase: \"");
+                    output.push_str(&pattern);
+                    output.push_str("\".\n");
+                }
                 if let Some(body) = inline_body {
                     for line in normalize_prose_line(&body, indent + 4) {
                         output.push_str(&line);
@@ -3658,6 +4427,11 @@ impl<'a> Lowerer<'a> {
                 return self.lower_global_quantifier(global, then_items, span, depth);
             }
         }
+        if starts_with_word(&original_lower, "update") {
+            if let Some(statements) = self.try_update(original, span)? {
+                return Ok(statements);
+            }
+        }
         let control_scope = starts_with_word(&original_lower, "if")
             || starts_with_word(&original_lower, "unless")
             || starts_with_word(&original_lower, "while")
@@ -4793,6 +5567,99 @@ impl<'a> Lowerer<'a> {
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
         let lowered = self.lower_cond_ast(&parsed, span)?;
         Ok(Some((lowered.prelude, lowered.expr)))
+    }
+
+    fn split_update_clauses(&self, text: &str) -> Vec<String> {
+        let mut clauses = Vec::new();
+        for comma_piece in split_top_level(text, ",") {
+            let tokens = tokenize(&comma_piece);
+            let mut start = 0;
+            let mut depth = 0_i32;
+            for (index, token) in tokens.iter().enumerate() {
+                match token.text.as_str() {
+                    "(" | "[" | "{" => depth += 1,
+                    ")" | "]" | "}" => depth -= 1,
+                    _ => {}
+                }
+                if depth == 0
+                    && token.is("and")
+                    && tokens
+                        .get(index + 1)
+                        .is_some_and(|next| next.is("its") || next.is("the"))
+                {
+                    let clause = comma_piece[start..token.start].trim();
+                    if !clause.is_empty() {
+                        clauses.push(clause.to_string());
+                    }
+                    start = token.end;
+                }
+            }
+            let tail = comma_piece[start..].trim();
+            if !tail.is_empty() {
+                clauses.push(tail.to_string());
+            }
+        }
+        clauses
+    }
+
+    fn try_update(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        if !starts_with_word(text, "update") {
+            return Ok(None);
+        }
+        let rest = strip_leading_word(text, "update");
+        let Some((start, end)) = find_top_level_word(rest, "so") else {
+            return Ok(None);
+        };
+        let target = rest[..start].trim();
+        let clauses_text = rest[end..].trim();
+        if target.is_empty() || clauses_text.is_empty() {
+            return Ok(None);
+        }
+        self.touch_target_text(target, span);
+        let mut statements = Vec::new();
+        for clause in self.split_update_clauses(clauses_text) {
+            let clause = clause.trim().trim_start_matches("and").trim();
+            let Some((marker_start, marker_end)) = find_top_level_word(clause, "is")
+                .or_else(|| find_top_level_word(clause, "becomes"))
+            else {
+                return Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    format!("update clause `{clause}` must use `its <field> is <value>`"),
+                ));
+            };
+            let field_text = clause[..marker_start].trim();
+            let value_text = clause[marker_end..].trim();
+            let field_text = field_text.strip_prefix("its ").map_or_else(
+                || {
+                    field_text
+                        .strip_prefix("the ")
+                        .unwrap_or(field_text)
+                        .to_string()
+                },
+                ToString::to_string,
+            );
+            let field = field_text
+                .rsplit("'s")
+                .next()
+                .map_or(field_text.as_str(), str::trim);
+            if field.is_empty() || value_text.is_empty() {
+                return Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    format!("update clause `{clause}` is missing a field or value"),
+                ));
+            }
+            let value = self.parse_value(value_text, span)?;
+            let target_text = format!("{target}'s {field}");
+            statements.extend(self.assign_text(&target_text, value, span, false)?);
+        }
+        self.touch_target_text(target, span);
+        Ok(Some(statements))
     }
 
     fn try_assignment(
