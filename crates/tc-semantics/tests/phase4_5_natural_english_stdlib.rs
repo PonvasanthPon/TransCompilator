@@ -623,7 +623,7 @@ fn natural_std_uses_english_function_and_record_forms() {
         );
     }
     let alloc = std::fs::read_to_string(std_dir().join("alloc.eng")).expect("alloc");
-    assert!(alloc.to_ascii_lowercase().contains("clear bits 15 from n"));
+    assert!(alloc.to_ascii_lowercase().contains("clear bits 15 from it"));
     assert!(alloc.contains("ask Linux kernel 9 with"));
     assert!(alloc.contains("Give back"));
 }
@@ -631,10 +631,11 @@ fn natural_std_uses_english_function_and_record_forms() {
 #[test]
 fn natural_std_whitespace_and_phrases_survive() {
     let io = std::fs::read_to_string(std_dir().join("io.eng")).expect("io");
-    assert!(io.contains("You can call this as \"say <n>\""));
-    assert!(io.contains("\"square root of <x>\"") || !io.contains("sqrt"));
+    assert!(io.contains("to say n (a whole number)"));
+    assert!(io.contains("to say n (an unsigned number)"));
+    assert!(io.contains("to read a whole number from input"));
     let math = std::fs::read_to_string(std_dir().join("math.eng")).expect("math");
-    assert!(math.contains("Call this as \"square root of <x>\"."));
+    assert!(math.contains("to find the square root of x (a decimal)"));
     let list = std::fs::read_to_string(std_dir().join("list.eng")).expect("list");
-    assert!(list.contains("Call this as \"push <val> to <items>\"."));
+    assert!(list.contains("to push for T val (a T) to items (a pointer to List of T)"));
 }

@@ -114,7 +114,10 @@ fn is_natural_control(word: &str) -> bool {
             | "record"
             | "publicly"
             | "given"
+            | "giving"
             | "returning"
+            | "update"
+            | "becomes"
             | "ask"
             | "kernel"
     )
