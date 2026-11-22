@@ -1,0 +1,6 @@
+Use io.
+Cash is 905.
+Add (cash divided by 8) to cash, remove (cash divided by 16) from cash, and say cash.
+If cash is more than 800, and cash is less than 1500, say "medium cash".
+Display cash.
+Give back 0.

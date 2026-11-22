@@ -1,0 +1,5 @@
+Use io.
+Let x be 9.
+If x is at least or at most 4, add 1 to x.
+Say x.
+Give back 0.

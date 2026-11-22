@@ -1,0 +1,8 @@
+Use io.
+Pen is 25.
+Notebook is 41.
+Wallet is 325.
+Set wallet to (272 plus 30), add pen to it, remove (20 plus 3) from it, and say it.
+If wallet is more than 200, say "stationery bought".
+Say wallet.
+Give back 0.
