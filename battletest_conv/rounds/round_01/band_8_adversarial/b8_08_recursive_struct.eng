@@ -1,5 +1,0 @@
-Use io.
-A record Node has a next (a Node) and a value (a whole number).
-Let node be Node.
-Say node's value.
-Give back 0.

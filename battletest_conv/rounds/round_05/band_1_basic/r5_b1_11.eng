@@ -1,9 +1,0 @@
-Use io.
-N is 3.
-Price is 51.
-Total is n times price.
-Cash is 533.
-Remove total from cash.
-If cash is less than 300, say "low cash".
-Print cash.
-Give back 0.

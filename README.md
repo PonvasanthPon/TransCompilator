@@ -5,9 +5,9 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is at **Phase 4.5**: the Core-7 typed IR, exhaustive verifier,
-byte-accurate reference interpreter, direct x86_64 static zero-libc ELF64
-backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
+This repository is **`tc_r1` v1.0**: the hardened Core-7 typed IR, exhaustive
+verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
+ELF64 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
 word/verb engine, a finite English front end, the readable natural-English
 `std/` standard library, a terminal editor (`r1-editor`), and a true native
 `eframe`/`egui` desktop editor (`r1-editor-gui`) are implemented. English source now flows through vendored
@@ -32,6 +32,31 @@ declarations such as `A public record ... has ...`, `Keep a shared ...`,
 `Publicly, to ... given ..., returning ... . ... Done.`, `Give back ...`,
 `Clear bits ... from ...`, and `Ask Linux kernel ... with ...`. Programs that
 import `std/` still compile to static zero-libc ELF64.
+
+## v1.0 convergence status
+
+The v1.0 compiler is the fixed point of a five-round zero-bug convergence
+campaign: **640 fresh `.eng` programs** across eight English-variety bands,
+**15,000 disjoint differential/paraphrase/prose/crash seeds**, and **7
+root-cause bugs fixed** with permanent regressions. The final suite is
+**663/663 passing**, and Round 5 completed its entire fresh budget with zero
+bugs. All eight `std/*.eng` modules pass the Version 2 pure-English
+readability gate.
+
+```bash
+./target/debug/tc --selftest
+./target/debug/tc build program.eng -o program.elf
+./target/debug/r1-editor program.eng
+./target/debug/r1-editor-gui program.eng
+```
+
+Documentation:
+
+- [English language specification](docs/TC_ENGLISH_SPEC.md)
+- [Convergence final report](docs/CONVERGENCE_FINAL_REPORT.md)
+- [Convergence limits](docs/CONVERGENCE_LIMITS.md)
+- [Round history](docs/CONVERGENCE_ROUNDS_HISTORY.json)
+- [Bug catalog](docs/CONVERGENCE_BUGS.json)
 
 ## Hard properties
 
@@ -68,9 +93,9 @@ tc_r1/
     tc-cli/           # end-to-end `tc` command-line driver
     tc-editor/        # native std-only R1 Editor (`r1-editor`) for .eng programs
     tc-editor-gui/    # native eframe/egui desktop editor (`r1-editor-gui`)
-  std/                # pure-English standard library (8 modules)
-  tests/              # additional integration tests
-  docs/               # design documentation and the English language spec
+  std/                # 8 Version 2 pure-English standard-library modules
+  tests/              # integration-test placeholder
+  docs/               # spec, convergence report, limits, and round history
 ```
 
 ## Dependency graph
@@ -271,7 +296,7 @@ The editor uses raw POSIX `termios`, an alternate screen, and RAII plus a
 panic hook that always restores the user's terminal. Imports resolve
 `<module>.eng` first and `<module>.tc` second in the active file's directory,
 then in `-I` directories, then in the discovered `std/` directory. The three
-Phase 4 presets (`06_std_io_and_math.eng`, `07_std_generic_list.eng`, and
+`std/` presets (`06_std_io_and_math.eng`, `07_std_generic_list.eng`, and
 `08_std_file_and_map.eng`) run through the same sandboxed parity path as the
 five Core presets.
 

@@ -1,5 +1,0 @@
-Use io.
-A record Nesting has a child (a Nesting).
-Let nesting be Nesting.
-Say nesting's child.
-Give back 0.

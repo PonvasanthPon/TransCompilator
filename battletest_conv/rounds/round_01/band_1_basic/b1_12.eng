@@ -1,7 +1,0 @@
-Use io.
-
-Bottles is 4.
-Litres is 0.
-For every bottle from 1 to bottles, add 1 to litres.
-Say litres.
-Give back 0.

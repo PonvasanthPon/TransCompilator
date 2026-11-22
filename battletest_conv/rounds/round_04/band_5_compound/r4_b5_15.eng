@@ -1,6 +1,0 @@
-Use io.
-Cash is 790.
-Add (cash divided by 10) to cash, remove (cash divided by 20) from cash, and say cash.
-If cash is more than 700, and cash is less than 1200, say "inside band".
-Display cash.
-Give back 0.

@@ -1,9 +1,0 @@
-Use io.
-
-Score is 48.
-Say "score card".
-If score is more than 30, say "scored".
-Add 8 to score.
-Print score.
-Display score.
-Give back 0.

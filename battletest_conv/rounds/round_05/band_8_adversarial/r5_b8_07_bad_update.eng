@@ -1,5 +1,0 @@
-Use io.
-A record Parcel has a weight (a whole number).
-Let parcel be Parcel.
-Update parcel so its height is 4.
-Give back 0.

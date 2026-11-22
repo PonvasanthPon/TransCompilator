@@ -1,9 +1,0 @@
-# Convergence Limits Catalog
-
-- **LIM-CONV-001** (SEMANTICS): A flat paragraph For every loop without an inline body or indented block is rejected with a located Lowering error. Probe: `battletest_conv/limits/limit_flat_for.eng`. Observed: clean lower error.
-- **LIM-CONV-002** (SEMANTICS): A phrase expression used directly as another phrase argument is not recursively phrase-resolved; bind it with Let first. Probe: `battletest_conv/limits/limit_nested_phrase_argument.eng`. Observed: clean Unsupported/field error.
-- **LIM-CONV-003** (LEXICON): Very long English sentences fall back to a clean Unsupported verdict instead of crashing Link Grammar. Probe: `battletest_conv/limits/limit_long_sentence.eng`. Observed: clean Unsupported error.
-- **LIM-CONV-004** (EDITOR): The editor parity runner has a 10,000,000-step reference-interpreter budget; oversize runs return a structured failure, not a panic. Probe: `crates/tc-editor/src/runner.rs::run_elf_with_parity`. Observed: INTERPRETER FAILED result.
-- **LIM-CONV-005** (STDLIB): StrMap stores caller-owned TcString pointers; keys must outlive the map. IntMap and StrMap grow beyond 256 entries. Probe: `std/map.eng`. Observed: documented ownership contract.
-- **LIM-CONV-006** (SEMANTICS): A bare identifier that is also an open-class VerbNet verb can be read as a verb in an arithmetic expression (for example `seats` in `Total is seats times price`); it fails loudly. Declare the value with Let or choose an unambiguous identifier. Probe: `battletest_conv/limits/limit_verb_noun_identifier.eng`. Observed: clean Unsupported diagnostic.
-- **LIM-CONV-007** (SEMANTICS): Parenthesized expression nesting is capped at 32 groups. Depth 33 or greater returns a located depth-limit error before recursive parsing can exhaust the Rust stack, including on the smaller test-thread stack. Probe: `battletest_conv/limits/limit_expression_nesting.eng`. Observed: clean expression nesting exceeds the Core-7 limit.

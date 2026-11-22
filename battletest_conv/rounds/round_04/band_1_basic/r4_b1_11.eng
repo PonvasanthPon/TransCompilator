@@ -1,9 +1,0 @@
-Use io.
-Fee is 153.
-Months is 4.
-Total is fee times months.
-Grant is 522.
-Remove total from grant.
-If grant is less than 100, say "need aid".
-Show grant.
-Give back 0.

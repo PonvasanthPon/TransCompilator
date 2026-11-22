@@ -1,8 +1,0 @@
-Use io.
-
-Let a be 4.
-Let b be 7.
-Let c be 11.
-Let result be the sum of a and b and c, where a is 8, b is 12, and c is 16.
-Say result.
-Give back 0.
