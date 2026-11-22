@@ -381,8 +381,9 @@ fn gui_std_function_phrases_are_indexed() {
         .flat_map(|module| &module.functions)
         .flat_map(|function| &function.phrases)
         .collect::<Vec<_>>();
-    assert!(phrases.iter().any(|phrase| phrase.contains("<n>")));
-    assert!(phrases.iter().any(|phrase| phrase.contains("<x>")));
+    assert!(phrases.iter().any(|phrase| phrase.contains("<path>")));
+    assert!(phrases.iter().any(|phrase| phrase.contains("<items>")));
+    assert!(phrases.iter().any(|phrase| phrase.contains("<dst>")));
 }
 
 #[test]
@@ -767,4 +768,22 @@ fn gui_trace_output_contains_exec_rows_with_badges() {
             .any(|line| line_badge(line) == Some(LineBadge::Exec))
     );
     let _ = fs::remove_dir_all(dir);
+}
+
+#[test]
+fn gui_highlight_marks_update_and_giving_as_control_anchors() {
+    let terminal = Theme::from_id(ThemeId::Midnight);
+    let spans = highlight_line(
+        "Update cost so its value is 1 and giving a total",
+        LineState::Normal,
+        None,
+        &terminal,
+    );
+    let anchors = spans
+        .iter()
+        .filter(|span| span.kind == TokenStyle::ControlAnchor)
+        .map(|span| span.text.as_str())
+        .collect::<Vec<_>>();
+    assert!(anchors.contains(&"Update"), "{anchors:?}");
+    assert!(anchors.contains(&"giving"), "{anchors:?}");
 }

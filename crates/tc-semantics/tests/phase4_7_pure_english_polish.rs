@@ -710,3 +710,204 @@ fn negative_parenthetical_type_is_a_clean_error() {
         "type",
     );
 }
+
+// ---------------------------------------------------------------------------
+// 7. Phase 4.7 readability gate across all eight `std/*.eng` modules
+// ---------------------------------------------------------------------------
+
+fn strip_string_literals(text: &str) -> String {
+    let mut output = String::with_capacity(text.len());
+    let mut in_string = false;
+    let mut escaped = false;
+    for character in text.chars() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if character == '\\' {
+                escaped = true;
+            } else if character == '"' {
+                in_string = false;
+            }
+            output.push(if character == '\n' { '\n' } else { ' ' });
+        } else if character == '"' {
+            in_string = true;
+            output.push(' ');
+        } else {
+            output.push(character);
+        }
+    }
+    output
+}
+
+fn contains_word(text: &str, word: &str) -> bool {
+    text.match_indices(word).any(|(index, _)| {
+        let before = text[..index].chars().next_back();
+        let after = text[index + word.len()..].chars().next();
+        !before.is_some_and(|value| value.is_ascii_alphanumeric() || value == '_')
+            && !after.is_some_and(|value| value.is_ascii_alphanumeric() || value == '_')
+    })
+}
+
+fn contains_dot_field(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    for index in 1..bytes.len().saturating_sub(1) {
+        if bytes[index] == b'.' {
+            let before = bytes[index - 1];
+            let after = bytes[index + 1];
+            if (before.is_ascii_alphabetic() || before == b'_')
+                && (after.is_ascii_alphanumeric() || after == b'_')
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn contains_call_parenthesis(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    for index in 1..bytes.len() {
+        if bytes[index] == b'('
+            && (bytes[index - 1].is_ascii_alphanumeric() || bytes[index - 1] == b'_')
+        {
+            return true;
+        }
+    }
+    false
+}
+
+fn strip_named_alias(line: &str) -> String {
+    let lower = line.to_ascii_lowercase();
+    for keyword in [" named ", " called "] {
+        if let Some(position) = lower.find(keyword) {
+            let alias_start = position + keyword.len();
+            let rest = &line[alias_start..];
+            let alias_end = rest
+                .find([',', '.'])
+                .map_or(line.len(), |offset| alias_start + offset);
+            return format!("{}{}", &line[..position], &line[alias_end..]);
+        }
+    }
+    line.to_string()
+}
+
+fn strip_public_compatibility(line: &str) -> String {
+    let mut cleaned = line.to_string();
+    for field in [
+        "has_value",
+        "is_ok",
+        "ok_val",
+        "err_val",
+        "old_size",
+        "new_size",
+    ] {
+        cleaned = cleaned.replace(field, "field");
+    }
+    cleaned
+}
+
+#[test]
+fn std_files_are_pure_version2_english() {
+    let directory = std_dir();
+    let modules = [
+        "core.eng",
+        "alloc.eng",
+        "io.eng",
+        "string.eng",
+        "list.eng",
+        "fs.eng",
+        "math.eng",
+        "map.eng",
+    ];
+    for module in modules {
+        let path = directory.join(module);
+        let source = std::fs::read_to_string(&path)
+            .unwrap_or_else(|error| panic!("cannot read {}: {error}", path.display()));
+        let code = strip_string_literals(&source);
+        assert!(
+            !source.to_ascii_lowercase().contains("define local"),
+            "{module}: contains `Define local`"
+        );
+        for operator in ["==", "!=", "<=", ">=", "<", ">"] {
+            assert!(
+                !code.contains(operator),
+                "{module}: contains symbolic comparator `{operator}`"
+            );
+        }
+        assert!(
+            !code.to_ascii_lowercase().contains(", returning nothing")
+                && !code.to_ascii_lowercase().contains(", giving nothing"),
+            "{module}: still writes an explicit void return clause"
+        );
+        let mut consecutive_set_fields = 0;
+        let mut in_public_function = false;
+        for line in code.lines() {
+            assert!(
+                !line.trim_end().ends_with(':'),
+                "{module}: colon-style header `{}`",
+                line.trim()
+            );
+            assert!(
+                !line.starts_with("    ") && !line.starts_with('\t'),
+                "{module}: indented code block `{}`",
+                line.trim_end()
+            );
+            let trimmed = line.trim_start();
+            if trimmed.to_ascii_lowercase().starts_with("publicly, to ")
+                || trimmed.to_ascii_lowercase().starts_with("publicly to ")
+            {
+                in_public_function = true;
+            } else if trimmed.starts_with("To ")
+                || trimmed.to_ascii_lowercase().starts_with("public function ")
+                || trimmed.to_ascii_lowercase().starts_with("function ")
+            {
+                in_public_function = false;
+            }
+            assert!(
+                !trimmed.starts_with("Call this as") || in_public_function,
+                "{module}: `Call this as` appears outside a public API header: `{trimmed}`"
+            );
+            if trimmed.starts_with("Set ") && trimmed.contains("'s ") {
+                consecutive_set_fields += 1;
+                assert!(
+                    consecutive_set_fields < 3,
+                    "{module}: three consecutive `Set <x>'s` lines begin at `{trimmed}`"
+                );
+            } else {
+                consecutive_set_fields = 0;
+            }
+            let without_alias = strip_named_alias(line);
+            let public_header = trimmed.to_ascii_lowercase().starts_with("publicly, to ")
+                || trimmed.to_ascii_lowercase().starts_with("publicly to ");
+            let without_compatibility = strip_public_compatibility(&without_alias);
+            assert!(
+                public_header || !without_compatibility.contains('_'),
+                "{module}: underscore identifier outside a public alias: `{trimmed}`"
+            );
+        }
+        for token in [
+            "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "f64",
+        ] {
+            assert!(
+                !contains_word(&code, token),
+                "{module}: shorthand C type `{token}`"
+            );
+        }
+        assert!(!code.contains("ptr<"), "{module}: contains `ptr<`");
+        for token in ["bitand", "bitnot", "bitor", "bitxor", "shl", "shr"] {
+            assert!(
+                !contains_word(&code, token),
+                "{module}: C bitwise token `{token}`"
+            );
+        }
+        assert!(
+            !code.contains("syscall("),
+            "{module}: raw syscall call expression"
+        );
+        assert!(!contains_dot_field(&code), "{module}: dot field notation");
+        assert!(
+            !contains_call_parenthesis(&code),
+            "{module}: C-style helper call parentheses"
+        );
+    }
+}
