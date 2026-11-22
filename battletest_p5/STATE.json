@@ -1,0 +1,133 @@
+{
+  "campaign": "tc_r1 Phase 5 \u2014 Full-Stack Battle-Test & Production Hardening",
+  "status": "RUNNING",
+  "branch": "battletest-p5",
+  "base_sha": "27e57cc",
+  "head_sha": "2f07684",
+  "started_at": "2026-11-22T10:21:25+05:30",
+  "updated_at": "2026-11-22T10:31:15+05:30",
+  "sessions_count": 1,
+  "current_tier": "S1",
+  "current_activity": "S6 probe exposed tc interp cwd gap; fixed and regression-tested",
+  "metrics": {
+    "tiers_completed": 0,
+    "tiers_total": 12,
+    "programs_tested": 0,
+    "programs_target": 550,
+    "fuzz_fullstack_done": 0,
+    "fuzz_fullstack_target": 2000,
+    "fuzz_paraphrase_done": 0,
+    "fuzz_paraphrase_target": 1000,
+    "fuzz_prose_done": 0,
+    "fuzz_prose_target": 1000,
+    "fuzz_crash_done": 0,
+    "fuzz_crash_target": 1000,
+    "panics_or_segfaults": 0,
+    "memory_leaks_open": 0,
+    "silent_drops_open": 0,
+    "bugs_found": 1,
+    "bugs_fixed": 1,
+    "bugs_open": 0,
+    "limits_cataloged": 0,
+    "regression_tests": 651,
+    "commits_on_branch": 1
+  },
+  "tiers": [
+    {
+      "id": "S1",
+      "name": "Version 2 Prose, Auto-Phrases, Multi-Word & Update",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 55,
+      "bugs": 0
+    },
+    {
+      "id": "S2",
+      "name": "ACE Discourse, Comma Precedence & Quantifiers + std/",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 55,
+      "bugs": 0
+    },
+    {
+      "id": "S3",
+      "name": "std/alloc Heap Churn, Coalescing & Zero Leaks",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 45,
+      "bugs": 0
+    },
+    {
+      "id": "S4",
+      "name": "std/io & std/math Numerics, Floats & Stdin",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 50,
+      "bugs": 0
+    },
+    {
+      "id": "S5",
+      "name": "std/string & Generic std/list<T> Torture",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 55,
+      "bugs": 0
+    },
+    {
+      "id": "S6",
+      "name": "std/fs Persistent Handles, Seek & Multi-FD I/O",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 45,
+      "bugs": 0
+    },
+    {
+      "id": "S7",
+      "name": "std/map Hash Collisions, Rehash & Tombstones",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 45,
+      "bugs": 0
+    },
+    {
+      "id": "S8",
+      "name": "50 Real-World Multi-Module .eng Applications",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 50,
+      "bugs": 0
+    },
+    {
+      "id": "S9",
+      "name": "Non-Native & Casual Everyday .eng Stress",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 60,
+      "bugs": 0
+    },
+    {
+      "id": "S10",
+      "name": "TUI + Native GUI Editors & tc-cli Full Stress",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 40,
+      "bugs": 0
+    },
+    {
+      "id": "S11",
+      "name": "5,000-Seed Full-Stack, Paraphrase, Prose & Crash Fuzz",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 5000,
+      "bugs": 0
+    },
+    {
+      "id": "S12",
+      "name": "Production Audit, Limits Catalog & Final Report",
+      "status": "PENDING",
+      "tested": 0,
+      "target": 1,
+      "bugs": 0
+    }
+  ]
+}
