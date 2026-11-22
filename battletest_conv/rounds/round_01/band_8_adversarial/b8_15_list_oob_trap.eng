@@ -1,0 +1,9 @@
+Use alloc, core, io, list.
+
+Let nums be List of whole number.
+Push 5 to address of nums.
+Say item 0 of nums's data.
+Let value be list_get(address of nums, 3).
+Say value.
+Free list address of nums.
+Give back 0.

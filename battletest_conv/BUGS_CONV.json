@@ -1,0 +1,93 @@
+[
+  {
+    "id": "BUG-CONV-001",
+    "round_found": 1,
+    "band_or_engine": "B5",
+    "layer": "SEMANTICS",
+    "class": "silent action-chain loss / unresolved anaphor",
+    "status": "FIXED",
+    "repro": "Put 100 in cash, add 50 to it, remove 20 from it, and say it.",
+    "root_cause": "The prose normalizer did not split a multi-action chain whose first verb was Put, so the core parser saw one unsupported sentence and the new referent was never registered.",
+    "fix_sha": "ad35f4b",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::compound_put_chains_share_the_new_referent",
+    "found_at": "2026-11-22T12:05:24+05:30"
+  },
+  {
+    "id": "BUG-CONV-002",
+    "round_found": 1,
+    "band_or_engine": "B3",
+    "layer": "STDLIB",
+    "class": "missing output-synonym overloads",
+    "status": "FIXED",
+    "repro": "Use alloc, core, io, string.\nLet name be create text from \"hello\" of length 5.\nShow 42.\nPrint 4.5.\nDisplay true.\nShow address of name.",
+    "root_cause": "std/io and std/string exposed only say/print_str; Show, Print, and Display resolved as Emit verbs but had no matching public phrase.",
+    "fix_sha": "a61e492",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::output_synonyms_resolve_across_standard_types",
+    "found_at": "2026-11-22T12:05:24+05:30"
+  },
+  {
+    "id": "BUG-CONV-003",
+    "round_found": 1,
+    "band_or_engine": "B1",
+    "layer": "SEMANTICS",
+    "class": "direct string-literal emission",
+    "status": "FIXED",
+    "repro": "Use io.\nIf cash is more than 500, say \"good\".\nGive back 0.",
+    "root_cause": "A direct Say with a string literal produced no pointer/length pair even though the equivalent bytes phrase existed; the normalizer now emits that canonical bytes call.",
+    "fix_sha": "019bf9a",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::say_accepts_a_direct_string_literal",
+    "found_at": "2026-11-22T12:05:24+05:30"
+  },
+  {
+    "id": "BUG-CONV-004",
+    "round_found": 2,
+    "band_or_engine": "B5/B7",
+    "layer": "SEMANTICS",
+    "class": "compound Set action chains and parenthesized operand splitting",
+    "status": "FIXED",
+    "repro": "Set cash to 100, add 50 to it, remove 25 from it, and say it.",
+    "root_cause": "The normalizer omitted Set from multi-action splitting; adding it exposed that starts_action treated a leading parenthesized expression as a new action, breaking exclusive-or Set expressions in std/map.",
+    "fix_sha": "5951466",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::{compound_set_chains_share_the_new_referent,set_expressions_with_parenthesized_operands_stay_one_action}",
+    "found_at": "2026-11-22T12:39:53+05:30"
+  },
+  {
+    "id": "BUG-CONV-005",
+    "round_found": 3,
+    "band_or_engine": "B5",
+    "layer": "SEMANTICS",
+    "class": "comma-aware condition splitting",
+    "status": "FIXED",
+    "repro": "If cash is more than 500, and cash is less than 900, say \"middle band\".",
+    "root_cause": "The prose normalizer split If/While/Until headers at the first top-level comma instead of using the comma-aware header splitter; a comma before a coordinated condition term was mistaken for the body boundary.",
+    "fix_sha": "a35d01b",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::comma_before_and_keeps_the_condition_together_for_string_bodies",
+    "found_at": "2026-11-22T13:09:54+05:30"
+  },
+  {
+    "id": "BUG-CONV-006",
+    "round_found": 3,
+    "band_or_engine": "B5",
+    "layer": "SEMANTICS",
+    "class": "nested transfer operand boundary",
+    "status": "FIXED",
+    "repro": "Remove (cash divided by 4) from cash.",
+    "root_cause": "Transfer preposition discovery scanned inside parenthesized operands, so `by` inside `(cash divided by 4)` was mistaken for the transfer preposition instead of the outer `from`.",
+    "fix_sha": "a35d01b",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::parenthesized_division_is_one_transfer_operand",
+    "found_at": "2026-11-22T13:09:54+05:30"
+  },
+  {
+    "id": "BUG-CONV-007",
+    "round_found": 4,
+    "band_or_engine": "B8/crash",
+    "layer": "SEMANTICS",
+    "class": "stack exhaustion on deep expression nesting",
+    "status": "FIXED",
+    "repro": "Use io.\nLet x be ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))).\nSay x.\nGive back 0.\n",
+    "root_cause": "The expression parser recursed through parenthesized groups without a depth guard; 150 nested groups exhausted the Rust stack in the CLI and the smaller test-thread stack.",
+    "fix_sha": "feead65",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::deeply_nested_parentheses_fail_cleanly",
+    "found_at": "2026-11-22T13:29:18+05:30"
+  }
+]

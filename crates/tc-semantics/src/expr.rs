@@ -132,6 +132,7 @@ struct Parser<'a> {
     env: &'a ExprEnv,
     budget: usize,
     type_depth: usize,
+    group_depth: usize,
 }
 
 type Result<T> = std::result::Result<T, String>;
@@ -889,7 +890,12 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Symbol => {
                 if self.eat_symbol("(") {
+                    if self.group_depth >= 32 {
+                        return Err("expression nesting exceeds the Core-7 limit".to_string());
+                    }
+                    self.group_depth += 1;
                     let value = self.parse_expression()?;
+                    self.group_depth -= 1;
                     self.expect_symbol(")")?;
                     return Ok((value, None));
                 }
@@ -1466,6 +1472,7 @@ pub(crate) fn parse_expression(text: &str, env: &ExprEnv) -> Result<AstExpr> {
         env,
         budget: 1024,
         type_depth: 0,
+        group_depth: 0,
     };
     let value = parser.parse_expression()?;
     if !parser.at_end() {
@@ -1495,6 +1502,7 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
             env,
             budget: 1024,
             type_depth: 0,
+            group_depth: 0,
         };
         let value = parser.parse_expression()?;
         if !parser.at_end() {
@@ -1511,6 +1519,7 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
             env,
             budget: 1024,
             type_depth: 0,
+            group_depth: 0,
         };
         let value = parser.parse_expression()?;
         if !parser.at_end() {
@@ -1524,6 +1533,7 @@ pub(crate) fn parse_address(text: &str, env: &ExprEnv) -> Result<AstExpr> {
         env,
         budget: 1024,
         type_depth: 0,
+        group_depth: 0,
     };
     let value = parser.parse_expression()?;
     if !parser.at_end() {
@@ -1549,6 +1559,7 @@ pub(crate) fn parse_type_text(text: &str) -> Result<AstType> {
         env: &env,
         budget: 1024,
         type_depth: 0,
+        group_depth: 0,
     };
     let ty = parser.parse_type()?;
     if !parser.at_end() {

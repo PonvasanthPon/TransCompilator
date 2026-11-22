@@ -1,0 +1,11 @@
+Use io.
+
+Let total be 0.
+For every i from 26 to 2 by -2:
+    If i equals 20:
+        Continue.
+    If i is less than 6:
+        Break.
+    Add i to total.
+Say total.
+Give back 0.

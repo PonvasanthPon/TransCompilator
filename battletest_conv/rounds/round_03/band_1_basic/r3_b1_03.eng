@@ -1,0 +1,10 @@
+Use io.
+Fine is 18.
+Days is 6.
+Charge is fine times days.
+Deposit is 106.
+Remove charge from deposit.
+If deposit is less than 50, say "pay more".
+Say charge.
+Say deposit.
+Give back 0.

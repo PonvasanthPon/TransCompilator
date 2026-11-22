@@ -1,0 +1,6 @@
+Use io.
+Put (410 plus 45) in cash, add (18 times 3) to it, remove (10 plus 22) from it, and say it.
+If cash is more than 350, and cash is less than 1000, say "inside range".
+If cash is more than 1000, or cash is less than 250, say "outside range".
+Say cash.
+Give back 0.

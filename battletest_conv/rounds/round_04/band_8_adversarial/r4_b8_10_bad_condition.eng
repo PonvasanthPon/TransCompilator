@@ -1,0 +1,5 @@
+Use io.
+Let x be 6.
+If x is less than or more than 3, add 1 to x.
+Say x.
+Give back 0.

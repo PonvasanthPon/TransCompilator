@@ -1,0 +1,109 @@
+{
+  "campaign": "tc_r1 Zero-Bug Fixed-Point Convergence Battle-Test",
+  "status": "CONVERGED",
+  "branch": "battletest-convergence",
+  "main_base_sha": "883432b03ddaf2d7d27bacb191cd467e3361e606",
+  "head_sha": "640eead1431903fad61fda86f1375edf35e2e97a",
+  "started_at": "2026-11-22T11:55:20+05:30",
+  "updated_at": "2026-11-22T13:48:22+05:30",
+  "sessions_count": 1,
+  "current_round": 5,
+  "current_band": "COMPLETE",
+  "current_activity": "Round 5 clean \u2014 converged with 0 bugs after 128 fresh programs and 3,000 fresh seeds",
+  "round_metrics": {
+    "seed_start": 22001,
+    "seed_end": 25000,
+    "programs_done": 128,
+    "programs_target": 128,
+    "fuzz_diff_done": 1000,
+    "fuzz_diff_target": 1000,
+    "fuzz_paraphrase_done": 750,
+    "fuzz_paraphrase_target": 750,
+    "fuzz_prose_done": 750,
+    "fuzz_prose_target": 750,
+    "fuzz_crash_done": 500,
+    "fuzz_crash_target": 500,
+    "bugs_found_this_round": 0
+  },
+  "cumulative_metrics": {
+    "rounds_completed": 5,
+    "clean_rounds": 1,
+    "total_programs_tested": 640,
+    "total_fuzz_seeds_tested": 15000,
+    "total_bugs_found": 7,
+    "total_bugs_fixed": 7,
+    "bugs_open": 0,
+    "panics_or_segfaults": 0,
+    "memory_leaks_open": 0,
+    "silent_drops_open": 0,
+    "limits_cataloged": 7,
+    "regression_tests": 663,
+    "commits_on_branch": 12
+  },
+  "bands": [
+    {
+      "id": "B1",
+      "name": "Simple Basic & Non-Native English",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B2",
+      "name": "Casual Conversational & Storytelling",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B3",
+      "name": "Lexical Variety, Passive & VerbNet Transfers",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B4",
+      "name": "ACE Anaphora, Multi-Word Names & Update",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B5",
+      "name": "Compound Sentences & Comma Precedence",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B6",
+      "name": "Complex & Compound-Complex Sentences",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B7",
+      "name": "Full-Stack std/ Multi-Module Systems",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    },
+    {
+      "id": "B8",
+      "name": "Adversarial Ambiguity & Boundary Probes",
+      "status": "DONE",
+      "tested": 16,
+      "target": 16,
+      "bugs": 0
+    }
+  ]
+}

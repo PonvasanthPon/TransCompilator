@@ -1,0 +1,8 @@
+Use io.
+
+Busfare is 16.
+Pocket is 170.
+Remove busfare from pocket.
+If pocket more than 94, add 10 to pocket.
+Say pocket.
+Give back 0.

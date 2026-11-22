@@ -1,0 +1,5 @@
+Use io.
+A record Crate has a weight (a whole number).
+Let crate be Crate.
+Update crate so its volume is 9.
+Give back 0.

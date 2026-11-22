@@ -1,0 +1,11 @@
+Use io.
+
+A record Point has an x (a whole number) and a y (a whole number).
+Let point be Point.
+Update point so its x is 9 and its y is 14.
+Let total be point's x plus point's y.
+Say total.
+Set point's x to 10.
+Add point's x to total.
+Say total.
+Give back 0.

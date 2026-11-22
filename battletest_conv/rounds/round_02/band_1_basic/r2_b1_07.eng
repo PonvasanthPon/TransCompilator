@@ -1,0 +1,10 @@
+Use io.
+Base is 37.
+Km is 6.
+Total is base plus km times 12.
+Pay is 500.
+Remove total from pay.
+Say total.
+If total is less than 100, say "short trip".
+Say pay.
+Give back 0.

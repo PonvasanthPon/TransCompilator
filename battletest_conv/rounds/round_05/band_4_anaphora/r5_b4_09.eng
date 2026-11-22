@@ -1,0 +1,11 @@
+Use io.
+A record Worker has a monthly wage (a whole number), a tax (a whole number), a total tax (a whole number), and a travel allowance (a whole number).
+Let worker be Worker.
+Update worker so its monthly wage is 8207, its tax is 409, its total tax is 1654, and its travel allowance is 149.
+Let net wage be worker's monthly wage minus worker's total tax.
+Say net wage.
+Add worker's travel allowance to it.
+Say it.
+Remove 49 from it.
+Say net wage.
+Give back 0.

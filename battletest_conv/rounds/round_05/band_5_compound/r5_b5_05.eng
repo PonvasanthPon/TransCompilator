@@ -1,0 +1,4 @@
+Use io.
+Set cash to (275 plus 35), add (12 times 4) to it, remove (5 plus 19) from it, and say it.
+Remove (cash divided by 4) from cash, add 11 to it, and say cash.
+Give back 0.

@@ -1,0 +1,6 @@
+Use io.
+If 4 is more than 3:
+    Let hidden be 9.
+    Say hidden.
+Say it.
+Give back 0.

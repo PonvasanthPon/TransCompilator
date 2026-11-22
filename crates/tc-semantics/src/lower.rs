@@ -1409,6 +1409,18 @@ fn normalize_natural_declaration(trimmed: &str) -> Option<String> {
 
 fn normalize_natural_line(trimmed: &str) -> Option<String> {
     let lower = trimmed.to_ascii_lowercase();
+    if lower.starts_with("say ") {
+        let tokens = tokenize(trimmed);
+        if let [verb, literal] = tokens.as_slice()
+            && verb.is("say")
+            && literal.kind == TokenKind::String
+        {
+            let literal = literal.text.as_str();
+            return Some(format!(
+                "Say bytes bytes_ptr({literal}) of length bytes_len({literal})."
+            ));
+        }
+    }
     if lower.starts_with("give back") {
         let tokens = tokenize(trimmed);
         let start = tokens.get(2).map_or(trimmed.len(), |token| token.start);
@@ -1631,9 +1643,10 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         .strip_prefix("Until ")
         .or_else(|| trimmed.strip_prefix("until "))
     {
-        if let Some((start, end)) = find_top_level_symbol(rest, ",") {
-            let condition = rest[..start].trim();
-            let body = rest[end..].trim();
+        let (condition, body) = split_header_condition(rest);
+        let condition = condition.trim();
+        let body = body.trim();
+        if !body.is_empty() {
             let mut lines = vec![format!("{spaces}While not {condition}:")];
             for action in split_actions(body) {
                 lines.extend(normalize_prose_line(&action, indent + 4));
@@ -1645,9 +1658,10 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         .strip_prefix("While ")
         .or_else(|| trimmed.strip_prefix("while "))
     {
-        if let Some((start, end)) = find_top_level_symbol(rest, ",") {
-            let condition = rest[..start].trim();
-            let body = rest[end..].trim();
+        let (condition, body) = split_header_condition(rest);
+        let condition = condition.trim();
+        let body = body.trim();
+        if !body.is_empty() {
             let mut lines = vec![format!("{spaces}While {condition}:")];
             for action in split_actions(body) {
                 lines.extend(normalize_prose_line(&action, indent + 4));
@@ -1659,45 +1673,44 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         .strip_prefix("If ")
         .or_else(|| trimmed.strip_prefix("if "))
     {
-        if let Some((start, end)) = find_top_level_symbol(rest, ",") {
-            let condition = rest[..start].trim();
-            let body = rest[end..].trim();
-            if !condition.is_empty() && v2_action_start(body) {
-                let body_tokens = tokenize(body);
-                let mut otherwise = None;
-                let mut depth = 0_i32;
-                for (index, token) in body_tokens.iter().enumerate() {
-                    if token.kind == TokenKind::Symbol {
-                        match token.text.as_str() {
-                            "(" | "[" | "{" => depth += 1,
-                            ")" | "]" | "}" => depth -= 1,
-                            _ => {}
-                        }
-                        continue;
+        let (condition, body) = split_header_condition(rest);
+        let condition = condition.trim();
+        let body = body.trim();
+        if v2_action_start(body) {
+            let body_tokens = tokenize(body);
+            let mut otherwise = None;
+            let mut depth = 0_i32;
+            for (index, token) in body_tokens.iter().enumerate() {
+                if token.kind == TokenKind::Symbol {
+                    match token.text.as_str() {
+                        "(" | "[" | "{" => depth += 1,
+                        ")" | "]" | "}" => depth -= 1,
+                        _ => {}
                     }
-                    if depth == 0 && (token.is("otherwise") || token.is("else")) {
-                        otherwise = Some((token.start, token.end));
-                        break;
-                    }
-                    let _ = index;
+                    continue;
                 }
-                let (then_text, else_text) = if let Some((comma, word_end)) = otherwise {
-                    (&body[..comma], Some(body[word_end..].trim()))
-                } else {
-                    (body, None)
-                };
-                let mut lines = vec![format!("{spaces}If {condition}:")];
-                for action in split_actions(then_text) {
+                if depth == 0 && (token.is("otherwise") || token.is("else")) {
+                    otherwise = Some((token.start, token.end));
+                    break;
+                }
+                let _ = index;
+            }
+            let (then_text, else_text) = if let Some((comma, word_end)) = otherwise {
+                (&body[..comma], Some(body[word_end..].trim()))
+            } else {
+                (body, None)
+            };
+            let mut lines = vec![format!("{spaces}If {condition}:")];
+            for action in split_actions(then_text) {
+                lines.extend(normalize_prose_line(&action, indent + 4));
+            }
+            if let Some(else_text) = else_text {
+                lines.push(format!("{spaces}Otherwise:"));
+                for action in split_actions(else_text) {
                     lines.extend(normalize_prose_line(&action, indent + 4));
                 }
-                if let Some(else_text) = else_text {
-                    lines.push(format!("{spaces}Otherwise:"));
-                    for action in split_actions(else_text) {
-                        lines.extend(normalize_prose_line(&action, indent + 4));
-                    }
-                }
-                return lines;
             }
+            return lines;
         }
     }
     if let Some((action, condition, alternative)) = split_trailing_if(trimmed) {
@@ -1766,6 +1779,8 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
         first_word(trimmed).as_str(),
         "add"
             | "remove"
+            | "put"
+            | "set"
             | "give"
             | "return"
             | "clear"
@@ -5986,11 +6001,21 @@ impl<'a> Lowerer<'a> {
                 fillers: Vec::new(),
             },
         );
+        let mut group_depth = 0_i32;
         let prep_indices = tokens
             .iter()
             .enumerate()
             .filter_map(|(index, token)| {
+                if token.kind == TokenKind::Symbol {
+                    match token.text.as_str() {
+                        "(" | "[" | "{" => group_depth += 1,
+                        ")" | "]" | "}" => group_depth -= 1,
+                        _ => {}
+                    }
+                    return None;
+                }
                 (index > verb_index
+                    && group_depth == 0
                     && token.kind == TokenKind::Word
                     && matches!(
                         tc_lexicon::lookup_closed_class(&token.lower),
@@ -6465,6 +6490,13 @@ fn starts_control(text: &str) -> bool {
 }
 
 fn starts_action(text: &str) -> bool {
+    if !text
+        .chars()
+        .next()
+        .is_some_and(|character| character.is_ascii_alphabetic())
+    {
+        return false;
+    }
     let word = first_word(text);
     if word.is_empty() {
         return false;

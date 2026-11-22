@@ -1,0 +1,10 @@
+Use io.
+
+Exam is 35.
+Homework is 48.
+Total is exam plus homework.
+Passes is 0.
+If total is more than 60, add 1 to passes.
+Say total.
+Say passes.
+Give back 0.

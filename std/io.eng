@@ -61,6 +61,42 @@ Publicly, to say b (a truth value), named print_bool.
 If b, ask Linux kernel 1 with 1, "true", and 4, otherwise ask Linux kernel 1 with 1, "false", and 5.
 Print a newline.
 
+Publicly, to show n (a whole number), named show_i64.
+Say n.
+
+Publicly, to show n (an unsigned number), named show_u64.
+Say n.
+
+Publicly, to show x (a decimal), named show_f64.
+Say x.
+
+Publicly, to show b (a truth value), named show_bool.
+Say b.
+
+Publicly, to print n (a whole number), named print_synonym_i64.
+Say n.
+
+Publicly, to print n (an unsigned number), named print_synonym_u64.
+Say n.
+
+Publicly, to print x (a decimal), named print_synonym_f64.
+Say x.
+
+Publicly, to print b (a truth value), named print_synonym_bool.
+Say b.
+
+Publicly, to display n (a whole number), named display_i64.
+Say n.
+
+Publicly, to display n (an unsigned number), named display_u64.
+Say n.
+
+Publicly, to display x (a decimal), named display_f64.
+Say x.
+
+Publicly, to display b (a truth value), named display_bool.
+Say b.
+
 Publicly, to say bytes p (a pointer to byte) of length len (an unsigned number), named print_bytes.
 Ask Linux kernel 1 with 1, p, and len.
 Print a newline.
