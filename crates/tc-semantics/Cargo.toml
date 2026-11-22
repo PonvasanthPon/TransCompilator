@@ -17,3 +17,4 @@ tc-typeck = { path = "../tc-typeck" }
 
 [dev-dependencies]
 tc-codegen-x86 = { path = "../tc-codegen-x86" }
+tc-editor = { path = "../tc-editor" }
