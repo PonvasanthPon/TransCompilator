@@ -28,6 +28,7 @@ use crate::quantifier::{
     GlobalQuantifier, LocalQuantKind, LocalQuantSpec, PredSpec, QuantDomainSpec,
     parse_global as parse_global_quantifier,
 };
+use crate::suggest::hint_for;
 use crate::textutil::{
     find_top_level_symbol, find_top_level_word, first_word, is_lvalue_text, split_top_level,
     split_type_list, split_where, starts_with_word,
@@ -2543,6 +2544,7 @@ pub(crate) fn parse_module(source: &SourceFile) -> Result<ModuleJob, Vec<Semanti
             }
         }
     }
+    errors.extend(reserved_declaration_errors(&module_name, &ast));
     if errors.is_empty() {
         Ok(ModuleJob {
             module: ast,
@@ -2552,6 +2554,39 @@ pub(crate) fn parse_module(source: &SourceFile) -> Result<ModuleJob, Vec<Semanti
     } else {
         Err(errors)
     }
+}
+
+fn reserved_declaration_errors(module: &str, ast: &AstModule) -> Vec<SemanticError> {
+    let mut errors = Vec::new();
+    let mut check = |span: &tc_typeck::Span, name: &str, label: &str, example: &str| {
+        let lower = name.to_ascii_lowercase();
+        if crate::suggest::is_reserved_control_word(&lower) {
+            errors.push(semantic_error(
+                module,
+                Span::new(span.line, span.col),
+                SemanticErrorKind::Declaration,
+                format!(
+                    "'{lower}' is a reserved control word — choose a different {label} name (for example, '{example}')"
+                ),
+            ));
+        }
+    };
+    for definition in &ast.structs {
+        check(&definition.span, &definition.name, "record", "Waypoint");
+        for (field, _) in &definition.fields {
+            check(&definition.span, field, "field", "distance");
+        }
+    }
+    for definition in &ast.unions {
+        check(&definition.span, &definition.name, "union", "Payload");
+        for (field, _) in &definition.fields {
+            check(&definition.span, field, "field", "distance");
+        }
+    }
+    for global in &ast.globals {
+        check(&global.span, &global.name, "variable", "counter");
+    }
+    errors
 }
 
 fn parse_global(text: &str, module: &str, span: Span) -> Result<AstGlobal, SemanticError> {
@@ -3102,6 +3137,14 @@ impl<'a> Lowerer<'a> {
                     index += 2;
                     continue;
                 }
+                if Self::token_at(&tokens, index + 2)
+                    .is_some_and(|value| value.text == "'s" || value.text == ".")
+                {
+                    let resolved = self.resolve_definite(&type_word, span)?;
+                    replacements.push((token.start, next.end, resolved.target_var));
+                    index += 2;
+                    continue;
+                }
                 // A definite article before an ordinary identifier is simply
                 // dropped: `the salary` denotes the variable `salary`.
                 replacements.push((token.start, token.end, String::new()));
@@ -3159,8 +3202,43 @@ impl<'a> Lowerer<'a> {
 
     fn parse_expr(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         let resolved = self.resolve_anaphors(text, span)?;
-        parse_expression(&resolved, &self.expr_env())
-            .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))
+        let result = parse_expression(&resolved, &self.expr_env());
+        result.map_err(|message| {
+            let hint = if message.starts_with("unexpected trailing token") {
+                self.expression_name_hint(text)
+            } else {
+                String::new()
+            };
+            self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                format!("{message}{hint}"),
+            )
+        })
+    }
+
+    fn expression_name_hint(&self, text: &str) -> String {
+        let env = self.expr_env();
+        let mut candidates = env.locals.keys().map(String::as_str).collect::<Vec<_>>();
+        candidates.extend(env.globals.keys().map(String::as_str));
+        candidates.extend(self.function_returns.keys().map(String::as_str));
+        let hint = hint_for(text, candidates.iter().copied());
+        if !hint.is_empty() {
+            return hint;
+        }
+        let tokens = tokenize(text);
+        if let Some(first) = tokens.first() {
+            let rest = text[first.end..].trim();
+            let rest_hint = hint_for(rest, candidates.iter().copied());
+            if !rest_hint.is_empty() {
+                return rest_hint;
+            }
+            let rest_word = first_word(rest);
+            if !rest_word.is_empty() {
+                return hint_for(&rest_word, candidates.iter().copied());
+            }
+        }
+        String::new()
     }
 
     fn parse_expr_raw(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {

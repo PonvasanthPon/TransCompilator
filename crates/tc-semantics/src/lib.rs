@@ -12,6 +12,7 @@ mod lower;
 mod paraphrase;
 mod place;
 mod quantifier;
+mod suggest;
 mod textutil;
 mod value;
 

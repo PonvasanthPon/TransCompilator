@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use crate::ast::{
     AstModule, AstStruct, AstType, AstUnion, Program, Span, TypeError, TypeErrorKind, Visibility,
 };
+use crate::suggest::{closest_match, humanize};
 
 /// A fully resolved concrete type used during checking and monomorphization.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -435,10 +436,15 @@ impl<'a> ResolvedProgram<'a> {
             let target = self.resolve_module_ref(current, Some(module_name), span)?;
             let target_module = &self.modules[target];
             let Some(indices) = target_module.functions.get(name) else {
+                let hint =
+                    closest_match(name, target_module.functions.keys().map(String::as_str), 2)
+                        .map_or_else(String::new, |candidate| {
+                            format!(" — did you mean '{}'?", humanize(candidate))
+                        });
                 return Err(TypeError::new(
                     span.clone(),
                     TypeErrorKind::UndefinedFunction,
-                    format!("function `{module_name}::{name}` not found"),
+                    format!("function `{module_name}::{name}` not found{hint}"),
                 ));
             };
             if target != current {
@@ -497,10 +503,32 @@ impl<'a> ResolvedProgram<'a> {
             }
         }
         if items.is_empty() {
+            let mut candidates = local
+                .functions
+                .keys()
+                .map(String::as_str)
+                .collect::<Vec<_>>();
+            for target in &local.imported_modules {
+                let module_ref = &self.modules[*target];
+                candidates.extend(
+                    module_ref
+                        .functions
+                        .iter()
+                        .filter(|(_, indices)| {
+                            indices.iter().any(|index| {
+                                module_ref.ast.functions[*index].vis == Visibility::Public
+                            })
+                        })
+                        .map(|(name, _)| name.as_str()),
+                );
+            }
+            let hint = closest_match(name, candidates, 2).map_or_else(String::new, |candidate| {
+                format!(" — did you mean '{}'?", humanize(candidate))
+            });
             return Err(TypeError::new(
                 span.clone(),
                 TypeErrorKind::UndefinedFunction,
-                format!("function `{name}` not found"),
+                format!("function `{name}` not found{hint}"),
             ));
         }
         Ok(items)

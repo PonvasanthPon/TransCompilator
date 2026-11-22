@@ -41,8 +41,12 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **697/697 passing**. All eight `std/*.eng` modules pass
-the Version 2 pure-English readability gate.
+for a current suite of **747/747 passing**. All eight `std/*.eng` modules pass
+the Version 2 pure-English readability gate. Compiler diagnostics now suggest
+natural spellings for unknown names and fields, explain reserved control words,
+and point unresolved anaphors at concrete fixes; `std/list` and `std/string`
+add everyday sum/average/minimum/maximum/contains/find/reverse and text
+starts/ends/contains/trim/parse/format helpers in pure Version 2 English.
 
 ```bash
 ./target/debug/tc --selftest

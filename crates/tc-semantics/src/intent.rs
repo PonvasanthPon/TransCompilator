@@ -541,12 +541,12 @@ fn unsupported_reason(text: &str) -> String {
             .predicate
             .map_or_else(|| "no-predicate".to_string(), |value| format!("{value:?}"));
         return format!(
-            "computational verb `{verb}` ({predicate}) has no Core-7 lowering; declare a Phrase: signature or use an assignment/transfer/arithmetic form"
+            "computational verb `{verb}` ({predicate}) has no Core-7 lowering; declare a Phrase: signature or use an assignment/transfer/arithmetic form. Try phrasing it with Put/Let, Add/Remove, Update, or a std/ phrase like Say."
         );
     }
     if let Some(verb) = clause_verb_word(text) {
         return format!(
-            "imperative verb `{verb}` is not in the computational lexicon; add a Phrase: signature or a supported Core-7 form"
+            "imperative verb `{verb}` is not in the computational lexicon; add a Phrase: signature or a supported Core-7 form. Try phrasing it with Put/Let, Add/Remove, Update, or a std/ phrase like Say."
         );
     }
     "directive is outside the finite Core-7 English subset".to_string()
@@ -757,7 +757,7 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
             };
         }
         let reason = format!(
-            "computational verb `{}` ({:?}) has no Core-7 lowering; declare a Phrase: signature or use an assignment/transfer/arithmetic form",
+            "computational verb `{}` ({:?}) has no Core-7 lowering; declare a Phrase: signature or use an assignment/transfer/arithmetic form. Try phrasing it with Put/Let, Add/Remove, Update, or a std/ phrase like Say.",
             hit.resolution.lemma, hit.resolution.predicate
         );
         return IntentVerdict::Unsupported { reason };

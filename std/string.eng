@@ -76,3 +76,94 @@ Say s.
 Publicly, to say s (a pointer to TcString), named print_str.
 If s's len is more than 0, ask Linux kernel 1 with 1, s's data, and s's len.
 Ask Linux kernel 1 with 1, "\n", and 1.
+
+Publicly, to check whether text s (a pointer to TcString) starts with prefix (a pointer to TcString), named str_starts_with, giving a truth value.
+Call this as "text <s> starts with <prefix>".
+If prefix's len is more than s's len, give back false.
+Let i be 0 as an unsigned number.
+While i is less than prefix's len.
+If item i of s's data is not equal to item i of prefix's data, give back false.
+Add 1 to i.
+End the loop.
+Give back true.
+
+Publicly, to check whether text s (a pointer to TcString) ends with suffix (a pointer to TcString), named str_ends_with, giving a truth value.
+Call this as "text <s> ends with <suffix>".
+If suffix's len is more than s's len, give back false.
+Let start be s's len minus suffix's len.
+Let i be 0 as an unsigned number.
+While i is less than suffix's len.
+If item (start plus i) of s's data is not equal to item i of suffix's data, give back false.
+Add 1 to i.
+End the loop.
+Give back true.
+
+Publicly, to check whether text s (a pointer to TcString) contains needle (a pointer to TcString), named str_contains, giving a truth value.
+Call this as "text <s> contains <needle>".
+If needle's len equals 0, give back true.
+If needle's len is more than s's len, give back false.
+Let start be 0 as an unsigned number.
+While start plus needle's len is at most s's len.
+Let i be 0 as an unsigned number.
+Let matched be true.
+While i is less than needle's len.
+If item (start plus i) of s's data is not equal to item i of needle's data, set matched to false, break.
+Add 1 to i.
+End the loop.
+If matched, give back true.
+Add 1 to start.
+End the loop.
+Give back false.
+
+Publicly, to trim text s (a pointer to TcString), named str_trim, giving TcString.
+Call this as "trim text <s>".
+If s's len equals 0, give back create an empty text.
+Let start be 0 as an unsigned number.
+While start is less than s's len.
+If item start of s's data equals 32 or item start of s's data equals 9 or item start of s's data equals 10 or item start of s's data equals 13, add 1 to start, otherwise break.
+End the loop.
+If start equals s's len, give back create an empty text.
+Let finish be s's len.
+While finish is more than start.
+If item (finish minus 1) of s's data equals 32 or item (finish minus 1) of s's data equals 9 or item (finish minus 1) of s's data equals 10 or item (finish minus 1) of s's data equals 13, set finish to finish minus 1, otherwise break.
+End the loop.
+Give back create text from (s's data as an unsigned number plus start) as a pointer to byte of length (finish minus start).
+
+Publicly, to parse a whole number from text s (a pointer to TcString), named str_parse_i64, giving Result of whole number and whole number.
+Call this as "parse whole number from <s>".
+Let answer be Result of whole number and whole number.
+Set answer's is_ok to false.
+Set answer's err_val to 1.
+If s's len equals 0, give back answer.
+Let start be 0 as an unsigned number.
+While start is less than s's len.
+If item start of s's data equals 32 or item start of s's data equals 9 or item start of s's data equals 10 or item start of s's data equals 13, add 1 to start, otherwise break.
+End the loop.
+If start equals s's len, give back answer.
+Let negative be false.
+If item start of s's data equals 45, set negative to true, add 1 to start.
+If start is less than s's len and item start of s's data equals 43, add 1 to start.
+If start equals s's len, give back answer.
+Let value be 0.
+Let digits be 0 as an unsigned number.
+While start is less than s's len.
+Let b be item start of s's data.
+If b is less than 48 or b is more than 57, break.
+Set value to value times 10 plus (b as a whole number) minus 48.
+Add 1 to start.
+Add 1 to digits.
+End the loop.
+If digits equals 0, give back answer.
+While start is less than s's len.
+If item start of s's data equals 32 or item start of s's data equals 9 or item start of s's data equals 10 or item start of s's data equals 13, add 1 to start, otherwise give back answer.
+End the loop.
+If negative, set value to 0 minus value.
+Set answer's is_ok to true.
+Set answer's ok_val to value.
+Give back answer.
+
+Publicly, to format n (a whole number) as whole number text, named str_from_i64, giving TcString.
+Call this as "format whole number <n> as text".
+Let buffer be block of 32 byte.
+Let text length be format n into address of item 0 of buffer.
+Give back create text from address of item 0 of buffer of length text length.

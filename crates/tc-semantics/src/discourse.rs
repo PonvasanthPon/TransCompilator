@@ -336,7 +336,7 @@ impl DiscourseStack {
             return Err(AnaphorError::UnresolvedPronoun {
                 token: "it".to_string(),
                 span,
-                hint: "no variable has been introduced in an accessible scope yet".to_string(),
+                hint: "introduce one first, for example: Put 10 in cash.".to_string(),
             });
         };
         Ok(ResolvedAnaphor {
@@ -362,7 +362,7 @@ impl DiscourseStack {
             return Err(AnaphorError::UnresolvedPronoun {
                 token: format!("its {field}"),
                 span,
-                hint: "no accessible struct or union value exists".to_string(),
+                hint: "no accessible struct or union value exists — create one first, for example: Create a Waypoint called p.".to_string(),
             });
         }
         for referent in &candidates {
@@ -381,6 +381,28 @@ impl DiscourseStack {
                 });
             }
         }
+        let available = candidates
+            .iter()
+            .filter_map(|referent| {
+                let type_name = referent.type_name.as_ref()?;
+                let info = aggregates.get(type_name)?;
+                let mut fields = info.fields.keys().cloned().collect::<Vec<_>>();
+                fields.sort();
+                Some(format!(
+                    "available on '{}': {}",
+                    referent.name,
+                    fields.join(", ")
+                ))
+            })
+            .collect::<Vec<_>>();
+        let hint = if available.is_empty() {
+            format!("none of the accessible aggregates declares a field named '{field}'")
+        } else {
+            format!(
+                "none of the accessible aggregates declares a field named '{field}'; {}",
+                available.join("; ")
+            )
+        };
         Err(AnaphorError::UnresolvedFieldAnaphor {
             field: field.clone(),
             span,
@@ -388,14 +410,7 @@ impl DiscourseStack {
                 .iter()
                 .map(|referent| referent.name.clone())
                 .collect(),
-            hint: format!(
-                "none of the accessible aggregates ({}) declares a field named '{field}'",
-                candidates
-                    .iter()
-                    .map(|referent| referent.name.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ),
+            hint,
         })
     }
 
@@ -420,7 +435,7 @@ impl DiscourseStack {
             return Err(AnaphorError::UnresolvedDefiniteType {
                 type_name: type_word.clone(),
                 span,
-                hint: "declare an instance of that type first".to_string(),
+                hint: format!("create one first, for example: Create a {type_word} called p."),
             });
         };
         Ok(ResolvedAnaphor {
