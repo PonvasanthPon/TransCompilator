@@ -40,8 +40,9 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 **15,000 disjoint differential/paraphrase/prose/crash seeds**, and **7
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
-bugs. All eight `std/*.eng` modules pass the Version 2 pure-English
-readability gate.
+bugs. The live-test hotfix and orthogonality audit add four permanent tests,
+for a current suite of **667/667 passing**. All eight `std/*.eng` modules pass
+the Version 2 pure-English readability gate.
 
 ```bash
 ./target/debug/tc --selftest
@@ -55,6 +56,7 @@ Documentation:
 - [English language specification](docs/TC_ENGLISH_SPEC.md)
 - [Convergence final report](docs/CONVERGENCE_FINAL_REPORT.md)
 - [Convergence limits](docs/CONVERGENCE_LIMITS.md)
+- [Vocabulary & grammar coverage audit](docs/COVERAGE_AUDIT.md)
 - [Round history](docs/CONVERGENCE_ROUNDS_HISTORY.json)
 - [Bug catalog](docs/CONVERGENCE_BUGS.json)
 
