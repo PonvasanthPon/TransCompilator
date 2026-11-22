@@ -2,124 +2,121 @@
 
 ## Executive verdict
 
-**Can valid English still fail? Yes, but for three distinct reasons.**
+**Can valid English still fail? Yes, but only in three honest categories.**
 
-1. **Not all English verbs are computational.** A large part of VerbNet and
-   WordNet describes physical, social, emotional, weather, and communication
-   events (`bake`, `walk`, `sleep`, `rain`, `admire`). Those are deliberately
-   classified as `COMMENT_OMITTED` or a clean `UNSUPPORTED` diagnostic, not
-   silently executed.
-2. **Some computational synonyms are not mapped yet.** `adjust`, `modify`,
-   `alter`, `copy`, `swap`, `search`, `sort`, `measure`, `convert`, and
-   similar verbs are honest gaps. They fail loudly; they do not panic or
-   silently drop an instruction.
-3. **Intentional architectural limits remain.** The 32-level expression
-   nesting cap, caller-owned `StrMap` keys, the editor interpreter budget,
-   and the other entries in `CONVERGENCE_LIMITS.md` are documented boundaries.
+1. **Non-computational meaning.** Physical, social, emotional, weather, and
+   communication events (`bake`, `walk`, `sleep`, `rain`, `admire`) are
+   deliberately `COMMENT_OMITTED` or cleanly `UNSUPPORTED`; the compiler is a
+   finite computational language, not an open-world reasoner.
+2. **Remaining computational gaps.** Verbs such as `split`, `search`, `sort`,
+   `check`, `verify`, `measure`, `find`, `select`, and `filter` do not yet have
+   executable frame lowering. They fail loudly, never panic or silently drop.
+3. **Documented architectural limits.** The expression-depth cap, caller-owned
+   `StrMap` keys, editor interpreter budget, and other entries in
+   `CONVERGENCE_LIMITS.md` remain intentional boundaries.
 
-Within the compiler's supported vocabulary and grammar, the full
-**Statement x Target x Scope** matrix is green: **553 PASS, 35 structurally
-inapplicable, 0 FAIL**. The two live human-test programs pass verbatim with
-exact ELF64 == reference-interpreter parity.
+Inside the supported vocabulary, the full **Statement x Target x Scope**
+matrix is green: **798 PASS, 35 structurally inapplicable, 0 FAIL (833 cells)**.
+The two live human-test programs pass verbatim with exact ELF64 == reference
+interpreter parity.
 
-## WordNet 2025 coverage
-
-The generated table is a deliberate computational slice, not a claim to cover
-all natural-language meaning.
+## WordNet 2025 coverage after expansion
 
 | Measure | Value |
 |---|---:|
 | WordNet corpus described by provenance | 135,969 entries / 107,519 synsets |
-| Computational rows in `WORDNET_ENTRIES` | **786** |
-| Verb rows | **783** |
-| Adjective rows | **2** |
-| Noun rows | **1** |
-| Unique computational lemmas | **738** |
-| Unique synset ids | **534** |
-| Depth-0 / 1 / 2 / 3 rows | **56 / 216 / 228 / 286** |
-| Morphology verb lemmas recognized | **8,749** |
+| Computational rows | **772** |
+| Verb / adjective / noun rows | **769 / 2 / 1** |
+| Unique computational lemmas | **723** |
+| Unique synset ids | **517** |
+| Depth-0 / 1 / 2 / 3 rows | **76 / 213 / 218 / 265** |
+| Morphology verb lemmas | **8,749** |
 | Irregular morphology rows | **103** |
+| Exact anchors | **39** |
+| Reachable synsets | **630** |
 
 ### Entries by SemanticConcept
 
 | Concept | Rows |
 |---|---:|
-| `Transfer` | 302 |
+| `Transfer` | 269 |
 | `Assign` | 232 |
-| `Branch` | 57 |
+| `Branch` | 56 |
 | `Destroy` | 47 |
 | `CompareNe` | 42 |
 | `Loop` | 34 |
 | `Create` | 23 |
+| `Swap` | 9 |
 | `Input` | 8 |
 | `Add` | 7 |
+| `Adjust` | 6 |
 | `CompareGt` | 4 |
 | `Double` | 4 |
 | `Mul` | 4 |
 | `Negate` | 4 |
-| `Swap` | 4 |
+| `Reset` | 4 |
 | `Div` | 3 |
 | `Return` | 3 |
 | `Sub` | 3 |
+| `Copy` | 2 |
 | `CompareEq` | 1 |
 | `CompareLt` | 1 |
+| `Convert` | 1 |
+| `Decrement` | 1 |
 | `Halve` | 1 |
+| `Increment` | 1 |
 | `Mod` | 1 |
 | `Output` | 1 |
 
-The three non-verb rows are retained for provenance/lemma reasons but are not
-executable imperative entries. The sweep exercised all 783 verb rows in `to`,
-`from`, and past-tense narrative shapes: **16** entries produced at least one
-executable imperative form, **766** narratives were correctly
-`COMMENT_OMITTED`, **767** imperative probes were `UNSUPPORTED`, and there
-were **0 silent drops** and **0 panics**.
+The sweep now executes **41** verb entries in at least one imperative form,
+correctly omits **754** narratives, returns **728** unsupported imperatives,
+and reports **0 silent drops** and **0 panics**. New anchors are direct-only
+so they do not open broad change-of-state trees.
 
-### Honest WordNet/verb-gap list
-
-Status is for the tested imperative form, not a claim that the English word is
-never usable in another supported expression.
+### Honest verb/gap status
 
 | Verb | Status | Evidence / note |
 |---|---|---|
-| `adjust` | UNMAPPED GAP | Transform; `adjust-26.9`, 36 unsupported frames |
-| `modify` | UNMAPPED GAP | Transform; no executable imperative form |
-| `alter` | UNMAPPED GAP | Transform; no executable imperative form |
-| `split` | UNMAPPED GAP | imperative not in computational lexicon |
-| `merge` | mapped via VerbNet | Combine; executes additively (`mix-22.1` / `amalgamate-22.2`) |
-| `copy` | UNMAPPED GAP | no Core-7 copy lowering |
-| `swap` | UNMAPPED GAP | WordNet `Swap` concept exists; no imperative lowering |
+| `adjust` | mapped via WordNet | Adjust; `adjust-26.9` disabled by `Adjust x by ...` |
+| `modify` | mapped via WordNet | Adjust; `Modify x to ...` lowers as assignment |
+| `alter` | mapped via WordNet | Adjust; `Alter x to ...` lowers as assignment |
+| `split` | UNMAPPED GAP | no general split lowering |
+| `merge` | mapped via VerbNet | Combine; additive combine |
+| `copy` | mapped via WordNet | Copy; `Copy x into y` |
+| `swap` | mapped via WordNet | Swap; `Swap a and b` |
+| `exchange / interchange` | mapped via WordNet | Swap anchors |
 | `search` | UNMAPPED GAP | imperative not in computational lexicon |
-| `sort` | UNMAPPED GAP | verb form gap; `std/list` sort exists but is a library call |
-| `compare` | mapped via VerbNet | Combine; additive approximation for the swept form |
+| `sort` | UNMAPPED GAP | `std/list` sort exists; verb form is a gap |
+| `compare` | mapped via VerbNet | Combine; additive approximation |
 | `check` | UNMAPPED GAP | imperative not in computational lexicon |
 | `verify` | UNMAPPED GAP | Emit; no scalar verifier lowering |
 | `measure` | UNMAPPED GAP | imperative not in computational lexicon |
-| `convert` | UNMAPPED GAP | Transform; `convert-26.6.2`, 125 unsupported frames |
-| `reset` | UNMAPPED GAP | no Core-7 reset lowering |
-| `clear` | handled as structural keyword | only `Clear bits ... from ...`; plain `Clear x` is a gap |
-| `increment` | UNMAPPED GAP | use `Increase ... by ...` |
-| `decrement` | UNMAPPED GAP | use `Decrease ... by ...` |
-| `append` | mapped via WordNet | Add (`append` / `oewn-01029183-v`) |
-| `insert` | mapped via VerbNet | Assign/Add (`put-9.1-1`) |
-| `lookup` | handled as std phrase | `look up <key> in <map>`; bare imperative is omitted |
-| `negate` | mapped via WordNet | Transform/Negate (`Negate x` works) |
-| `count / sum / average` | handled as expression phrases | `count of`, `sum of` and std calls are supported; imperative verb forms are not |
-| `delete` | handled as std phrase | `Delete file <path>`; plain scalar `Delete x` is a gap |
-| `find / select / filter` | UNMAPPED GAP | receive/selection verbs without a mapped lowering |
+| `convert` | mapped via WordNet | Convert; type-cast expression |
+| `reset / zero / clear` | mapped via WordNet | Reset; scalar clear to zero |
+| `increment / bump` | mapped via WordNet | Increment anchor; default +1 or `by n` |
+| `decrement` | mapped via WordNet | Decrement anchor; default -1 or `by n` |
+| `append` | mapped via WordNet | Add |
+| `insert` | mapped via VerbNet | Assign/Add |
+| `lookup` | handled as std phrase | `look up <key> in <map>` |
+| `negate` | mapped via WordNet | Transform/Negate |
+| `count / sum / average` | handled as expression phrases | `count of`, `sum of`; imperative verbs are gaps |
+| `delete` | handled as std phrase | `Delete file <path>`; scalar verb is a gap |
+| `find / select / filter` | UNMAPPED GAP | selection verbs without lowering |
 | `round / scale / translate` | UNMAPPED GAP | no general verb lowering |
+| `clear bits` | handled as structural keyword | preserved bitwise clear; scalar Clear uses Reset |
 
 ## VerbNet 3.4 coverage
 
 | Measure | Value |
 |---|---:|
-| Harvested source classes/subclasses | 609 (329 XML files) |
-| Frames in `VERBNET_FRAMES` | **10,845** |
+| Harvested classes/subclasses | 609 (329 XML files) |
+| Frames | **10,845** |
 | Unique verbs | **1,492** |
 | Unique referenced class ids | **185** |
 | Unique prepositions | **24** |
-| Executable swept frames | **1,497** |
-| Correctly narrative/comment frames | **6** |
-| Unsupported swept frames | **9,342** |
+| Executable frames | **1,490** |
+| Narrative/comment frames | **6** |
+| Unsupported frames | **9,349** |
 | Type errors / target clobbers / panics | **0 / 0 / 0** |
 
 ### Frames by VerbPredicate
@@ -137,34 +134,32 @@ never usable in another supported expression.
 | `Assign` | 205 |
 | `Destroy` | 62 |
 
-### Honest three-way triage of the 10,845 frames
+### Honest three-way triage
 
-The sweep is an executable-form probe, not a semantic classification of every
-frame. For the non-computational side we use a conservative **43-class set**
-covering sound/animal/substance emission, physical motion, body action,
-social chat, complaint, and similar events.
+The conservative non-computational set is 43 classes covering emission,
+animal sound, physical motion, body action, social chat, complaint, and similar
+events.
 
 | Category | Frames |
 |---|---:|
-| Mapped & executable (`EXEC`) | **1,497** |
-| Conservative non-computational class set (total) | **2,898** |
-| -- executable frames inside that set | 57 |
-| -- unsupported frames inside that set | **2,835** |
-| -- narrative/comment frames inside that set | 6 |
-| Non-computational unsupported + narrative | **2,841** |
-| Remaining unsupported candidate pool (computational or unclassified) | **6,507** |
+| Mapped & executable (`EXEC`) | **1,490** |
+| Conservative non-computational set (total) | **2,898** |
+| -- executable inside that set | 55 |
+| -- unsupported inside that set | **2,837** |
+| -- narrative/comment inside that set | 6 |
+| Non-computational unsupported + narrative | **2,843** |
+| Remaining candidate pool (computational or unclassified) | **6,512** |
 | **Total** | **10,845** |
 
-The 2,835 figure is exact for the named class set. The remaining 6,507
-unsupported frames are **not** all proven computational: they are the honest
-candidate pool after removing the conservative non-computational classes.
-Examples of clearly computational-looking classes in that pool, with their
-**unsupported** frame counts:
+The 2,837 figure is exact for the named class set. The remaining 6,512
+unsupported frames are an honest candidate pool, not a claim that every frame
+is computational. Computational-looking class examples with unsupported frame
+counts:
 
 | Class | Unsupported frames |
 |---|---:|
 | `adjust-26.9` | 36 |
-| `convert-26.6.2` | 125 |
+| `convert-26.6.2` | 124 |
 | `multiply-108` | 84 |
 | `separate-23.1` | 5 |
 | `break_down-45.8` | 0 |
@@ -172,42 +167,26 @@ Examples of clearly computational-looking classes in that pool, with their
 | `base-97.1` | 4 |
 | `mix-22.1` | 35 |
 | `amalgamate-22.2` | 88 |
-| `other_cos-45.4` | 2373 |
+| `other_cos-45.4` | 2372 |
 | `calibratable_cos-45.6.1` | 241 |
 
-`multiply` is already reachable through the structural arithmetic form
-(`Multiply cash by 3`); its VerbNet frame row is a spec-shape gap, not proof
-that multiplication itself is missing. The same distinction applies to
-`count`, `sum`, and library-backed operations.
+`multiply` is already reachable through `Multiply x by ...`; its VerbNet
+`multiply-108` frame rows are a surface-shape gap, not a mathematical gap.
 
-## Closed-class function words
+## Closed-class words
 
 `CLOSED_CLASS_COUNT` is **279**, with no duplicate surface words:
-
-| Category | Words |
-|---|---:|
-| Preposition | 65 |
-| Discourse filler | 64 |
-| Pronoun | 46 |
-| Control anchor | 35 |
-| Auxiliary/modal | 27 |
-| Determiner | 25 |
-| Conjunction | 12 |
-| Negation | 5 |
-| **Total** | **279** |
-
-All 279 are represented by `ClosedClass` and consumed through
-`lookup_closed_class` by segmentation, intent classification, normalization,
-and lowering. This audit found no unaccounted category.
+65 prepositions, 64 discourse fillers, 46 pronouns, 35 control anchors,
+27 auxiliaries, 25 determiners, 12 conjunctions, and 5 negations. All are
+consumed through `lookup_closed_class`; no category is unaccounted for.
 
 ## Statement x Target x Scope matrix
 
-Legend: **PASS** means the program compiled, ran natively, and matched the
-reference interpreter exactly on stdout, stderr, exit code, and files.
-**N/A** means the combination is structurally inapplicable: `Update` has an
-aggregate target, so the five scalar/anaphor rows do not form a valid cell.
+Legend: **PASS** means compilation, native execution, and exact parity on
+stdout/stderr/exit/files. **N/A** means structurally inapplicable: `Update`
+has an aggregate target, so the five scalar/anaphor target rows do not apply.
 
-**Total: 553 PASS, 35 N/A, 0 FAIL (588 cells).**
+**Total: 798 PASS, 35 N/A, 0 FAIL (833 cells).**
 
 ### Let
 
@@ -353,39 +332,94 @@ aggregate target, so the five scalar/anaphor rows do not form a valid cell.
 | its field anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 | Definite type possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
 
-## Seven canonical clause patterns and English structures
+### Increment
 
-This table describes the computational analogue of each pattern. Natural
-narrative clauses are intentionally not executed as code.
+| Target \ Scope | Top level | To function | If branch | Else/Otherwise | While | Until | For every |
+|---|---|---|---|---|---|---|---|
+| Single-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Multi-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| it anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Value-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Pointer-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| its field anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Definite type possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+
+### Decrement
+
+| Target \ Scope | Top level | To function | If branch | Else/Otherwise | While | Until | For every |
+|---|---|---|---|---|---|---|---|
+| Single-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Multi-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| it anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Value-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Pointer-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| its field anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Definite type possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+
+### Reset
+
+| Target \ Scope | Top level | To function | If branch | Else/Otherwise | While | Until | For every |
+|---|---|---|---|---|---|---|---|
+| Single-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Multi-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| it anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Value-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Pointer-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| its field anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Definite type possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+
+### Copy
+
+| Target \ Scope | Top level | To function | If branch | Else/Otherwise | While | Until | For every |
+|---|---|---|---|---|---|---|---|
+| Single-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Multi-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| it anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Value-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Pointer-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| its field anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Definite type possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+
+### Swap
+
+| Target \ Scope | Top level | To function | If branch | Else/Otherwise | While | Until | For every |
+|---|---|---|---|---|---|---|---|
+| Single-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Multi-word scalar | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| it anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Value-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Pointer-struct possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| its field anaphor | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| Definite type possessive | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+
+## Canonical clause patterns
 
 | Pattern | Verified computational example | Status |
 |---|---|---|
-| SV | `It was raining outside.` | Narrative `COMMENT_OMITTED`; no executable subjectless action |
-| SVO | `Add tea to cash.` / `180 is removed from cash.` | Supported imperative/passive computational forms |
-| SVC | `Cash is 500.` / `Cash becomes 500.` | Supported copular assignment |
-| SVA | `Ravi waited 20 minutes.` | Narrative `COMMENT_OMITTED`; location/time prose is not an instruction |
-| SVOO | `Transfer 200 from bank to wallet.` | Supported ditransitive transfer |
-| SVOC | `Update pondy so its distance is 150 and its toll is 220.` | Supported object + field-complement update |
-| SVOA | `Put 100 in cash.` | Supported object + destination |
-| Passive | `180 is removed from cash.` | Supported with the same arithmetic semantics |
-| Coordination | `Put 100 in cash, add 50 to it, remove 20 from it, and say it.` | Supported action chains and comma-aware conditions |
-| Subordination | `If ...`, `While ...`, `Until ...` | Supported for computational conditions/actions |
-| Quantification | `For every day from 1 to 5, add it to bonus.` | Supported; local `every`/`some`/`no` also covered |
-| Anaphora | `Put 100 in cash. Add 50 to it.` / `its distance` / `the waypoint's toll` | Supported through the DRS discourse stack |
+| SV | `It was raining outside.` | Narrative `COMMENT_OMITTED` |
+| SVO | `Add tea to cash.` / `180 is removed from cash.` | Imperative/passive supported |
+| SVC | `Cash is 500.` / `Cash becomes 500.` | Supported assignment |
+| SVA | `Ravi waited 20 minutes.` | Narrative omitted |
+| SVOO | `Transfer 200 from bank to wallet.` | Supported transfer |
+| SVOC | `Update pondy so its distance is 150 and its toll is 220.` | Supported update |
+| SVOA | `Put 100 in cash.` | Supported placement |
+| Passive | `180 is removed from cash.` | Supported |
+| Coordination | `Put 100 in cash, add 50 to it, remove 20 from it, and say it.` | Supported |
+| Subordination | `If ...`, `While ...`, `Until ...` | Supported |
+| Quantification | `For every day from 1 to 5, add it to bonus.` | Supported |
+| Anaphora | `Put 100 in cash. Add 50 to it.` / `its distance` / `the waypoint's toll` | Supported |
 
-**Honest partial/out-of-scope note:** the compiler does not claim general
-natural-language understanding. It executes a finite computational subset.
-Physical/social/weather SVO clauses cannot be used as program operations just
-because they parse grammatically; they are omitted as prose or rejected with a
-structured diagnostic. The matrix proves orthogonality inside the supported
-subset, not universal English semantics.
+**Honest scope note:** grammatical narrative is not executable by default.
+Only the finite computational subset lowers to Core-7; all other prose is
+omitted or gets a structured diagnostic. The matrix proves orthogonality in
+the supported subset, not universal English semantics.
 
 ## Reproduce
 
 ```bash
+python3 goldmines/tools/harvest_wordnet_r1.py --data-dir <oewn-release>
+python3 goldmines/tools/harvest_verbnet_r1.py --data-dir <verbnet-release>
 cargo test -p tc-semantics --test orthogonality_audit
+cargo test -p tc-semantics --test semantic_frame_and_lexicon_expansion
 cargo run -q -p tc-semantics --bin lexicon_sweep -- --output /tmp/lexicon_sweep.json
-cargo test -p tc-semantics --test phase4_7_pure_english_polish std_files_are_pure_version2_english
-cargo test -p tc-editor-gui --test native_gui_tests gui_source_has_no_unsupported_tofu_glyphs
 ```
-
