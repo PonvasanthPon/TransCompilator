@@ -22,7 +22,7 @@
     "repro": "Set result to last item of address of values.",
     "root_cause": "The assignment-verb lowering parsed candidate values with parse_expr instead of phrase-aware parse_value.",
     "fix": "Route Set/Put assignment values through parse_value so auto phrases and explicit phrases are accepted.",
-    "fix_sha": "PENDING",
+    "fix_sha": "b6b5d02",
     "regression": "crates/tc-semantics/tests/battletest_p5_regressions.rs::assignment_verbs_accept_phrase_expressions"
   },
   {
@@ -35,7 +35,7 @@
     "repro": "To pick given a as a whole number, b as a whole number... If a is less than b:\n    Give back a.\nGive back b.",
     "root_cause": "normalize_natural_source clamped body indentation to the function base instead of preserving relative nesting.",
     "fix": "Add the original relative indent to the paragraph/control base indent.",
-    "fix_sha": "PENDING",
+    "fix_sha": "b6b5d02",
     "regression": "crates/tc-semantics/tests/battletest_p5_regressions.rs::paragraph_functions_preserve_indented_control_blocks"
   },
   {
@@ -48,7 +48,7 @@
     "repro": "Insert 300 keys into IntMap of whole number.",
     "root_cause": "std/map.eng allocated a fixed 256-slot table and never rehashed or grew; full IntMap probing looped forever.",
     "fix": "Added std/map.eng rehash int map and grow text map helpers, growth checks in put, and 300/260-key regressions.",
-    "fix_sha": "PENDING",
+    "fix_sha": "b3298b1",
     "regression": "crates/tc-semantics/tests/battletest_p5_regressions.rs::int_map_grows_beyond_256_entries, text_map_grows_beyond_256_entries"
   }
 ]
