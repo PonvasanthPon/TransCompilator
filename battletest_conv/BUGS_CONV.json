@@ -50,5 +50,31 @@
     "fix_sha": "5951466",
     "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::{compound_set_chains_share_the_new_referent,set_expressions_with_parenthesized_operands_stay_one_action}",
     "found_at": "2026-11-22T12:39:53+05:30"
+  },
+  {
+    "id": "BUG-CONV-005",
+    "round_found": 3,
+    "band_or_engine": "B5",
+    "layer": "SEMANTICS",
+    "class": "comma-aware condition splitting",
+    "status": "FIXED",
+    "repro": "If cash is more than 500, and cash is less than 900, say \"middle band\".",
+    "root_cause": "The prose normalizer split If/While/Until headers at the first top-level comma instead of using the comma-aware header splitter; a comma before a coordinated condition term was mistaken for the body boundary.",
+    "fix_sha": "a35d01b",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::comma_before_and_keeps_the_condition_together_for_string_bodies",
+    "found_at": "2026-11-22T13:09:54+05:30"
+  },
+  {
+    "id": "BUG-CONV-006",
+    "round_found": 3,
+    "band_or_engine": "B5",
+    "layer": "SEMANTICS",
+    "class": "nested transfer operand boundary",
+    "status": "FIXED",
+    "repro": "Remove (cash divided by 4) from cash.",
+    "root_cause": "Transfer preposition discovery scanned inside parenthesized operands, so `by` inside `(cash divided by 4)` was mistaken for the transfer preposition instead of the outer `from`.",
+    "fix_sha": "a35d01b",
+    "regression_test": "crates/tc-semantics/tests/battletest_conv_regressions.rs::parenthesized_division_is_one_transfer_operand",
+    "found_at": "2026-11-22T13:09:54+05:30"
   }
 ]
