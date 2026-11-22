@@ -1,0 +1,10 @@
+Use io.
+Let total be 0.
+For every i from 52 to 1 by -3:
+    If i is between 15 and 30:
+        Continue.
+    If i is less than 8:
+        Break.
+    Add i to total.
+Say total.
+Give back 0.

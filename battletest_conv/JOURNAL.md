@@ -40,3 +40,11 @@
 - 2026-11-22T13:23:53+05:30 — Round 4 fuzz engine 2 seeds 20001..20750: 750/750 in 296.8s.
 - 2026-11-22T13:28:13+05:30 — Round 4 fuzz engine 3 seeds 20751..21500: 750/750 in 260.3s.
 - 2026-11-22T13:29:18+05:30 — Round 4 DIRTY (BUG-CONV-007 feead65); 128/128 programs, 3000/3000 seeds, 663 tests. Advancing to Round 5 with seeds 22001..25000.
+- 2026-11-22T13:30:18+05:30 — Round 5 corpus: 124/128 passed; 4 failures logged.
+- 2026-11-22T13:30:49+05:30 — Round 5 corpus: 124/128 passed; 4 failures logged.
+- 2026-11-22T13:31:20+05:30 — Round 5 corpus: 128/128 passed; 0 failures logged.
+- 2026-11-22T13:32:19+05:30 — Round 5 fuzz engine 4 seeds 24501..25000: 500/500 in 47.1s.
+- 2026-11-22T13:36:48+05:30 — Round 5 fuzz engine 1 seeds 22001..23000: 1000/1000 in 269.3s.
+- 2026-11-22T13:41:40+05:30 — Round 5 fuzz engine 2 seeds 23001..23750: 750/750 in 288.3s.
+- 2026-11-22T13:46:17+05:30 — Round 5 fuzz engine 3 seeds 23751..24500: 750/750 in 276.4s.
+- 2026-11-22T13:48:22+05:30 — Round 5 CLEAN: 128/128 programs, 3000/3000 seeds, 0 bugs, 663 tests; campaign CONVERGED. Limits catalog now has 7 entries.

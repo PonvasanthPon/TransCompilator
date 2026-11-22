@@ -1,0 +1,7 @@
+Use io.
+Bags is 3.
+Weight is 0.
+For every bag from 1 to bags, add 5 to weight.
+If weight is more than 25, say "heavy load".
+Display weight.
+Give back 0.
