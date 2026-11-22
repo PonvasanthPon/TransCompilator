@@ -694,7 +694,7 @@ fn negative_update_unknown_field_is_a_clean_error() {
             "Update block so its missing field is 1.\n",
             "Return 0.\n",
         ),
-        "assignment target",
+        "no field",
     );
 }
 

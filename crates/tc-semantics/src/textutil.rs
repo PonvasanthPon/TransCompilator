@@ -1,6 +1,7 @@
 //! Shared lexical helpers for intent classification and lowering.
 
-use crate::token::{TokenKind, tokenize};
+use crate::token::{Token, TokenKind, tokenize};
+use tc_lexicon::lookup_closed_class;
 
 /// Returns the first token whose lowercase spelling equals `word`.
 #[must_use]
@@ -109,6 +110,93 @@ pub(crate) fn split_where(text: &str) -> (String, Option<String>) {
     } else {
         (text.trim().to_string(), None)
     }
+}
+
+pub(crate) fn canonical_bare_assignment_target(text: &str) -> String {
+    let trimmed = text.trim();
+    let tokens = tokenize(trimmed);
+    if tokens.len() == 1
+        && tokens[0].kind == TokenKind::Word
+        && tokens[0]
+            .text
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || character == '_')
+    {
+        return tokens[0].lower.clone();
+    }
+    let lower = trimmed.to_ascii_lowercase();
+    let first = tokens
+        .first()
+        .filter(|token| token.is_word())
+        .map_or("", |token| token.lower.as_str());
+    if matches!(
+        first,
+        "the"
+            | "a"
+            | "an"
+            | "it"
+            | "its"
+            | "this"
+            | "that"
+            | "these"
+            | "those"
+            | "address"
+            | "my"
+            | "your"
+            | "his"
+            | "her"
+            | "our"
+            | "their"
+            | "i"
+            | "we"
+            | "he"
+            | "she"
+            | "they"
+            | "you"
+    ) || lower.starts_with("address ")
+        || tokens.iter().any(|token| token.is("of"))
+    {
+        return trimmed.to_string();
+    }
+    if tokens
+        .iter()
+        .any(|token| token.is_word() && lookup_closed_class(&token.lower).is_some())
+    {
+        return trimmed.to_string();
+    }
+    if (2..=4).contains(&tokens.len())
+        && tokens.iter().all(Token::is_word)
+        && tokens
+            .windows(2)
+            .all(|pair| trimmed[pair[0].end..pair[1].start].trim().is_empty())
+    {
+        return tokens
+            .iter()
+            .map(|token| token.lower.as_str())
+            .collect::<Vec<_>>()
+            .join("_");
+    }
+    trimmed.to_string()
+}
+
+/// Canonicalizes every supported assignment/mutation target shape, including
+/// multi-word scalar names and possessives.
+#[must_use]
+pub(crate) fn canonical_assignment_target(text: &str) -> String {
+    let trimmed = text.trim();
+    let tokens = tokenize(trimmed);
+    if let Some(possessive) = tokens
+        .iter()
+        .position(|token| token.text == "'s" || token.text == "\u{2019}s")
+    {
+        let base = trimmed[..tokens[possessive].start].trim();
+        let canonical = canonical_bare_assignment_target(base);
+        if canonical != base {
+            return format!("{canonical}{}", &trimmed[tokens[possessive].start..]);
+        }
+        return trimmed.to_string();
+    }
+    canonical_bare_assignment_target(trimmed)
 }
 
 /// Returns true when the token slice looks like a mutable lvalue.
