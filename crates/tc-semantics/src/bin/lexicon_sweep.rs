@@ -76,6 +76,7 @@ struct VerbNetResult {
     type_error: usize,
     target_clobber: usize,
     panic: usize,
+    class_status: HashMap<String, (usize, usize, usize)>,
     samples: Vec<String>,
 }
 
@@ -194,8 +195,13 @@ fn sweep_verbnet(parser: &LinkGrammarParser) -> VerbNetResult {
                 }
             }
         });
+        let class_entry = result
+            .class_status
+            .entry(frame.class_id.to_string())
+            .or_insert((0, 0, 0));
         match *outcome {
             (0, _, clobbered) => {
+                class_entry.0 += 1;
                 result.exec += 1;
                 if clobbered
                     && matches!(
@@ -213,6 +219,7 @@ fn sweep_verbnet(parser: &LinkGrammarParser) -> VerbNetResult {
                 }
             }
             (1, _, _) => {
+                class_entry.2 += 1;
                 result.comment += 1;
                 if matches!(
                     frame.predicate,
@@ -227,7 +234,10 @@ fn sweep_verbnet(parser: &LinkGrammarParser) -> VerbNetResult {
                     ));
                 }
             }
-            (2, _, _) => result.unsupported += 1,
+            (2, _, _) => {
+                class_entry.1 += 1;
+                result.unsupported += 1;
+            }
             (4, _, _) => {
                 result.type_error += 1;
                 result.samples.push(format!(
@@ -299,7 +309,26 @@ fn main() -> std::process::ExitCode {
         verbnet.target_clobber,
         verbnet.panic
     );
-    json.push_str("  \"samples\": [\n");
+    json.push_str("  \"classes\": {\n");
+    let mut classes = verbnet.class_status.iter().collect::<Vec<_>>();
+    classes.sort_by(|left, right| left.0.cmp(right.0));
+    let class_rows = classes
+        .iter()
+        .map(|(class, (exec, unsupported, comment))| {
+            format!(
+                "    \"{}\": {{\"exec\": {}, \"unsupported\": {}, \"comment\": {}}}",
+                json_escape(class),
+                exec,
+                unsupported,
+                comment
+            )
+        })
+        .collect::<Vec<_>>();
+    json.push_str(&class_rows.join(",\n"));
+    if !class_rows.is_empty() {
+        json.push('\n');
+    }
+    json.push_str("  },\n  \"samples\": [\n");
     let samples = wordnet
         .samples
         .iter()
