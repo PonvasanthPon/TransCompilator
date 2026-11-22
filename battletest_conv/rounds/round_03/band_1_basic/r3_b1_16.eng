@@ -1,0 +1,7 @@
+Use io.
+Crates is 8.
+Boxes is 0.
+For every crate from 1 to crates, add 2 to boxes.
+If boxes is more than 12, say "full load".
+Say boxes.
+Give back 0.

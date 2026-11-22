@@ -1,0 +1,7 @@
+Use io.
+Cash is 575.
+Add (15 plus 10) to cash, remove (15 plus 2) from cash, add (3 times 2) to cash, and say cash.
+If cash is more than 500, and cash is less than 900, say "middle band".
+If cash is more than 900, or cash is less than 300, say "outer band".
+Show cash.
+Give back 0.

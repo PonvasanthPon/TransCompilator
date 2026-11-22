@@ -1,0 +1,11 @@
+Use io.
+A record Account has a monthly salary (a whole number), a tax (a whole number), a total tax (a whole number), and a credit (a whole number).
+Let account be Account.
+Update account so its monthly salary is 6279, its tax is 309, its total tax is 1236, and its credit is 99.
+Let monthly budget be account's monthly salary minus account's total tax.
+Say monthly budget.
+Add account's credit to it.
+Say it.
+Remove 34 from it.
+Say monthly budget.
+Give back 0.

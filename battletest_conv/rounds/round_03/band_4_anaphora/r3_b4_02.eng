@@ -1,0 +1,14 @@
+Use io.
+A record Point has an x (a whole number) and a y (a whole number).
+A record Rect has a width (a whole number) and a height (a whole number).
+Let point be Point.
+Let rect be Rect.
+Update point so its x is 4 and its y is 7.
+Update rect so its width is 9 and its height is 13.
+Let area be rect's width times rect's height.
+Say area.
+Add point's x to it.
+Say it.
+Add point's y to area.
+Say area.
+Give back 0.
