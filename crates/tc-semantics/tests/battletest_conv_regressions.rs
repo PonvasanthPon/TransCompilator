@@ -1,6 +1,7 @@
 //! Convergence campaign permanent regressions.
 
 use tc_editor::runner::run_elf_with_parity;
+use tc_semantics::{SourceFile, compile_english_to_ir};
 
 #[test]
 fn compound_put_chains_share_the_new_referent() {
@@ -150,5 +151,23 @@ fn parenthesized_division_is_one_transfer_operand() {
         result.lines.iter().any(|line| line == "78"),
         "{:?}",
         result.lines
+    );
+}
+
+#[test]
+fn deeply_nested_parentheses_fail_cleanly() {
+    let source = format!(
+        "Use io.\nLet x be {}1{}.\nSay x.\nGive back 0.\n",
+        "(".repeat(150),
+        ")".repeat(150)
+    );
+    let sources = vec![SourceFile::new("main.tc", source)];
+    let errors = compile_english_to_ir(&sources, "main")
+        .expect_err("150 nested parentheses must produce a structured error");
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.message.to_ascii_lowercase().contains("nesting")),
+        "{errors:#?}"
     );
 }
