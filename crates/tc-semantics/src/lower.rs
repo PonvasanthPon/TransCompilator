@@ -1409,6 +1409,18 @@ fn normalize_natural_declaration(trimmed: &str) -> Option<String> {
 
 fn normalize_natural_line(trimmed: &str) -> Option<String> {
     let lower = trimmed.to_ascii_lowercase();
+    if lower.starts_with("say ") {
+        let tokens = tokenize(trimmed);
+        if let [verb, literal] = tokens.as_slice()
+            && verb.is("say")
+            && literal.kind == TokenKind::String
+        {
+            let literal = literal.text.as_str();
+            return Some(format!(
+                "Say bytes bytes_ptr({literal}) of length bytes_len({literal})."
+            ));
+        }
+    }
     if lower.starts_with("give back") {
         let tokens = tokenize(trimmed);
         let start = tokens.get(2).map_or(trimmed.len(), |token| token.start);
