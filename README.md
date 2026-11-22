@@ -41,7 +41,7 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **667/667 passing**. All eight `std/*.eng` modules pass
+for a current suite of **697/697 passing**. All eight `std/*.eng` modules pass
 the Version 2 pure-English readability gate.
 
 ```bash

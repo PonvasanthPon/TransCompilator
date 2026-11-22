@@ -15,8 +15,8 @@ tracked.
 - **License:** CC-BY 4.0
 - **Local use:** read-only copy in the sandbox goldmines tree; never modified.
 - **Scanned:** 135,969 lexical entries and 107,519 synsets.
-- **Harvest:** 27 exact `oewn-*` anchor synsets, 655 reachable synsets at
-  hypernym distance <= 3, and **786** emitted `WordNetEntry` rows.
+- **Harvest:** 39 exact `oewn-*` anchor synsets, 630 reachable synsets at
+  hypernym distance <= 3, and **772** emitted `WordNetEntry` rows.
 - **Morphology validation:** 8,749 single-word WordNet verb lemmas emitted as
   `VERB_LEMMAS`, plus **103** standard irregular form -> lemma rows.
 
@@ -48,6 +48,13 @@ tracked.
 | Return | `oewn-02314987-v` |
 | Add (direct) | `oewn-00156409-v` (increase) |
 | Sub (direct) | `oewn-00151509-v` (decrease) |
+| Increment (direct) | `oewn-00156409-v` (increase; imperative alias `increment`) |
+| Decrement (direct) | `oewn-00151509-v` (decrease; imperative alias `decrement`) |
+| Reset (direct) | `oewn-00949623-v` (reset), `oewn-00298288-v` (zero), `oewn-00181809-v` (clear) |
+| Swap (direct) | `oewn-02262178-v` (exchange), `oewn-02262575-v` (interchange) |
+| Copy (direct) | `oewn-01751182-v` (copy; imperative alias `duplicate`) |
+| Convert (direct) | `oewn-00381684-v` |
+| Adjust (direct) | `oewn-00296959-v` (adjust), `oewn-00126072-v` (alter), `oewn-00169614-v` (modify) |
 
 The two `direct` anchors are depth-zero anchors: they contribute their own
 synset members (`increase`; `decrease`) without expanding a broad
@@ -62,9 +69,11 @@ from narrative, motion, consumption, emotion, weather, and cooking roots
 `plus`, `times`, `minus`, `equals`, `exists`, `series`, `bus`, `gas`,
 `class`, `diminish`, `lessen`, `fall`). WordNet POS is preserved on every
 row, so unrelated noun/adjective senses cannot collide with computational
-verb senses. Phase 3 added the two depth-zero scalar anchors above so the
-finite statement grammar can resolve `Increase x by 5` and
-`Decrease x by 3` from real WordNet synsets rather than Rust verb lists.
+verb senses. The post-v1.0 expansion adds seven direct-only anchor families
+for increment/decrement/reset/swap/copy/convert/adjust. OEWN 2025 has noun
+entries but no verb lemma for `increment`/`decrement`; their imperative aliases
+carry the exact increase/decrease synset provenance as explicit derived rows.
+This is harvest-time data curation, not a Rust verb lookup list.
 
 ## CU Boulder VerbNet 3.4
 
