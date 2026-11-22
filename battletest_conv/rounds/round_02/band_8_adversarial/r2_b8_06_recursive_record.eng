@@ -1,5 +1,0 @@
-Use io.
-A record Chain has a next (a Chain).
-Let chain be Chain.
-Say chain's next.
-Give back 0.

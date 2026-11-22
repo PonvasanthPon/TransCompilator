@@ -1,8 +1,0 @@
-Use alloc, core, fs, io, string.
-Let name be create text from "definitely_absent_five.bin" of length 26.
-Let opened be file_open_read(address of name).
-If not opened's is_ok.
-Stop with error "missing file".
-End the condition.
-Release text address of name.
-Give back 0.

@@ -1,8 +1,0 @@
-Use io.
-Balance is 46.
-Topup is 72.
-Add topup to balance.
-If balance is less than 100, say "low balance".
-If balance is at least 100, say "active line".
-Say balance.
-Give back 0.

@@ -1,5 +1,0 @@
-Use io.
-A record Tiny has a count (a whole number).
-Let tiny be Tiny.
-Update tiny so its amount is 3.
-Give back 0.

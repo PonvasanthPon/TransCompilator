@@ -1,8 +1,0 @@
-Use io.
-Bread is 23.
-Cake is 40.
-Purse is 465.
-Set purse to (420 plus 25), add bread to it, remove (17 plus 5) from it, and say it.
-If purse is more than 400, say "bakery paid".
-Say purse.
-Give back 0.

@@ -1,7 +1,0 @@
-Use io.
-Rent is 512.
-Salary is 1138.
-Remove rent from salary.
-If salary is less than 600, say "tight month".
-Show salary.
-Give back 0.

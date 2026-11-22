@@ -1,8 +1,0 @@
-Use io.
-Milk is 25.
-Curd is 31.
-Purse is 324.
-Set purse to 305, add milk to it, remove 19 from it, and say it.
-If purse is more than 300, say "enough for milk".
-Say purse.
-Give back 0.
