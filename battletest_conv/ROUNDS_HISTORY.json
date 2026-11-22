@@ -28,5 +28,15 @@
     "bugs_fixed": 2,
     "regression_tests_after": 662,
     "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
+  },
+  {
+    "round": 4,
+    "seed_range": "19001..22000",
+    "fresh_programs": 128,
+    "fuzz_seeds": 3000,
+    "bugs_found": 1,
+    "bugs_fixed": 1,
+    "regression_tests_after": 663,
+    "verdict": "DIRTY_ADVANCE_TO_NEXT_ROUND"
   }
 ]

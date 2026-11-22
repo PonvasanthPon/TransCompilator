@@ -1,0 +1,25 @@
+Use alloc, core, io, map, string.
+Keep a shared key store as array<TcString, 360>.
+Let table be StrMap of whole number.
+Let buffer be block of 16 byte.
+Let k be 0.
+While k is less than 360.
+Let length be format k into address of item 0 of buffer.
+Let key be create text from address of item 0 of buffer of length length.
+Set item k of key store to key.
+Put k into text map address of table for text address of item k of key store.
+Add 1 to k.
+End the loop.
+Let size be count of text map address of table.
+Say size.
+Let found be look up text address of item 322 of key store in text map address of table.
+If found.has_value, say found.value, otherwise say -1.
+Free text map address of table.
+Let j be 0.
+While j is less than 360.
+Release text address of item j of key store.
+Add 1 to j.
+End the loop.
+Let used be bytes in use.
+Say used.
+Give back 0.

@@ -1,0 +1,14 @@
+Use alloc, core, io, string.
+Let total be 305 as an unsigned number.
+Let share be 5.5.
+Let valid be true.
+Let tag be create text from "round four types" of length 16.
+Say "types begin".
+Display total.
+Show share.
+Print valid.
+Display address of tag.
+Print address of tag.
+Show address of tag.
+Release text address of tag.
+Give back 0.

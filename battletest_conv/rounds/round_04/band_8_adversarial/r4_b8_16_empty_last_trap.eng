@@ -1,0 +1,6 @@
+Use alloc, core, io, list.
+Let nums be List of whole number.
+Let value be last item of address of nums.
+Say value.
+Free list address of nums.
+Give back 0.

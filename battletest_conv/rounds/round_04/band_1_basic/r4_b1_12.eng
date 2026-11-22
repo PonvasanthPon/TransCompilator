@@ -1,0 +1,7 @@
+Use io.
+Cans is 10.
+Litres is 0.
+For every can from 1 to cans, add 2 to litres.
+If litres is more than 20, say "tank ready".
+Print litres.
+Give back 0.

@@ -1,0 +1,11 @@
+Use io.
+A record Ledger has a start (a whole number), a rate (a whole number), and a result (a whole number).
+Let ledger be Ledger.
+Update ledger so its start is 828, its rate is 6, and its result is ledger's start times ledger's rate.
+Let total be ledger's result.
+Say total.
+Add ledger's rate to it.
+Say it.
+Add 8 to total.
+Say total.
+Give back 0.

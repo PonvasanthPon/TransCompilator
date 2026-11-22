@@ -1,0 +1,11 @@
+Use io.
+Let total be 0.
+Let i be 0.
+Until i is at least 13, add 2 to total, add 1 to i.
+Let a be 4.
+Let b be 8.
+Let c be 12.
+Let answer be the sum of a and b and c, where a is 8, b is 12, and c is 20.
+Say total.
+Say answer.
+Give back 0.

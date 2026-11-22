@@ -1,0 +1,11 @@
+Use io.
+Let total be 0.
+Let i be 0.
+Until i is at least 11, add 2 to total, add 1 to i.
+Let a be 16.
+Let b be 20.
+Let c be 24.
+Let answer be the sum of a and b and c, where a is 32, b is 48, and c is 80.
+Say total.
+Say answer.
+Give back 0.
