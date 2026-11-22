@@ -79,3 +79,42 @@ fn output_synonyms_resolve_across_standard_types() {
         result.lines
     );
 }
+
+#[test]
+fn compound_set_chains_share_the_new_referent() {
+    let source = concat!(
+        "Use io.\n",
+        "Set cash to 100, add 50 to it, remove 25 from it, and say it.\n",
+        "Give back 0.\n",
+    );
+    let result = run_elf_with_parity(source, None, "");
+    assert!(result.ok, "{}", result.summary);
+    assert!(
+        result.lines.iter().any(|line| line == "125"),
+        "{:?}",
+        result.lines
+    );
+}
+
+#[test]
+fn set_expressions_with_parenthesized_operands_stay_one_action() {
+    let source = concat!(
+        "Use alloc, core, io, map.\n",
+        "Let value be 7.\n",
+        "Set value to exclusive or of value and (shift value right by 1).\n",
+        "Say value.\n",
+        "Let table be IntMap of whole number.\n",
+        "Put value into int map address of table for key 3.\n",
+        "Let found be look up 3 in int map address of table.\n",
+        "Say found.value.\n",
+        "Free int map address of table.\n",
+        "Give back 0.\n",
+    );
+    let result = run_elf_with_parity(source, None, "");
+    assert!(result.ok, "{}", result.summary);
+    assert!(
+        result.lines.iter().filter(|line| **line == "4").count() == 2,
+        "{:?}",
+        result.lines
+    );
+}
