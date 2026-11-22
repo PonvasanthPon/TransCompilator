@@ -1,0 +1,33 @@
+Use alloc, core, fs, io, string.
+
+Let name be create text from "p5_27.txt" of length 9.
+Let text be create text from "ABCDEFGH" of length 8.
+Let opened be file_open_write(address of name).
+If not opened's is_ok.
+Stop with error "open write failed".
+End the condition.
+Let handle be File.
+Set handle to opened's ok_val.
+Let written be file_write_bytes(address of handle, text's data, text's len).
+If written is not 8.
+Stop with error "short write".
+End the condition.
+file_close(address of handle).
+Let reader be file_open_read(address of name).
+If not reader's is_ok.
+Stop with error "open read failed".
+End the condition.
+Let read handle be File.
+Set read handle to reader's ok_val.
+Let size be file_seek(address of read handle, 0, 2).
+Say size.
+file_seek(address of read handle, 0, 0).
+Let buffer be block of 16 byte.
+Let count be file_read_bytes(address of read handle, address of item 0 of buffer, 8).
+Say count.
+Say bytes address of item 0 of buffer of length count as an unsigned number.
+file_close(address of read handle).
+Delete file address of name.
+Release text address of text.
+Release text address of name.
+Give back 0.

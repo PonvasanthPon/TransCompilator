@@ -1,0 +1,20 @@
+Use alloc, core.
+
+Let i be 0.
+While i is less than 60.
+Let p be allocate 32 bytes.
+Set p[0] to 7.
+Release memory at p.
+Add 1 to i.
+End the loop.
+Let p be allocate 1 bytes.
+Release memory at p.
+Set p to no address.
+Release memory at p.
+Let empty block be allocate 0 bytes.
+Release memory at empty block.
+Let used be bytes in use.
+If used is not 0.
+Stop with error "churn leak".
+End the condition.
+Give back 0.

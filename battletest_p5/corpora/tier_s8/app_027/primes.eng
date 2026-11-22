@@ -1,0 +1,17 @@
+Publicly, to prime count given limit as a whole number, named prime_count, giving a whole number.
+Let count be 0.
+Let n be 2.
+While n is at most limit.
+Let prime be 1.
+Let d be 2.
+While d times d is at most n.
+If n modulo d equals 0.
+Set prime to 0.
+Break.
+End the condition.
+Add 1 to d.
+End the loop.
+If prime equals 1, add 1 to count.
+Add 1 to n.
+End the loop.
+Give back count.

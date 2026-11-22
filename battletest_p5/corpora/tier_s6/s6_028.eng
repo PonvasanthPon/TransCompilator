@@ -1,0 +1,20 @@
+Use alloc, core, fs, io, string.
+
+Let name be create text from "p5_28.txt" of length 9.
+Let first be create text from "ab8" of length 3.
+Let second be create text from "cd8" of length 3.
+Save address of first to file address of name.
+Let opened be file_open_append(address of name).
+If not opened's is_ok.
+Stop with error "append open failed".
+End the condition.
+Let handle be File.
+Set handle to opened's ok_val.
+file_write_bytes(address of handle, second's data, second's len).
+file_close(address of handle).
+Display file address of name.
+Delete file address of name.
+Release text address of first.
+Release text address of second.
+Release text address of name.
+Give back 0.

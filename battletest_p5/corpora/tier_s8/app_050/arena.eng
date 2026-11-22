@@ -1,0 +1,3 @@
+Use alloc, core.
+Publicly, to arena block given size as a whole number, named arena_block, giving a pointer to byte.
+Give back allocate size as an unsigned number bytes.

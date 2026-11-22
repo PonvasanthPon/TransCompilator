@@ -1,0 +1,10 @@
+Use core, io.
+
+Keep a shared bytes as a whole number.
+Keep a shared bytes in use as a whole number.
+Set bytes to 27.
+Set bytes in use to 28.
+If bytes plus bytes in use is not 55.
+Stop with error "collision join".
+End the condition.
+Give back bytes plus bytes in use.

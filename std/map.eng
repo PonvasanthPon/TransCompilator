@@ -30,6 +30,43 @@ Let states be allocate cap bytes.
 Zero bytes at states for cap.
 Update table so its keys is keys as a pointer to whole number, its values is values as a pointer to V, its states is states as a pointer to byte, and its cap is cap.
 
+To rehash int map for V table (a pointer to IntMap of V).
+Let old cap be table's cap.
+Let old keys be table's keys.
+Let old values be table's values.
+Let old states be table's states.
+Let new cap be old cap times 2.
+Let new keys be allocate new cap times 8 bytes.
+Let new values be allocate new cap times (byte size of V) bytes.
+Let new states be allocate new cap bytes.
+Zero bytes at new states for new cap.
+Update table so its keys is new keys as a pointer to whole number, its values is new values as a pointer to V, its states is new states as a pointer to byte, and its cap is new cap.
+Let index be 0 as an unsigned number.
+While index is less than old cap.
+If item index of old states equals 1.
+Let key be item index of old keys.
+Let hash value be hash key.
+Let slot be hash value modulo new cap.
+Let done be false.
+While done is false.
+If item slot of table's states equals 0.
+Set item slot of table's states to 1.
+Set item slot of table's keys to key.
+Set item slot of table's values to item index of old values.
+Set done to true.
+End the condition.
+If done is false.
+Set slot to (slot plus 1) modulo new cap.
+End the condition.
+End the loop.
+End the condition.
+Add 1 to index.
+End the loop.
+Release memory at old keys as a pointer to byte.
+Release memory at old values as a pointer to byte.
+Release memory at old states as a pointer to byte.
+
+
 Publicly, to create int map for V, named intmap_new, giving IntMap of V.
 Let created be IntMap of V.
 Give back created.
@@ -37,6 +74,7 @@ Give back created.
 Publicly, to put for V given table as a pointer to IntMap of V, key as a whole number, val as V, named intmap_put.
 Call this as "put <val> into int map <table> for key <key>".
 Prepare int map table.
+If table's len plus 1 is at least table's cap, rehash int map table.
 Let hash value be hash key.
 Let index be hash value modulo table's cap.
 Let probes be 0 as an unsigned number.
@@ -103,6 +141,24 @@ Let keys be allocate cap times 8 bytes.
 Let values be allocate cap times (byte size of V) bytes.
 Update table so its keys is keys as a pointer to pointer to TcString, its values is values as a pointer to V, and its cap is cap.
 
+To grow text map for V table (a pointer to StrMap of V).
+Let old cap be table's cap.
+Let old keys be table's keys.
+Let old values be table's values.
+Let new cap be old cap times 2.
+Let new keys be allocate new cap times 8 bytes.
+Let new values be allocate new cap times (byte size of V) bytes.
+Update table so its keys is new keys as a pointer to pointer to TcString, its values is new values as a pointer to V, and its cap is new cap.
+Let index be 0 as an unsigned number.
+While index is less than table's len.
+Set item index of table's keys to item index of old keys.
+Set item index of table's values to item index of old values.
+Add 1 to index.
+End the loop.
+Release memory at old keys as a pointer to byte.
+Release memory at old values as a pointer to byte.
+
+
 Publicly, to create text map for V, named strmap_new, giving StrMap of V.
 Let created be StrMap of V.
 Give back created.
@@ -110,6 +166,7 @@ Give back created.
 Publicly, to put text for V given table as a pointer to StrMap of V, key as a pointer to TcString, val as V, named strmap_put.
 Call this as "put <val> into text map <table> for text <key>".
 Prepare text map table.
+If table's len plus 1 is at least table's cap, grow text map table.
 Let index be 0 as an unsigned number.
 While index is less than table's len.
 Let same be text item index of table's keys matches text key.

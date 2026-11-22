@@ -1,0 +1,8 @@
+Use core, io.
+
+To scale x (a decimal) by factor (a decimal), giving a decimal.
+Give back x times factor.
+
+Let result be scale 2.5 by 16.0.
+Say result.
+Give back 0.
