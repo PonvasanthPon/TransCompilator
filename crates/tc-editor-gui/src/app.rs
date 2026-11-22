@@ -57,8 +57,8 @@ pub struct ToolbarSpec {
 pub const fn toolbar_spec() -> ToolbarSpec {
     ToolbarSpec {
         left: &["R1 Editor", "New", "Open", "Save"],
-        center: &["▶ Run", "Build .elf"],
-        right: &["Presets ▾", "Wrap", "std/ Docs", "Light / Dark"],
+        center: &["> Run", "Build .elf"],
+        right: &["Presets v", "Wrap", "std/ Docs", "Light / Dark"],
     }
 }
 
@@ -541,8 +541,8 @@ impl R1GuiApp {
         let mut lines = Vec::new();
         for (index, state) in states.iter().enumerate() {
             let marker = match state {
-                LineState::Error => '✗',
-                LineState::ProseOmitted => '·',
+                LineState::Error => '!',
+                LineState::ProseOmitted => '~',
                 LineState::Normal => ' ',
             };
             let rows = rows_per_line.get(index).copied().unwrap_or(1).max(1);
@@ -566,12 +566,12 @@ impl R1GuiApp {
     #[must_use]
     pub fn status_card_text(&self) -> String {
         self.result.as_ref().map_or_else(
-            || "Ready  ·  Ctrl+Enter to run".to_string(),
+            || "Ready  -  Ctrl+Enter to run".to_string(),
             |result| {
                 if result.ok {
-                    format!("✓ PASS  ·  {}", result.summary)
+                    format!("[OK] PASS  -  {}", result.summary)
                 } else {
-                    format!("✗ ERROR  ·  {}", result.summary)
+                    format!("[!] ERROR  -  {}", result.summary)
                 }
             },
         )
@@ -730,7 +730,7 @@ impl R1GuiApp {
                                         .color(theme.muted),
                                 );
                                 if self.workspace.dirty() {
-                                    ui.label(RichText::new("●").size(11.0).color(theme.warning_fg));
+                                    ui.label(RichText::new("*").size(11.0).color(theme.warning_fg));
                                 }
                             });
                         });
@@ -746,7 +746,7 @@ impl R1GuiApp {
                         }
                     }
                     toolbar_divider(ui, &theme);
-                    if primary_button(ui, &theme, "▶ Run").clicked() {
+                    if primary_button(ui, &theme, "> Run").clicked() {
                         self.run();
                     }
                     if secondary_button(ui, &theme, "Build .elf").clicked() {
@@ -768,7 +768,7 @@ impl R1GuiApp {
                             self.toggle_word_wrap();
                         }
                         ui.menu_button(
-                            RichText::new("Presets ▾")
+                            RichText::new("Presets v")
                                 .size(SIDEBAR_FONT_SIZE)
                                 .color(theme.ink),
                             |ui| {
@@ -935,7 +935,7 @@ impl R1GuiApp {
                                 );
                                 for phrase in function.phrases {
                                     ui.label(
-                                        RichText::new(format!("    “{phrase}”"))
+                                        RichText::new(format!("    \"{phrase}\""))
                                             .italics()
                                             .size(11.0)
                                             .color(theme.syntax_anaphor),
