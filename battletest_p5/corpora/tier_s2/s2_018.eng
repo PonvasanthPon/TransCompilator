@@ -1,6 +1,0 @@
-Use io.
-Let a be 18.
-Let b be 0.
-If a == 0 or b == 0, and a is less than 100, add 1 to b.
-Say b.
-Give back 0.
