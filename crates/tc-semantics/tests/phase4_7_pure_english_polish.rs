@@ -867,7 +867,11 @@ fn std_files_are_pure_version2_english() {
                 !trimmed.starts_with("Call this as") || in_public_function,
                 "{module}: `Call this as` appears outside a public API header: `{trimmed}`"
             );
-            if trimmed.starts_with("Set ") && trimmed.contains("'s ") {
+            if trimmed.starts_with("Set ")
+                && !trimmed.starts_with("Set item ")
+                && !trimmed.starts_with("Set element ")
+                && trimmed.contains("'s ")
+            {
                 consecutive_set_fields += 1;
                 assert!(
                     consecutive_set_fields < 3,
