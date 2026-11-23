@@ -3575,7 +3575,101 @@ impl<'a> Lowerer<'a> {
     }
 
     pub(crate) fn parse_value(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        let normalized = crate::number_words::normalize_hyphens(text);
+        let trimmed = normalized.trim();
+        let lower = trimmed.to_ascii_lowercase();
+        for prefix in ["the square root of ", "square root of "] {
+            if let Some(rest) = lower.strip_prefix(prefix) {
+                let rest = trimmed[trimmed.len() - rest.len()..].trim();
+                return self.lower_square_root(rest, span);
+            }
+        }
+        for prefix in ["trim ", "trimmed "] {
+            if lower.starts_with(prefix)
+                && !lower.starts_with("trim text ")
+                && !lower.starts_with("trimmed text ")
+            {
+                let rest = trimmed[prefix.len()..].trim();
+                return self.lower_trim_value(rest, span);
+            }
+        }
         crate::value::parse_value(self, text, span)
+    }
+
+    fn lower_square_root(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        let value = self.parse_value(text, span)?;
+        let value = if matches!(self.shallow_type_opt(&value), Some(AstType::F64)) {
+            value
+        } else {
+            AstExpr::Cast {
+                val: Box::new(value),
+                to: AstType::F64,
+            }
+        };
+        Ok(AstExpr::Call {
+            module: None,
+            name: "sqrt".to_string(),
+            type_args: Vec::new(),
+            args: vec![value],
+        })
+    }
+
+    fn lower_trim_value(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        let value = self.parse_value(text, span)?;
+        let ty = self.shallow_type_opt(&value);
+        if matches!(ty, Some(AstType::Named { ref name, .. }) if name.eq_ignore_ascii_case("tcstring"))
+        {
+            return match value {
+                AstExpr::Var(name) => Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_trim".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![AstExpr::AddrOfVar(name)],
+                }),
+                _ => Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    "trim currently requires a named text value or byte text",
+                )),
+            };
+        }
+        if matches!(ty, Some(AstType::Ptr(ref inner)) if matches!(inner.as_ref(), AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring")))
+        {
+            return Ok(AstExpr::Call {
+                module: None,
+                name: "str_trim".to_string(),
+                type_args: Vec::new(),
+                args: vec![value],
+            });
+        }
+        if let Some((pointer, length)) = self.text_bytes(&value) {
+            return Ok(AstExpr::Call {
+                module: None,
+                name: "str_trim_bytes".to_string(),
+                type_args: Vec::new(),
+                args: vec![pointer, length],
+            });
+        }
+        Err(self.error(
+            span,
+            SemanticErrorKind::Lowering,
+            "trim requires a text value",
+        ))
+    }
+
+    fn text_bytes(&self, value: &AstExpr) -> Option<(AstExpr, AstExpr)> {
+        if let AstExpr::BytesLit(bytes) = value {
+            return Some((value.clone(), AstExpr::BytesLen(bytes.clone())));
+        }
+        if let AstExpr::Var(name) = value
+            && let Some(length) = self.bytes_lengths.get(name)
+        {
+            return Some((
+                value.clone(),
+                AstExpr::ConstUint(u64::try_from(*length).unwrap_or(u64::MAX), None),
+            ));
+        }
+        None
     }
 
     fn structural_compatibility(param: &AstType, actual: &AstType, type_params: &[String]) -> i8 {
@@ -4454,6 +4548,164 @@ impl<'a> Lowerer<'a> {
         self.lower_cond_ast(&parsed, span)
     }
 
+    fn parse_natural_membership(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<LoweredCond>, SemanticError> {
+        for (phrase, kind, negated) in [
+            ("does not start with", "starts", true),
+            ("does not end with", "ends", true),
+            ("does not contain", "contains", true),
+            ("starts with", "starts", false),
+            ("ends with", "ends", false),
+            ("contains", "contains", false),
+        ] {
+            let Some((left, end)) = find_top_level_phrase(text, phrase) else {
+                continue;
+            };
+            let right = text[end..].trim();
+            if left.trim().is_empty() || right.is_empty() {
+                continue;
+            }
+            let left_value = self.parse_value(left.trim(), span)?;
+            let right_value = self.parse_value(right, span)?;
+            let mut prelude = Vec::new();
+            let expression = if kind == "contains" {
+                if self.is_list_value(&left_value) {
+                    let pointer = self.list_pointer(left_value, span)?;
+                    AstExpr::Call {
+                        module: None,
+                        name: "list_contains_i64".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![pointer, right_value],
+                    }
+                } else {
+                    let lhs = self.string_pointer(left_value, span, &mut prelude)?;
+                    let rhs = self.string_pointer(right_value, span, &mut prelude)?;
+                    AstExpr::Call {
+                        module: None,
+                        name: "str_contains".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![lhs, rhs],
+                    }
+                }
+            } else {
+                let lhs = self.string_pointer(left_value, span, &mut prelude)?;
+                let rhs = self.string_pointer(right_value, span, &mut prelude)?;
+                let name = if kind == "starts" {
+                    "str_starts_with"
+                } else {
+                    "str_ends_with"
+                };
+                AstExpr::Call {
+                    module: None,
+                    name: name.to_string(),
+                    type_args: Vec::new(),
+                    args: vec![lhs, rhs],
+                }
+            };
+            let expression = if negated {
+                AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(expression),
+                }
+            } else {
+                expression
+            };
+            let paraphrase = strip_outer_parentheses(&render_expr(&expression));
+            return Ok(Some(LoweredCond {
+                prelude,
+                expr: expression,
+                paraphrase,
+            }));
+        }
+        Ok(None)
+    }
+
+    fn string_pointer(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+        prelude: &mut Vec<AstStmt>,
+    ) -> Result<AstExpr, SemanticError> {
+        let ty = self.shallow_type_opt(&value);
+        if matches!(ty, Some(AstType::Ptr(ref inner)) if self.is_tcstring_type(inner)) {
+            return Ok(value);
+        }
+        if matches!(ty, Some(AstType::Named { ref name, .. }) if name.eq_ignore_ascii_case("tcstring"))
+        {
+            return match value {
+                AstExpr::Var(name) => Ok(AstExpr::AddrOfVar(name)),
+                other => self.materialize_string(other, span, prelude),
+            };
+        }
+        if let Some((pointer, length)) = self.text_bytes(&value) {
+            let string = AstExpr::Call {
+                module: None,
+                name: "str_from_bytes".to_string(),
+                type_args: Vec::new(),
+                args: vec![pointer, length],
+            };
+            return self.materialize_string(string, span, prelude);
+        }
+        Err(self.error(
+            span,
+            SemanticErrorKind::Lowering,
+            "text predicate requires a text value",
+        ))
+    }
+
+    fn materialize_string(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+        prelude: &mut Vec<AstStmt>,
+    ) -> Result<AstExpr, SemanticError> {
+        let temp = self.next_temp("str");
+        prelude.push(AstStmt::Let {
+            name: temp.clone(),
+            ty: Some(self.tcstring_type()),
+            init: value,
+            span: self.span(span),
+        });
+        Ok(AstExpr::AddrOfVar(temp))
+    }
+
+    fn is_tcstring_type(&self, ty: &AstType) -> bool {
+        matches!(ty, AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring"))
+    }
+
+    fn tcstring_type(&self) -> AstType {
+        AstType::Named {
+            module: None,
+            name: "tcstring".to_string(),
+            type_args: Vec::new(),
+        }
+    }
+
+    fn is_list_value(&self, value: &AstExpr) -> bool {
+        match self.shallow_type_opt(value) {
+            Some(AstType::Named { name, .. }) => name.eq_ignore_ascii_case("list"),
+            Some(AstType::Ptr(inner)) => {
+                matches!(inner.as_ref(), AstType::Named { name, .. } if name.eq_ignore_ascii_case("list"))
+            }
+            _ => false,
+        }
+    }
+
+    fn list_pointer(&mut self, value: AstExpr, span: Span) -> Result<AstExpr, SemanticError> {
+        match value {
+            AstExpr::Var(name) => Ok(AstExpr::AddrOfVar(name)),
+            other if matches!(self.shallow_type_opt(&other), Some(AstType::Ptr(_))) => Ok(other),
+            _ => Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "contains on a list requires a list variable",
+            )),
+        }
+    }
+
     fn parse_natural_predicate(
         &mut self,
         text: &str,
@@ -4674,6 +4926,9 @@ impl<'a> Lowerer<'a> {
     fn lower_cond_ast(&mut self, node: &CondAst, span: Span) -> Result<LoweredCond, SemanticError> {
         match node {
             CondAst::Atom(text) => {
+                if let Some(condition) = self.parse_natural_membership(text, span)? {
+                    return Ok(condition);
+                }
                 if let Some(expr) = self.parse_natural_predicate(text, span)? {
                     let paraphrase = strip_outer_parentheses(&render_expr(&expr));
                     return Ok(LoweredCond {
