@@ -6,8 +6,11 @@
 
 1. **Non-computational meaning.** Physical, social, emotional, weather, and
    communication events (`bake`, `walk`, `sleep`, `rain`, `admire`) are
-   deliberately `COMMENT_OMITTED` or cleanly `UNSUPPORTED`; the compiler is a
-   finite computational language, not an open-world reasoner.
+   understood as narrative or contextual English and deliberately routed to
+   `COMMENT_OMITTED`, or cleanly `UNSUPPORTED` when phrased as an executable
+   directive. `tc_r1` is a general-purpose English compiler with general NL
+   understanding; non-computational meaning is classified, not mistaken for a
+   Core-7 operation.
 2. **Remaining computational gaps.** Verbs such as `split`, `search`, `sort`,
    `check`, `verify`, `measure`, `find`, `select`, and `filter` do not yet have
    executable frame lowering. They fail loudly, never panic or silently drop.
@@ -409,10 +412,12 @@ has an aggregate target, so the five scalar/anaphor target rows do not apply.
 | Quantification | `For every day from 1 to 5, add it to bonus.` | Supported |
 | Anaphora | `Put 100 in cash. Add 50 to it.` / `its distance` / `the waypoint's toll` | Supported |
 
-**Honest scope note:** grammatical narrative is not executable by default.
-Only the finite computational subset lowers to Core-7; all other prose is
-omitted or gets a structured diagnostic. The matrix proves orthogonality in
-the supported subset, not universal English semantics.
+**Scope note:** narrative prose is understood as narrative and retained as
+context; it is not executed as a side-effecting operation. Computational
+clauses lower to Core-7, while ambiguous or not-yet-lowered computational
+directives receive a structured diagnostic. The matrix proves orthogonality
+across the executable computational constructs; it does not claim that every
+narrative event has executable side effects.
 
 ## Reproduce
 
