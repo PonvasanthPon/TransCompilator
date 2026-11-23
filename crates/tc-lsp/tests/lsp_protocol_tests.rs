@@ -32,6 +32,8 @@ const ELEVEN_LINE_REPRO: &str = concat!(
     "Printt \"12\".\n",
 );
 
+const PRIME_DISCOURSE_REPRO: &str = "Look at every number from 2 up to 50. For each number, check whether any smaller number starting from 2 divides into it evenly. If none of them do, print that number out and count it. Once you are done, print how many numbers were found.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1613,6 +1615,104 @@ fn lsp_trim_text_and_start_at_program_has_zero_diagnostics() {
     let batches = diagnostics_after(&responses, uri);
     assert_eq!(batches.len(), 1);
     assert!(batches[0].is_empty(), "{:?}", batches[0]);
+}
+
+#[test]
+fn lsp_prime_discourse_program_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_prime_discourse.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, PRIME_DISCOURSE_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, PRIME_DISCOURSE_REPRO);
+    assert!(
+        tokens.iter().any(|token| token.token_type == FUNCTION),
+        "{tokens:?}"
+    );
+    assert!(
+        tokens
+            .iter()
+            .any(|token| token.text == "number" && token.token_type == VARIABLE),
+        "{tokens:?}"
+    );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_empty_loop_body_reports_header_line() {
+    let uri = "file:///tmp/tc_lsp_empty_loop.eng";
+    let text = "Let x be 5.\nRepeat while x is greater than 1:\n\nPrint x.\n";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let diagnostics = diagnostics_after(&responses, uri);
+    let diagnostic = diagnostics
+        .iter()
+        .flat_map(|batch| batch.iter())
+        .find(|value| {
+            value
+                .get("message")
+                .and_then(Json::as_str)
+                .is_some_and(|message| message.contains("empty loop body"))
+        })
+        .expect("empty loop diagnostic");
+    let start = diagnostic
+        .get("range")
+        .and_then(|value| value.get("start"))
+        .expect("range start");
+    assert_eq!(start.get("line").and_then(Json::as_i64), Some(1));
+    assert_eq!(start.get("character").and_then(Json::as_i64), Some(0));
+}
+
+#[test]
+fn lsp_unresolved_ellipsis_reports_anaphor_diagnostic() {
+    let uri = "file:///tmp/tc_lsp_unresolved_ellipsis.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, "If none of them do, print \"x\".\n"),
+        shutdown(),
+        exit(),
+    ]);
+    let diagnostics = diagnostics_after(&responses, uri);
+    let diagnostic = diagnostics
+        .iter()
+        .flat_map(|batch| batch.iter())
+        .find(|value| {
+            value
+                .get("message")
+                .and_then(Json::as_str)
+                .is_some_and(|message| message.contains("UNRESOLVED_ANAPHOR"))
+        })
+        .expect("anaphor diagnostic");
+    let start = diagnostic
+        .get("range")
+        .and_then(|value| value.get("start"))
+        .expect("range start");
+    assert_eq!(start.get("line").and_then(Json::as_i64), Some(0));
 }
 
 #[test]
