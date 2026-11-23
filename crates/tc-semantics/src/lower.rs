@@ -3347,9 +3347,85 @@ impl<'a> Lowerer<'a> {
         }
     }
 
+    fn rewrite_number_words(&self, text: &str) -> String {
+        let tokens = tokenize(text);
+        let mut replacements = Vec::new();
+        let mut index = 0;
+        while index < tokens.len() {
+            let token = &tokens[index];
+            if !token.is_word() || !crate::number_words::is_word(&token.lower) {
+                index += 1;
+                continue;
+            }
+            let start = index;
+            let mut end = index;
+            while end < tokens.len() {
+                let candidate = &tokens[end];
+                if candidate.is_word() && crate::number_words::is_word(&candidate.lower) {
+                    end += 1;
+                } else if candidate.text == "-" && end + 1 < tokens.len() {
+                    end += 1;
+                } else {
+                    break;
+                }
+            }
+            if end <= start {
+                index += 1;
+                continue;
+            }
+            let phrase = text[tokens[start].start..tokens[end - 1].end].trim();
+            if let Some(value) = crate::number_words::parse(phrase) {
+                let canonical = phrase
+                    .to_ascii_lowercase()
+                    .replace([' ', '-'], "_");
+                let next_is_call = tokens
+                    .get(end)
+                    .is_some_and(|token| token.text == "(" || token.text == ".");
+                if self.lookup(&canonical).is_none()
+                    && !self.globals.contains_key(&canonical)
+                    && !self.function_returns.contains_key(&canonical)
+                    && !next_is_call
+                {
+                    replacements.push((
+                        tokens[start].start,
+                        tokens[end - 1].end,
+                        value.to_string(),
+                    ));
+                }
+            }
+            index = end;
+        }
+        if replacements.is_empty() {
+            return text.to_string();
+        }
+        let mut output = String::with_capacity(text.len());
+        let mut cursor = 0;
+        for (start, end, replacement) in replacements {
+            output.push_str(&text[cursor..start]);
+            output.push_str(&replacement);
+            cursor = end;
+        }
+        output.push_str(&text[cursor..]);
+        output
+    }
+
     fn parse_expr(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         let resolved = self.resolve_anaphors(text, span)?;
-        let result = parse_expression(&resolved, &self.expr_env());
+        let resolved = crate::number_words::normalize_hyphens(&resolved);
+        if let Some(value) = crate::number_words::parse(&resolved) {
+            let canonical = resolved
+                .trim()
+                .to_ascii_lowercase()
+                .replace([' ', '-'], "_");
+            if self.lookup(&canonical).is_none()
+                && !self.globals.contains_key(&canonical)
+                && !self.function_returns.contains_key(&canonical)
+            {
+                return Ok(AstExpr::ConstInt(value, None));
+            }
+        }
+        let rewritten = self.rewrite_number_words(&resolved);
+        let result = parse_expression(&rewritten, &self.expr_env());
         result.map_err(|message| {
             let hint = if message.starts_with("unexpected trailing token") {
                 self.expression_name_hint(text)
@@ -3389,7 +3465,7 @@ impl<'a> Lowerer<'a> {
     }
 
     fn parse_expr_raw(&self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
-        let rewritten = self.rewrite_known_names(text);
+        let rewritten = self.rewrite_number_words(&self.rewrite_known_names(text));
         parse_expression(&rewritten, &self.expr_env())
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))
     }
@@ -3692,6 +3768,13 @@ impl<'a> Lowerer<'a> {
                         index += 1;
                         continue;
                     }
+                    let effective_sentence = RawSentence {
+                        text: crate::normalize::sentence(&sentence.text),
+                        raw: sentence.raw.clone(),
+                        span: sentence.span,
+                        fillers: sentence.fillers.clone(),
+                    };
+                    let sentence = &effective_sentence;
                     let sentence_lower = sentence.text.to_ascii_lowercase();
                     let first_token = first_word(&sentence_lower);
                     if first_token == "otherwise" || first_token == "else" {
@@ -3826,6 +3909,13 @@ impl<'a> Lowerer<'a> {
                         index += 1;
                         continue;
                     }
+                    let effective_header = RawSentence {
+                        text: crate::normalize::sentence(&header.text),
+                        raw: header.raw.clone(),
+                        span: header.span,
+                        fillers: header.fillers.clone(),
+                    };
+                    let header = &effective_header;
                     let clause = analyze_clause(self.parser, header);
                     let phrase = self
                         .match_phrase_typed(&header.text, header.span)?
@@ -4909,6 +4999,7 @@ impl<'a> Lowerer<'a> {
                     continue;
                 }
                 let clause = rewrite_bound_names(clause, &renames);
+                let clause = crate::normalize::sentence(&clause);
                 block.extend(self.lower_core(&clause, span, then_items, else_items, depth + 1)?);
             }
             let mut moved_vars = Vec::new();
@@ -5079,7 +5170,8 @@ impl<'a> Lowerer<'a> {
         else_items: Option<&[RawItem]>,
         depth: usize,
     ) -> Result<Vec<AstStmt>, SemanticError> {
-        let original = text.trim().trim_end_matches(['.', ',']).trim();
+        let normalized = crate::normalize::sentence(text);
+        let original = normalized.trim().trim_end_matches(['.', ',']).trim();
         if original.is_empty() {
             return Ok(Vec::new());
         }

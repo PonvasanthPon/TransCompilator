@@ -10,6 +10,8 @@ mod discourse;
 mod expr;
 mod frame;
 mod lower;
+mod normalize;
+mod number_words;
 mod paraphrase;
 mod place;
 mod quantifier;
