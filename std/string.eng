@@ -129,6 +129,10 @@ If item (finish minus 1) of s's data equals 32 or item (finish minus 1) of s's d
 End the loop.
 Give back create text from (s's data as an unsigned number plus start) as a pointer to byte of length (finish minus start).
 
+Publicly, to trim p (a pointer to byte) of length n (an unsigned number), named str_trim_bytes, giving TcString.
+Let s be create text from p of length n.
+Give back trim text address of s.
+
 Publicly, to parse a whole number from text s (a pointer to TcString), named str_parse_i64, giving Result of whole number and whole number.
 Call this as "parse whole number from <s>".
 Let answer be Result of whole number and whole number.

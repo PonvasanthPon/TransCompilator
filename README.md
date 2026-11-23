@@ -44,17 +44,20 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **971/971 passing**, including the 50-test headless
+for a current suite of **986/986 passing**, including the 52-test headless
 `tc-lsp` protocol suite, 68 compositional parity tests, 89
 paraphrase-invariance fluency tests, and 38 casual-English
 and guard/regression tests. All eight
 `std/*.eng` modules pass the Version 2 pure-English readability gate. The
-frontend now auto-loads `std/io` as a prelude, lowers every WordNet/VerbNet
+frontend now auto-loads `std/io` as a prelude plus `std/list`, `std/string`,
+and `std/math` when their everyday forms are used, lowers every WordNet/VerbNet
 `Emit` concept (`Print`, `Show`, `Display`, `Output`, `Say`, `Report`) without
 requiring `Use io.`, decomposes `where`/`Given`/`then` clause graphs, tracks
 plural `their ...` and `the result` anaphora, and recursively parses English
 math noun phrases such as `the product of the sum of a and b and the difference
-between c and d`. Polite and sequence openers (`Please`, `Now`, `First`,
+between c and d`. `trim <x>`, `the square root of <x>`, and natural
+`starts with` / `ends with` / `contains` predicates work without boilerplate.
+Polite and sequence openers (`Please`, `Now`, `First`,
 `Let's`), English number words, natural predicates, inline list construction,
 and length/count queries normalize into the same deterministic Core-7 forms, so
 paraphrases preserve exact IR and ELF64 behavior. Compiler diagnostics suggest

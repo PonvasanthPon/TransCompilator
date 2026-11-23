@@ -305,7 +305,13 @@ fn augmented_sources(
     let needs_string = source_text.contains("a list of \"")
         || source_text.contains("list of text")
         || source_text.contains("list of strings")
-        || source_text.contains("number of characters in ");
+        || source_text.contains("number of characters in ")
+        || source_text.contains("trim ")
+        || source_text.contains("trimmed ")
+        || source_text.contains(" starts with ")
+        || source_text.contains(" ends with ")
+        || source_text.contains(" contains ");
+    let needs_math = source_text.contains("square root of");
     let mut present = all
         .iter()
         .map(SourceFile::module_name)
@@ -316,6 +322,9 @@ fn augmented_sources(
     }
     if needs_string {
         wanted.push("string".to_string());
+    }
+    if needs_math {
+        wanted.push("math".to_string());
     }
     let mut queue = VecDeque::from(wanted);
     let mut seen = HashSet::new();
@@ -404,6 +413,9 @@ pub fn lower_project_analysis_with_parser(
         }
         if auto_modules.contains("string") {
             auto_imports.push("string");
+        }
+        if auto_modules.contains("math") {
+            auto_imports.push("math");
         }
         for job in &mut jobs {
             if is_std_module(&job.module.name) {

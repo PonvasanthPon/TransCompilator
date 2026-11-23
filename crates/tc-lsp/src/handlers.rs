@@ -33,7 +33,7 @@ const STD_MODULES: [(&str, &str); 8] = [
     ),
 ];
 
-const COMPARATORS: [&str; 18] = [
+const COMPARATORS: [&str; 22] = [
     "is more than ",
     "is less than ",
     "at least ",
@@ -52,6 +52,10 @@ const COMPARATORS: [&str; 18] = [
     "is divisible by ",
     "is empty",
     "is not empty",
+    "starts with ",
+    "ends with ",
+    "contains ",
+    "does not contain ",
 ];
 
 const STANDARD_PHRASES: [&str; 30] = [
