@@ -921,6 +921,44 @@ fn lsp_where_typo_reports_levenshtein_diagnostic() {
 }
 
 #[test]
+fn lsp_typo_imperative_reports_unrecognized_hint() {
+    let uri = "file:///tmp/tc_lsp_typo_imperative.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, "Printt 5.\n"),
+        shutdown(),
+        exit(),
+    ]);
+    let messages = diagnostic_messages(diagnostics_after(&responses, uri)[0]);
+    assert!(messages.contains("unrecognized imperative"), "{messages}");
+    assert!(messages.contains("did you mean 'print'?"), "{messages}");
+}
+
+#[test]
+fn lsp_zero_executable_program_reports_warning() {
+    let uri = "file:///tmp/tc_lsp_zero_exec.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, "Frobnicate the flux capacitor.\n"),
+        shutdown(),
+        exit(),
+    ]);
+    let diagnostics = diagnostics_after(&responses, uri)[0];
+    assert!(
+        diagnostics.iter().any(|diagnostic| {
+            diagnostic.get("severity").and_then(Json::as_i64) == Some(2)
+                && diagnostic
+                    .get("message")
+                    .and_then(Json::as_str)
+                    .is_some_and(|message| {
+                        message.contains("program produced 0 executable statements")
+                    })
+        }),
+        "{diagnostics:?}"
+    );
+}
+
+#[test]
 fn lsp_live_test_1_and_live_test_2_zero_diagnostics() {
     let first = "file:///tmp/tc_lsp_live_one.eng";
     let second = "file:///tmp/tc_lsp_live_two.eng";

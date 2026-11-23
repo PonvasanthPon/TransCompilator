@@ -471,7 +471,11 @@ pub fn compile_english_to_ir(
                 module: entry.module.clone(),
                 line: entry.line,
                 col: entry.col,
-                kind: SemanticErrorKind::Unsupported,
+                kind: if reason.starts_with("unrecognized imperative") {
+                    SemanticErrorKind::Lowering
+                } else {
+                    SemanticErrorKind::Unsupported
+                },
                 message: reason.clone(),
             }),
             _ => None,

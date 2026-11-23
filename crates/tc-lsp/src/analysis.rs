@@ -282,6 +282,22 @@ pub fn analyze(uri: &str, text: &str) -> Analysis {
             }));
         }
     }
+    if let Some(project) = &lowered {
+        let has_sentences = project
+            .trace
+            .iter()
+            .any(|entry| !entry.text.trim().is_empty());
+        let has_exec = project.trace.iter().any(|entry| entry.intent.is_exec());
+        if has_sentences && !has_exec {
+            diagnostics.push(Diagnostic {
+                line: 0,
+                character: 0,
+                severity: 2,
+                message: "program produced 0 executable statements (all sentences were omitted as prose/comments)".to_string(),
+                source: "tc-lsp".to_string(),
+            });
+        }
+    }
     diagnostics.sort_by_key(|value| (value.line, value.character, value.message.clone()));
     diagnostics.dedup_by(|left, right| {
         left.line == right.line
