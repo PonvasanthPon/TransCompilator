@@ -6,7 +6,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use tc_semantics::{
-    IntentVerdict, LoweredProject, RawItem, SemanticError, SentenceTrace, SourceFile,
+    IntentVerdict, LoweredProject, RawItem, SemanticError, SentenceTrace, SourceFile, Token,
     lower_project_outcome, segment_source, tokenize,
 };
 use tc_typeck::{AstExpr, AstModule, AstStmt, AstType, Program};
@@ -395,7 +395,8 @@ impl SymbolIndex {
 
     fn from_text(text: &str) -> Self {
         let mut index = Self::default();
-        for line in text.lines() {
+        for (line_index, line) in text.lines().enumerate() {
+            let line_number = u32::try_from(line_index + 1).unwrap_or(u32::MAX);
             let tokens = tokenize(line);
             if tokens.len() >= 4
                 && tokens[0].is("a")
@@ -418,8 +419,8 @@ impl SymbolIndex {
                     kind,
                     fields,
                     module: String::new(),
-                    line: 1,
-                    col: 1,
+                    line: line_number,
+                    col: u32::try_from(tokens[2].start + 1).unwrap_or(1),
                 });
             }
             if tokens.len() >= 5 && tokens[0].is("create") {
@@ -427,18 +428,131 @@ impl SymbolIndex {
                 if let Some(called) = called {
                     if called >= 2 && called + 1 < tokens.len() {
                         let type_name = tokens[called - 1].lower.clone();
-                        index.variables.push(VariableInfo {
-                            name: tokens[called + 1].lower.clone(),
-                            ty: type_name,
-                            module: String::new(),
-                            line: 1,
-                            col: 1,
-                        });
+                        index.push_text_variable(
+                            tokens[called + 1].lower.clone(),
+                            type_name,
+                            line_number,
+                            tokens[called + 1].start,
+                        );
                     }
                 }
             }
+            let Some(first) = tokens.first().map(|token| token.lower.as_str()) else {
+                continue;
+            };
+            match first {
+                "let" | "set" => {
+                    let end = tokens
+                        .iter()
+                        .enumerate()
+                        .skip(1)
+                        .find(|(_, token)| {
+                            token.kind == tc_semantics::TokenKind::Symbol && token.text == "="
+                                || token.is("be")
+                                || token.is("to")
+                                || token.is("is")
+                        })
+                        .map_or(tokens.len(), |(index, _)| index);
+                    let possessive = first == "set"
+                        && tokens[1..end]
+                            .iter()
+                            .any(|token| token.text == "'s" || token.text == "'");
+                    if !possessive && let Some((name, col)) = capture_text_name(&tokens, 1, end) {
+                        index.push_text_variable(name, "value".to_string(), line_number, col);
+                    }
+                }
+                "put" => {
+                    if let Some(in_index) = tokens.iter().position(|token| token.is("in")) {
+                        let end = tokens
+                            .iter()
+                            .enumerate()
+                            .skip(in_index + 1)
+                            .find(|(_, token)| {
+                                token.text == ","
+                                    || token.text == "."
+                                    || token.is("and")
+                                    || token.is("then")
+                            })
+                            .map_or(tokens.len(), |(index, _)| index);
+                        if let Some((name, col)) = capture_text_name(&tokens, in_index + 1, end) {
+                            index.push_text_variable(name, "value".to_string(), line_number, col);
+                        }
+                    }
+                }
+                "given" | "assuming" => {
+                    let end = tokens
+                        .iter()
+                        .enumerate()
+                        .skip(1)
+                        .find(|(_, token)| {
+                            token.is("is")
+                                || token.is("are")
+                                || token.is("becomes")
+                                || token.text == ","
+                        })
+                        .map_or(tokens.len(), |(index, _)| index);
+                    if let Some((name, col)) = capture_text_name(&tokens, 1, end) {
+                        index.push_text_variable(name, "value".to_string(), line_number, col);
+                    }
+                }
+                "where" => {
+                    let mut start = 1;
+                    while start < tokens.len() {
+                        let end = tokens
+                            .iter()
+                            .enumerate()
+                            .skip(start)
+                            .find(|(_, token)| {
+                                token.is("is")
+                                    || token.is("are")
+                                    || token.is("becomes")
+                                    || token.text == ","
+                                    || token.text == "="
+                            })
+                            .map_or(tokens.len(), |(index, _)| index);
+                        if let Some((name, col)) = capture_text_name(&tokens, start, end) {
+                            index.push_text_variable(name, "value".to_string(), line_number, col);
+                        }
+                        let Some(next) = tokens
+                            .iter()
+                            .enumerate()
+                            .skip(end)
+                            .find(|(_, token)| token.is("and"))
+                        else {
+                            break;
+                        };
+                        start = next.0 + 1;
+                    }
+                }
+                "for"
+                    if tokens
+                        .get(1)
+                        .is_some_and(|token| token.is("each") || token.is("every")) =>
+                {
+                    let end = tokens
+                        .iter()
+                        .enumerate()
+                        .skip(2)
+                        .find(|(_, token)| token.is("in") || token.is("from"))
+                        .map_or(tokens.len(), |(index, _)| index);
+                    if let Some((name, col)) = capture_text_name(&tokens, 2, end) {
+                        index.push_text_variable(name, "value".to_string(), line_number, col);
+                    }
+                }
+                _ => {}
+            }
         }
         index
+    }
+
+    fn push_text_variable(&mut self, name: String, ty: String, line: u32, start: usize) {
+        self.variables.push(VariableInfo {
+            name,
+            ty,
+            module: String::new(),
+            line,
+            col: u32::try_from(start + 1).unwrap_or(1),
+        });
     }
 
     fn dedup(&mut self) {
@@ -457,6 +571,17 @@ impl SymbolIndex {
         self.phrases.retain(|value| seen.insert(value.clone()));
         self.phrases.sort();
     }
+}
+
+fn capture_text_name(tokens: &[Token], start: usize, end: usize) -> Option<(String, usize)> {
+    let words = tokens
+        .get(start..end)?
+        .iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower.clone())
+        .collect::<Vec<_>>();
+    let first = tokens.get(start)?;
+    (!words.is_empty()).then(|| (words.join("_"), first.start))
 }
 
 fn parse_text_fields(text: &str) -> Vec<FieldInfo> {
