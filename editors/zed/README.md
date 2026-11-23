@@ -17,6 +17,26 @@ This directory is fully offline, zero-AI, and never signs in.
    diagnostics, hover, completion, go-to-definition (including `std/*.eng`),
    an Outline panel, semantic tokens, and the five `tc:` tasks.
 
+## Monochrome typographic highlighting
+
+`.eng` files use language-scoped LSP semantic tokens instead of rainbow
+C/Python syntax colors. The rules live in
+`tc-eng-extension/languages/eng/semantic_token_rules.json` and apply only to
+the `TransCompilator English` language:
+
+- **Bold**: computational verbs, phrase heads, control words, and numbers.
+- **Underline**: variables, multi-word names, fields, and record targets.
+- **Italic + underline**: resolved ACE anaphors (`it`, `its`, `their`,
+  `them`, `the result`).
+- **Italic**: string literals.
+- **Muted italic gray**: explicit comments and whole sentences classified by
+  `tc-semantics` as `COMMENT_OMITTED` narrative prose.
+
+English glue words (`the`, `of`, `a`, `an`, `by`, `me`, `out`) and punctuation
+stay in normal body ink. After changing the extension, run
+`Extensions -> Reinstall / Install Dev Extension`, and use
+`editor: restart language server` if Zed was already open.
+
 The `.zed/tasks.json` file is included so opening the repository exposes
 `tc: Run`, `tc: Run + Parity Check`, `tc: Paraphrase`, `tc: Trace`, and
 `tc: Build Static ELF64` immediately.
