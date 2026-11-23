@@ -44,6 +44,17 @@ def merge(base, overlay):
             base[key] = value
 
 merge(target, source)
+languages = target.get("languages")
+if isinstance(languages, dict):
+    language = languages.get("TransCompilator English")
+    if isinstance(language, dict):
+        for stale in (
+            "buffer_font_family",
+            "buffer_font_fallbacks",
+            "buffer_font_size",
+            "buffer_line_height",
+        ):
+            language.pop(stale, None)
 with open(target_path, "w", encoding="utf-8") as handle:
     json.dump(target, handle, indent=2, sort_keys=False)
     handle.write("\n")
@@ -52,6 +63,7 @@ PY
 echo "==> Wrote offline zero-AI settings to ${ZED_CONFIG}/settings.json"
 
 FONT_FAMILIES="$(fc-list : family 2>/dev/null || true)"
+FONT_DETAILS="$(fc-list : family style 2>/dev/null || true)"
 if [ -n "${FONT_FAMILIES}" ]; then
   SERIF_FALLBACK=""
   for family in "Liberation Serif" "Noto Serif" "DejaVu Serif"; do
@@ -60,8 +72,12 @@ if [ -n "${FONT_FAMILIES}" ]; then
       break
     fi
   done
-  if printf '%s\n' "${FONT_FAMILIES}" | grep -E 'EB Garamond|Libre Baskerville' >/dev/null; then
-    echo "==> Book serif font detected for .eng buffers."
+  if printf '%s\n' "${FONT_DETAILS}" | grep -F 'EB Garamond 12' | grep -F '12 Bold' >/dev/null; then
+    echo "==> Book serif font detected: EB Garamond 12 (Regular + Bold + Italic)."
+  elif printf '%s\n' "${FONT_DETAILS}" | grep -F 'EB Garamond 12' >/dev/null; then
+    echo "==> EB Garamond 12 detected without a Bold face; Zed may synthesize bold."
+  elif printf '%s\n' "${FONT_FAMILIES}" | grep -F 'Libre Baskerville' >/dev/null; then
+    echo "==> Book serif font detected: Libre Baskerville."
   else
     echo "==> Book serif fonts not detected; .eng currently uses EB Garamond with an installed serif fallback."
     echo "    Tip: sudo apt install -y fonts-ebgaramond fonts-libre-baskerville"

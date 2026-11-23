@@ -40,25 +40,32 @@ stay in normal body ink. After changing the extension, run
 
 ## Book serif typography
 
-`.eng` buffers use a classic book serif while every other language and the
-integrated terminal stay in monospace. The setting is scoped to the
-`TransCompilator English` language:
+Zed applies `buffer_font_family`, `buffer_font_fallbacks`,
+`buffer_font_size`, and `buffer_line_height` as **top-level** settings. Font
+keys nested under `"languages"` are ignored, so this repository keeps the
+language block free of stale font overrides and sets the book serif at the top
+level:
 
 ```json
-"buffer_font_family": "EB Garamond",
+"buffer_font_family": "EB Garamond 12",
 "buffer_font_fallbacks": [
+  "EB Garamond 12",
   "EB Garamond",
-  "Libre Baskerville",
-  "Crimson Pro",
-  "Lora",
-  "Times New Roman",
-  "Liberation Serif",
   "Noto Serif",
+  "Liberation Serif",
   "DejaVu Serif"
 ],
 "buffer_font_size": 18,
-"buffer_line_height": "comfortable"
+"buffer_line_height": "comfortable",
+"terminal": {
+  "font_family": ".ZedMono",
+  "font_size": 14
+}
 ```
+
+`EB Garamond 12` is the family that ships Regular, Bold, and Italic faces in
+the Ubuntu `fonts-ebgaramond` package. The terminal is separately pinned to
+`.ZedMono`, so the integrated shell stays monospace.
 
 Install the preferred book serifs with:
 
@@ -66,10 +73,9 @@ Install the preferred book serifs with:
 sudo apt install -y fonts-ebgaramond fonts-libre-baskerville
 ```
 
-If those are not installed, Zed immediately falls back to the first available
-serif in the list, such as Liberation Serif, Noto Serif, or DejaVu Serif.
-To swap fonts, change `buffer_font_family` to a family reported by
-`fc-list : family`, or reorder the fallback list.
+If `EB Garamond 12` is absent, Zed falls back to Noto Serif, Liberation Serif,
+or DejaVu Serif. To swap fonts, use a family reported by
+`fc-list : family style` and keep the fallback list ordered.
 
 The `.zed/tasks.json` file is included so opening the repository exposes
 `tc: Run`, `tc: Run + Parity Check`, `tc: Paraphrase`, `tc: Trace`, and
