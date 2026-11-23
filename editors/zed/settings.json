@@ -21,8 +21,15 @@
     "tc-lsp": {
       "binary": {
         "path": "tc-lsp",
-        "arguments": ["--stdio"]
+        "arguments": [
+          "--stdio"
+        ]
       }
+    }
+  },
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 300
     }
   }
 }

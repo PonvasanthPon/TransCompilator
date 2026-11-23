@@ -508,44 +508,42 @@ fn hover_text(analysis: &Analysis, line: &str, position: Position, word: &str) -
             if let IntentVerdict::CommentOmitted { reason } = &entry.intent {
                 return Some(format!("*Omitted prose (COMMENT_OMITTED)* — {reason}"));
             }
-            let paraphrase = project
+            let resolutions = project
                 .paraphrase
                 .iter()
                 .find(|doc| doc.module == analysis.entry)
-                .and_then(|doc| {
+                .map(|doc| {
                     doc.entries
                         .iter()
-                        .find(|candidate| candidate.span.line == position.line + 1)
-                });
-            if let Some(paraphrase) = paraphrase {
-                if !paraphrase.resolutions.is_empty()
-                    && (word == "it"
-                        || word == "its"
-                        || line
-                            .to_ascii_lowercase()
-                            .contains(&word.to_ascii_lowercase()))
-                {
-                    let relevant = paraphrase
-                        .resolutions
-                        .iter()
-                        .filter(|resolution| {
-                            resolution.to_ascii_lowercase().contains(word)
-                                || word == "it"
-                                || word == "its"
-                        })
-                        .cloned()
-                        .collect::<Vec<_>>();
-                    if !relevant.is_empty() {
-                        return Some(format!(
-                            "**ACE Anaphor**: {}",
-                            relevant
-                                .into_iter()
-                                .map(|value| format!("`{value}`"))
-                                .collect::<Vec<_>>()
-                                .join(" ")
-                        ));
-                    }
-                }
+                        .filter(|candidate| candidate.span.line == position.line + 1)
+                        .flat_map(|candidate| candidate.resolutions.iter().cloned())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            let relevant = resolutions
+                .into_iter()
+                .filter(|resolution| {
+                    let lower = resolution.to_ascii_lowercase();
+                    (lower.starts_with("[it ")
+                        || lower.starts_with("[its ")
+                        || lower.starts_with("[the ")
+                        || lower.starts_with("[their "))
+                        && (word == "it"
+                            || word == "its"
+                            || line
+                                .to_ascii_lowercase()
+                                .contains(&word.to_ascii_lowercase()))
+                })
+                .collect::<Vec<_>>();
+            if !relevant.is_empty() {
+                return Some(format!(
+                    "**ACE Anaphor**: {}",
+                    relevant
+                        .into_iter()
+                        .map(|value| format!("`{value}`"))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                ));
             }
         }
     }

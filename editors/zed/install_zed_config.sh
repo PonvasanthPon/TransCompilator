@@ -50,6 +50,29 @@ with open(target_path, "w", encoding="utf-8") as handle:
 PY
 
 echo "==> Wrote offline zero-AI settings to ${ZED_CONFIG}/settings.json"
+
+python3 - "${ZED_CONFIG}/tasks.json" "${ROOT}/editors/zed/tasks.json" <<'PYTASKS'
+import json
+import sys
+
+target_path, source_path = sys.argv[1], sys.argv[2]
+try:
+    with open(target_path, "r", encoding="utf-8") as handle:
+        target = json.load(handle)
+    if not isinstance(target, list):
+        target = []
+except (FileNotFoundError, json.JSONDecodeError):
+    target = []
+with open(source_path, "r", encoding="utf-8") as handle:
+    source = json.load(handle)
+target = [task for task in target if not str(task.get("label", "")).startswith("tc:")]
+target.extend(source)
+with open(target_path, "w", encoding="utf-8") as handle:
+    json.dump(target, handle, indent=2)
+    handle.write("\n")
+PYTASKS
+
+echo "==> Merged the five tc: tasks into ${ZED_CONFIG}/tasks.json"
 echo
 echo "Next steps:"
 echo "  1. Open ${ROOT} in Zed (never sign in)."
