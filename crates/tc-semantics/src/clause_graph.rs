@@ -235,13 +235,6 @@ pub(crate) fn split_compound_declaration(text: &str) -> Option<(Vec<String>, Vec
     } else {
         return None;
     };
-    let operator = if first.is("let") {
-        "be"
-    } else if first.is("set") {
-        "to"
-    } else {
-        "in"
-    };
     if tokenize(text).iter().any(|token| {
         token.is_word() && matches!(token.lower.as_str(), "if" | "when" | "unless" | "otherwise")
     }) {
@@ -253,6 +246,9 @@ pub(crate) fn split_compound_declaration(text: &str) -> Option<(Vec<String>, Vec
             .find(|token| token.kind == TokenKind::Word)
             .map(|token| token.lower)
             .unwrap_or_default();
+        if first == keyword.to_ascii_lowercase() {
+            return true;
+        }
         if matches!(
             first.as_str(),
             "add"
@@ -274,7 +270,7 @@ pub(crate) fn split_compound_declaration(text: &str) -> Option<(Vec<String>, Vec
         ) {
             return false;
         }
-        find_top_level_word(segment, operator).is_some()
+        binding_operator(segment).is_some()
             || (keyword == "Put" && find_top_level_word(segment, "in").is_some())
     })?;
     if pieces.len() < 2 {
@@ -301,7 +297,7 @@ pub(crate) fn split_compound_declaration(text: &str) -> Option<(Vec<String>, Vec
             find_top_level_word(name_source, "in")
                 .map(|(_, end)| canonical_name(name_source[end..].trim()))
         } else {
-            find_top_level_word(name_source, operator)
+            binding_operator(name_source)
                 .map(|(start, _)| canonical_name(name_source[..start].trim()))
         };
         if let Some(name) = name {
@@ -383,7 +379,39 @@ fn binding_operator(text: &str) -> Option<(usize, usize)> {
     find_top_level_word(text, "is")
         .or_else(|| find_top_level_word(text, "equals"))
         .or_else(|| find_top_level_word(text, "be"))
+        .or_else(|| find_top_level_word(text, "to"))
+        .or_else(|| find_top_level_phrase(text, "start at"))
+        .or_else(|| find_top_level_phrase(text, "starts at"))
+        .or_else(|| find_top_level_phrase(text, "begin at"))
+        .or_else(|| find_top_level_phrase(text, "begins at"))
         .or_else(|| find_top_level_symbol(text, "="))
+}
+
+fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(usize, usize)> {
+    let words = phrase.split_whitespace().collect::<Vec<_>>();
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+        }
+        if depth != 0 {
+            continue;
+        }
+        let matched = words.iter().enumerate().all(|(offset, word)| {
+            tokens
+                .get(index + offset)
+                .is_some_and(|candidate| candidate.kind == TokenKind::Word && candidate.is(word))
+        });
+        if matched {
+            return Some((token.start, tokens[index + words.len() - 1].end));
+        }
+    }
+    None
 }
 
 fn binding_name(text: &str) -> Option<String> {

@@ -451,6 +451,10 @@ impl SymbolIndex {
                                 || token.is("be")
                                 || token.is("to")
                                 || token.is("is")
+                                || token.is("start")
+                                || token.is("starts")
+                                || token.is("begin")
+                                || token.is("begins")
                         })
                         .map_or(tokens.len(), |(index, _)| index);
                     let possessive = first == "set"

@@ -269,7 +269,7 @@ fn declaration_kind(text: &str) -> Option<&'static str> {
         "union" => Some("union"),
         "global" => Some("global"),
         "function" => Some("function"),
-        "import" => Some("import"),
+        "import" | "use" => Some("import"),
         _ => None,
     }
 }
@@ -3584,11 +3584,8 @@ impl<'a> Lowerer<'a> {
                 return self.lower_square_root(rest, span);
             }
         }
-        for prefix in ["trim ", "trimmed "] {
-            if lower.starts_with(prefix)
-                && !lower.starts_with("trim text ")
-                && !lower.starts_with("trimmed text ")
-            {
+        for prefix in ["trim text ", "trimmed text ", "trim ", "trimmed "] {
+            if lower.starts_with(prefix) {
                 let rest = trimmed[prefix.len()..].trim();
                 return self.lower_trim_value(rest, span);
             }
@@ -7080,6 +7077,123 @@ impl<'a> Lowerer<'a> {
         Ok(statements)
     }
 
+    pub(crate) fn split_emit_parts(&mut self, text: &str, span: Span) -> Option<Vec<String>> {
+        let with = find_top_level_phrase(text, "with");
+        let followed = find_top_level_phrase(text, "followed by");
+        let (start, end) = match (with, followed) {
+            (Some((left, end)), Some((right, followed_end))) => {
+                if left.len() <= right.len() {
+                    (left.len(), end)
+                } else {
+                    (right.len(), followed_end)
+                }
+            }
+            (Some((left, end)), None) | (None, Some((left, end))) => (left.len(), end),
+            (None, None) => return None,
+        };
+        let first = text[..start].trim();
+        let rest = text[end..].trim();
+        if first.is_empty() || rest.is_empty() {
+            return None;
+        }
+        let mut parts = vec![first.to_string()];
+        parts.extend(self.split_output_parts(rest, span)?);
+        (parts.len() >= 2).then_some(parts)
+    }
+
+    fn split_output_parts(&mut self, text: &str, span: Span) -> Option<Vec<String>> {
+        let text = text.trim().trim_end_matches(',').trim();
+        if text.is_empty() {
+            return None;
+        }
+        if let Ok(value) = self.parse_value(text, span)
+            && !matches!(
+                value,
+                AstExpr::Binary {
+                    op: tc_ir::BinOp::LogAnd | tc_ir::BinOp::LogOr,
+                    ..
+                }
+            )
+        {
+            return Some(vec![text.to_string()]);
+        }
+        let tokens = tokenize(text);
+        let mut separators = Vec::new();
+        let mut depth = 0_i32;
+        for (index, token) in tokens.iter().enumerate() {
+            if token.kind == TokenKind::Symbol {
+                match token.text.as_str() {
+                    "(" | "[" | "{" => depth += 1,
+                    ")" | "]" | "}" => depth -= 1,
+                    "," if depth == 0 => separators.push(index),
+                    _ => {}
+                }
+            } else if depth == 0 && (token.is("and") || token.is("with")) {
+                separators.push(index);
+            }
+        }
+        for index in separators.into_iter().rev() {
+            let token = &tokens[index];
+            let left = text[..token.start].trim();
+            let right = text[token.end..].trim();
+            if left.is_empty() || right.is_empty() {
+                continue;
+            }
+            let Some(mut left_parts) = self.split_output_parts(left, span) else {
+                continue;
+            };
+            let Some(right_parts) = self.split_output_parts(right, span) else {
+                continue;
+            };
+            left_parts.extend(right_parts);
+            return Some(left_parts);
+        }
+        None
+    }
+
+    pub(crate) fn lower_emit_parts(
+        &mut self,
+        parts: &[String],
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let mut statements = Vec::new();
+        for part in parts {
+            let value = self.parse_value(part, span)?;
+            let statement = if let Some((pointer, length)) = self.text_bytes(&value) {
+                AstExpr::Call {
+                    module: None,
+                    name: "write_bytes".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![pointer, length],
+                }
+            } else {
+                let name = match self.shallow_type_opt(&value) {
+                    Some(AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64) => "write_u64",
+                    Some(AstType::F32 | AstType::F64) => "write_f64",
+                    Some(AstType::Bool) => "write_bool",
+                    _ => "write_i64",
+                };
+                AstExpr::Call {
+                    module: None,
+                    name: name.to_string(),
+                    type_args: Vec::new(),
+                    args: vec![value],
+                }
+            };
+            statements.push(AstStmt::Expr(statement, self.span(span)));
+        }
+        statements.push(AstStmt::Expr(
+            AstExpr::Call {
+                module: None,
+                name: "write_newline".to_string(),
+                type_args: Vec::new(),
+                args: Vec::new(),
+            },
+            self.span(span),
+        ));
+        Ok(statements)
+    }
+
     fn try_assignment(
         &mut self,
         text: &str,
@@ -7105,9 +7219,15 @@ impl<'a> Lowerer<'a> {
         }
         if starts_with_word(text, "let") {
             let rest = strip_leading_word(text, "let");
-            if let Some((start, end)) = find_top_level_word(rest, "be") {
-                let target = rest[..start].trim();
-                let value_text = rest[end..].trim();
+            let binding = ["be", "start at", "starts at", "begin at", "begins at"]
+                .iter()
+                .find_map(|operator| {
+                    find_top_level_phrase(rest, operator)
+                        .map(|(target, end)| (target, rest[end..].trim().to_string()))
+                });
+            if let Some((target, value_text)) = binding {
+                let target = target.trim();
+                let value_text = value_text.as_str();
                 if let Some((ty, elements)) = self.parse_inline_list(value_text, span)? {
                     return Ok(Some(self.lower_inline_list(target, ty, elements, span)?));
                 }
