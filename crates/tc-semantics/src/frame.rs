@@ -454,6 +454,9 @@ impl Lowerer<'_> {
                 break;
             }
             if !object.is_empty() {
+                if let Some(parts) = self.split_emit_parts(object, span) {
+                    return self.lower_emit_parts(&parts, span).map(Some);
+                }
                 return self
                     .lower_frame(
                         SemanticFrame::Emit {

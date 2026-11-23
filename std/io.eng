@@ -39,6 +39,30 @@ Give back len.
 To print a newline, named newline.
 Ask Linux kernel 1 with 1, "\n", and 1.
 
+Publicly, to write p (a pointer to byte) of length n (an unsigned number), named write_bytes.
+Ask Linux kernel 1 with 1, p, and n.
+
+Publicly, to write a whole number n, named write_i64.
+Let buf be block of 32 byte.
+Let len be format n into address of item 0 of buf.
+Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
+
+Publicly, to write an unsigned number n, named write_u64.
+Let buf be block of 32 byte.
+Let len be format n into address of item 0 of buf.
+Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
+
+Publicly, to write a decimal x, named write_f64.
+Let buf be block of 64 byte.
+Let len be format x into address of item 0 of buf.
+Ask Linux kernel 1 with 1, address of item 0 of buf, and len.
+
+Publicly, to write a truth value b, named write_bool.
+If b, ask Linux kernel 1 with 1, "true", and 4, otherwise ask Linux kernel 1 with 1, "false", and 5.
+
+Publicly, to end the line, named write_newline.
+Ask Linux kernel 1 with 1, "\n", and 1.
+
 Publicly, to say n (a whole number), named print_i64.
 Let buf be block of 32 byte.
 Let len be format n into address of item 0 of buf.

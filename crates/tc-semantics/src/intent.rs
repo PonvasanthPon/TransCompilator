@@ -249,10 +249,12 @@ fn assignment_shape(text: &str) -> bool {
         }
     }
     if starts_with_word(&core, "let") {
-        if let Some((start, end)) = find_top_level_word(&core, "be") {
-            let lhs = canonical_assignment_target(core[4..start].trim());
-            let rhs = core[end..].trim();
-            return is_lvalue_text(&lhs) && !rhs.is_empty();
+        for operator in ["be", "start at", "starts at", "begin at", "begins at"] {
+            if let Some((start, end)) = find_top_level_phrase(&core, operator) {
+                let lhs = canonical_assignment_target(core[4..start].trim());
+                let rhs = core[end..].trim();
+                return is_lvalue_text(&lhs) && !rhs.is_empty();
+            }
         }
     }
     for keyword in ["is", "becomes", "equals"] {
@@ -285,6 +287,33 @@ fn assignment_shape(text: &str) -> bool {
         }
     }
     false
+}
+
+fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(usize, usize)> {
+    let words = phrase.split_whitespace().collect::<Vec<_>>();
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+        }
+        if depth != 0 {
+            continue;
+        }
+        let matched = words.iter().enumerate().all(|(offset, word)| {
+            tokens
+                .get(index + offset)
+                .is_some_and(|candidate| candidate.kind == TokenKind::Word && candidate.is(word))
+        });
+        if matched {
+            return Some((token.start, tokens[index + words.len() - 1].end));
+        }
+    }
+    None
 }
 
 fn prep_roles(text: &str) -> Vec<tc_lexicon::PrepRole> {
@@ -747,18 +776,20 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
     }
     if let Some(hit) = first_word_hit(core)
         && hit.index == 0
-        && matches!(
-            hit.resolution.concept,
-            Some(
-                SemanticConcept::Increment
-                    | SemanticConcept::Decrement
-                    | SemanticConcept::Reset
-                    | SemanticConcept::Copy
-                    | SemanticConcept::Convert
-                    | SemanticConcept::Adjust
-                    | SemanticConcept::Swap
-            )
-        )
+        && (hit.resolution.predicate == Some(VerbPredicate::Emit)
+            || hit.resolution.concept == Some(SemanticConcept::Output)
+            || matches!(
+                hit.resolution.concept,
+                Some(
+                    SemanticConcept::Increment
+                        | SemanticConcept::Decrement
+                        | SemanticConcept::Reset
+                        | SemanticConcept::Copy
+                        | SemanticConcept::Convert
+                        | SemanticConcept::Adjust
+                        | SemanticConcept::Swap
+                )
+            ))
     {
         return IntentVerdict::Exec;
     }
