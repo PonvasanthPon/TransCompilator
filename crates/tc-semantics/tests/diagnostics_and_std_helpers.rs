@@ -122,7 +122,7 @@ fn unknown_function_in_say_suggests_imported_function() {
     assert_compile_failure(
         "diag-say-function",
         "Use math.\nSay sqtr(4.0).\nReturn 0.\n",
-        &["unexpected trailing token `sqtr`", "did you mean 'sqrt'?"],
+        &["function `sqtr` not found", "did you mean 'sqrt'?"],
     );
 }
 
