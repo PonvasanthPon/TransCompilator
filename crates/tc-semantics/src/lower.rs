@@ -4285,6 +4285,21 @@ impl<'a> Lowerer<'a> {
                             format!("unsupported block header `{}`", header.text),
                         ));
                     }
+                    let is_loop = ["while", "until", "for", "repeat", "loop"]
+                        .iter()
+                        .any(|keyword| starts_with_word(&lower, keyword));
+                    if is_loop && block.items.is_empty() {
+                        self.errors.push(self.error(
+                            header.span,
+                            SemanticErrorKind::Lowering,
+                            format!(
+                                "empty loop body after '{}' — place the loop statements directly below with no blank line, or indent them",
+                                header.text
+                            ),
+                        ));
+                        index += 1;
+                        continue;
+                    }
                     match self.lower_stmt(header, Some(&block.items), else_items, depth + 1) {
                         Ok(mut lowered) => statements.append(&mut lowered),
                         Err(error) => self.errors.push(error),
