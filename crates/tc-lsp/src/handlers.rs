@@ -486,15 +486,15 @@ fn diagnostic_json(diagnostic: &Diagnostic) -> Json {
 }
 
 fn hover_text(analysis: &Analysis, line: &str, position: Position, word: &str) -> Option<String> {
-    if let Some(project) = &analysis.lowered {
-        if let Some(entry) = project
-            .trace
-            .iter()
-            .find(|entry| entry.module == analysis.entry && entry.line == position.line + 1)
-        {
-            if let IntentVerdict::CommentOmitted { reason } = &entry.intent {
-                return Some(format!("*Omitted prose (COMMENT_OMITTED)* — {reason}"));
-            }
+    if let Some(entry) = analysis
+        .trace
+        .iter()
+        .find(|entry| entry.module == analysis.entry && entry.line == position.line + 1)
+    {
+        if let IntentVerdict::CommentOmitted { reason } = &entry.intent {
+            return Some(format!("*Omitted prose (COMMENT_OMITTED)* — {reason}"));
+        }
+        if let Some(project) = &analysis.lowered {
             let resolutions = project
                 .paraphrase
                 .iter()

@@ -239,10 +239,7 @@ pub(crate) fn semantic_tokens(text: &str, analysis: &Analysis) -> Vec<SemanticTo
 
 fn omitted_spans(lines: &[&str], analysis: &Analysis) -> HashMap<u32, Vec<(usize, usize)>> {
     let mut spans = HashMap::new();
-    let Some(project) = &analysis.lowered else {
-        return spans;
-    };
-    for entry in &project.trace {
+    for entry in &analysis.trace {
         if entry.module != analysis.entry
             || !matches!(entry.intent, IntentVerdict::CommentOmitted { .. })
         {

@@ -44,7 +44,7 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **965/965 passing**, including the 46-test headless
+for a current suite of **971/971 passing**, including the 50-test headless
 `tc-lsp` protocol suite, 68 compositional parity tests, 89
 paraphrase-invariance fluency tests, and 38 casual-English
 and guard/regression tests. All eight

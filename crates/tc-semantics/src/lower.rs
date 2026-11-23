@@ -2447,12 +2447,14 @@ fn paragraph_control_header(text: &str) -> bool {
         && text.trim_end().ends_with('.')
 }
 
-fn normalize_natural_source(text: &str) -> String {
+fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
     let mut output = String::new();
+    let mut line_map = Vec::new();
     let mut natural_function: Option<usize> = None;
     let mut control_blocks: Vec<usize> = Vec::new();
     let mut names = NamePhrases::default();
-    for raw_line in text.lines() {
+    for (index, raw_line) in text.lines().enumerate() {
+        let source_line = u32::try_from(index + 1).unwrap_or(u32::MAX);
         let indent = raw_line.len() - raw_line.trim_start().len();
         let trimmed = raw_line.trim_start();
         if trimmed.is_empty() {
@@ -2460,6 +2462,7 @@ fn normalize_natural_source(text: &str) -> String {
             natural_function = None;
             names.clear_local();
             output.push('\n');
+            line_map.push(source_line);
             continue;
         }
         if trimmed
@@ -2502,32 +2505,36 @@ fn normalize_natural_source(text: &str) -> String {
         if let Some(&control_indent) = control_blocks.last() {
             if paragraph_control_header(trimmed) {
                 let header = trimmed.trim_end_matches('.').trim();
-                output.push_str(&" ".repeat(control_indent + 4));
-                output.push_str(header);
-                output.push_str(":\n");
+                push_normalized_line(
+                    &mut output,
+                    &mut line_map,
+                    &format!("{}{}:", " ".repeat(control_indent + 4), header),
+                    source_line,
+                );
                 control_blocks.push(control_indent + 4);
                 continue;
             }
             let effective = control_indent + 4 + indent;
             for line in normalize_prose_line(trimmed, effective) {
-                output.push_str(&line);
-                output.push('\n');
+                push_normalized_line(&mut output, &mut line_map, &line, source_line);
             }
             continue;
         }
         if let Some(header_indent) = natural_function {
             if paragraph_control_header(trimmed) {
                 let header = trimmed.trim_end_matches('.').trim();
-                output.push_str(&" ".repeat(header_indent + 4));
-                output.push_str(header);
-                output.push_str(":\n");
+                push_normalized_line(
+                    &mut output,
+                    &mut line_map,
+                    &format!("{}{}:", " ".repeat(header_indent + 4), header),
+                    source_line,
+                );
                 control_blocks.push(header_indent + 4);
                 continue;
             }
             let effective = header_indent + 4 + indent;
             for line in normalize_prose_line(trimmed, effective) {
-                output.push_str(&line);
-                output.push('\n');
+                push_normalized_line(&mut output, &mut line_map, &line, source_line);
             }
             continue;
         }
@@ -2537,19 +2544,23 @@ fn normalize_natural_source(text: &str) -> String {
                     (header, Some(body))
                 });
             if let Ok(header) = normalize_function_header(&header_text, "main", Span::default()) {
-                output.push_str(&" ".repeat(indent));
-                output.push_str(&header);
-                output.push('\n');
+                push_normalized_line(
+                    &mut output,
+                    &mut line_map,
+                    &format!("{}{}", " ".repeat(indent), header),
+                    source_line,
+                );
                 for pattern in auto_phrase_patterns(&header_text, &header) {
-                    output.push_str(&" ".repeat(indent + 4));
-                    output.push_str("Phrase: \"");
-                    output.push_str(&pattern);
-                    output.push_str("\".\n");
+                    push_normalized_line(
+                        &mut output,
+                        &mut line_map,
+                        &format!("{}Phrase: \"{}\".", " ".repeat(indent + 4), pattern),
+                        source_line,
+                    );
                 }
                 if let Some(body) = inline_body {
                     for line in normalize_prose_line(&body, indent + 4) {
-                        output.push_str(&line);
-                        output.push('\n');
+                        push_normalized_line(&mut output, &mut line_map, &line, source_line);
                     }
                 } else {
                     natural_function = Some(indent);
@@ -2559,25 +2570,70 @@ fn normalize_natural_source(text: &str) -> String {
         }
         if paragraph_control_header(trimmed) {
             let header = trimmed.trim_end_matches('.').trim();
-            output.push_str(&" ".repeat(indent));
-            output.push_str(header);
-            output.push_str(":\n");
+            push_normalized_line(
+                &mut output,
+                &mut line_map,
+                &format!("{}{}:", " ".repeat(indent), header),
+                source_line,
+            );
             control_blocks.push(indent);
             continue;
         }
         for line in normalize_prose_line(trimmed, indent) {
-            output.push_str(&line);
-            output.push('\n');
+            push_normalized_line(&mut output, &mut line_map, &line, source_line);
         }
     }
-    output
+    (output, line_map)
 }
+
+fn push_normalized_line(
+    output: &mut String,
+    line_map: &mut Vec<u32>,
+    line: &str,
+    source_line: u32,
+) {
+    output.push_str(line);
+    output.push('\n');
+    line_map.push(source_line);
+}
+
+fn remap_document_lines(document: &mut crate::RawDocument, line_map: &[u32]) {
+    remap_item_lines(&mut document.items, line_map);
+}
+
+fn remap_item_lines(items: &mut [RawItem], line_map: &[u32]) {
+    for item in items {
+        match item {
+            RawItem::Sentence(sentence) => remap_span_line(&mut sentence.span, line_map),
+            RawItem::Block(block) => {
+                if let Some(header) = &mut block.header {
+                    remap_span_line(&mut header.span, line_map);
+                }
+                remap_span_line(&mut block.span, line_map);
+                remap_item_lines(&mut block.items, line_map);
+            }
+        }
+    }
+}
+
+fn remap_span_line(span: &mut Span, line_map: &[u32]) {
+    if let Some(line) = span
+        .line
+        .checked_sub(1)
+        .and_then(|index| usize::try_from(index).ok())
+        .and_then(|index| line_map.get(index))
+    {
+        span.line = *line;
+    }
+}
+
 /// Runs the declaration pass over one segmented module.
 pub(crate) fn parse_module(source: &SourceFile) -> Result<ModuleJob, Vec<SemanticError>> {
     let module_name = source.module_name();
-    let normalized_source = normalize_natural_source(&source.text);
+    let (normalized_source, line_map) = normalize_natural_source(&source.text);
     let normalized = SourceFile::new(source.name.clone(), normalized_source);
-    let document = segment_source(&normalized);
+    let mut document = segment_source(&normalized);
+    remap_document_lines(&mut document, &line_map);
     let mut ast = AstModule {
         name: module_name.clone(),
         imports: Vec::new(),
@@ -7928,7 +7984,7 @@ mod version2_tests {
 
     #[test]
     fn paragraph_function_ends_at_blank_line() {
-        let normalized = normalize_natural_source(
+        let (normalized, _) = normalize_natural_source(
             "Use core.\nTo twice given value as a whole number, named twice, returning a whole number.\nGive back value plus value.\n\nReturn twice 5.\n",
         );
         assert!(normalized.contains("function twice"));
@@ -7938,7 +7994,7 @@ mod version2_tests {
 
     #[test]
     fn trailing_if_becomes_control_block() {
-        let normalized = normalize_natural_source(
+        let (normalized, _) = normalize_natural_source(
             "To smaller given a as a whole number, b as a whole number, named smaller, returning a whole number.\nGive back a if a is less than b, otherwise give back b.\n",
         );
         assert!(normalized.contains("If a is less than b:"));
@@ -7949,7 +8005,7 @@ mod version2_tests {
 
     #[test]
     fn inline_naming_becomes_let() {
-        let normalized = normalize_natural_source(
+        let (normalized, _) = normalize_natural_source(
             "To make given value as a whole number, named make, returning nothing.\nvalue plus 1 and call it answer.\n",
         );
         assert!(normalized.contains("Let answer be value plus 1."));
