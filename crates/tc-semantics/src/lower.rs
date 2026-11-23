@@ -3509,7 +3509,7 @@ impl<'a> Lowerer<'a> {
     ) -> Result<AstExpr, SemanticError> {
         let mut args = Vec::with_capacity(phrase.args.len());
         for argument in &phrase.args {
-            args.push(self.parse_expr(argument, span)?);
+            args.push(self.parse_value(argument, span)?);
         }
         let module = (phrase.module != self.module).then(|| phrase.module.clone());
         Ok(AstExpr::Call {
@@ -3712,8 +3712,22 @@ impl<'a> Lowerer<'a> {
             resolution.predicate == Some(VerbPredicate::Emit)
                 || resolution.concept == Some(SemanticConcept::Output)
         });
+        let lower = source.to_ascii_lowercase();
+        let wrapped_value = [
+            "the length of ",
+            "length of ",
+            "the value of ",
+            "value of ",
+            "number of items in ",
+            "number of characters in ",
+            "the size of ",
+            "the count of ",
+        ]
+        .iter()
+        .any(|needle| lower.contains(needle));
         is_emit
-            && (crate::value::is_np_expression(source)
+            && (wrapped_value
+                || crate::value::is_np_expression(source)
                 || phrase
                     .args
                     .iter()
@@ -6623,6 +6637,125 @@ impl<'a> Lowerer<'a> {
         Ok(Some((lowered.prelude, lowered.expr)))
     }
 
+    fn parse_inline_list(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<(AstType, Vec<AstExpr>)>, SemanticError> {
+        let lower = text.trim().to_ascii_lowercase();
+        let empty = lower.starts_with("an empty list of ")
+            || lower.starts_with("a empty list of ")
+            || lower.starts_with("empty list of ");
+        if empty {
+            let type_text = text
+                .trim()
+                .split_once(" of ")
+                .map_or("", |(_, rest)| rest)
+                .trim()
+                .to_ascii_lowercase();
+            let element = if type_text.contains("decimal") || type_text.contains("real") {
+                AstType::F64
+            } else if type_text.contains("text")
+                || type_text.contains("string")
+                || type_text.contains("word")
+            {
+                AstType::Named {
+                    module: None,
+                    name: "tcstring".to_string(),
+                    type_args: Vec::new(),
+                }
+            } else {
+                AstType::I64
+            };
+            return Ok(Some((list_type(element), Vec::new())));
+        }
+        let Some(rest) = text
+            .trim()
+            .strip_prefix("a list of ")
+            .or_else(|| text.trim().strip_prefix("A list of "))
+        else {
+            return Ok(None);
+        };
+        let parts = split_list_elements(rest);
+        if parts.is_empty() {
+            return Err(self.error(span, SemanticErrorKind::Lowering, "empty inline list"));
+        }
+        let first_text = parts[0].trim();
+        let text_elements = first_text.starts_with('"') || first_text.starts_with('\'');
+        let first = self.parse_value(first_text, span)?;
+        let element_ty = if text_elements {
+            AstType::Named {
+                module: None,
+                name: "tcstring".to_string(),
+                type_args: Vec::new(),
+            }
+        } else {
+            self.shallow_type(&first)
+        };
+        let mut elements = Vec::new();
+        for part in parts {
+            let value = self.parse_value(&part, span)?;
+            if matches!(
+                element_ty,
+                AstType::Named { ref name, .. } if name.eq_ignore_ascii_case("tcstring")
+            ) {
+                elements.push(match value {
+                    AstExpr::BytesLit(bytes) => AstExpr::Call {
+                        module: None,
+                        name: "str_from_bytes".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![AstExpr::BytesLit(bytes.clone()), AstExpr::BytesLen(bytes)],
+                    },
+                    other => other,
+                });
+            } else {
+                elements.push(value);
+            }
+        }
+        Ok(Some((list_type(element_ty), elements)))
+    }
+
+    fn lower_inline_list(
+        &mut self,
+        target: &str,
+        ty: AstType,
+        elements: Vec<AstExpr>,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let canonical = canonical_assignment_target(target);
+        if !is_simple_name(&canonical) {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "inline list target must be a simple variable",
+            ));
+        }
+        let name = lower_name(&canonical);
+        let mut statements = self.assign_text(&name, AstExpr::Zero(ty), span, true)?;
+        let pointer = if self.globals.contains_key(&name)
+            && !self.current_scope_contains(&name)
+        {
+            AstExpr::GlobalAddr {
+                module: None,
+                name: name.clone(),
+            }
+        } else {
+            AstExpr::AddrOfVar(name)
+        };
+        for element in elements {
+            statements.push(AstStmt::Expr(
+                AstExpr::Call {
+                    module: None,
+                    name: "list_push".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![element, pointer.clone()],
+                },
+                self.span(span),
+            ));
+        }
+        Ok(statements)
+    }
+
     fn try_assignment(
         &mut self,
         text: &str,
@@ -6651,6 +6784,9 @@ impl<'a> Lowerer<'a> {
             if let Some((start, end)) = find_top_level_word(rest, "be") {
                 let target = rest[..start].trim();
                 let value_text = rest[end..].trim();
+                if let Some((ty, elements)) = self.parse_inline_list(value_text, span)? {
+                    return Ok(Some(self.lower_inline_list(target, ty, elements, span)?));
+                }
                 if is_simple_name(target) {
                     let name = lower_name(target);
                     if let Some(ty) = self.declaration_type(value_text) {
@@ -7209,7 +7345,7 @@ impl<'a> Lowerer<'a> {
                 let value = if value.is_empty() {
                     AstExpr::ConstInt(1, None)
                 } else {
-                    self.parse_expr(value, span)?
+                    self.parse_value(value, span)?
                 };
                 let operator = if predicate == VerbPredicate::Combine {
                     tc_ir::BinOp::Add
@@ -7282,7 +7418,7 @@ impl<'a> Lowerer<'a> {
         let value = if value_text.is_empty() {
             AstExpr::ConstInt(0, None)
         } else {
-            self.parse_expr(value_text, span)?
+            self.parse_value(value_text, span)?
         };
         self.write_arithmetic(target, operator, value, span)
     }
@@ -7310,6 +7446,34 @@ pub(crate) fn type_contains_params(ty: &AstType, params: &[String]) -> bool {
         }
         _ => false,
     }
+}
+
+fn list_type(element: AstType) -> AstType {
+    AstType::Named {
+        module: None,
+        name: "list".to_string(),
+        type_args: vec![element],
+    }
+}
+
+fn split_list_elements(text: &str) -> Vec<String> {
+    let mut parts = split_top_level(text, ",");
+    for part in &mut parts {
+        let trimmed = part.trim();
+        if starts_with_word(trimmed, "and") {
+            *part = strip_leading_word(trimmed, "and").trim().to_string();
+        } else {
+            *part = trimmed.to_string();
+        }
+    }
+    if parts.len() == 1 && !text.contains(',') {
+        parts = split_top_level(text, "and")
+            .into_iter()
+            .map(|part| part.trim().to_string())
+            .collect();
+    }
+    parts.retain(|part| !part.is_empty());
+    parts
 }
 
 fn zero_like(expr: &AstExpr) -> AstExpr {

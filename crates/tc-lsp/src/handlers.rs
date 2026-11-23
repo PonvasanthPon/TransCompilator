@@ -34,17 +34,25 @@ const STD_MODULES: [(&str, &str); 8] = [
     ),
 ];
 
-const COMPARATORS: [&str; 10] = [
+const COMPARATORS: [&str; 18] = [
     "is more than ",
     "is less than ",
-    "is at least ",
-    "is at most ",
+    "at least ",
+    "at most ",
+    "exceeds ",
     "equals ",
+    "differs from ",
     "does not equal ",
     "is between ",
+    "is even",
+    "is odd",
+    "is positive",
+    "is negative",
+    "is zero",
+    "is nonzero",
+    "is divisible by ",
     "is empty",
     "is not empty",
-    "is equal to ",
 ];
 
 const STANDARD_PHRASES: [&str; 30] = [

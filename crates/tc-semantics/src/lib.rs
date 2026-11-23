@@ -253,11 +253,32 @@ fn augmented_sources(
     let Some(std_dir) = find_std_dir() else {
         return (all, added);
     };
+    let source_text = all
+        .iter()
+        .map(|source| source.text.to_ascii_lowercase())
+        .collect::<Vec<_>>()
+        .join("\n");
+    let needs_list = source_text.contains("a list of ")
+        || source_text.contains("an empty list of ")
+        || source_text.contains("number of items in ")
+        || source_text.contains("the size of ")
+        || (source_text.contains("for each ") && source_text.contains(" in "));
+    let needs_string = source_text.contains("a list of \"")
+        || source_text.contains("list of text")
+        || source_text.contains("list of strings")
+        || source_text.contains("number of characters in ");
     let mut present = all
         .iter()
         .map(SourceFile::module_name)
         .collect::<HashSet<_>>();
-    let mut queue = VecDeque::from(["io".to_string()]);
+    let mut wanted = vec!["io".to_string()];
+    if needs_list {
+        wanted.push("list".to_string());
+    }
+    if needs_string {
+        wanted.push("string".to_string());
+    }
+    let mut queue = VecDeque::from(wanted);
     let mut seen = HashSet::new();
     while let Some(module) = queue.pop_front() {
         if !seen.insert(module.clone()) || present.contains(&module) {
@@ -318,21 +339,30 @@ pub fn lower_project_with_parser(
         return Err(errors);
     }
     if auto_prelude {
+        let mut auto_imports = vec!["io"];
+        if auto_modules.contains("list") {
+            auto_imports.push("list");
+        }
+        if auto_modules.contains("string") {
+            auto_imports.push("string");
+        }
         for job in &mut jobs {
             if is_std_module(&job.module.name) {
                 continue;
             }
-            if !job
-                .module
-                .imports
-                .iter()
-                .any(|import| import.module == "io")
-            {
-                job.module.imports.push(tc_typeck::Import {
-                    module: "io".to_string(),
-                    alias: None,
-                    span: tc_typeck::Span::new(&job.module.name, 1, 1),
-                });
+            for module in &auto_imports {
+                if !job
+                    .module
+                    .imports
+                    .iter()
+                    .any(|import| import.module == *module)
+                {
+                    job.module.imports.push(tc_typeck::Import {
+                        module: (*module).to_string(),
+                        alias: None,
+                        span: tc_typeck::Span::new(&job.module.name, 1, 1),
+                    });
+                }
             }
         }
     }

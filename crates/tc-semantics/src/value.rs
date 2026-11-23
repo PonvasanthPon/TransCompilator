@@ -141,8 +141,77 @@ pub(crate) fn parse_value<C: ValueContext>(
             return Ok(AstExpr::Var(name));
         }
     }
+    for prefix in [
+        "the number of items in ",
+        "number of items in ",
+        "the number of characters in ",
+        "number of characters in ",
+        "the length of ",
+        "length of ",
+        "the size of ",
+        "size of ",
+        "the count of ",
+        "count of ",
+    ] {
+        if let Some(rest) = lower.strip_prefix(prefix) {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let simple_count = !prefix.contains("count")
+                || rest
+                    .chars()
+                    .all(|character| character.is_ascii_alphanumeric() || character == '_')
+                || (rest.starts_with('"') && rest.ends_with('"'));
+            if !simple_count {
+                continue;
+            }
+            if let Ok(value) = parse_value(context, rest, span)
+                && let Some(length) = context.length_expression(value, span)?
+            {
+                return Ok(length);
+            }
+        }
+    }
+    for prefix in ["the value of ", "value of "] {
+        if let Some(rest) = lower.strip_prefix(prefix) {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            return parse_value(context, rest, span);
+        }
+    }
+    for prefix in ["the number ", "number "] {
+        if lower.starts_with(prefix)
+            && !lower.starts_with(&format!("{prefix}of "))
+            && lower.len() > prefix.len()
+        {
+            let rest = trimmed[prefix.len()..].trim();
+            return parse_value(context, rest, span);
+        }
+    }
     let specification = ValueSpec::classify(trimmed);
     let _ = specification.kind;
+    let phrase_text = specification
+        .text
+        .strip_prefix("the ")
+        .or_else(|| specification.text.strip_prefix("The "))
+        .unwrap_or(&specification.text)
+        .to_ascii_lowercase();
+    for operation in ["sum", "total", "average", "minimum", "maximum", "count"] {
+        if let Some(rest) = phrase_text.strip_prefix(&format!("{operation} of ")) {
+            let simple = rest
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || character == '_');
+            let countable = operation != "count" || simple;
+            if !rest.contains(" and ")
+                && !rest.contains(',')
+                && !rest.starts_with("address of ")
+                && !rest.is_empty()
+                && countable
+            {
+                let candidate = format!("{operation} of address of {}", rest);
+                if let Some(phrase) = context.match_value_phrase(&candidate, span)? {
+                    return context.value_phrase_expression(&phrase, span);
+                }
+            }
+        }
+    }
     if let Some(phrase) = context.match_value_phrase(&specification.text, span)? {
         return context.value_phrase_expression(&phrase, span);
     }
