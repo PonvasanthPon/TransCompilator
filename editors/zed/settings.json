@@ -1,0 +1,28 @@
+{
+  "disable_ai": true,
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "auto_update": false,
+  "theme": "One Light",
+  "buffer_font_size": 15,
+  "soft_wrap": "editor_width",
+  "languages": {
+    "TransCompilator English": {
+      "soft_wrap": "editor_width",
+      "tab_size": 4,
+      "hard_tabs": false,
+      "show_completions_on_input": true,
+      "enable_language_server": true
+    }
+  },
+  "lsp": {
+    "tc-lsp": {
+      "binary": {
+        "path": "tc-lsp",
+        "arguments": ["--stdio"]
+      }
+    }
+  }
+}

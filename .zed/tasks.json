@@ -1,0 +1,32 @@
+[
+  {
+    "label": "tc: Run (.eng -> static ELF64)",
+    "command": "tc",
+    "args": ["run", "$ZED_FILE"],
+    "tags": ["tc", "run"]
+  },
+  {
+    "label": "tc: Run + Parity Check",
+    "command": "r1-editor",
+    "args": ["--check", "$ZED_FILE"],
+    "tags": ["tc", "parity"]
+  },
+  {
+    "label": "tc: Paraphrase",
+    "command": "tc",
+    "args": ["paraphrase", "$ZED_FILE"],
+    "tags": ["tc", "paraphrase"]
+  },
+  {
+    "label": "tc: Trace (Link Grammar + WordNet/VerbNet)",
+    "command": "tc",
+    "args": ["trace", "$ZED_FILE"],
+    "tags": ["tc", "trace"]
+  },
+  {
+    "label": "tc: Build Static ELF64",
+    "command": "tc",
+    "args": ["build", "$ZED_FILE"],
+    "tags": ["tc", "build"]
+  }
+]

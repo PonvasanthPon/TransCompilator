@@ -9,8 +9,9 @@ This repository is **`tc_r1` v1.0**: the hardened Core-7 typed IR, exhaustive
 verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
 ELF64 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
 word/verb engine, a finite English front end, the readable natural-English
-`std/` standard library, a terminal editor (`r1-editor`), and a true native
-`eframe`/`egui` desktop editor (`r1-editor-gui`) are implemented. English source now flows through vendored
+`std/` standard library, a terminal editor (`r1-editor`), a native `std`-only
+Language Server (`tc-lsp`), and a Zed `.eng` extension with offline zero-AI
+configuration are implemented. English source now flows through vendored
 CMU Link Grammar 5.13.2, paragraph/block segmentation, a normalized clause
 tree, a strict three-way intent gate, a declarative `Phrase:` dispatcher, a
 DRS-style discourse referent stack (`it`, `its <field>`, `the <type>`), a
@@ -41,7 +42,8 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **747/747 passing**. All eight `std/*.eng` modules pass
+for a current suite of **726/726 passing**, including the 25-test headless
+`tc-lsp` protocol suite. All eight `std/*.eng` modules pass
 the Version 2 pure-English readability gate. Compiler diagnostics now suggest
 natural spellings for unknown names and fields, explain reserved control words,
 and point unresolved anaphors at concrete fixes; `std/list` and `std/string`
@@ -52,7 +54,7 @@ starts/ends/contains/trim/parse/format helpers in pure Version 2 English.
 ./target/debug/tc --selftest
 ./target/debug/tc build program.eng -o program.elf
 ./target/debug/r1-editor program.eng
-./target/debug/r1-editor-gui program.eng
+./target/debug/tc-lsp --stdio
 ```
 
 Documentation:
@@ -66,11 +68,10 @@ Documentation:
 
 ## Hard properties
 
-- **`std`-only compiler and TUI** — the seven compiler crates and the
-  `r1-editor` TUI have zero crates.io dependencies; only local workspace path
-  dependencies.
-- **Native GUI exception** — `tc-editor-gui` is the only crate allowed to use
-  crates.io, and only `eframe`/`egui` for a real Linux desktop window.
+- **100% Rust `std`-only workspace** — all nine local `tc-*` crates (`tc-ir`,
+  `tc-codegen-x86`, `tc-typeck`, `tc-lexicon`, `tc-syntax`, `tc-semantics`,
+  `tc-cli`, `tc-editor`, `tc-lsp`) have zero crates.io dependencies and zero
+  checksums in `Cargo.lock`.
 - **Zero ML** — no models, embeddings, neural runtimes, or statistical
   weight files.
 - **Zero network** — builds and tests run fully offline.
@@ -98,7 +99,8 @@ tc_r1/
     tc-semantics/     # intent gate, phrase dispatch, unified Core-7 lowering
     tc-cli/           # end-to-end `tc` command-line driver
     tc-editor/        # native std-only R1 Editor (`r1-editor`) for .eng programs
-    tc-editor-gui/    # native eframe/egui desktop editor (`r1-editor-gui`)
+    tc-lsp/           # std-only JSON-RPC Language Server (`tc-lsp`)
+  editors/zed/        # offline zero-AI Zed settings, tasks, and tc-eng extension
   std/                # 8 Version 2 pure-English standard-library modules
   tests/              # integration-test placeholder
   docs/               # spec, convergence report, limits, and round history
@@ -115,13 +117,12 @@ tc-syntax       -> tc-lexicon
 tc-semantics    -> tc-syntax, tc-lexicon, tc-typeck, tc-ir
 tc-cli          -> all six library crates (binary: tc)
 tc-editor       -> tc-ir, tc-codegen-x86, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
-tc-editor-gui   -> tc-editor, compiler crates, eframe/egui (binary: r1-editor-gui)
+tc-lsp          -> tc-editor, tc-ir, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
 ```
 
-The graph is strictly acyclic. The two editor crates call the compiler
-in-process; neither shells out to a compiler binary. Only the native GUI
-links `eframe`/`egui`; all compiler crates and the TUI remain Rust `std`-only. `crates/tc-cli` produces
-the `tc` binary:
+The graph is strictly acyclic. The TUI and LSP call the compiler in-process;
+neither shells out to a compiler binary. Every workspace crate remains Rust
+`std`-only. `crates/tc-cli` produces the `tc` binary:
 
 - `tc --version` prints `tc_r1 0.1.0`.
 - `tc --audit` checks the workspace crate identities and reports the exact
@@ -237,10 +238,10 @@ make release     # cargo build --workspace --release
 make test        # build + cargo test --workspace
 make lint        # cargo clippy --workspace --all-targets -- -D warnings
 make fmt-check   # cargo fmt --all -- --check
-make audit       # zero-ML, compiler/TUI std-only, native-GUI boundary checks
+make audit       # zero-ML, 9 local tc-* crates only, 0 external crates
 make selftest    # verify + interpret + compile + execute + differential check
 make editor      # launch the terminal editor (r1-editor)
-make editor-gui  # launch the offline GUI editor (r1-editor-gui)
+make lsp         # launch the stdio Language Server (tc-lsp)
 make clean       # cargo clean
 ```
 
@@ -313,29 +314,37 @@ CARGO_NET_OFFLINE=true cargo build --release --bin r1-editor
 ./target/release/r1-editor
 ```
 
-## R1 Editor GUI (`r1-editor-gui`)
+## Language Server (`tc-lsp`) and Zed
 
-`r1-editor-gui` is a true native Linux desktop IDE built with
-`eframe`/`egui`. It opens a real OS window, renders with OpenGL through
-Mesa, and calls `tc-editor::runner` and `tc-editor::highlight` in-process.
-There is no HTTP server, no `TcpListener`, no HTML/CSS/JS, and no browser
-launch. The default palette is a calm GitHub-style Light theme with pure
-white editor canvas, soft neutral chrome, and WCAG-friendly syntax colors;
-a quiet Soft Dark theme is available from the toolbar.
+`tc-lsp` is a native Rust `std`-only LSP server. It speaks JSON-RPC 2.0 over
+stdin/stdout with `Content-Length` framing and provides:
+
+- live diagnostics with Levenshtein suggestions, reserved-word hints, and
+  `UNRESOLVED_ANAPHOR` guidance;
+- hover for ACE anaphors, WordNet/VerbNet provenance, variables, records,
+  fields, functions, and omitted prose reasons;
+- completion for `std/` modules, record fields, English comparators,
+  multi-word variables, phrase templates, and Version 2 starters;
+- go-to-definition including cross-file jumps into `std/*.eng`;
+- document symbols for the Zed Outline panel;
+- semantic tokens driven by `tc-editor::highlight` and `tc-lexicon`.
 
 ```bash
-make build
-./target/debug/r1-editor-gui                    # open an empty native window
-./target/debug/r1-editor-gui budget.eng         # open a workspace file
-./target/debug/r1-editor-gui --check budget.eng # headless compile/type check
-./target/debug/r1-editor-gui --version
-make editor-gui
+CARGO_NET_OFFLINE=true cargo build --release --bin tc-lsp
+./target/release/tc-lsp --stdio
 ```
 
-The window has a top toolbar with Run, Paraphrase, Trace, Core-7 IR, Build,
-New, Open, Save, Presets, `std/` Reference, and Light/Dark controls; a
-collapsible workspace/preset sidebar; a line-numbered central editor with
-live `tc-lexicon` highlighting and a stdin strip; and a resizable output
-inspector with Run & Parity, Paraphrase, Trace, Core-7 IR, and Build tabs.
-Run executes both the reference interpreter and the static zero-libc ELF64
-in isolated temporary directories and verifies exact parity.
+Zed setup is in `editors/zed/` and is fully offline, zero-AI, and zero-sign-in:
+
+```bash
+./editors/zed/install_zed_config.sh
+```
+
+The helper builds and links `tc`, `tc-lsp`, and `r1-editor` into
+`~/.local/bin`, backs up your existing Zed settings, and merges the Light
+theme, disabled AI, disabled telemetry, disabled auto-update, and soft-wrap
+configuration. Then open `tc_r1` in Zed, choose
+`Extensions -> Install Dev Extension`, and select
+`editors/zed/tc-eng-extension`. The five `tc:` tasks (`Run`, `Run + Parity
+Check`, `Paraphrase`, `Trace`, and `Build Static ELF64`) are available from
+the repository `.zed/tasks.json`.
