@@ -1,0 +1,8 @@
+name = "TransCompilator English"
+path_suffixes = ["eng"]
+line_comments = []
+brackets = [
+  { start = "(", end = ")", close = true, newline = false },
+  { start = "[", end = "]", close = true, newline = false },
+  { start = "{", end = "}", close = true, newline = false }
+]
