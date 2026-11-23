@@ -555,12 +555,13 @@ fn run_audit() -> ExitCode {
         "tc-editor",
         "tc-ir",
         "tc-lexicon",
+        "tc-lsp",
         "tc-semantics",
         "tc-syntax",
         "tc-typeck",
     ];
     if packages != expected_packages {
-        eprintln!("tc_r1 audit: FAIL (Cargo.lock must contain exactly 8 local tc-* packages)");
+        eprintln!("tc_r1 audit: FAIL (Cargo.lock must contain exactly 9 local tc-* packages)");
         return ExitCode::FAILURE;
     }
     if lock
@@ -592,7 +593,7 @@ fn run_audit() -> ExitCode {
     println!("  std modules     : {std_modules}");
     println!("  workspace deps  : std + local path only");
     println!("  workspace external: 0");
-    println!("  Cargo.lock      : 8 local tc-* packages, 0 sources, 0 checksums");
+    println!("  Cargo.lock      : 9 local tc-* packages, 0 sources, 0 checksums");
     println!("  LSP transport   : stdio JSON-RPC 2.0");
     println!("  ML runtime      : disabled");
     println!("  network         : disabled");

@@ -1,0 +1,22 @@
+[package]
+name = "tc-lsp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Native std-only Language Server for TransCompilator English .eng files"
+
+[[bin]]
+name = "tc-lsp"
+path = "src/main.rs"
+
+[dependencies]
+tc-ir = { path = "../tc-ir" }
+tc-typeck = { path = "../tc-typeck" }
+tc-lexicon = { path = "../tc-lexicon" }
+tc-syntax = { path = "../tc-syntax" }
+tc-semantics = { path = "../tc-semantics" }
+tc-editor = { path = "../tc-editor" }
+
+[lints]
+workspace = true

@@ -41,7 +41,7 @@ audit:
 	if [ -n "$$bad" ]; then echo "  FAIL: non-path dependency entries:"; echo "$$bad"; exit 1; fi; \
 	echo "  workspace dependencies              : local path only"
 	@ext=""; \
-	for pkg in tc-ir tc-codegen-x86 tc-typeck tc-lexicon tc-syntax tc-semantics tc-cli tc-editor; do \
+	for pkg in tc-ir tc-codegen-x86 tc-typeck tc-lexicon tc-syntax tc-semantics tc-cli tc-editor tc-lsp; do \
 		out="$$($(CARGO) tree -p $$pkg --edges normal --prefix none 2>/dev/null | awk 'NF { print $$1 }' | grep -v '^tc-' || true)"; \
 		ext="$$ext$$out"; \
 	done; \
@@ -49,12 +49,12 @@ audit:
 	if [ -n "$$ext" ]; then echo "  FAIL: external crates in workspace crates:"; echo "$$ext"; exit 1; fi; \
 	echo "  workspace external crates           : 0"
 	@names="$$(grep '^name = ' Cargo.lock | sed 's/name = "//; s/"//' | sort)"; \
-	expected="tc-cli tc-codegen-x86 tc-editor tc-ir tc-lexicon tc-semantics tc-syntax tc-typeck"; \
-	if [ "$$names" != "$$(printf '%s\n' $$expected | sort)" ]; then echo "  FAIL: Cargo.lock must contain exactly the 8 local tc-* packages"; echo "$$names"; exit 1; fi; \
+	expected="tc-cli tc-codegen-x86 tc-editor tc-ir tc-lexicon tc-lsp tc-semantics tc-syntax tc-typeck"; \
+	if [ "$$names" != "$$(printf '%s\n' $$expected | sort)" ]; then echo "  FAIL: Cargo.lock must contain exactly the 9 local tc-* packages"; echo "$$names"; exit 1; fi; \
 	if grep -q '^source = ' Cargo.lock; then echo "  FAIL: registry/git source entries found in Cargo.lock"; exit 1; fi; \
 	if grep -q '^checksum = ' Cargo.lock; then echo "  FAIL: checksum entries found in Cargo.lock"; exit 1; fi; \
 	if grep -qE '^name = "(eframe|egui|serde|serde_json|tokio)"' Cargo.lock; then echo "  FAIL: external runtime crate found in Cargo.lock"; exit 1; fi; \
-	echo "  Cargo.lock packages                 : 8 local tc-* only (0 sources, 0 checksums)"
+	echo "  Cargo.lock packages                 : 9 local tc-* only (0 sources, 0 checksums)"
 	@web="$$(grep -R -n -E 'TcpListener|frontend\.html|xdg-open|text/html|<html|http://|https://' --exclude-dir=generated crates/*/src 2>/dev/null || true)"; \
 	if [ -n "$$web" ]; then echo "  FAIL: HTTP/HTML/browser code in workspace crates:"; echo "$$web"; exit 1; fi; \
 	echo "  network/HTML/browser references     : none"

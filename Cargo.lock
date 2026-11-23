@@ -42,6 +42,18 @@ name = "tc-lexicon"
 version = "0.1.0"
 
 [[package]]
+name = "tc-lsp"
+version = "0.1.0"
+dependencies = [
+ "tc-editor",
+ "tc-ir",
+ "tc-lexicon",
+ "tc-semantics",
+ "tc-syntax",
+ "tc-typeck",
+]
+
+[[package]]
 name = "tc-semantics"
 version = "0.1.0"
 dependencies = [
