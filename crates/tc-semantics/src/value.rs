@@ -115,7 +115,8 @@ pub(crate) fn parse_value<C: ValueContext>(
     text: &str,
     span: Span,
 ) -> Result<AstExpr, SemanticError> {
-    let trimmed = text.trim();
+    let normalized = crate::number_words::normalize_hyphens(text);
+    let trimmed = normalized.trim();
     let lower = trimmed.to_ascii_lowercase();
     if let Some(operation) = lower.strip_prefix("their ") {
         let names = context.plural_names();
@@ -616,6 +617,25 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
         let start = self.position;
         while let Some(token) = self.peek() {
             if atom_delimiter(token) {
+                let numeric_hyphen = token.text == "-"
+                    && self.position > start
+                    && self
+                        .tokens
+                        .get(self.position - 1)
+                        .is_some_and(|previous| {
+                            previous.is_word()
+                                && crate::number_words::is_word(&previous.lower)
+                        })
+                    && self
+                        .tokens
+                        .get(self.position + 1)
+                        .is_some_and(|next| {
+                            next.is_word() && crate::number_words::is_word(&next.lower)
+                        });
+                if numeric_hyphen {
+                    self.position += 1;
+                    continue;
+                }
                 break;
             }
             self.position += 1;
