@@ -14,7 +14,8 @@
       "tab_size": 4,
       "hard_tabs": false,
       "show_completions_on_input": true,
-      "enable_language_server": true
+      "enable_language_server": true,
+      "semantic_tokens": "full"
     }
   },
   "lsp": {
