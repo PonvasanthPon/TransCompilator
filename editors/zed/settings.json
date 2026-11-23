@@ -6,7 +6,20 @@
   },
   "auto_update": false,
   "theme": "One Light",
-  "buffer_font_size": 15,
+  "buffer_font_family": "EB Garamond 12",
+  "buffer_font_fallbacks": [
+    "EB Garamond 12",
+    "EB Garamond",
+    "Noto Serif",
+    "Liberation Serif",
+    "DejaVu Serif"
+  ],
+  "buffer_font_size": 18,
+  "buffer_line_height": "comfortable",
+  "terminal": {
+    "font_family": ".ZedMono",
+    "font_size": 14
+  },
   "soft_wrap": "editor_width",
   "languages": {
     "TransCompilator English": {
@@ -15,20 +28,7 @@
       "hard_tabs": false,
       "show_completions_on_input": true,
       "enable_language_server": true,
-      "semantic_tokens": "full",
-      "buffer_font_family": "EB Garamond",
-      "buffer_font_fallbacks": [
-        "EB Garamond",
-        "Libre Baskerville",
-        "Crimson Pro",
-        "Lora",
-        "Times New Roman",
-        "Liberation Serif",
-        "Noto Serif",
-        "DejaVu Serif"
-      ],
-      "buffer_font_size": 18,
-      "buffer_line_height": "comfortable"
+      "semantic_tokens": "full"
     }
   },
   "lsp": {
