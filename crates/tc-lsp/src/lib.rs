@@ -5,6 +5,7 @@ pub mod doc;
 pub mod handlers;
 pub mod json;
 pub mod rpc;
+mod tokens;
 
 use std::io::{self, BufRead, Write};
 

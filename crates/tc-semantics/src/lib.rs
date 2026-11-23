@@ -44,6 +44,18 @@ pub use tc_syntax::{
     segment_source, sentence_tokens, tokenize,
 };
 
+/// Returns true when a word can participate in an English number phrase.
+#[must_use]
+pub fn is_english_number_word(word: &str) -> bool {
+    number_words::is_word(&word.to_ascii_lowercase())
+}
+
+/// Parses a complete English cardinal number phrase.
+#[must_use]
+pub fn parse_english_number(text: &str) -> Option<i64> {
+    number_words::parse(text)
+}
+
 /// Category of a semantic-front-end failure.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SemanticErrorKind {

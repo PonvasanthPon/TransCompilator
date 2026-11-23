@@ -3,8 +3,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Write as _;
 
-use tc_editor::highlight::{LineState, TokenStyle, highlight_line};
-use tc_editor::{Theme, ThemeId};
 use tc_lexicon::classify_verb;
 use tc_semantics::IntentVerdict;
 use tc_typeck::AstModule;
@@ -13,6 +11,7 @@ use crate::analysis::{Analysis, Diagnostic, analyze, type_name};
 use crate::doc::{Document, Position, TextRange, line_text, path_to_uri, word_at};
 use crate::json::Json;
 use crate::rpc::{error_response, notification, response};
+use crate::tokens::{TOKEN_MODIFIERS, TOKEN_TYPES, semantic_tokens};
 
 const STD_MODULES: [(&str, &str); 8] = [
     ("alloc", "dynamic memory allocator and byte accounting"),
@@ -331,42 +330,28 @@ impl Server {
 
     fn semantic_tokens(&mut self, params: &Json) -> Option<Json> {
         let (_uri, document, analysis) = self.context(params)?;
+        let tokens = semantic_tokens(&document.text, &analysis);
         let mut data = Vec::new();
-        let mut previous_line = 0_i64;
-        let mut previous_start = 0_i64;
-        for (line_index, line) in document.text.split('\n').enumerate() {
-            let line_number = line_index as u32;
-            let state = line_state(&analysis, line_number);
-            let theme = Theme::from_id(ThemeId::Light);
-            let spans = highlight_line(line.trim_end_matches('\r'), state, None, &theme);
-            let mut start = 0_i64;
-            for span in spans {
-                let length = span.text.encode_utf16().count() as i64;
-                if length == 0 {
-                    continue;
-                }
-                let token_type = token_type(span.kind);
-                if token_type.is_none() || span.text.trim().is_empty() {
-                    start += length;
-                    continue;
-                }
-                let line_delta = i64::from(line_number) - previous_line;
-                let start_delta = if line_delta == 0 {
-                    start - previous_start
-                } else {
-                    start
-                };
-                data.extend([
-                    line_delta,
-                    start_delta,
-                    length,
-                    i64::from(token_type.unwrap_or_default()),
-                    0,
-                ]);
-                previous_line = i64::from(line_number);
-                previous_start = start;
-                start += length;
-            }
+        let mut previous_line = 0_u32;
+        let mut previous_start = 0_u32;
+        let mut has_previous = false;
+        for token in tokens {
+            let line_delta = i64::from(token.line) - i64::from(previous_line);
+            let start_delta = if has_previous && token.line == previous_line {
+                i64::from(token.start) - i64::from(previous_start)
+            } else {
+                i64::from(token.start)
+            };
+            data.extend([
+                line_delta,
+                start_delta,
+                i64::from(token.length),
+                i64::from(token.token_type),
+                i64::from(token.modifiers),
+            ]);
+            previous_line = token.line;
+            previous_start = token.start;
+            has_previous = true;
         }
         Some(Json::object([(
             "data",
@@ -391,10 +376,7 @@ impl Server {
 }
 
 fn initialize_result() -> Json {
-    let token_types = [
-        "keyword", "function", "variable", "type", "number", "string", "operator", "comment",
-        "property",
-    ];
+    let token_types = TOKEN_TYPES;
     Json::object([
         (
             "capabilities",
@@ -430,10 +412,7 @@ fn initialize_result() -> Json {
                                 (
                                     "tokenModifiers",
                                     Json::Array(
-                                        ["declaration", "readonly"]
-                                            .into_iter()
-                                            .map(Json::string)
-                                            .collect(),
+                                        TOKEN_MODIFIERS.into_iter().map(Json::string).collect(),
                                     ),
                                 ),
                             ]),
@@ -910,32 +889,4 @@ fn symbol_json(name: &str, detail: &str, kind: i64, line: u32, col: u32) -> Json
         ("range", range_json(range)),
         ("selectionRange", range_json(range)),
     ])
-}
-
-fn line_state(analysis: &Analysis, line: u32) -> LineState {
-    if analysis.diagnostics.iter().any(|value| value.line == line) {
-        return LineState::Error;
-    }
-    if analysis.lowered.as_ref().is_some_and(|project| {
-        project.trace.iter().any(|entry| {
-            entry.module == analysis.entry && entry.line == line + 1 && entry.intent.is_comment()
-        })
-    }) {
-        return LineState::ProseOmitted;
-    }
-    LineState::Normal
-}
-
-fn token_type(style: TokenStyle) -> Option<u32> {
-    match style {
-        TokenStyle::ControlAnchor => Some(0),
-        TokenStyle::ActionVerb => Some(1),
-        TokenStyle::AnaphorOrQuantifier | TokenStyle::Identifier => Some(2),
-        TokenStyle::Type => Some(3),
-        TokenStyle::Number => Some(4),
-        TokenStyle::String => Some(5),
-        TokenStyle::Operator => Some(6),
-        TokenStyle::Omitted => Some(7),
-        TokenStyle::Muted | TokenStyle::SearchMatch => None,
-    }
 }

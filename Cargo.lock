@@ -46,7 +46,6 @@ version = "0.1.0"
 name = "tc-lsp"
 version = "0.1.0"
 dependencies = [
- "tc-editor",
  "tc-ir",
  "tc-lexicon",
  "tc-semantics",

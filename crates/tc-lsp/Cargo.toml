@@ -16,7 +16,6 @@ tc-typeck = { path = "../tc-typeck" }
 tc-lexicon = { path = "../tc-lexicon" }
 tc-syntax = { path = "../tc-syntax" }
 tc-semantics = { path = "../tc-semantics" }
-tc-editor = { path = "../tc-editor" }
 
 [lints]
 workspace = true
