@@ -10,6 +10,7 @@ use tc_typeck::{
     PhrasePart, PhrasePattern, Visibility,
 };
 
+use crate::clause_graph::{self, ClauseGraph};
 use crate::cond::{
     CondAst, LoweredCond, parse_condition, render_cond_child_text, render_expr,
     split_header_condition, strip_outer_parentheses,
@@ -81,6 +82,139 @@ fn semantic_error(
 
 fn type_span(module: &str, span: Span) -> tc_typeck::Span {
     tc_typeck::Span::new(module, span.line, span.col)
+}
+
+fn rewrite_bound_names(text: &str, renames: &[(String, String)]) -> String {
+    if renames.is_empty() {
+        return text.to_string();
+    }
+    let tokens = tokenize(text);
+    let mut replacements = Vec::new();
+    let mut index = 0;
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if !token.is_word() {
+            index += 1;
+            continue;
+        }
+        let mut matched = false;
+        for (name, replacement) in renames {
+            let words = name.split('_').collect::<Vec<_>>();
+            if words.is_empty() || index + words.len() > tokens.len() {
+                continue;
+            }
+            let same = words.iter().enumerate().all(|(offset, word)| {
+                tokens[index + offset].is_word() && tokens[index + offset].is(word)
+            });
+            if same {
+                replacements.push((
+                    token.start,
+                    tokens[index + words.len() - 1].end,
+                    replacement.clone(),
+                ));
+                index += words.len();
+                matched = true;
+                break;
+            }
+        }
+        if !matched {
+            index += 1;
+        }
+    }
+    if replacements.is_empty() {
+        return text.to_string();
+    }
+    let mut output = String::with_capacity(text.len());
+    let mut cursor = 0;
+    for (start, end, replacement) in replacements {
+        if start < cursor {
+            continue;
+        }
+        output.push_str(&text[cursor..start]);
+        output.push_str(&replacement);
+        cursor = end;
+    }
+    output.push_str(&text[cursor..]);
+    output
+}
+
+fn split_condition_comparison(text: &str) -> Option<(String, tc_ir::BinOp, String)> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    let mut index = 0;
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if token.kind == TokenKind::Symbol {
+            if depth == 0 {
+                let operator = match token.text.as_str() {
+                    ">=" => Some(tc_ir::BinOp::Ge),
+                    "<=" => Some(tc_ir::BinOp::Le),
+                    ">" => Some(tc_ir::BinOp::Gt),
+                    "<" => Some(tc_ir::BinOp::Lt),
+                    "==" => Some(tc_ir::BinOp::Eq),
+                    "!=" => Some(tc_ir::BinOp::Ne),
+                    _ => None,
+                };
+                if let Some(operator) = operator {
+                    return Some((
+                        text[..token.start].trim().to_string(),
+                        operator,
+                        text[token.end..].trim().to_string(),
+                    ));
+                }
+            }
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+            index += 1;
+            continue;
+        }
+        if depth != 0 || !token.is_word() {
+            index += 1;
+            continue;
+        }
+        let following = |offset: usize| {
+            tokens
+                .get(index + offset)
+                .filter(|token| token.is_word())
+                .map(|token| token.lower.as_str())
+        };
+        let (operator, words) = if token.is("is") {
+            match (following(1), following(2)) {
+                (Some("greater" | "more"), Some("than")) => (Some(tc_ir::BinOp::Gt), 2),
+                (Some("less"), Some("than")) => (Some(tc_ir::BinOp::Lt), 2),
+                (Some("at"), Some("least")) => (Some(tc_ir::BinOp::Ge), 2),
+                (Some("at"), Some("most")) => (Some(tc_ir::BinOp::Le), 2),
+                (Some("not"), Some("equal")) => (Some(tc_ir::BinOp::Ne), 3),
+                (Some("equal"), Some("to")) => (Some(tc_ir::BinOp::Eq), 2),
+                _ => (Some(tc_ir::BinOp::Eq), 0),
+            }
+        } else if token.is("equals") {
+            (Some(tc_ir::BinOp::Eq), 0)
+        } else if token.is("does") && following(1) == Some("not") && following(2) == Some("equal") {
+            (Some(tc_ir::BinOp::Ne), 3)
+        } else {
+            (None, 0)
+        };
+        if let Some(operator) = operator {
+            let mut right_start = index + words + 1;
+            if token.is("is") && words == 3 && following(2) == Some("equal") {
+                right_start += 1;
+            }
+            let end = tokens
+                .get(right_start.saturating_sub(1))
+                .map_or(token.end, |token| token.end);
+            return Some((
+                text[..token.start].trim().to_string(),
+                operator,
+                text[end..].trim().to_string(),
+            ));
+        }
+        index += 1;
+    }
+    None
 }
 
 fn lower_name(name: &str) -> String {
@@ -1621,6 +1755,9 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
     if lower.starts_with("phrase:") {
         return vec![format!("{spaces}{trimmed}.")];
     }
+    if crate::clause_graph::decompose(trimmed).is_some() {
+        return vec![format!("{spaces}{trimmed}.")];
+    }
     if lower.starts_with("call this as") || lower.starts_with("you can call this as") {
         return normalize_natural_line(trimmed)
             .into_iter()
@@ -3107,6 +3244,15 @@ impl<'a> Lowerer<'a> {
                     continue;
                 }
                 let type_word = next.lower.clone();
+                if type_word == "result"
+                    && self.lookup("result").is_none()
+                    && !self.globals.contains_key("result")
+                    && let Some(last) = self.discourse.last_result()
+                {
+                    replacements.push((token.start, next.end, last));
+                    index += 2;
+                    continue;
+                }
                 if self.is_declared_type(&type_word) {
                     let after = Self::token_at(&tokens, index + 2);
                     let appositive_name = after
@@ -3451,7 +3597,7 @@ impl<'a> Lowerer<'a> {
         Ok(best.into_iter().next().map(|(_, _, candidate)| candidate))
     }
 
-    fn shallow_type_opt(&self, expr: &AstExpr) -> Option<AstType> {
+    pub(crate) fn shallow_type_opt(&self, expr: &AstExpr) -> Option<AstType> {
         if let AstExpr::Call { name, .. } = expr {
             if let Some(return_type) = self.function_returns.get(name) {
                 return return_type.clone();
@@ -3533,8 +3679,14 @@ impl<'a> Lowerer<'a> {
                     }
                     let clause = analyze_clause(self.parser, sentence);
                     let phrase = self.match_phrase_typed(&sentence.text, sentence.span)?;
+                    let graph = if phrase.is_none() {
+                        clause_graph::decompose(&sentence.text)
+                    } else {
+                        None
+                    };
                     let base = classify(&sentence.text, &clause, phrase.as_ref());
-                    let verdict = match self.discourse_intent_override(sentence, &clause, base) {
+                    let mut verdict = match self.discourse_intent_override(sentence, &clause, base)
+                    {
                         Ok(verdict) => verdict,
                         Err(error) => {
                             self.errors.push(error);
@@ -3542,6 +3694,13 @@ impl<'a> Lowerer<'a> {
                             continue;
                         }
                     };
+                    if graph.is_some()
+                        && !(clause.voice == tc_syntax::Voice::Active
+                            && clause.verb.as_ref().is_some_and(|verb| verb.is_past))
+                        && !verdict.is_exec()
+                    {
+                        verdict = IntentVerdict::Exec;
+                    }
                     let _ =
                         self.trace_sentence(sentence, &clause, phrase.as_ref(), verdict.clone());
                     if verdict.is_exec() {
@@ -3551,6 +3710,17 @@ impl<'a> Lowerer<'a> {
                             self.add_annotation(format!("[phrase: \"{}\"]", phrase.pattern));
                             match self.lower_phrase_call(&phrase, sentence.span) {
                                 Ok(statement) => statements.push(statement),
+                                Err(error) => self.errors.push(error),
+                            }
+                        } else if let Some(graph) = graph {
+                            match self.lower_clause_graph(
+                                graph,
+                                sentence.span,
+                                depth + 1,
+                                None,
+                                None,
+                            ) {
+                                Ok(mut lowered) => statements.append(&mut lowered),
                                 Err(error) => self.errors.push(error),
                             }
                         } else {
@@ -3987,6 +4157,23 @@ impl<'a> Lowerer<'a> {
         let condition = condition
             .strip_prefix(',')
             .map_or(condition.as_str(), str::trim);
+        if let Some((left, operator, right)) = split_condition_comparison(condition)
+            && crate::value::is_np_expression(&left)
+        {
+            let lhs = self.parse_value(&left, span)?;
+            let rhs = self.parse_value(&right, span)?;
+            let expr = AstExpr::Binary {
+                op: operator,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+            };
+            let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+            return Ok(LoweredCond {
+                prelude: Vec::new(),
+                expr,
+                paraphrase,
+            });
+        }
         let parsed = parse_condition(condition)
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
         self.lower_cond_ast(&parsed, span)
@@ -3995,6 +4182,23 @@ impl<'a> Lowerer<'a> {
     fn lower_cond_ast(&mut self, node: &CondAst, span: Span) -> Result<LoweredCond, SemanticError> {
         match node {
             CondAst::Atom(text) => {
+                if crate::value::is_np_expression(text)
+                    && let Some((left, operator, right)) = split_condition_comparison(text)
+                {
+                    let lhs = self.parse_value(&left, span)?;
+                    let rhs = self.parse_value(&right, span)?;
+                    let expr = AstExpr::Binary {
+                        op: operator,
+                        lhs: Box::new(lhs),
+                        rhs: Box::new(rhs),
+                    };
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
                 let resolved = self.resolve_anaphors(text, span)?;
                 let expr = self.parse_expr_raw(&resolved, span)?;
                 let paraphrase = strip_outer_parentheses(&render_expr(&expr));
@@ -4503,6 +4707,9 @@ impl<'a> Lowerer<'a> {
                 "statement nesting exceeded the 32-level guard",
             ));
         }
+        if let Some(graph) = clause_graph::decompose(&sentence.text) {
+            return self.lower_clause_graph(graph, sentence.span, depth, then_items, else_items);
+        }
         let (core, where_clause) = split_where(&sentence.text);
         if let Some(bindings) = where_clause {
             self.push_scope(ScopeKind::WhereClause);
@@ -4572,6 +4779,171 @@ impl<'a> Lowerer<'a> {
             return Ok(all);
         }
         self.lower_core(&core, sentence.span, then_items, else_items, depth + 1)
+    }
+
+    fn lower_clause_graph(
+        &mut self,
+        graph: ClauseGraph,
+        span: Span,
+        depth: usize,
+        then_items: Option<&[RawItem]>,
+        else_items: Option<&[RawItem]>,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        if graph.scoped {
+            self.push_scope(ScopeKind::WhereClause);
+            let existing_vars = self
+                .scopes
+                .last()
+                .map(|scope| scope.vars.keys().cloned().collect::<HashSet<_>>())
+                .unwrap_or_default();
+            let referent_checkpoint = self.discourse.current_referent_count();
+            let mut block = Vec::new();
+            let mut names = Vec::new();
+            let mut renames = Vec::new();
+            for binding in &graph.bindings {
+                if let Some((name, expression)) = clause_graph::binding_parts(binding) {
+                    let outer_exists = self.lookup(&name).is_some();
+                    let lowered_name = if outer_exists {
+                        self.next_temp("where")
+                    } else {
+                        name.clone()
+                    };
+                    let rewritten = rewrite_bound_names(&expression, &renames);
+                    block.extend(self.lower_binding(&lowered_name, &rewritten, span)?);
+                    if lowered_name != name {
+                        renames.push((name, lowered_name.clone()));
+                    }
+                    names.push(lowered_name);
+                }
+            }
+            if names.len() >= 2 {
+                self.discourse.set_plural(names);
+            }
+            for clause in &graph.clauses {
+                if clause.trim().is_empty() {
+                    continue;
+                }
+                let clause = rewrite_bound_names(clause, &renames);
+                block.extend(self.lower_core(&clause, span, then_items, else_items, depth + 1)?);
+            }
+            let mut moved_vars = Vec::new();
+            if let Some(scope) = self.scopes.last_mut() {
+                let declared = scope
+                    .vars
+                    .keys()
+                    .filter(|name| !existing_vars.contains(*name))
+                    .cloned()
+                    .collect::<Vec<_>>();
+                for name in declared {
+                    if let Some(ty) = scope.vars.remove(&name) {
+                        moved_vars.push((name, ty));
+                    }
+                }
+            }
+            let moved_referents = self.discourse.take_referents_since(referent_checkpoint);
+            let mut outer = Vec::new();
+            for statement in &mut block {
+                if let AstStmt::Let {
+                    name,
+                    ty,
+                    init,
+                    span,
+                } = statement.clone()
+                {
+                    if existing_vars.contains(&name) {
+                        continue;
+                    }
+                    let declared = ty.unwrap_or_else(|| self.shallow_type(&init));
+                    *statement = AstStmt::Assign {
+                        name: name.clone(),
+                        val: init,
+                        span: span.clone(),
+                    };
+                    outer.push(AstStmt::Let {
+                        name,
+                        ty: Some(declared.clone()),
+                        init: AstExpr::Zero(declared),
+                        span,
+                    });
+                }
+            }
+            self.pop_scope();
+            if let Some(parent) = self.scopes.last_mut() {
+                for (name, ty) in moved_vars {
+                    parent.vars.insert(name, ty);
+                }
+            }
+            self.discourse.append_referents(moved_referents);
+            outer.push(AstStmt::Block(block, self.span(span)));
+            return Ok(outer);
+        }
+        let mut statements = Vec::new();
+        let mut names = graph.compound_names.clone();
+        for binding in &graph.bindings {
+            if let Some((name, expression)) = clause_graph::binding_parts(binding) {
+                names.push(name.clone());
+                statements.extend(self.lower_binding(&name, &expression, span)?);
+            }
+        }
+        if names.len() >= 2 {
+            self.discourse.set_plural(names);
+        }
+        for clause in &graph.clauses {
+            if clause.trim().is_empty() {
+                continue;
+            }
+            if let Some(bindings) = clause_graph::split_binding_sequence(clause)
+                && bindings.len() > 1
+            {
+                let mut binding_names = Vec::new();
+                for binding in bindings {
+                    if let Some((name, expression)) = clause_graph::binding_parts(&binding) {
+                        binding_names.push(name.clone());
+                        statements.extend(self.lower_binding(&name, &expression, span)?);
+                    }
+                }
+                if binding_names.len() >= 2 {
+                    self.discourse.set_plural(binding_names);
+                }
+                continue;
+            }
+            if let Some((parts, compound_names)) = clause_graph::split_compound_declaration(clause)
+            {
+                if compound_names.len() >= 2 {
+                    self.discourse.set_plural(compound_names);
+                }
+                for part in parts {
+                    statements.extend(self.lower_core(&part, span, None, None, depth + 1)?);
+                }
+            } else {
+                statements.extend(self.lower_core(
+                    clause,
+                    span,
+                    then_items,
+                    else_items,
+                    depth + 1,
+                )?);
+            }
+        }
+        Ok(statements)
+    }
+
+    fn lower_binding(
+        &mut self,
+        name: &str,
+        expression: &str,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let value = self.parse_value(expression, span)?;
+        let ty = self.shallow_type(&value);
+        self.declare(name, ty.clone());
+        self.introduce_name(name, &ty, span);
+        Ok(vec![AstStmt::Let {
+            name: name.to_string(),
+            ty: None,
+            init: value,
+            span: self.span(span),
+        }])
     }
 
     fn lower_where_bindings(
@@ -5918,6 +6290,7 @@ impl<'a> Lowerer<'a> {
                 let value_ty = value_ty.unwrap_or(AstType::I64);
                 self.declare(&name, value_ty.clone());
                 self.introduce_name(&name, &value_ty, span);
+                self.discourse.set_last_result(&name);
                 return Ok(vec![AstStmt::Let {
                     name,
                     ty: None,
@@ -5929,6 +6302,7 @@ impl<'a> Lowerer<'a> {
                 let ty = self.shallow_type(&value);
                 self.declare(&name, ty.clone());
                 self.introduce_name(&name, &ty, span);
+                self.discourse.set_last_result(&name);
                 return Ok(vec![AstStmt::Let {
                     name,
                     ty: None,
@@ -6014,6 +6388,7 @@ impl<'a> Lowerer<'a> {
         match target {
             Target::Local(name) => {
                 self.touch_name(name, span);
+                self.discourse.set_last_result(name);
                 AstStmt::Assign {
                     name: name.clone(),
                     val: value,
@@ -6022,6 +6397,7 @@ impl<'a> Lowerer<'a> {
             }
             Target::Global(name) => {
                 self.touch_name(name, span);
+                self.discourse.set_last_result(name);
                 AstStmt::Store {
                     ptr: AstExpr::GlobalAddr {
                         module: None,
@@ -6805,6 +7181,30 @@ impl ValueContext for Lowerer<'_> {
 
     fn value_expression(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         self.parse_expr(text, span)
+    }
+
+    fn value_atom(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
+        self.parse_value(text, span)
+    }
+
+    fn value_error(&self, span: Span, message: &str) -> SemanticError {
+        self.error(span, SemanticErrorKind::Lowering, message)
+    }
+
+    fn plural_names(&self) -> Vec<String> {
+        self.discourse.plural_names()
+    }
+
+    fn result_name(&self) -> Option<String> {
+        if self.lookup("result").is_some() || self.globals.contains_key("result") {
+            None
+        } else {
+            self.discourse.last_result()
+        }
+    }
+
+    fn note_anaphor(&mut self, annotation: String) {
+        self.add_annotation(annotation);
     }
 }
 
