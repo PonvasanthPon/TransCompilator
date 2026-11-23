@@ -68,7 +68,9 @@ pub(crate) fn sentence(text: &str) -> String {
             break;
         }
         let rest = current[first.end..].trim_start();
-        let rest = rest.strip_prefix(',').map_or(rest, |value| value.trim_start());
+        let rest = rest
+            .strip_prefix(',')
+            .map_or(rest, |value| value.trim_start());
         if rest.is_empty() {
             break;
         }
@@ -101,7 +103,10 @@ mod tests {
     fn strips_stacked_openers() {
         assert_eq!(sentence("Now, please print x."), "print x.");
         assert_eq!(sentence("First let's show x."), "show x.");
-        assert_eq!(sentence("Just print \"please, now\"."), "print \"please, now\".");
+        assert_eq!(
+            sentence("Just print \"please, now\"."),
+            "print \"please, now\"."
+        );
     }
 
     #[test]

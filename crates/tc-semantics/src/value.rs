@@ -205,7 +205,7 @@ pub(crate) fn parse_value<C: ValueContext>(
                 && !rest.is_empty()
                 && countable
             {
-                let candidate = format!("{operation} of address of {}", rest);
+                let candidate = format!("{operation} of address of {rest}");
                 if let Some(phrase) = context.match_value_phrase(&candidate, span)? {
                     return context.value_phrase_expression(&phrase, span);
                 }
@@ -695,19 +695,12 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
             if atom_delimiter(token) {
                 let numeric_hyphen = token.text == "-"
                     && self.position > start
-                    && self
-                        .tokens
-                        .get(self.position - 1)
-                        .is_some_and(|previous| {
-                            previous.is_word()
-                                && crate::number_words::is_word(&previous.lower)
-                        })
-                    && self
-                        .tokens
-                        .get(self.position + 1)
-                        .is_some_and(|next| {
-                            next.is_word() && crate::number_words::is_word(&next.lower)
-                        });
+                    && self.tokens.get(self.position - 1).is_some_and(|previous| {
+                        previous.is_word() && crate::number_words::is_word(&previous.lower)
+                    })
+                    && self.tokens.get(self.position + 1).is_some_and(|next| {
+                        next.is_word() && crate::number_words::is_word(&next.lower)
+                    });
                 if numeric_hyphen {
                     self.position += 1;
                     continue;
