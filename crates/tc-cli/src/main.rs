@@ -530,9 +530,49 @@ fn run_audit() -> ExitCode {
     }
 
     let stats = tc_lexicon::lexicon_stats();
+    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let Some(root) = manifest.parent().and_then(Path::parent) else {
+        eprintln!("tc_r1 audit: FAIL (cannot locate workspace root)");
+        return ExitCode::FAILURE;
+    };
+    let lock = match fs::read_to_string(root.join("Cargo.lock")) {
+        Ok(lock) => lock,
+        Err(error) => {
+            eprintln!("tc_r1 audit: FAIL (cannot read Cargo.lock: {error})");
+            return ExitCode::FAILURE;
+        }
+    };
+    let mut packages = lock
+        .lines()
+        .filter_map(|line| line.strip_prefix("name = \""))
+        .filter_map(|line| line.strip_suffix('"'))
+        .filter(|name| name.starts_with("tc-"))
+        .collect::<Vec<_>>();
+    packages.sort_unstable();
+    let expected_packages = [
+        "tc-cli",
+        "tc-codegen-x86",
+        "tc-editor",
+        "tc-ir",
+        "tc-lexicon",
+        "tc-semantics",
+        "tc-syntax",
+        "tc-typeck",
+    ];
+    if packages != expected_packages {
+        eprintln!("tc_r1 audit: FAIL (Cargo.lock must contain exactly 8 local tc-* packages)");
+        return ExitCode::FAILURE;
+    }
+    if lock
+        .lines()
+        .any(|line| line.starts_with("source = ") || line.starts_with("checksum = "))
+    {
+        eprintln!("tc_r1 audit: FAIL (Cargo.lock has registry sources or checksums)");
+        return ExitCode::FAILURE;
+    }
     println!("tc_r1 audit: PASS");
     println!(
-        "  crates          : {} workspace members (7 compiler crates + 2 editors)",
+        "  crates          : {} workspace members (6 compiler libraries + CLI + TUI + LSP)",
         crates.len() + 3
     );
     println!("  wordnet entries : {}", stats.wordnet_entries);
@@ -550,9 +590,10 @@ fn run_audit() -> ExitCode {
         })
     });
     println!("  std modules     : {std_modules}");
-    println!("  compiler deps   : std + local path only");
-    println!("  compiler external: 0");
-    println!("  GUI deps        : eframe/egui native window");
+    println!("  workspace deps  : std + local path only");
+    println!("  workspace external: 0");
+    println!("  Cargo.lock      : 8 local tc-* packages, 0 sources, 0 checksums");
+    println!("  LSP transport   : stdio JSON-RPC 2.0");
     println!("  ML runtime      : disabled");
     println!("  network         : disabled");
     ExitCode::SUCCESS
