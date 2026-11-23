@@ -773,6 +773,10 @@ fn lsp_completion_after_if_var_suggests_natural_predicates() {
         "differs from",
         "is empty",
         "is not empty",
+        "starts with",
+        "ends with",
+        "contains",
+        "does not contain",
     ] {
         assert!(
             labels.iter().any(|label| label == expected),
@@ -1435,6 +1439,52 @@ fn lsp_line_one_typo_reports_exact_line_zero() {
         .expect("range start");
     assert_eq!(start.get("line").and_then(Json::as_i64), Some(0));
     assert_eq!(start.get("character").and_then(Json::as_i64), Some(0));
+}
+
+#[test]
+fn lsp_zero_boilerplate_natural_text_and_math_program_has_no_diagnostics() {
+    let uri = "file:///tmp/tc_lsp_natural_text_math.eng";
+    let text = concat!(
+        "Let raw be \"  42  \".\n",
+        "Let clean be trim raw.\n",
+        "Print the length of clean.\n",
+        "If clean starts with \"4\", print \"starts with four\".\n",
+        "Print the square root of 81.0.\n",
+    );
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+}
+
+#[test]
+fn lsp_variable_tokens_survive_a_later_lowering_error() {
+    let text = concat!(
+        "Let raw be \"  42  \".\n",
+        "Let clean be trim raw.\n",
+        "Printt \"oops\".\n",
+    );
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_variables_on_error.eng", text);
+    for name in ["raw", "clean"] {
+        let matching = tokens
+            .iter()
+            .filter(|token| token.text == name)
+            .collect::<Vec<_>>();
+        assert!(!matching.is_empty(), "{name}: {tokens:?}");
+        assert!(
+            matching.iter().all(|token| token.token_type == VARIABLE),
+            "{name}: {matching:?}"
+        );
+        assert!(
+            matching.iter().all(|token| token.token_type != FUNCTION),
+            "{name}: {matching:?}"
+        );
+    }
 }
 
 #[test]
