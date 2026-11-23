@@ -272,8 +272,19 @@ fn compile_file(command: &CommandLine) -> Result<CompiledProject, String> {
         .as_ref()
         .ok_or_else(|| "missing file".to_string())?;
     let (sources, entry_module) = load_sources(file, &command.includes)?;
-    tc_semantics::compile_english_to_ir(&sources, &entry_module)
-        .map_err(|errors| format_errors(&errors))
+    let compiled = tc_semantics::compile_english_to_ir(&sources, &entry_module)
+        .map_err(|errors| format_errors(&errors))?;
+    let has_sentences = compiled
+        .trace
+        .iter()
+        .any(|entry| !entry.text.trim().is_empty());
+    let has_exec = compiled.trace.iter().any(|entry| entry.intent.is_exec());
+    if has_sentences && !has_exec {
+        eprintln!(
+            "warning: program produced 0 executable statements (all sentences were omitted as prose/comments)"
+        );
+    }
+    Ok(compiled)
 }
 
 fn format_errors(errors: &[tc_semantics::SemanticError]) -> String {
