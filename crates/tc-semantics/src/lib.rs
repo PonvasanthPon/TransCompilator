@@ -4,6 +4,7 @@
 //! matches declarative `Phrase:` signatures, and lowers executable English into
 //! the Phase 1 typed AST through one unified recursive statement lowerer.
 
+mod clause_graph;
 mod cond;
 mod discourse;
 mod expr;
@@ -19,8 +20,11 @@ mod value;
 pub mod intent;
 pub mod phrases;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::env;
 use std::fmt;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use tc_lexicon::{SemanticConcept, VerbPredicate};
 use tc_typeck::{AstModule, AstType, Program};
@@ -175,6 +179,109 @@ pub fn lower_project(
     lower_project_with_parser(sources, entry_module, &parser)
 }
 
+fn is_std_module(name: &str) -> bool {
+    matches!(
+        name.to_ascii_lowercase().as_str(),
+        "core" | "alloc" | "io" | "string" | "list" | "fs" | "map" | "math"
+    )
+}
+
+fn find_std_dir() -> Option<PathBuf> {
+    if let Some(value) = env::var_os("TC_STD_DIR") {
+        let path = PathBuf::from(value);
+        if path.join("core.eng").is_file() {
+            return Some(path);
+        }
+    }
+    if let Ok(executable) = env::current_exe() {
+        let mut directory = executable.parent().map(Path::to_path_buf);
+        for _ in 0..6 {
+            let Some(current) = &directory else {
+                break;
+            };
+            let candidate = current.join("std");
+            if candidate.join("core.eng").is_file() {
+                return Some(candidate);
+            }
+            directory = current.parent().map(Path::to_path_buf);
+        }
+    }
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../std");
+    manifest
+        .join("core.eng")
+        .is_file()
+        .then(|| manifest.canonicalize().unwrap_or(manifest))
+}
+
+fn module_imports(source: &SourceFile) -> Vec<String> {
+    let document = tc_syntax::segment_source(source);
+    let mut imports = Vec::new();
+    for item in document.items {
+        let tc_syntax::RawItem::Sentence(sentence) = item else {
+            continue;
+        };
+        let tokens = tc_syntax::tokenize(&sentence.text);
+        let Some(first) = tokens.first() else {
+            continue;
+        };
+        if !first.is("import") && !first.is("use") {
+            continue;
+        }
+        for token in tokens.iter().skip(1) {
+            if token.is("as") {
+                break;
+            }
+            if token.is_word() && !token.is("and") && !token.is("module") {
+                imports.push(token.lower.clone());
+            }
+        }
+    }
+    imports
+}
+
+fn augmented_sources(
+    sources: &[SourceFile],
+    entry_module: &str,
+) -> (Vec<SourceFile>, HashSet<String>) {
+    let mut all = sources.to_vec();
+    let mut added = HashSet::new();
+    if is_std_module(entry_module) {
+        return (all, added);
+    }
+    let Some(std_dir) = find_std_dir() else {
+        return (all, added);
+    };
+    let mut present = all
+        .iter()
+        .map(SourceFile::module_name)
+        .collect::<HashSet<_>>();
+    let mut queue = VecDeque::from(["io".to_string()]);
+    let mut seen = HashSet::new();
+    while let Some(module) = queue.pop_front() {
+        if !seen.insert(module.clone()) || present.contains(&module) {
+            continue;
+        }
+        let Some(path) = ["eng", "tc"]
+            .iter()
+            .map(|extension| std_dir.join(format!("{module}.{extension}")))
+            .find(|path| path.is_file())
+        else {
+            continue;
+        };
+        let Ok(text) = fs::read_to_string(&path) else {
+            continue;
+        };
+        let source = SourceFile::new(format!("{module}.tc"), text);
+        for import in module_imports(&source) {
+            queue.push_back(import);
+        }
+        present.insert(source.module_name());
+        added.insert(source.module_name());
+        all.push(source);
+    }
+    (all, added)
+}
+
 /// Lowers a project with a caller-owned Link Grammar parser.  This is the
 /// high-throughput entry point used by the exhaustive lexicon sweeper.
 ///
@@ -195,9 +302,11 @@ pub fn lower_project_with_parser(
             message: "no source files were supplied".to_string(),
         }]);
     }
+    let (sources, auto_modules) = augmented_sources(sources, entry_module);
+    let auto_prelude = !is_std_module(entry_module);
     let mut jobs = Vec::with_capacity(sources.len());
     let mut errors = Vec::new();
-    for source in sources {
+    for source in &sources {
         match lower::parse_module(source) {
             Ok(job) => jobs.push(job),
             Err(mut diagnostics) => errors.append(&mut diagnostics),
@@ -205,6 +314,25 @@ pub fn lower_project_with_parser(
     }
     if !errors.is_empty() {
         return Err(errors);
+    }
+    if auto_prelude {
+        for job in &mut jobs {
+            if is_std_module(&job.module.name) {
+                continue;
+            }
+            if !job
+                .module
+                .imports
+                .iter()
+                .any(|import| import.module == "io")
+            {
+                job.module.imports.push(tc_typeck::Import {
+                    module: "io".to_string(),
+                    alias: None,
+                    span: tc_typeck::Span::new(&job.module.name, 1, 1),
+                });
+            }
+        }
     }
     let mut seen = std::collections::HashSet::new();
     for job in &jobs {
@@ -289,7 +417,8 @@ pub fn lower_project_with_parser(
     let mut trace = Vec::new();
     let mut paraphrase = Vec::new();
     for (index, job) in jobs.into_iter().enumerate() {
-        let is_entry = job.module.name == entry_key;
+        let job_module_name = job.module.name.clone();
+        let is_entry = job_module_name == entry_key;
         let (module, mut traces, mut diagnostics, docs) = lower::lower_module(
             job,
             parser,
@@ -301,8 +430,10 @@ pub fn lower_project_with_parser(
             is_entry,
         );
         modules.push(module);
-        trace.append(&mut traces);
-        paraphrase.push(docs);
+        if !auto_modules.contains(&job_module_name) {
+            trace.append(&mut traces);
+            paraphrase.push(docs);
+        }
         errors.append(&mut diagnostics);
     }
     if errors.is_empty() {

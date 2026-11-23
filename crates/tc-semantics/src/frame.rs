@@ -50,6 +50,11 @@ pub(crate) enum TransferOp {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub(crate) enum SemanticFrame {
+    /// Concept-driven output: Print/Show/Display/Output/Say/Report.
+    Emit {
+        /// Value to print.
+        value: ValueSpec,
+    },
     /// Assignment forms: Let/Put/Set/Store/Keep/Make/becomes/is/=/Reset/Copy/Convert.
     Assign {
         /// Parsed destination place.
@@ -160,6 +165,7 @@ impl Lowerer<'_> {
         span: Span,
     ) -> Result<Vec<AstStmt>, SemanticError> {
         match frame {
+            SemanticFrame::Emit { value } => self.lower_emit_value(&value.text, span),
             SemanticFrame::Assign {
                 target,
                 value,
@@ -192,6 +198,42 @@ impl Lowerer<'_> {
                 "control, phrase, and declaration frames are lowered by their dedicated dispatchers",
             )),
         }
+    }
+
+    pub(crate) fn lower_emit_value(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let value = self.parse_value(text, span)?;
+        let statement = if let AstExpr::BytesLit(bytes) = &value {
+            AstExpr::Call {
+                module: None,
+                name: "print_bytes".to_string(),
+                type_args: Vec::new(),
+                args: vec![value.clone(), AstExpr::BytesLen(bytes.clone())],
+            }
+        } else {
+            let ty = self.shallow_type_opt(&value);
+            let name = match ty {
+                Some(
+                    tc_typeck::AstType::U8
+                    | tc_typeck::AstType::U16
+                    | tc_typeck::AstType::U32
+                    | tc_typeck::AstType::U64,
+                ) => "print_u64",
+                Some(tc_typeck::AstType::F32 | tc_typeck::AstType::F64) => "print_f64",
+                Some(tc_typeck::AstType::Bool) => "print_bool",
+                _ => "print_i64",
+            };
+            AstExpr::Call {
+                module: None,
+                name: name.to_string(),
+                type_args: Vec::new(),
+                args: vec![value.clone()],
+            }
+        };
+        Ok(vec![AstStmt::Expr(statement, self.span(span))])
     }
 
     pub(crate) fn lower_transfer_frame(
@@ -387,6 +429,20 @@ impl Lowerer<'_> {
             return Ok(None);
         };
         let rest = text[first.end..].trim().trim_end_matches('.');
+        if (resolution.concept == Some(SemanticConcept::Output)
+            || (resolution.predicate == Some(tc_lexicon::VerbPredicate::Emit)
+                && resolution.concept.is_none()))
+            && !rest.is_empty()
+        {
+            return self
+                .lower_frame(
+                    SemanticFrame::Emit {
+                        value: ValueSpec::classify(rest),
+                    },
+                    span,
+                )
+                .map(Some);
+        }
         let frame = match resolution.concept {
             Some(SemanticConcept::Increment) | Some(SemanticConcept::Decrement) => {
                 let upper = matches!(resolution.concept, Some(SemanticConcept::Increment));

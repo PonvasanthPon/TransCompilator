@@ -336,10 +336,8 @@ fn supported_predicate(
             Some(SemanticConcept::Mul | SemanticConcept::Div) => has(tc_lexicon::PrepRole::Extent),
             _ => has(tc_lexicon::PrepRole::Extent),
         },
-        VerbPredicate::Create
-        | VerbPredicate::Destroy
-        | VerbPredicate::Emit
-        | VerbPredicate::Receive => false,
+        VerbPredicate::Emit => !verb_region_is_empty(text, verb_index),
+        VerbPredicate::Create | VerbPredicate::Destroy | VerbPredicate::Receive => false,
     }
 }
 
@@ -729,6 +727,16 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
     }
     if assignment_shape(core) {
         return IntentVerdict::Exec;
+    }
+    if let Some(hit) = main_verb_hit(core, clause)
+        && clause.voice == Voice::Active
+        && narrative(clause)
+        && (hit.resolution.predicate == Some(VerbPredicate::Emit)
+            || hit.resolution.concept == Some(SemanticConcept::Output))
+    {
+        return IntentVerdict::CommentOmitted {
+            reason: "past-tense or third-person narrative prose".to_string(),
+        };
     }
     if supported_computational_operation(core, clause).is_some() {
         return IntentVerdict::Exec;
