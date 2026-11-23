@@ -38,6 +38,39 @@ stay in normal body ink. After changing the extension, run
 `Extensions -> Reinstall / Install Dev Extension`, and use
 `editor: restart language server` if Zed was already open.
 
+## Book serif typography
+
+`.eng` buffers use a classic book serif while every other language and the
+integrated terminal stay in monospace. The setting is scoped to the
+`TransCompilator English` language:
+
+```json
+"buffer_font_family": "EB Garamond",
+"buffer_font_fallbacks": [
+  "EB Garamond",
+  "Libre Baskerville",
+  "Crimson Pro",
+  "Lora",
+  "Times New Roman",
+  "Liberation Serif",
+  "Noto Serif",
+  "DejaVu Serif"
+],
+"buffer_font_size": 18,
+"buffer_line_height": "comfortable"
+```
+
+Install the preferred book serifs with:
+
+```bash
+sudo apt install -y fonts-ebgaramond fonts-libre-baskerville
+```
+
+If those are not installed, Zed immediately falls back to the first available
+serif in the list, such as Liberation Serif, Noto Serif, or DejaVu Serif.
+To swap fonts, change `buffer_font_family` to a family reported by
+`fc-list : family`, or reorder the fallback list.
+
 The `.zed/tasks.json` file is included so opening the repository exposes
 `tc: Run`, `tc: Run + Parity Check`, `tc: Paraphrase`, `tc: Trace`, and
 `tc: Build Static ELF64` immediately.
