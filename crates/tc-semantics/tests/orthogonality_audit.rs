@@ -109,26 +109,6 @@ enum Statement {
     Swap,
 }
 
-const STATEMENTS: [Statement; 17] = [
-    Statement::Let,
-    Statement::Put,
-    Statement::Set,
-    Statement::Store,
-    Statement::Keep,
-    Statement::Make,
-    Statement::Becomes,
-    Statement::Add,
-    Statement::Remove,
-    Statement::Transfer,
-    Statement::Update,
-    Statement::Output,
-    Statement::Increment,
-    Statement::Decrement,
-    Statement::Reset,
-    Statement::Copy,
-    Statement::Swap,
-];
-
 #[derive(Clone, Copy, Debug)]
 enum Target {
     Scalar,
@@ -380,37 +360,65 @@ fn scoped_program(statement: Statement, target: Target, scope: Scope) -> String 
     }
 }
 
-#[test]
-fn statement_target_scope_orthogonality_matrix() {
+fn run_statement_matrix(statement: Statement) {
     let mut passed = 0_usize;
     let mut not_applicable = 0_usize;
-    for statement in STATEMENTS {
-        for target in TARGETS {
-            for scope in SCOPES {
-                if matches!(statement, Statement::Update)
-                    && !matches!(target, Target::ValueField | Target::PointerField)
-                {
-                    not_applicable += 1;
-                    continue;
-                }
-                let source = scoped_program(statement, target, scope);
-                let label = format!("{statement:?} x {target:?} x {scope:?}");
-                let result = run_elf_with_parity(&source, None, "");
-                assert!(
-                    result.ok,
-                    "{label} failed: {}\n{source}\n{}",
-                    result.summary,
-                    result.lines.join("\n")
-                );
-                assert!(
-                    !stdout_lines(&result).is_empty(),
-                    "{label} produced no stdout"
-                );
-                passed += 1;
+    for target in TARGETS {
+        for scope in SCOPES {
+            if matches!(statement, Statement::Update)
+                && !matches!(target, Target::ValueField | Target::PointerField)
+            {
+                not_applicable += 1;
+                continue;
             }
+            let source = scoped_program(statement, target, scope);
+            let label = format!("{statement:?} x {target:?} x {scope:?}");
+            let result = run_elf_with_parity(&source, None, "");
+            assert!(
+                result.ok,
+                "{label} failed: {}\n{source}\n{}",
+                result.summary,
+                result.lines.join("\n")
+            );
+            assert!(
+                !stdout_lines(&result).is_empty(),
+                "{label} produced no stdout"
+            );
+            passed += 1;
         }
     }
-    assert_eq!(passed, 798, "valid matrix cells");
-    assert_eq!(not_applicable, 35, "structurally inapplicable cells");
-    assert_eq!(passed + not_applicable, 17 * 7 * 7);
+    if matches!(statement, Statement::Update) {
+        assert_eq!(passed, 14, "{statement:?} valid matrix cells");
+        assert_eq!(not_applicable, 35, "{statement:?} inapplicable cells");
+    } else {
+        assert_eq!(passed, 49, "{statement:?} valid matrix cells");
+        assert_eq!(not_applicable, 0, "{statement:?} inapplicable cells");
+    }
 }
+
+macro_rules! matrix_test {
+    ($name:ident, $variant:ident) => {
+        #[test]
+        fn $name() {
+            run_statement_matrix(Statement::$variant);
+        }
+    };
+}
+
+matrix_test!(matrix_let, Let);
+matrix_test!(matrix_put, Put);
+matrix_test!(matrix_set, Set);
+matrix_test!(matrix_store, Store);
+matrix_test!(matrix_keep, Keep);
+matrix_test!(matrix_make, Make);
+matrix_test!(matrix_becomes, Becomes);
+matrix_test!(matrix_add, Add);
+matrix_test!(matrix_remove, Remove);
+matrix_test!(matrix_transfer, Transfer);
+matrix_test!(matrix_update, Update);
+matrix_test!(matrix_output, Output);
+matrix_test!(matrix_increment, Increment);
+matrix_test!(matrix_decrement, Decrement);
+matrix_test!(matrix_reset, Reset);
+matrix_test!(matrix_copy, Copy);
+matrix_test!(matrix_swap, Swap);
