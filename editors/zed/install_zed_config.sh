@@ -44,6 +44,7 @@ def merge(base, overlay):
             base[key] = value
 
 merge(target, source)
+target.pop("buffer_font_fallbacks", None)
 languages = target.get("languages")
 if isinstance(languages, dict):
     language = languages.get("TransCompilator English")
@@ -62,31 +63,19 @@ PY
 
 echo "==> Wrote offline zero-AI settings to ${ZED_CONFIG}/settings.json"
 
-FONT_FAMILIES="$(fc-list : family 2>/dev/null || true)"
 FONT_DETAILS="$(fc-list : family style 2>/dev/null || true)"
-if [ -n "${FONT_FAMILIES}" ]; then
-  SERIF_FALLBACK=""
-  for family in "Liberation Serif" "Noto Serif" "DejaVu Serif"; do
-    if printf '%s\n' "${FONT_FAMILIES}" | grep -F "${family}" >/dev/null; then
-      SERIF_FALLBACK="${family}"
-      break
-    fi
-  done
-  if printf '%s\n' "${FONT_DETAILS}" | grep -F 'EB Garamond 12' | grep -F '12 Bold' >/dev/null; then
-    echo "==> Book serif font detected: EB Garamond 12 (Regular + Bold + Italic)."
-  elif printf '%s\n' "${FONT_DETAILS}" | grep -F 'EB Garamond 12' >/dev/null; then
-    echo "==> EB Garamond 12 detected without a Bold face; Zed may synthesize bold."
-  elif printf '%s\n' "${FONT_FAMILIES}" | grep -F 'Libre Baskerville' >/dev/null; then
-    echo "==> Book serif font detected: Libre Baskerville."
+if [ -n "${FONT_DETAILS}" ]; then
+  if printf '%s\n' "${FONT_DETAILS}" | grep -F 'Liberation Serif:style=Bold' >/dev/null \
+    && printf '%s\n' "${FONT_DETAILS}" | grep -F 'Liberation Serif:style=Italic' >/dev/null; then
+    echo "==> Book serif font detected: Liberation Serif (Regular + Bold + Italic)."
+  elif printf '%s\n' "${FONT_DETAILS}" | grep -F 'Liberation Serif' >/dev/null; then
+    echo "==> Liberation Serif detected without complete Bold/Italic faces."
   else
-    echo "==> Book serif fonts not detected; .eng currently uses EB Garamond with an installed serif fallback."
-    echo "    Tip: sudo apt install -y fonts-ebgaramond fonts-libre-baskerville"
-  fi
-  if [ -n "${SERIF_FALLBACK}" ]; then
-    echo "    Installed serif fallback on this host: ${SERIF_FALLBACK}"
+    echo "==> Liberation Serif not detected; install it with:"
+    echo "    sudo apt install -y fonts-liberation"
   fi
 else
-  echo "==> fc-list unavailable; .eng uses EB Garamond with serif fallbacks."
+  echo "==> fc-list unavailable; configure Liberation Serif in Zed manually."
 fi
 
 python3 - "${ZED_CONFIG}/tasks.json" "${ROOT}/editors/zed/tasks.json" <<'PYTASKS'
