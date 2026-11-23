@@ -568,6 +568,84 @@ fn lsp_completion_after_if_var_suggests_english_comparators() {
 }
 
 #[test]
+fn lsp_completion_after_if_var_suggests_natural_predicates() {
+    let uri = "file:///tmp/tc_lsp_natural_predicates.eng";
+    let text = "Put 10 in cash.\nIf cash ";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        request(
+            2,
+            "textDocument/completion",
+            object([
+                ("textDocument", text_document(uri)),
+                ("position", position(1, 8)),
+            ]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let labels = completion_labels(response_for(&responses, 2).expect("completion"));
+    for expected in [
+        "is even",
+        "is odd",
+        "is positive",
+        "is negative",
+        "is zero",
+        "is nonzero",
+        "is divisible by",
+        "is between",
+        "exceeds",
+        "differs from",
+        "is empty",
+        "is not empty",
+    ] {
+        assert!(
+            labels.iter().any(|label| label == expected),
+            "missing {expected}: {labels:?}"
+        );
+    }
+}
+
+#[test]
+fn lsp_did_open_fluent_constructs_publishes_empty_diagnostics() {
+    let uri = "file:///tmp/tc_lsp_fluent_valid.eng";
+    let text = concat!(
+        "Please let prices be a list of ten, twenty, and thirty.\n",
+        "If the number of items in prices is at least three and prices is not empty, sum up prices.\n",
+        "Print the average of prices.\n",
+        "Print the count of \"abcd\".\n",
+    );
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+}
+
+#[test]
+fn lsp_did_change_fluent_program_updates_diagnostics_live() {
+    let uri = "file:///tmp/tc_lsp_fluent_change.eng";
+    let broken = "Let x be 5.\nIf x is divisble by 5, print \"hit\".\nReturn 0.\n";
+    let fixed = "Let x be 5.\nIf x is divisible by 5, print \"hit\".\nReturn 0.\n";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, broken),
+        change(uri, fixed),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 2);
+    assert!(!batches[0].is_empty());
+    assert!(batches[1].is_empty(), "{:?}", batches[1]);
+}
+
+#[test]
 fn lsp_completion_general_suggests_multiword_vars_and_std_phrases() {
     let uri = "file:///tmp/tc_lsp_general.eng";
     let text = concat!(
