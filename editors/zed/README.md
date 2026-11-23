@@ -40,21 +40,13 @@ stay in normal body ink. After changing the extension, run
 
 ## Book serif typography
 
-Zed applies `buffer_font_family`, `buffer_font_fallbacks`,
-`buffer_font_size`, and `buffer_line_height` as **top-level** settings. Font
-keys nested under `"languages"` are ignored, so this repository keeps the
-language block free of stale font overrides and sets the book serif at the top
-level:
+Zed applies `buffer_font_family`, `buffer_font_size`, and
+`buffer_line_height` as **top-level** settings. Font keys nested under
+`"languages"` are ignored, so this repository keeps the language block free of
+stale font overrides and locks a single top-level family:
 
 ```json
-"buffer_font_family": "EB Garamond 12",
-"buffer_font_fallbacks": [
-  "EB Garamond 12",
-  "EB Garamond",
-  "Noto Serif",
-  "Liberation Serif",
-  "DejaVu Serif"
-],
+"buffer_font_family": "Liberation Serif",
 "buffer_font_size": 18,
 "buffer_line_height": "comfortable",
 "terminal": {
@@ -63,19 +55,19 @@ level:
 }
 ```
 
-`EB Garamond 12` is the family that ships Regular, Bold, and Italic faces in
-the Ubuntu `fonts-ebgaramond` package. The terminal is separately pinned to
-`.ZedMono`, so the integrated shell stays monospace.
+`Liberation Serif` ships crisp Regular, Bold, Italic, and underline rendering.
+No `buffer_font_fallbacks` list is used, avoiding Zed's fallback-font path that
+can drop Bold and Italic. The terminal is separately pinned to `.ZedMono`, so
+the integrated shell stays monospace.
 
-Install the preferred book serifs with:
+If Liberation Serif is missing, install it with:
 
 ```bash
-sudo apt install -y fonts-ebgaramond fonts-libre-baskerville
+sudo apt install -y fonts-liberation
 ```
 
-If `EB Garamond 12` is absent, Zed falls back to Noto Serif, Liberation Serif,
-or DejaVu Serif. To swap fonts, use a family reported by
-`fc-list : family style` and keep the fallback list ordered.
+To swap fonts, choose a complete family reported by `fc-list : family style`
+and update `buffer_font_family`; do not add a fallback list.
 
 The `.zed/tasks.json` file is included so opening the repository exposes
 `tc: Run`, `tc: Run + Parity Check`, `tc: Paraphrase`, `tc: Trace`, and

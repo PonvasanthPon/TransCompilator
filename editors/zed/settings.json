@@ -6,14 +6,7 @@
   },
   "auto_update": false,
   "theme": "One Light",
-  "buffer_font_family": "EB Garamond 12",
-  "buffer_font_fallbacks": [
-    "EB Garamond 12",
-    "EB Garamond",
-    "Noto Serif",
-    "Liberation Serif",
-    "DejaVu Serif"
-  ],
+  "buffer_font_family": "Liberation Serif",
   "buffer_font_size": 18,
   "buffer_line_height": "comfortable",
   "terminal": {
