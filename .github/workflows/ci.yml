@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: make fmt-check
+      - name: Lint
+        run: make lint
+      - name: Build (offline)
+        run: CARGO_NET_OFFLINE=true make build
+      - name: Test
+        run: make test
+      - name: Audit
+        run: make audit
+      - name: Compiler audit
+        run: ./target/debug/tc --audit
+      - name: Compiler selftest
+        run: ./target/debug/tc --selftest
+      - name: Reproducible ELF64 build
+        run: |
+          printf 'Print the sum of a and b, where a is 12 and b is 23.\n' > /tmp/repro.eng
+          ./target/debug/tc build /tmp/repro.eng -o /tmp/repro-a.elf
+          ./target/debug/tc build /tmp/repro.eng -o /tmp/repro-b.elf
+          test "$(sha256sum /tmp/repro-a.elf | cut -d' ' -f1)" = "$(sha256sum /tmp/repro-b.elf | cut -d' ' -f1)"
