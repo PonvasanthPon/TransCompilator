@@ -842,6 +842,85 @@ fn lsp_cli_version_flag() {
 }
 
 #[test]
+fn lsp_compositional_emit_where_has_zero_diagnostics() {
+    let uri = "file:///tmp/tc_lsp_compositional_emit.eng";
+    let text = "Print the sum of a and b, where a is 12 and b is 23.\n";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{}", diagnostic_messages(batches[0]));
+}
+
+#[test]
+fn lsp_hover_on_print_shows_emit_provenance() {
+    let uri = "file:///tmp/tc_lsp_print_provenance.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, "Print 12.\n"),
+        request(
+            2,
+            "textDocument/hover",
+            object([
+                ("textDocument", text_document(uri)),
+                ("position", position(0, 1)),
+            ]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let value = hover_value(response_for(&responses, 2).expect("hover"));
+    assert!(value.contains("Computational verb"), "{value}");
+    assert!(value.contains("VerbNet class"), "{value}");
+}
+
+#[test]
+fn lsp_hover_on_plural_anaphor_shows_resolution() {
+    let uri = "file:///tmp/tc_lsp_plural_hover.eng";
+    let text = "Let a be 12 and b be 23. Print their sum.\n";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        request(
+            2,
+            "textDocument/hover",
+            object([
+                ("textDocument", text_document(uri)),
+                ("position", position(0, 33)),
+            ]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let value = hover_value(response_for(&responses, 2).expect("hover"));
+    assert!(value.contains("ACE Anaphor"), "{value}");
+    assert!(value.contains("their sum"), "{value}");
+    assert!(value.contains('a'), "{value}");
+}
+
+#[test]
+fn lsp_where_typo_reports_levenshtein_diagnostic() {
+    let uri = "file:///tmp/tc_lsp_where_typo.eng";
+    let text = "Print the sum of a and b, where a is 12 and c is 23.\n";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let messages = diagnostic_messages(diagnostics_after(&responses, uri)[0]);
+    assert!(
+        messages.contains("variable `b` is not in scope"),
+        "{messages}"
+    );
+    assert!(messages.contains("did you mean"), "{messages}");
+}
+
+#[test]
 fn lsp_live_test_1_and_live_test_2_zero_diagnostics() {
     let first = "file:///tmp/tc_lsp_live_one.eng";
     let second = "file:///tmp/tc_lsp_live_two.eng";
