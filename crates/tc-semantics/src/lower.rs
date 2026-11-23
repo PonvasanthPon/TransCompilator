@@ -154,9 +154,9 @@ fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(String, usize)> {
         }
         if depth == 0 {
             let matched = words.iter().enumerate().all(|(offset, word)| {
-                tokens
-                    .get(index + offset)
-                    .is_some_and(|candidate| candidate.is_word() && candidate.is(&word.to_ascii_lowercase()))
+                tokens.get(index + offset).is_some_and(|candidate| {
+                    candidate.is_word() && candidate.is(&word.to_ascii_lowercase())
+                })
             });
             if matched {
                 let end = tokens[index + words.len() - 1].end;
@@ -3393,9 +3393,9 @@ impl<'a> Lowerer<'a> {
             let mut end = index;
             while end < tokens.len() {
                 let candidate = &tokens[end];
-                if candidate.is_word() && crate::number_words::is_word(&candidate.lower) {
-                    end += 1;
-                } else if candidate.text == "-" && end + 1 < tokens.len() {
+                let numeric = candidate.is_word() && crate::number_words::is_word(&candidate.lower);
+                let hyphen = candidate.text == "-" && end + 1 < tokens.len();
+                if numeric || hyphen {
                     end += 1;
                 } else {
                     break;
@@ -3407,9 +3407,7 @@ impl<'a> Lowerer<'a> {
             }
             let phrase = text[tokens[start].start..tokens[end - 1].end].trim();
             if let Some(value) = crate::number_words::parse(phrase) {
-                let canonical = phrase
-                    .to_ascii_lowercase()
-                    .replace([' ', '-'], "_");
+                let canonical = phrase.to_ascii_lowercase().replace([' ', '-'], "_");
                 let next_is_call = tokens
                     .get(end)
                     .is_some_and(|token| token.text == "(" || token.text == ".");
@@ -4429,10 +4427,7 @@ impl<'a> Lowerer<'a> {
                 }
             }
         }
-        for (phrase, negated) in [
-            ("is not between", true),
-            ("is between", false),
-        ] {
+        for (phrase, negated) in [("is not between", true), ("is between", false)] {
             if let Some((left, end)) = find_top_level_phrase(text, phrase) {
                 let rest = text[end..].trim();
                 if left.trim().is_empty() {
@@ -4508,34 +4503,50 @@ impl<'a> Lowerer<'a> {
                         };
                         let equal = kind == "even";
                         AstExpr::Binary {
-                            op: if equal != negated {
-                                tc_ir::BinOp::Eq
-                            } else {
+                            op: if equal == negated {
                                 tc_ir::BinOp::Ne
+                            } else {
+                                tc_ir::BinOp::Eq
                             },
                             lhs: Box::new(modulo),
                             rhs: Box::new(zero),
                         }
                     }
                     "positive" => AstExpr::Binary {
-                        op: if negated { tc_ir::BinOp::Le } else { tc_ir::BinOp::Gt },
+                        op: if negated {
+                            tc_ir::BinOp::Le
+                        } else {
+                            tc_ir::BinOp::Gt
+                        },
                         lhs: Box::new(value),
                         rhs: Box::new(zero),
                     },
                     "negative" => AstExpr::Binary {
-                        op: if negated { tc_ir::BinOp::Ge } else { tc_ir::BinOp::Lt },
+                        op: if negated {
+                            tc_ir::BinOp::Ge
+                        } else {
+                            tc_ir::BinOp::Lt
+                        },
                         lhs: Box::new(value),
                         rhs: Box::new(zero),
                     },
                     "zero" => AstExpr::Binary {
-                        op: if negated { tc_ir::BinOp::Ne } else { tc_ir::BinOp::Eq },
+                        op: if negated {
+                            tc_ir::BinOp::Ne
+                        } else {
+                            tc_ir::BinOp::Eq
+                        },
                         lhs: Box::new(value),
                         rhs: Box::new(zero),
                     },
                     _ => {
                         if let Some(length) = self.length_expression(value.clone(), span)? {
                             AstExpr::Binary {
-                                op: if negated { tc_ir::BinOp::Ne } else { tc_ir::BinOp::Eq },
+                                op: if negated {
+                                    tc_ir::BinOp::Ne
+                                } else {
+                                    tc_ir::BinOp::Eq
+                                },
                                 lhs: Box::new(length),
                                 rhs: Box::new(zero),
                             }
@@ -4543,7 +4554,11 @@ impl<'a> Lowerer<'a> {
                             && matches!(ty, AstType::Ptr(_))
                         {
                             AstExpr::Binary {
-                                op: if negated { tc_ir::BinOp::Ne } else { tc_ir::BinOp::Eq },
+                                op: if negated {
+                                    tc_ir::BinOp::Ne
+                                } else {
+                                    tc_ir::BinOp::Eq
+                                },
                                 lhs: Box::new(value),
                                 rhs: Box::new(AstExpr::ConstNull(ty)),
                             }
@@ -6732,9 +6747,7 @@ impl<'a> Lowerer<'a> {
         }
         let name = lower_name(&canonical);
         let mut statements = self.assign_text(&name, AstExpr::Zero(ty), span, true)?;
-        let pointer = if self.globals.contains_key(&name)
-            && !self.current_scope_contains(&name)
-        {
+        let pointer = if self.globals.contains_key(&name) && !self.current_scope_contains(&name) {
             AstExpr::GlobalAddr {
                 module: None,
                 name: name.clone(),

@@ -42,8 +42,9 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **856/856 passing**, including the 32-test headless
-`tc-lsp` protocol suite, 68 compositional parity tests, and 38 casual-English
+for a current suite of **953/953 passing**, including the 34-test headless
+`tc-lsp` protocol suite, 68 compositional parity tests, 89
+paraphrase-invariance fluency tests, and 38 casual-English
 and guard/regression tests. All eight
 `std/*.eng` modules pass the Version 2 pure-English readability gate. The
 frontend now auto-loads `std/io` as a prelude, lowers every WordNet/VerbNet
@@ -51,7 +52,11 @@ frontend now auto-loads `std/io` as a prelude, lowers every WordNet/VerbNet
 requiring `Use io.`, decomposes `where`/`Given`/`then` clause graphs, tracks
 plural `their ...` and `the result` anaphora, and recursively parses English
 math noun phrases such as `the product of the sum of a and b and the difference
-between c and d`. Compiler diagnostics suggest natural spellings for unknown
+between c and d`. Polite and sequence openers (`Please`, `Now`, `First`,
+`Let's`), English number words, natural predicates, inline list construction,
+and length/count queries normalize into the same deterministic Core-7 forms, so
+paraphrases preserve exact IR and ELF64 behavior. Compiler diagnostics suggest
+natural spellings for unknown
 names and fields, explain reserved control words, and point unresolved anaphors
 at concrete fixes; `std/list` and `std/string` add everyday
 sum/average/minimum/maximum/contains/find/reverse and text

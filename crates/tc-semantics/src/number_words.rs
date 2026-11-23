@@ -18,10 +18,7 @@ pub(crate) fn normalize_hyphens(text: &str) -> String {
         let Some(next) = tokens.get(index + 1) else {
             continue;
         };
-        if previous.is_word()
-            && next.is_word()
-            && is_word(&previous.lower)
-            && is_word(&next.lower)
+        if previous.is_word() && next.is_word() && is_word(&previous.lower) && is_word(&next.lower)
         {
             replacements.push((token.start, token.end));
         }
