@@ -239,6 +239,13 @@ fn assignment_rhs_starts_with_verb(rhs: &str) -> bool {
     resolution.is_some_and(|value| value.predicate.is_some() || value.concept.is_some())
 }
 
+fn core_or_trimmed_lower(text: &str) -> String {
+    text.trim()
+        .trim_end_matches(['.', ',', ':'])
+        .trim()
+        .to_ascii_lowercase()
+}
+
 fn assignment_shape(text: &str) -> bool {
     let (core, _) = split_where(text);
     for symbol in ["+=", "-=", "*=", "/="] {
@@ -739,6 +746,14 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         }
     }
     if is_control_anchor(&first) {
+        return IntentVerdict::Exec;
+    }
+    let check_lower = core_or_trimmed_lower(trimmed);
+    if check_lower.starts_with("check whether ")
+        || check_lower.starts_with("see whether ")
+        || check_lower.starts_with("test whether ")
+        || check_lower.starts_with("find out whether ")
+    {
         return IntentVerdict::Exec;
     }
     if is_natural_systems_statement(trimmed) {

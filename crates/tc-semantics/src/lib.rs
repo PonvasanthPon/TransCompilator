@@ -7,6 +7,7 @@
 mod clause_graph;
 mod cond;
 mod discourse;
+mod discourse_scope;
 mod expr;
 mod frame;
 mod lower;

@@ -453,6 +453,7 @@ impl Lowerer<'_> {
                 }
                 break;
             }
+            let object = strip_trailing_out(object);
             if !object.is_empty() {
                 if let Some(parts) = self.split_emit_parts(object, span) {
                     return self.lower_emit_parts(&parts, span).map(Some);
@@ -737,4 +738,15 @@ impl Lowerer<'_> {
         self.touch_target_text(target, span);
         Ok(Some(statements))
     }
+}
+
+fn strip_trailing_out(text: &str) -> &str {
+    let trimmed = text.trim_end_matches(['.', ',']).trim_end();
+    if let Some(prefix) = trimmed.strip_suffix(" out") {
+        let prefix = prefix.trim_end();
+        if !prefix.is_empty() {
+            return prefix;
+        }
+    }
+    trimmed
 }
