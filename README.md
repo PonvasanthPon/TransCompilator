@@ -1,14 +1,16 @@
 # tc_r1
 
 `tc_r1` is a clean-slate Rust rewrite of TransCompilator built on the
-**Core-7 + English `std/`** philosophy. The target is a deterministic,
-inspectable English-to-semantics compiler with a static, zero-libc x86_64
-ELF64 output path.
+**Core-7 + English `std/`** philosophy. `tc_r1` is a general-purpose English
+compiler with general NL understanding: English is analyzed for intent,
+discourse context, reference, quantification, and computational meaning, then
+lowered deterministically to Core-7 with a static, zero-libc x86_64 ELF64
+output path.
 
 This repository is **`tc_r1` 0.1.0**: the hardened Core-7 typed IR, exhaustive
 verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
 ELF64 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
-word/verb engine, a finite English front end, the readable natural-English
+word/verb engine, a general-purpose English front end, the readable natural-English
 `std/` standard library, a terminal editor (`r1-editor`), a native `std`-only
 Language Server (`tc-lsp`), and a Zed `.eng` extension with offline zero-AI
 configuration are implemented. English source now flows through vendored
@@ -103,11 +105,15 @@ Documentation:
 
 ## Scope & Verification Note
 
-`tc_r1` compiles a finite, deterministic controlled-to-natural English grammar.
-Interpreter/ELF64 parity verifies backend equivalence: the same lowered Core-7
-IR must produce identical exit status, stdout, stderr, and file effects in the
-reference interpreter and static x86_64 binary. It is not an external semantic
-oracle for unrestricted English.
+`tc_r1` is classified as a **general-purpose English compiler with general NL
+understanding**. English source is interpreted as English: discourse structure,
+narrative context, intent, anaphora, quantification, and computational
+directives are analyzed by the frontend, while executable meaning is lowered to
+deterministic Core-7 IR. Interpreter/ELF64 parity verifies backend equivalence:
+the same lowered Core-7 IR must produce identical exit status, stdout, stderr,
+and file effects in the reference interpreter and static x86_64 binary.
+Backend parity is a verification guarantee, not a replacement for
+English-language understanding.
 
 ## Workspace layout
 

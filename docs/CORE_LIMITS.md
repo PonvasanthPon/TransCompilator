@@ -16,7 +16,7 @@ Verified architectural boundaries. Every reproducer below returns a clean diagno
 - **Repro:** `battletest_core/corpora/tier_c10/limits/lim_cross_sentence_anaphora.tc`
 - **Build exit:** 0
 - **Diagnostic:** `lim_cross_sentence_anaphora:1:1 COMMENT_OMITTED (past-tense or third-person narrative prose) lg=true words=5 links=7 voice=active verb=bought lemma=buy predicate=Receive concept=Transfer verbnet=accept-77.1 wordnet=oewn-02288941-v`
-- **Reason:** Phase 3.6 supports intra-scope and cross-sentence variable, struct/union field, definite-type, and appositive anaphora (`it`, `its <field>`, `the <type>`, `the <type> <name>`). Human gendered pronouns, forward references (cataphora), and arbitrary world-knowledge bridging remain outside finite Core-7 English. Narrative prose is COMMENT_OMITTED; an unresolved supported anaphor is a loud `UNRESOLVED_ANAPHOR` error.
+- **Reason:** Phase 3.6 supports intra-scope and cross-sentence variable, struct/union field, definite-type, and appositive anaphora (`it`, `its <field>`, `the <type>`, `the <type> <name>`). Human gendered pronouns, forward references (cataphora), and arbitrary world-knowledge bridging remain outside the currently lowered Core-7 English surface. Narrative prose is understood and classified as narrative (`COMMENT_OMITTED`); an unresolved supported anaphor is a loud `UNRESOLVED_ANAPHOR` error.
 
 ## LIM-CORE-003 — Single-expression complexity is capped at 1024 parser charges.
 
@@ -34,7 +34,7 @@ Verified architectural boundaries. Every reproducer below returns a clean diagno
 - **Diagnostic:** `lim_long_sentence:1:1 COMMENT_OMITTED (no computational directive) lg=false words=0 links=0 voice=active`
 - **Reason:** tc-syntax falls back deterministically and omits the sentence as non-computational; no panic or hang.
 
-## LIM-CORE-005 — Threads and OS/UI/library services are outside finite Core-7 English.
+## LIM-CORE-005 — Threads and OS/UI/library services are outside the executable Core-7 English surface.
 
 - **Layer:** SCOPE
 - **Repro:** `battletest_core/corpora/tier_c10/limits/lim_out_of_scope_thread.tc`

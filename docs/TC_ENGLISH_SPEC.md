@@ -1,8 +1,10 @@
 # `tc_r1` English Language Specification
 
-This document specifies the finite English surface language accepted by
-`tc_r1` after Phase 3.6. It is descriptive, not aspirational: every rule below
-is implemented by the offline Rust frontend and covered by `cargo test`.
+This document specifies the English language accepted by `tc_r1` after
+Phase 3.6. `tc_r1` is a general-purpose English compiler with general NL
+understanding; this specification describes the deterministic executable
+surface currently implemented. It is descriptive, not aspirational: every rule
+below is implemented by the offline Rust frontend and covered by `cargo test`.
 The specification is intentionally hype-free. Unsupported directives fail
 loudly; they are never silently reinterpreted.
 
@@ -170,7 +172,7 @@ Every sentence receives exactly one verdict:
 |---|---|
 | `EXEC` | Lower to Core-7 now. |
 | `COMMENT_OMITTED` | Deliberate narrative, greeting, or filler; no semantic effect. |
-| `UNSUPPORTED` | Computational-looking directive outside the finite subset; loud error. |
+| `UNSUPPORTED` | Computational-looking directive outside the currently executable surface; loud error. |
 
 There is no silent drop. `UNSUPPORTED` is a compile error and is also visible
 in `tc trace`.
