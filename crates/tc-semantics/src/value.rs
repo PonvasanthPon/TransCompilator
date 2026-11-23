@@ -107,6 +107,13 @@ pub(crate) trait ValueContext {
 
     /// Records a plural or result anaphor resolution for paraphrase/hover.
     fn note_anaphor(&mut self, annotation: String);
+
+    /// Builds a list/text length expression when possible.
+    fn length_expression(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+    ) -> Result<Option<AstExpr>, SemanticError>;
 }
 
 /// The one value parser used by every value position.

@@ -138,6 +138,36 @@ fn rewrite_bound_names(text: &str, renames: &[(String, String)]) -> String {
     output
 }
 
+fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(String, usize)> {
+    let words = phrase.split_whitespace().collect::<Vec<_>>();
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    let mut index = 0;
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+        }
+        if depth == 0 {
+            let matched = words.iter().enumerate().all(|(offset, word)| {
+                tokens
+                    .get(index + offset)
+                    .is_some_and(|candidate| candidate.is_word() && candidate.is(&word.to_ascii_lowercase()))
+            });
+            if matched {
+                let end = tokens[index + words.len() - 1].end;
+                return Some((text[..token.start].to_string(), end));
+            }
+        }
+        index += 1;
+    }
+    None
+}
+
 fn split_condition_comparison(text: &str) -> Option<(String, tc_ir::BinOp, String)> {
     let tokens = tokenize(text);
     let mut depth = 0_i32;
@@ -2888,6 +2918,7 @@ pub(crate) struct Lowerer<'a> {
     errors: Vec<SemanticError>,
     temp_counter: usize,
     loop_depth: usize,
+    bytes_lengths: HashMap<String, usize>,
 }
 
 impl<'a> Lowerer<'a> {
@@ -2920,6 +2951,7 @@ impl<'a> Lowerer<'a> {
             errors: Vec::new(),
             temp_counter: 0,
             loop_depth: 0,
+            bytes_lengths: HashMap::new(),
         }
     }
 
@@ -4354,9 +4386,217 @@ impl<'a> Lowerer<'a> {
         self.lower_cond_ast(&parsed, span)
     }
 
+    fn parse_natural_predicate(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<AstExpr>, SemanticError> {
+        for phrase in ["is not divisible by", "is divisible by"] {
+            if let Some((left, end)) = find_top_level_phrase(text, phrase) {
+                let right = text[end..].trim();
+                if !left.trim().is_empty() && !right.is_empty() {
+                    let lhs = self.parse_value(left.trim(), span)?;
+                    let rhs = self.parse_value(right, span)?;
+                    let modulo = AstExpr::Binary {
+                        op: tc_ir::BinOp::Mod,
+                        lhs: Box::new(lhs),
+                        rhs: Box::new(rhs),
+                    };
+                    let operator = if phrase.contains("not") {
+                        tc_ir::BinOp::Ne
+                    } else {
+                        tc_ir::BinOp::Eq
+                    };
+                    return Ok(Some(AstExpr::Binary {
+                        op: operator,
+                        lhs: Box::new(modulo),
+                        rhs: Box::new(AstExpr::ConstInt(0, None)),
+                    }));
+                }
+            }
+        }
+        for (phrase, negated) in [
+            ("is not between", true),
+            ("is between", false),
+        ] {
+            if let Some((left, end)) = find_top_level_phrase(text, phrase) {
+                let rest = text[end..].trim();
+                if left.trim().is_empty() {
+                    continue;
+                }
+                if let Some((low, high_end)) = find_top_level_phrase(rest, "and") {
+                    let low = low.trim();
+                    let high = rest[high_end..].trim();
+                    let value = self.parse_value(left.trim(), span)?;
+                    let low = self.parse_value(low, span)?;
+                    let high = self.parse_value(high, span)?;
+                    let lower = AstExpr::Binary {
+                        op: tc_ir::BinOp::Ge,
+                        lhs: Box::new(value.clone()),
+                        rhs: Box::new(low.clone()),
+                    };
+                    let upper = AstExpr::Binary {
+                        op: tc_ir::BinOp::Le,
+                        lhs: Box::new(value.clone()),
+                        rhs: Box::new(high.clone()),
+                    };
+                    return Ok(Some(if negated {
+                        AstExpr::Binary {
+                            op: tc_ir::BinOp::LogOr,
+                            lhs: Box::new(AstExpr::Binary {
+                                op: tc_ir::BinOp::Lt,
+                                lhs: Box::new(value.clone()),
+                                rhs: Box::new(low),
+                            }),
+                            rhs: Box::new(AstExpr::Binary {
+                                op: tc_ir::BinOp::Gt,
+                                lhs: Box::new(value),
+                                rhs: Box::new(high),
+                            }),
+                        }
+                    } else {
+                        AstExpr::Binary {
+                            op: tc_ir::BinOp::LogAnd,
+                            lhs: Box::new(lower),
+                            rhs: Box::new(upper),
+                        }
+                    }));
+                }
+            }
+        }
+        for (phrase, kind, negated) in [
+            ("is not even", "even", true),
+            ("is even", "even", false),
+            ("is not odd", "odd", true),
+            ("is odd", "odd", false),
+            ("is not positive", "positive", true),
+            ("is positive", "positive", false),
+            ("is not negative", "negative", true),
+            ("is negative", "negative", false),
+            ("is not zero", "zero", true),
+            ("is nonzero", "zero", true),
+            ("is zero", "zero", false),
+            ("is not empty", "empty", true),
+            ("is empty", "empty", false),
+        ] {
+            if let Some((left, end)) = find_top_level_phrase(text, phrase) {
+                if !text[end..].trim().is_empty() || left.trim().is_empty() {
+                    continue;
+                }
+                let value = self.parse_value(left.trim(), span)?;
+                let zero = AstExpr::ConstInt(0, None);
+                let expression = match kind {
+                    "even" | "odd" => {
+                        let modulo = AstExpr::Binary {
+                            op: tc_ir::BinOp::Mod,
+                            lhs: Box::new(value),
+                            rhs: Box::new(AstExpr::ConstInt(2, None)),
+                        };
+                        let equal = kind == "even";
+                        AstExpr::Binary {
+                            op: if equal != negated {
+                                tc_ir::BinOp::Eq
+                            } else {
+                                tc_ir::BinOp::Ne
+                            },
+                            lhs: Box::new(modulo),
+                            rhs: Box::new(zero),
+                        }
+                    }
+                    "positive" => AstExpr::Binary {
+                        op: if negated { tc_ir::BinOp::Le } else { tc_ir::BinOp::Gt },
+                        lhs: Box::new(value),
+                        rhs: Box::new(zero),
+                    },
+                    "negative" => AstExpr::Binary {
+                        op: if negated { tc_ir::BinOp::Ge } else { tc_ir::BinOp::Lt },
+                        lhs: Box::new(value),
+                        rhs: Box::new(zero),
+                    },
+                    "zero" => AstExpr::Binary {
+                        op: if negated { tc_ir::BinOp::Ne } else { tc_ir::BinOp::Eq },
+                        lhs: Box::new(value),
+                        rhs: Box::new(zero),
+                    },
+                    _ => {
+                        if let Some(length) = self.length_expression(value.clone(), span)? {
+                            AstExpr::Binary {
+                                op: if negated { tc_ir::BinOp::Ne } else { tc_ir::BinOp::Eq },
+                                lhs: Box::new(length),
+                                rhs: Box::new(zero),
+                            }
+                        } else if let Some(ty) = self.shallow_type_opt(&value)
+                            && matches!(ty, AstType::Ptr(_))
+                        {
+                            AstExpr::Binary {
+                                op: if negated { tc_ir::BinOp::Ne } else { tc_ir::BinOp::Eq },
+                                lhs: Box::new(value),
+                                rhs: Box::new(AstExpr::ConstNull(ty)),
+                            }
+                        } else {
+                            return Err(self.error(
+                                span,
+                                SemanticErrorKind::Lowering,
+                                "`is empty` requires a list, text, or pointer value",
+                            ));
+                        }
+                    }
+                };
+                return Ok(Some(expression));
+            }
+        }
+        for (phrase, operator) in [
+            ("is no less than", tc_ir::BinOp::Ge),
+            ("no less than", tc_ir::BinOp::Ge),
+            ("is at least", tc_ir::BinOp::Ge),
+            ("at least", tc_ir::BinOp::Ge),
+            ("is no more than", tc_ir::BinOp::Le),
+            ("no more than", tc_ir::BinOp::Le),
+            ("is at most", tc_ir::BinOp::Le),
+            ("at most", tc_ir::BinOp::Le),
+            ("is more than", tc_ir::BinOp::Gt),
+            ("is above", tc_ir::BinOp::Gt),
+            ("is over", tc_ir::BinOp::Gt),
+            ("exceeds", tc_ir::BinOp::Gt),
+            ("is less than", tc_ir::BinOp::Lt),
+            ("is fewer than", tc_ir::BinOp::Lt),
+            ("is below", tc_ir::BinOp::Lt),
+            ("is under", tc_ir::BinOp::Lt),
+            ("is not equal to", tc_ir::BinOp::Ne),
+            ("differs from", tc_ir::BinOp::Ne),
+            ("is different from", tc_ir::BinOp::Ne),
+            ("is equal to", tc_ir::BinOp::Eq),
+            ("is the same as", tc_ir::BinOp::Eq),
+            ("equals", tc_ir::BinOp::Eq),
+        ] {
+            if let Some((left, end)) = find_top_level_phrase(text, phrase) {
+                let right = text[end..].trim();
+                if left.trim().is_empty() || right.is_empty() {
+                    continue;
+                }
+                let lhs = self.parse_value(left.trim(), span)?;
+                let rhs = self.parse_value(right, span)?;
+                return Ok(Some(AstExpr::Binary {
+                    op: operator,
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                }));
+            }
+        }
+        Ok(None)
+    }
+
     fn lower_cond_ast(&mut self, node: &CondAst, span: Span) -> Result<LoweredCond, SemanticError> {
         match node {
             CondAst::Atom(text) => {
+                if let Some(expr) = self.parse_natural_predicate(text, span)? {
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
                 if crate::value::is_np_expression(text)
                     && let Some((left, operator, right)) = split_condition_comparison(text)
                 {
@@ -5111,6 +5351,11 @@ impl<'a> Lowerer<'a> {
         span: Span,
     ) -> Result<Vec<AstStmt>, SemanticError> {
         let value = self.parse_value(expression, span)?;
+        if let AstExpr::BytesLit(bytes) = &value {
+            self.bytes_lengths.insert(name.to_string(), bytes.len());
+        } else {
+            self.bytes_lengths.remove(name);
+        }
         let ty = self.shallow_type(&value);
         self.declare(name, ty.clone());
         self.introduce_name(name, &ty, span);
@@ -6482,6 +6727,14 @@ impl<'a> Lowerer<'a> {
         let target_text = canonical_target.as_str();
         if is_simple_name(target_text) {
             let name = lower_name(target_text);
+            if let AstExpr::BytesLit(bytes) = &value {
+                self.bytes_lengths.insert(name, bytes.len());
+            } else {
+                self.bytes_lengths.remove(&name);
+            }
+        }
+        if is_simple_name(target_text) {
+            let name = lower_name(target_text);
             if self.current_scope_contains(&name) {
                 return Ok(vec![self.write_target(&Target::Local(name), value, span)]);
             }
@@ -7308,6 +7561,7 @@ pub(crate) fn lower_module(
     for job in module.functions {
         let function = &module_ast.functions[job.index];
         lowerer.scopes = vec![Scope::new()];
+        lowerer.bytes_lengths.clear();
         lowerer.discourse = DiscourseStack::new();
         lowerer.push_scope(ScopeKind::Function);
         for (name, ty) in &function.params {
@@ -7409,6 +7663,52 @@ impl ValueContext for Lowerer<'_> {
 
     fn value_atom(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         self.parse_value(text, span)
+    }
+
+    fn length_expression(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+    ) -> Result<Option<AstExpr>, SemanticError> {
+        if let AstExpr::BytesLit(bytes) = &value {
+            return Ok(Some(AstExpr::ConstInt(
+                i64::try_from(bytes.len()).unwrap_or(i64::MAX),
+                None,
+            )));
+        }
+        if let AstExpr::Var(name) = &value {
+            if let Some(length) = self.bytes_lengths.get(name) {
+                return Ok(Some(AstExpr::ConstInt(
+                    i64::try_from(*length).unwrap_or(i64::MAX),
+                    None,
+                )));
+            }
+        }
+        let Some(ty) = self.shallow_type_opt(&value) else {
+            return Ok(None);
+        };
+        let aggregate = match &ty {
+            AstType::Named { name, .. } if name.eq_ignore_ascii_case("list") => true,
+            AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring") => true,
+            AstType::Ptr(inner) => match inner.as_ref() {
+                AstType::Named { name, .. } => {
+                    name.eq_ignore_ascii_case("list") || name.eq_ignore_ascii_case("tcstring")
+                }
+                _ => false,
+            },
+            _ => false,
+        };
+        if !aggregate {
+            return Ok(None);
+        }
+        match &value {
+            AstExpr::Var(name) => {
+                let field = format!("{name}'s len");
+                let expression = self.parse_expr(&field, span)?;
+                Ok(Some(expression))
+            }
+            _ => Ok(None),
+        }
     }
 
     fn value_error(&self, span: Span, message: &str) -> SemanticError {
