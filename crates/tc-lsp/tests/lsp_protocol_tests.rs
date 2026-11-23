@@ -32,6 +32,19 @@ const ELEVEN_LINE_REPRO: &str = concat!(
     "Printt \"12\".\n",
 );
 
+const COLLATZ_REPRO: &str = concat!(
+    "Let current be 27, and let steps start at 0.\n",
+    "\n",
+    "Print \"Tracing sequence from \" with current.\n",
+    "\n",
+    "Repeat while current is greater than 1:\n",
+    "If current is even, divide current by 2.\n",
+    "Otherwise, multiply current by 3 and add 1 to current.\n",
+    "Add 1 to steps, then print current.\n",
+    "\n",
+    "Print \"Reached 1 in \" with steps and \" steps.\"\n",
+);
+
 const TEN_LINE_VALID_REPRO: &str = concat!(
     "She showed me the book yesterday.\n",
     "\n",
@@ -1485,6 +1498,121 @@ fn lsp_variable_tokens_survive_a_later_lowering_error() {
             "{name}: {matching:?}"
         );
     }
+}
+
+#[test]
+fn lsp_collatz_program_has_zero_diagnostics_and_multipart_output_tokens() {
+    let uri = "file:///tmp/tc_lsp_collatz.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, COLLATZ_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, COLLATZ_REPRO);
+    let line = tokens
+        .iter()
+        .filter(|token| token.line == 9)
+        .collect::<Vec<_>>();
+    assert!(
+        line.iter()
+            .any(|token| token.text == "Print" && token.token_type == FUNCTION),
+        "{line:?}"
+    );
+    assert!(
+        line.iter()
+            .any(|token| token.text == "\"Reached 1 in \"" && token.token_type == STRING),
+        "{line:?}"
+    );
+    assert!(
+        line.iter()
+            .any(|token| token.text == "\" steps.\"" && token.token_type == STRING),
+        "{line:?}"
+    );
+    assert!(
+        line.iter()
+            .any(|token| token.text == "steps" && token.token_type == VARIABLE),
+        "{line:?}"
+    );
+    assert!(
+        !line.iter().any(|token| token.token_type == COMMENT),
+        "{line:?}"
+    );
+}
+
+#[test]
+fn lsp_paragraph_loop_preserves_exact_following_error_line() {
+    let uri = "file:///tmp/tc_lsp_paragraph_loop_span.eng";
+    let text = concat!(
+        "Let n be 0.\n",
+        "Repeat while n is less than 2:\n",
+        "Add 1 to n.\n",
+        "\n",
+        "Printt \"x\".\n",
+    );
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let diagnostics = diagnostics_after(&responses, uri);
+    let diagnostic = diagnostics
+        .iter()
+        .flat_map(|batch| batch.iter())
+        .find(|value| {
+            value
+                .get("message")
+                .and_then(Json::as_str)
+                .is_some_and(|message| message.contains("printt"))
+        })
+        .expect("printt diagnostic");
+    let start = diagnostic
+        .get("range")
+        .and_then(|value| value.get("start"))
+        .expect("range start");
+    assert_eq!(start.get("line").and_then(Json::as_i64), Some(4));
+    assert_eq!(start.get("character").and_then(Json::as_i64), Some(0));
+}
+
+#[test]
+fn lsp_trim_text_and_start_at_program_has_zero_diagnostics() {
+    let uri = "file:///tmp/tc_lsp_trim_text_start_at.eng";
+    let text = concat!(
+        "Use string. Use math.\n",
+        "Let raw be \"  42  \".\n",
+        "Let clean be trim text raw.\n",
+        "Let a starts at 3, and let b begins at 4.\n",
+        "Print the length of clean.\n",
+        "If clean starts with \"4\", print \"starts with four\".\n",
+        "Print square root of 81.0.\n",
+        "Print a plus b.\n",
+    );
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
 }
 
 #[test]
