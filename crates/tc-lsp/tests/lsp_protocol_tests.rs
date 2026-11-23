@@ -1,10 +1,32 @@
 //! Headless JSON-RPC protocol tests for `tc-lsp`.
 
+use std::fs;
 use std::io::Cursor;
+use std::path::PathBuf;
 
 use tc_lsp::json::Json;
 use tc_lsp::rpc;
 use tc_lsp::run_with_io;
+
+const KEYWORD: i64 = 0;
+const FUNCTION: i64 = 1;
+const VARIABLE: i64 = 2;
+const STRING: i64 = 3;
+const NUMBER: i64 = 4;
+const COMMENT: i64 = 5;
+const DECLARATION: i64 = 1;
+const READONLY: i64 = 2;
+const DOCUMENTATION: i64 = 4;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct SemanticToken {
+    line: usize,
+    start: usize,
+    length: usize,
+    token_type: i64,
+    modifiers: i64,
+    text: String,
+}
 
 fn object(entries: impl IntoIterator<Item = (&'static str, Json)>) -> Json {
     Json::object(entries)
@@ -101,6 +123,119 @@ fn result_for(responses: &[Json], id: i64) -> Option<&Json> {
         .iter()
         .find(|value| value.get("id").and_then(Json::as_i64) == Some(id))
         .and_then(|value| value.get("result"))
+}
+
+fn semantic_tokens_for(uri: &str, text: &str) -> (Json, Vec<SemanticToken>) {
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, text),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let legend = response_for(&responses, 1)
+        .and_then(|value| value.get("result"))
+        .and_then(|value| value.get("capabilities"))
+        .and_then(|value| value.get("semanticTokensProvider"))
+        .and_then(|value| value.get("legend"))
+        .expect("legend")
+        .clone();
+    let data = result_for(&responses, 2)
+        .expect("semantic tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("token data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, text);
+    (legend, tokens)
+}
+
+fn decode_semantic_tokens(data: &[i64], text: &str) -> Vec<SemanticToken> {
+    assert_eq!(
+        data.len() % 5,
+        0,
+        "token data must be five integers per token"
+    );
+    let lines = text.split('\n').collect::<Vec<_>>();
+    let mut tokens = Vec::new();
+    let mut line = 0_i64;
+    let mut start = 0_i64;
+    let mut has_previous = false;
+    for chunk in data.chunks(5) {
+        let line_delta = chunk[0];
+        let start_delta = chunk[1];
+        let length = chunk[2];
+        let token_type = chunk[3];
+        let modifiers = chunk[4];
+        assert!(line_delta >= 0, "{chunk:?}");
+        assert!(start_delta >= 0, "{chunk:?}");
+        assert!(length > 0, "{chunk:?}");
+        assert!((0..=COMMENT).contains(&token_type), "{chunk:?}");
+        assert!((0..=7).contains(&modifiers), "{chunk:?}");
+        if has_previous {
+            line += line_delta;
+            start = if line_delta == 0 {
+                start + start_delta
+            } else {
+                start_delta
+            };
+        } else {
+            line = line_delta;
+            start = start_delta;
+        }
+        has_previous = true;
+        let line_index = usize::try_from(line).expect("line");
+        let start_index = usize::try_from(start).expect("start");
+        let length_index = usize::try_from(length).expect("length");
+        let raw = lines.get(line_index).expect("token line");
+        let utf16 = raw.encode_utf16().collect::<Vec<_>>();
+        let slice = utf16
+            .get(start_index..start_index + length_index)
+            .expect("token span");
+        let token_text = char::decode_utf16(slice.iter().copied())
+            .collect::<Result<String, _>>()
+            .expect("utf16 token");
+        tokens.push(SemanticToken {
+            line: line_index,
+            start: start_index,
+            length: length_index,
+            token_type,
+            modifiers,
+            text: token_text,
+        });
+    }
+    for pair in tokens.windows(2) {
+        assert!(
+            pair[0].line < pair[1].line
+                || (pair[0].line == pair[1].line
+                    && pair[0].start + pair[0].length <= pair[1].start),
+            "overlapping or unsorted tokens: {pair:?}"
+        );
+    }
+    tokens
+}
+
+fn token_named<'a>(tokens: &'a [SemanticToken], text: &str) -> &'a SemanticToken {
+    tokens
+        .iter()
+        .find(|token| token.text == text)
+        .unwrap_or_else(|| panic!("missing token `{text}`: {tokens:?}"))
+}
+
+fn has_token(tokens: &[SemanticToken], text: &str) -> bool {
+    tokens.iter().any(|token| token.text == text)
+}
+
+fn repository_path(relative: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(relative)
 }
 
 fn diagnostics_after<'a>(responses: &'a [Json], uri: &str) -> Vec<&'a [Json]> {
@@ -238,8 +373,21 @@ fn lsp_initialize_and_clean_shutdown_exit_0() {
         .and_then(|value| value.get("tokenTypes"))
         .and_then(Json::as_array)
         .expect("token types");
-    assert_eq!(token_types.len(), 9);
-    assert_eq!(token_types[0].as_str(), Some("keyword"));
+    assert_eq!(
+        token_types,
+        [
+            "keyword", "function", "variable", "string", "number", "comment"
+        ]
+        .map(Json::string)
+    );
+    let token_modifiers = legend
+        .and_then(|value| value.get("tokenModifiers"))
+        .and_then(Json::as_array)
+        .expect("token modifiers");
+    assert_eq!(
+        token_modifiers,
+        ["declaration", "readonly", "documentation"].map(Json::string)
+    );
 }
 
 #[test]
@@ -827,7 +975,243 @@ fn lsp_semantic_tokens_encodes_valid_delta_stream_with_prose_comments() {
         .filter_map(Json::as_i64)
         .collect::<Vec<_>>();
     assert_eq!(data.len() % 5, 0);
-    assert!(data.chunks(5).any(|chunk| chunk[3] == 7), "{data:?}");
+    assert!(data.chunks(5).any(|chunk| chunk[3] == COMMENT), "{data:?}");
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_verbs_keywords_variables_numbers_and_glue() {
+    let text = "Print the sum of a and b, where a is 12 and b is 23.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_where.eng", text);
+    assert_eq!(token_named(&tokens, "Print").token_type, FUNCTION);
+    assert_eq!(token_named(&tokens, "where").token_type, KEYWORD);
+    assert_eq!(token_named(&tokens, "a").token_type, VARIABLE);
+    assert_eq!(token_named(&tokens, "b").token_type, VARIABLE);
+    assert_eq!(token_named(&tokens, "12").token_type, NUMBER);
+    assert_eq!(token_named(&tokens, "23").token_type, NUMBER);
+    for glue in ["the", "of", "and"] {
+        assert!(
+            !has_token(&tokens, glue),
+            "glue `{glue}` was tokenized: {tokens:?}"
+        );
+    }
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_spoken_numbers_and_readonly_anaphors() {
+    let text = "Let a be twelve and b be twenty-three. Print their sum.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_numbers.eng", text);
+    assert_eq!(token_named(&tokens, "twelve").token_type, NUMBER);
+    assert_eq!(token_named(&tokens, "twenty-three").token_type, NUMBER);
+    let their = token_named(&tokens, "their");
+    assert_eq!(their.token_type, VARIABLE);
+    assert_ne!(their.modifiers & READONLY, 0, "{their:?}");
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_it_and_string_literals() {
+    let text = "Let x be 10. Add 5 to it. Print \"done\".\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_it.eng", text);
+    let it = token_named(&tokens, "it");
+    assert_eq!(it.token_type, VARIABLE);
+    assert_ne!(it.modifiers & READONLY, 0, "{it:?}");
+    assert_eq!(token_named(&tokens, "\"done\"").token_type, STRING);
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_omitted_prose_with_documentation_modifier() {
+    let text = "She cleared the table after dinner.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_prose.eng", text);
+    assert_eq!(tokens.len(), 1, "{tokens:?}");
+    assert_eq!(tokens[0].token_type, COMMENT);
+    assert_ne!(tokens[0].modifiers & DOCUMENTATION, 0, "{tokens:?}");
+    assert!(
+        tokens[0].text.contains("She cleared the table"),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_semantic_tokens_obey_utf16_delta_and_non_overlap_invariants() {
+    let text = concat!(
+        "Let travel budget be 10.\n",
+        "Let greeting be \"வணக்கம்😀\".\n",
+        "Print travel budget.\n",
+        "She cleared the table after dinner.\n",
+    );
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_invariants.eng", text);
+    assert!(!tokens.is_empty());
+    let travel_budget = token_named(&tokens, "travel budget");
+    assert_eq!(travel_budget.token_type, VARIABLE);
+    assert_ne!(
+        travel_budget.modifiers & DECLARATION,
+        0,
+        "{travel_budget:?}"
+    );
+    assert!(
+        tokens
+            .iter()
+            .filter(|token| token.text == "travel budget")
+            .count()
+            >= 2,
+        "{tokens:?}"
+    );
+    let literal = "\"வணக்கம்😀\"";
+    let string = token_named(&tokens, literal);
+    assert_eq!(string.token_type, STRING);
+    assert_eq!(string.length, literal.encode_utf16().count());
+    let comment = token_named(&tokens, "She cleared the table after dinner.");
+    assert_eq!(comment.token_type, COMMENT);
+    assert_ne!(comment.modifiers & DOCUMENTATION, 0, "{comment:?}");
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_variable_declarations() {
+    let text = "Let a be 12.\nPrint a.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_decl.eng", text);
+    let declarations = tokens
+        .iter()
+        .filter(|token| token.text == "a")
+        .collect::<Vec<_>>();
+    assert_eq!(declarations.len(), 2, "{tokens:?}");
+    assert_ne!(declarations[0].modifiers & DECLARATION, 0, "{tokens:?}");
+    assert_eq!(declarations[1].modifiers & DECLARATION, 0, "{tokens:?}");
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_explicit_comments() {
+    let text = "# note\n// another note\nPrint 1.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_comments.eng", text);
+    assert_eq!(token_named(&tokens, "# note").token_type, COMMENT);
+    assert_eq!(token_named(&tokens, "// another note").token_type, COMMENT);
+    assert_eq!(token_named(&tokens, "# note").modifiers & DOCUMENTATION, 0);
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_natural_predicate_keywords() {
+    let text = "Let x be 10. If x is at least 10 and x is even, print x.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_predicates.eng", text);
+    for keyword in ["at", "least", "and", "even"] {
+        assert_eq!(
+            token_named(&tokens, keyword).token_type,
+            KEYWORD,
+            "{keyword}: {tokens:?}"
+        );
+    }
+    assert_eq!(token_named(&tokens, "print").token_type, FUNCTION);
+}
+
+#[test]
+fn lsp_semantic_tokens_mark_possessive_fields_and_anaphor_fields() {
+    let text = concat!(
+        "A record Waypoint has distance (a whole number).\n",
+        "Create a Waypoint called pondy.\n",
+        "Update pondy so its distance is 5.\n",
+        "Print pondy's distance.\n",
+    );
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_fields.eng", text);
+    assert_eq!(
+        token_named(&tokens, "pondy's distance").token_type,
+        VARIABLE
+    );
+    let its_distance = token_named(&tokens, "its distance");
+    assert_eq!(its_distance.token_type, VARIABLE);
+    assert_ne!(its_distance.modifiers & READONLY, 0, "{its_distance:?}");
+}
+
+#[test]
+fn lsp_semantic_token_legend_matches_zed_rules_and_settings() {
+    let (legend, _) = semantic_tokens_for("file:///tmp/tc_lsp_legend.eng", "Print 1.\n");
+    let token_types = legend
+        .get("tokenTypes")
+        .and_then(Json::as_array)
+        .expect("token types")
+        .iter()
+        .filter_map(Json::as_str)
+        .collect::<Vec<_>>();
+    let token_modifiers = legend
+        .get("tokenModifiers")
+        .and_then(Json::as_array)
+        .expect("token modifiers")
+        .iter()
+        .filter_map(Json::as_str)
+        .collect::<Vec<_>>();
+    let rules_text = fs::read_to_string(repository_path(
+        "editors/zed/tc-eng-extension/languages/eng/semantic_token_rules.json",
+    ))
+    .expect("semantic token rules");
+    let rules = tc_lsp::json::parse(&rules_text).expect("rules JSON");
+    let rules = rules.as_array().expect("rules array");
+    assert!(!rules.is_empty());
+    let first = &rules[0];
+    assert_eq!(
+        first.get("token_type").and_then(Json::as_str),
+        Some("variable")
+    );
+    assert_eq!(
+        first
+            .get("token_modifiers")
+            .and_then(Json::as_array)
+            .expect("first modifiers"),
+        ["readonly"].map(Json::string).as_slice()
+    );
+    for rule in rules {
+        let token_type = rule
+            .get("token_type")
+            .and_then(Json::as_str)
+            .expect("token type");
+        assert!(token_types.contains(&token_type), "{token_type}");
+        assert!(
+            rule.get("foreground_color")
+                .and_then(Json::as_str)
+                .is_some()
+        );
+        for modifier in rule
+            .get("token_modifiers")
+            .and_then(Json::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Json::as_str)
+        {
+            assert!(token_modifiers.contains(&modifier), "{modifier}");
+        }
+    }
+    let comment_rule = rules
+        .iter()
+        .find(|rule| rule.get("token_type").and_then(Json::as_str) == Some("comment"))
+        .expect("comment rule");
+    assert_eq!(
+        comment_rule.get("foreground_color").and_then(Json::as_str),
+        Some("#7a7a7a")
+    );
+    let settings_text =
+        fs::read_to_string(repository_path("editors/zed/settings.json")).expect("settings");
+    let settings = tc_lsp::json::parse(&settings_text).expect("settings JSON");
+    assert_eq!(
+        settings.get("disable_ai").and_then(Json::as_bool),
+        Some(true)
+    );
+    let language = settings
+        .get("languages")
+        .and_then(|value| value.get("TransCompilator English"))
+        .expect("language settings");
+    assert_eq!(
+        language.get("semantic_tokens").and_then(Json::as_str),
+        Some("full")
+    );
+    assert_eq!(
+        language
+            .get("enable_language_server")
+            .and_then(Json::as_bool),
+        Some(true)
+    );
+    assert_eq!(
+        settings
+            .get("autosave")
+            .and_then(|value| value.get("after_delay"))
+            .and_then(|value| value.get("milliseconds"))
+            .and_then(Json::as_i64),
+        Some(300)
+    );
 }
 
 #[test]
@@ -862,11 +1246,9 @@ fn lsp_utf16_position_conversion_handles_multibyte_utf8_safely() {
         .and_then(Json::as_array)
         .expect("data");
     assert!(!data.is_empty());
-    assert!(
-        data.chunks(5)
-            .any(|chunk| chunk[3].as_i64() == Some(5)
-                && chunk[2].as_i64().is_some_and(|len| len >= 5))
-    );
+    assert!(data.chunks(5).any(|chunk| {
+        chunk[3].as_i64() == Some(STRING) && chunk[2].as_i64().is_some_and(|len| len >= 5)
+    }));
 }
 
 #[test]

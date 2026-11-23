@@ -44,7 +44,7 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **953/953 passing**, including the 34-test headless
+for a current suite of **963/963 passing**, including the 44-test headless
 `tc-lsp` protocol suite, 68 compositional parity tests, 89
 paraphrase-invariance fluency tests, and 38 casual-English
 and guard/regression tests. All eight
@@ -152,7 +152,7 @@ tc-syntax       -> tc-lexicon
 tc-semantics    -> tc-syntax, tc-lexicon, tc-typeck, tc-ir
 tc-cli          -> all six library crates (binary: tc)
 tc-editor       -> tc-ir, tc-codegen-x86, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
-tc-lsp          -> tc-editor, tc-ir, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
+tc-lsp          -> tc-ir, tc-typeck, tc-lexicon, tc-syntax, tc-semantics
 ```
 
 The graph is strictly acyclic. The TUI and LSP call the compiler in-process;
@@ -362,7 +362,12 @@ stdin/stdout with `Content-Length` framing and provides:
   multi-word variables, phrase templates, and Version 2 starters;
 - go-to-definition including cross-file jumps into `std/*.eng`;
 - document symbols for the Zed Outline panel;
-- semantic tokens driven by `tc-editor::highlight` and `tc-lexicon`.
+- semantic tokens driven by the lowered project trace and symbol index,
+  including verbs, control words, variables, fields, spoken numbers, strings,
+  readonly ACE anaphors, and `COMMENT_OMITTED` prose;
+- language-scoped monochrome typographic highlighting for `.eng` in Zed via
+  `semantic_token_rules.json` (bold verbs/control/numbers, underlined
+  variables, italic+underlined anaphors, italic strings, muted italic prose).
 
 ```bash
 CARGO_NET_OFFLINE=true cargo build --release --bin tc-lsp
