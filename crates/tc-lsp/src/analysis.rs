@@ -6,8 +6,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use tc_semantics::{
-    IntentVerdict, LoweredProject, RawItem, SemanticError, SourceFile, lower_project,
-    segment_source, tokenize,
+    IntentVerdict, LoweredProject, RawItem, SemanticError, SentenceTrace, SourceFile,
+    lower_project_outcome, segment_source, tokenize,
 };
 use tc_typeck::{AstExpr, AstModule, AstStmt, AstType, Program};
 
@@ -145,6 +145,8 @@ impl SymbolIndex {
 pub struct Analysis {
     /// Lowered project when semantic parsing succeeded.
     pub lowered: Option<LoweredProject>,
+    /// Per-sentence trace, preserved even when a later sentence errors.
+    pub trace: Vec<SentenceTrace>,
     /// Diagnostics for the open document.
     pub diagnostics: Vec<Diagnostic>,
     /// Module name to source path.
@@ -253,50 +255,42 @@ pub fn analyze(uri: &str, text: &str) -> Analysis {
         }
     }
 
-    let lowered = match lower_project(&sources, &entry) {
-        Ok(project) => Some(project),
-        Err(errors) => {
-            diagnostics.extend(errors.iter().map(from_semantic_error));
-            None
-        }
-    };
-    if let Some(project) = &lowered {
-        for entry in &project.trace {
-            if let IntentVerdict::Unsupported { reason } = &entry.intent {
-                diagnostics.push(Diagnostic {
-                    line: entry.line.saturating_sub(1),
-                    character: entry.col.saturating_sub(1),
-                    severity: 1,
-                    message: reason.clone(),
-                    source: "tc-lsp".to_string(),
-                });
-            }
-        }
-        if let Err(errors) = tc_typeck::check_and_lower(&project.program) {
-            diagnostics.extend(errors.iter().map(|error| Diagnostic {
-                line: error.span.line.saturating_sub(1),
-                character: error.span.col.saturating_sub(1),
-                severity: 1,
-                message: error.message.clone(),
-                source: "tc-lsp".to_string(),
-            }));
-        }
-    }
-    if let Some(project) = &lowered {
-        let has_sentences = project
-            .trace
-            .iter()
-            .any(|entry| !entry.text.trim().is_empty());
-        let has_exec = project.trace.iter().any(|entry| entry.intent.is_exec());
-        if has_sentences && !has_exec {
+    let outcome = lower_project_outcome(&sources, &entry);
+    diagnostics.extend(outcome.errors.iter().map(from_semantic_error));
+    let lowered = outcome.project;
+    let trace = outcome.trace;
+    for entry in &trace {
+        if let IntentVerdict::Unsupported { reason } = &entry.intent {
             diagnostics.push(Diagnostic {
-                line: 0,
-                character: 0,
-                severity: 2,
-                message: "program produced 0 executable statements (all sentences were omitted as prose/comments)".to_string(),
+                line: entry.line.saturating_sub(1),
+                character: entry.col.saturating_sub(1),
+                severity: 1,
+                message: reason.clone(),
                 source: "tc-lsp".to_string(),
             });
         }
+    }
+    if let Some(project) = &lowered
+        && let Err(errors) = tc_typeck::check_and_lower(&project.program)
+    {
+        diagnostics.extend(errors.iter().map(|error| Diagnostic {
+            line: error.span.line.saturating_sub(1),
+            character: error.span.col.saturating_sub(1),
+            severity: 1,
+            message: error.message.clone(),
+            source: "tc-lsp".to_string(),
+        }));
+    }
+    let has_sentences = trace.iter().any(|entry| !entry.text.trim().is_empty());
+    let has_exec = trace.iter().any(|entry| entry.intent.is_exec());
+    if has_sentences && !has_exec {
+        diagnostics.push(Diagnostic {
+            line: 0,
+            character: 0,
+            severity: 2,
+            message: "program produced 0 executable statements (all sentences were omitted as prose/comments)".to_string(),
+            source: "tc-lsp".to_string(),
+        });
     }
     diagnostics.sort_by_key(|value| (value.line, value.character, value.message.clone()));
     diagnostics.dedup_by(|left, right| {
@@ -311,6 +305,7 @@ pub fn analyze(uri: &str, text: &str) -> Analysis {
     );
     Analysis {
         lowered,
+        trace,
         diagnostics,
         paths,
         entry,

@@ -18,6 +18,32 @@ const DECLARATION: i64 = 1;
 const READONLY: i64 = 2;
 const DOCUMENTATION: i64 = 4;
 
+const ELEVEN_LINE_REPRO: &str = concat!(
+    "She showed me the book yesterday.\n",
+    "\n",
+    "Let n be six.\n",
+    "Square n.\n",
+    "If n is divisible by nine, print \"yes\".\n",
+    "Otherwise, print \"no\".\n",
+    "Add four to it, then echo it.\n",
+    "\n",
+    "She showed me the book yesterday.\n",
+    "\n",
+    "Printt \"12\".\n",
+);
+
+const TEN_LINE_VALID_REPRO: &str = concat!(
+    "She showed me the book yesterday.\n",
+    "\n",
+    "Let n be six.\n",
+    "Square n.\n",
+    "If n is divisible by nine, print \"yes\".\n",
+    "Otherwise, print \"no\".\n",
+    "Add four to it, then echo it.\n",
+    "\n",
+    "She showed me the book yesterday.\n",
+);
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct SemanticToken {
     line: usize,
@@ -1275,6 +1301,140 @@ fn lsp_semantic_token_legend_matches_zed_rules_and_settings() {
             .and_then(Json::as_i64),
         Some(300)
     );
+}
+
+#[test]
+fn lsp_eleven_line_error_keeps_exact_line_10_and_midfile_prose_tokens() {
+    let uri = "file:///tmp/tc_lsp_eleven_line_repro.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, ELEVEN_LINE_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let diagnostics = diagnostics_after(&responses, uri);
+    let diagnostic = diagnostics
+        .iter()
+        .flat_map(|batch| batch.iter())
+        .find(|value| {
+            value
+                .get("message")
+                .and_then(Json::as_str)
+                .is_some_and(|message| message.contains("printt"))
+        })
+        .expect("printt diagnostic");
+    let start = diagnostic
+        .get("range")
+        .and_then(|value| value.get("start"))
+        .expect("range start");
+    assert_eq!(start.get("line").and_then(Json::as_i64), Some(10));
+    assert_eq!(start.get("character").and_then(Json::as_i64), Some(0));
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, ELEVEN_LINE_REPRO);
+    for line in [0, 8] {
+        let line_tokens = tokens
+            .iter()
+            .filter(|token| token.line == line)
+            .collect::<Vec<_>>();
+        assert!(!line_tokens.is_empty(), "line {line}: {tokens:?}");
+        assert!(
+            line_tokens
+                .iter()
+                .all(|token| token.token_type == COMMENT && token.modifiers & DOCUMENTATION != 0),
+            "line {line}: {line_tokens:?}"
+        );
+        assert!(
+            line_tokens
+                .iter()
+                .any(|token| token.text.contains("She showed me the book yesterday")),
+            "line {line}: {line_tokens:?}"
+        );
+        assert!(
+            !line_tokens
+                .iter()
+                .any(|token| matches!(token.token_type, FUNCTION | KEYWORD)),
+            "line {line}: {line_tokens:?}"
+        );
+    }
+}
+
+#[test]
+fn lsp_valid_file_keeps_midfile_prose_tokens_without_errors() {
+    let uri = "file:///tmp/tc_lsp_valid_midfile_prose.eng";
+    let (_, tokens) = semantic_tokens_for(uri, TEN_LINE_VALID_REPRO);
+    for line in [0, 8] {
+        let line_tokens = tokens
+            .iter()
+            .filter(|token| token.line == line)
+            .collect::<Vec<_>>();
+        assert!(!line_tokens.is_empty(), "line {line}: {tokens:?}");
+        assert!(
+            line_tokens
+                .iter()
+                .all(|token| token.token_type == COMMENT && token.modifiers & DOCUMENTATION != 0),
+            "line {line}: {line_tokens:?}"
+        );
+        assert!(
+            !line_tokens
+                .iter()
+                .any(|token| matches!(token.token_type, FUNCTION | KEYWORD)),
+            "line {line}: {line_tokens:?}"
+        );
+    }
+}
+
+#[test]
+fn lsp_bottom_omitted_prose_stays_a_comment_token() {
+    let text = "Let n be 1.\nPrint n.\nShe showed me the book yesterday.\n";
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_bottom_prose.eng", text);
+    let line_tokens = tokens
+        .iter()
+        .filter(|token| token.line == 2)
+        .collect::<Vec<_>>();
+    assert_eq!(line_tokens.len(), 1, "{tokens:?}");
+    assert_eq!(line_tokens[0].token_type, COMMENT);
+    assert_ne!(line_tokens[0].modifiers & DOCUMENTATION, 0);
+    assert!(line_tokens[0].text.contains("She showed me the book"));
+}
+
+#[test]
+fn lsp_line_one_typo_reports_exact_line_zero() {
+    let uri = "file:///tmp/tc_lsp_line_one_typo.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, "Printt \"12\".\n"),
+        shutdown(),
+        exit(),
+    ]);
+    let diagnostics = diagnostics_after(&responses, uri);
+    let diagnostic = diagnostics
+        .iter()
+        .flat_map(|batch| batch.iter())
+        .find(|value| {
+            value
+                .get("message")
+                .and_then(Json::as_str)
+                .is_some_and(|message| message.contains("printt"))
+        })
+        .expect("printt diagnostic");
+    let start = diagnostic
+        .get("range")
+        .and_then(|value| value.get("start"))
+        .expect("range start");
+    assert_eq!(start.get("line").and_then(Json::as_i64), Some(0));
+    assert_eq!(start.get("character").and_then(Json::as_i64), Some(0));
 }
 
 #[test]

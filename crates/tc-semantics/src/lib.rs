@@ -146,6 +146,18 @@ pub struct LoweredProject {
     pub paraphrase: Vec<ParaphraseDoc>,
 }
 
+/// Lowering result that preserves per-sentence trace even when diagnostics
+/// prevent a complete project.
+#[derive(Debug, Clone)]
+pub struct LowerProjectOutcome {
+    /// Complete lowered project when no diagnostics were produced.
+    pub project: Option<LoweredProject>,
+    /// Per-sentence analysis collected from every processed sentence.
+    pub trace: Vec<SentenceTrace>,
+    /// Declaration, lowering, or syntax diagnostics.
+    pub errors: Vec<SemanticError>,
+}
+
 /// A fully checked and lowered English project.
 #[derive(Debug, Clone)]
 pub struct CompiledProject {
@@ -181,16 +193,31 @@ pub fn lower_project(
     sources: &[SourceFile],
     entry_module: &str,
 ) -> Result<LoweredProject, Vec<SemanticError>> {
-    let parser = LinkGrammarParser::new().map_err(|error: SyntaxError| {
-        vec![SemanticError {
-            module: entry_module.to_string(),
-            line: 1,
-            col: 1,
-            kind: SemanticErrorKind::Segmentation,
-            message: error.message,
-        }]
-    })?;
-    lower_project_with_parser(sources, entry_module, &parser)
+    let outcome = lower_project_outcome(sources, entry_module);
+    outcome.project.ok_or(outcome.errors)
+}
+
+/// Lowers English while retaining every collected sentence trace, even when a
+/// later sentence produces a diagnostic.
+#[must_use]
+pub fn lower_project_outcome(sources: &[SourceFile], entry_module: &str) -> LowerProjectOutcome {
+    let parser = match LinkGrammarParser::new() {
+        Ok(parser) => parser,
+        Err(error) => {
+            return LowerProjectOutcome {
+                project: None,
+                trace: Vec::new(),
+                errors: vec![SemanticError {
+                    module: entry_module.to_string(),
+                    line: 1,
+                    col: 1,
+                    kind: SemanticErrorKind::Segmentation,
+                    message: error.message,
+                }],
+            };
+        }
+    };
+    lower_project_analysis_with_parser(sources, entry_module, &parser)
 }
 
 fn is_std_module(name: &str) -> bool {
@@ -328,14 +355,30 @@ pub fn lower_project_with_parser(
     entry_module: &str,
     parser: &LinkGrammarParser,
 ) -> Result<LoweredProject, Vec<SemanticError>> {
+    let outcome = lower_project_analysis_with_parser(sources, entry_module, parser);
+    outcome.project.ok_or(outcome.errors)
+}
+
+/// Lowers a project with a caller-owned parser and preserves the sentence trace
+/// when any diagnostic occurs.
+#[must_use]
+pub fn lower_project_analysis_with_parser(
+    sources: &[SourceFile],
+    entry_module: &str,
+    parser: &LinkGrammarParser,
+) -> LowerProjectOutcome {
     if sources.is_empty() {
-        return Err(vec![SemanticError {
-            module: entry_module.to_string(),
-            line: 1,
-            col: 1,
-            kind: SemanticErrorKind::Segmentation,
-            message: "no source files were supplied".to_string(),
-        }]);
+        return LowerProjectOutcome {
+            project: None,
+            trace: Vec::new(),
+            errors: vec![SemanticError {
+                module: entry_module.to_string(),
+                line: 1,
+                col: 1,
+                kind: SemanticErrorKind::Segmentation,
+                message: "no source files were supplied".to_string(),
+            }],
+        };
     }
     let (sources, auto_modules) = augmented_sources(sources, entry_module);
     let auto_prelude = !is_std_module(entry_module);
@@ -348,7 +391,11 @@ pub fn lower_project_with_parser(
         }
     }
     if !errors.is_empty() {
-        return Err(errors);
+        return LowerProjectOutcome {
+            project: None,
+            trace: Vec::new(),
+            errors,
+        };
     }
     if auto_prelude {
         let mut auto_imports = vec!["io"];
@@ -403,7 +450,11 @@ pub fn lower_project_with_parser(
         }
     }
     if !errors.is_empty() {
-        return Err(errors);
+        return LowerProjectOutcome {
+            project: None,
+            trace: Vec::new(),
+            errors,
+        };
     }
 
     let bindings = lower::collect_phrase_bindings(&jobs);
@@ -480,18 +531,19 @@ pub fn lower_project_with_parser(
         }
         errors.append(&mut diagnostics);
     }
-    if errors.is_empty() {
-        Ok(LoweredProject {
-            program: Program {
-                modules,
-                entry_module: entry_key,
-                entry_fn: "main".to_string(),
-            },
-            trace,
-            paraphrase,
-        })
-    } else {
-        Err(errors)
+    let project = errors.is_empty().then(|| LoweredProject {
+        program: Program {
+            modules,
+            entry_module: entry_key,
+            entry_fn: "main".to_string(),
+        },
+        trace: trace.clone(),
+        paraphrase,
+    });
+    LowerProjectOutcome {
+        project,
+        trace,
+        errors,
     }
 }
 
