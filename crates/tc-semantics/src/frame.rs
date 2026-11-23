@@ -7,7 +7,9 @@ use tc_typeck::{AstExpr, AstStmt};
 use crate::lower::{Lowerer, strip_leading_word};
 use crate::place::{PlaceSpec, parse_place};
 use crate::place::{canonical_assignment_target, canonical_bare_target};
-use crate::textutil::{find_top_level_word, split_top_level, starts_with_word};
+use crate::textutil::{
+    find_top_level_word, first_word as first_word_of, split_top_level, starts_with_word,
+};
 use crate::token::tokenize;
 use crate::value::ValueSpec;
 use crate::{SemanticError, SemanticErrorKind, Span};
@@ -429,16 +431,70 @@ impl Lowerer<'_> {
             return Ok(None);
         };
         let rest = text[first.end..].trim().trim_end_matches('.');
-        if (resolution.concept == Some(SemanticConcept::Output)
+        let emit_alternative = starts_with_word(rest, "out")
+            && resolution.predicate != Some(tc_lexicon::VerbPredicate::Emit)
+            && tc_lexicon::lookup_verbnet(&resolution.lemma, None)
+                .iter()
+                .any(|frame| frame.predicate == tc_lexicon::VerbPredicate::Emit);
+        let is_emit = resolution.concept == Some(SemanticConcept::Output)
             || (resolution.predicate == Some(tc_lexicon::VerbPredicate::Emit)
-                && resolution.concept.is_none()))
-            && !rest.is_empty()
-        {
+                && resolution.concept.is_none())
+            || emit_alternative;
+        if is_emit {
+            let mut object = rest;
+            loop {
+                if starts_with_word(object, "out")
+                    || starts_with_word(object, "me")
+                    || starts_with_word(object, "us")
+                {
+                    let word = first_word_of(object);
+                    object = strip_leading_word(object, &word).trim();
+                    continue;
+                }
+                break;
+            }
+            if !object.is_empty() {
+                return self
+                    .lower_frame(
+                        SemanticFrame::Emit {
+                            value: ValueSpec::classify(object),
+                        },
+                        span,
+                    )
+                    .map(Some);
+            }
+            return Ok(None);
+        }
+        if matches!(
+            resolution.concept,
+            Some(
+                SemanticConcept::Square
+                    | SemanticConcept::Cube
+                    | SemanticConcept::Double
+                    | SemanticConcept::Halve
+                    | SemanticConcept::Negate
+            )
+        ) {
+            let target = self.semantic_place(rest, span)?;
+            let rendered = target.render();
+            let numeric_two = self
+                .resolve_target(rest, span)
+                .ok()
+                .and_then(|(_, target)| self.shallow_type_opt(&target.read()))
+                .is_some_and(|ty| matches!(ty, tc_typeck::AstType::F32 | tc_typeck::AstType::F64));
+            let two = if numeric_two { "2.0" } else { "2" };
+            let value = match resolution.concept {
+                Some(SemanticConcept::Square) => format!("{rendered} times {rendered}"),
+                Some(SemanticConcept::Cube) => {
+                    format!("{rendered} times {rendered} times {rendered}")
+                }
+                Some(SemanticConcept::Double) => format!("{rendered} times {two}"),
+                Some(SemanticConcept::Halve) => format!("{rendered} divided by {two}"),
+                _ => format!("negative {rendered}"),
+            };
             return self
                 .lower_frame(
-                    SemanticFrame::Emit {
-                        value: ValueSpec::classify(rest),
-                    },
+                    SemanticFrame::assign(target, ValueSpec::classify(&value), false),
                     span,
                 )
                 .map(Some);

@@ -2411,7 +2411,8 @@ fn paragraph_control_header(text: &str) -> bool {
     (lower.starts_with("while ")
         || lower.starts_with("until ")
         || lower.starts_with("if ")
-        || lower.starts_with("unless "))
+        || lower.starts_with("unless ")
+        || lower.starts_with("for "))
         && find_top_level_symbol(text, ",").is_none()
         && text.trim_end().ends_with('.')
 }
@@ -3597,6 +3598,20 @@ impl<'a> Lowerer<'a> {
         Ok(best.into_iter().next().map(|(_, _, candidate)| candidate))
     }
 
+    fn emit_phrase_defers(&self, phrase: &PhraseMatch, source: &str) -> bool {
+        let first = phrase.pattern.split_whitespace().next().unwrap_or_default();
+        let is_emit = classify_verb(first, None).is_some_and(|resolution| {
+            resolution.predicate == Some(VerbPredicate::Emit)
+                || resolution.concept == Some(SemanticConcept::Output)
+        });
+        is_emit
+            && (crate::value::is_np_expression(source)
+                || phrase
+                    .args
+                    .iter()
+                    .any(|argument| crate::value::is_np_expression(argument)))
+    }
+
     pub(crate) fn shallow_type_opt(&self, expr: &AstExpr) -> Option<AstType> {
         if let AstExpr::Call { name, .. } = expr {
             if let Some(return_type) = self.function_returns.get(name) {
@@ -3677,8 +3692,66 @@ impl<'a> Lowerer<'a> {
                         index += 1;
                         continue;
                     }
+                    let sentence_lower = sentence.text.to_ascii_lowercase();
+                    let first_token = first_word(&sentence_lower);
+                    if first_token == "otherwise" || first_token == "else" {
+                        let keyword = if first_token == "otherwise" {
+                            "otherwise"
+                        } else {
+                            "else"
+                        };
+                        let body = strip_leading_word(&sentence.text, keyword)
+                            .trim()
+                            .trim_start_matches(',')
+                            .trim();
+                        if body.is_empty() {
+                            self.errors.push(self.error(
+                                sentence.span,
+                                SemanticErrorKind::Lowering,
+                                "`Otherwise` requires an inline statement",
+                            ));
+                            index += 1;
+                            continue;
+                        }
+                        let clause = analyze_clause(self.parser, sentence);
+                        let verdict = IntentVerdict::Exec;
+                        let _ = self.trace_sentence(sentence, &clause, None, verdict);
+                        self.push_paraphrase(
+                            sentence,
+                            IntentVerdict::Exec,
+                            canonicalize_statement(body),
+                        );
+                        self.push_scope(ScopeKind::IfElse);
+                        let lowered = self.lower_actions_capturing(body, sentence.span, depth + 1);
+                        self.pop_scope();
+                        match lowered {
+                            Ok((else_body, _)) => {
+                                let target =
+                                    statements.iter_mut().rev().find_map(
+                                        |statement| match statement {
+                                            AstStmt::If { else_body, .. } => Some(else_body),
+                                            _ => None,
+                                        },
+                                    );
+                                if let Some(existing) = target {
+                                    existing.extend(else_body);
+                                } else {
+                                    self.errors.push(self.error(
+                                        sentence.span,
+                                        SemanticErrorKind::Lowering,
+                                        "`Otherwise`/`Else` must follow an `If` statement",
+                                    ));
+                                }
+                            }
+                            Err(error) => self.errors.push(error),
+                        }
+                        index += 1;
+                        continue;
+                    }
                     let clause = analyze_clause(self.parser, sentence);
-                    let phrase = self.match_phrase_typed(&sentence.text, sentence.span)?;
+                    let phrase = self
+                        .match_phrase_typed(&sentence.text, sentence.span)?
+                        .filter(|phrase| !self.emit_phrase_defers(phrase, &sentence.text));
                     let graph = if phrase.is_none() {
                         clause_graph::decompose(&sentence.text)
                     } else {
@@ -3694,8 +3767,18 @@ impl<'a> Lowerer<'a> {
                             continue;
                         }
                     };
+                    let first_text = tokenize(&sentence.text)
+                        .into_iter()
+                        .find(|token| token.is_word())
+                        .map(|token| token.lower)
+                        .unwrap_or_default();
+                    let narrative_pronoun = matches!(
+                        first_text.as_str(),
+                        "i" | "we" | "he" | "she" | "it" | "they" | "you" | "my" | "our" | "their"
+                    );
                     if graph.is_some()
-                        && !(clause.voice == tc_syntax::Voice::Active
+                        && !(narrative_pronoun
+                            && clause.voice == tc_syntax::Voice::Active
                             && clause.verb.as_ref().is_some_and(|verb| verb.is_past))
                         && !verdict.is_exec()
                     {
@@ -3744,7 +3827,9 @@ impl<'a> Lowerer<'a> {
                         continue;
                     }
                     let clause = analyze_clause(self.parser, header);
-                    let phrase = self.match_phrase_typed(&header.text, header.span)?;
+                    let phrase = self
+                        .match_phrase_typed(&header.text, header.span)?
+                        .filter(|phrase| !self.emit_phrase_defers(phrase, &header.text));
                     let base = classify(&header.text, &clause, phrase.as_ref());
                     let verdict = match self.discourse_intent_override(header, &clause, base) {
                         Ok(verdict) => verdict,
@@ -5030,6 +5115,13 @@ impl<'a> Lowerer<'a> {
         if lower == "end" {
             return Ok(Vec::new());
         }
+        if let Some(phrase) = self
+            .match_phrase_typed(trimmed, span)?
+            .filter(|phrase| !self.emit_phrase_defers(phrase, trimmed))
+        {
+            self.add_annotation(format!("[phrase: \"{}\"]", phrase.pattern));
+            return Ok(vec![self.lower_phrase_call(&phrase, span)?]);
+        }
         if starts_with_word(&lower, "return") {
             let rest = strip_leading_word(trimmed, "return").trim();
             let value = if rest.is_empty() {
@@ -5294,7 +5386,11 @@ impl<'a> Lowerer<'a> {
                 if let Some((start, end)) = find_top_level_word(rest, "times") {
                     Some((
                         rest[..start].trim().to_string(),
-                        rest[end..].trim().to_string(),
+                        rest[end..]
+                            .trim()
+                            .trim_start_matches(',')
+                            .trim()
+                            .to_string(),
                     ))
                 } else {
                     Some(self.split_condition_actions(rest, span)?)
@@ -5556,6 +5652,11 @@ impl<'a> Lowerer<'a> {
                 len: usize,
                 base: AstExpr,
             },
+            List {
+                element: AstType,
+                len: AstExpr,
+                data: AstExpr,
+            },
         }
         let domain = match &global.domain {
             QuantDomainSpec::Range { start, end, step } => {
@@ -5598,33 +5699,51 @@ impl<'a> Lowerer<'a> {
                         format!("quantifier array `{arr}` is not in scope"),
                     ));
                 };
-                let AstType::Array(element, len) = ty else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        format!("quantifier domain `{arr}` is not a fixed-size array"),
-                    ));
-                };
-                let base = if self.globals.contains_key(arr)
-                    && !self.scopes.iter().any(|scope| scope.vars.contains_key(arr))
-                {
-                    AstExpr::GlobalAddr {
-                        module: None,
-                        name: arr.clone(),
+                if let AstType::Array(element, len) = ty {
+                    let base = if self.globals.contains_key(arr)
+                        && !self.scopes.iter().any(|scope| scope.vars.contains_key(arr))
+                    {
+                        AstExpr::GlobalAddr {
+                            module: None,
+                            name: arr.clone(),
+                        }
+                    } else {
+                        AstExpr::AddrOfVar(arr.clone())
+                    };
+                    Domain::Array {
+                        element: *element,
+                        len,
+                        base,
                     }
                 } else {
-                    AstExpr::AddrOfVar(arr.clone())
-                };
-                Domain::Array {
-                    element: *element,
-                    len,
-                    base,
+                    let list = match &ty {
+                        AstType::Named {
+                            name, type_args, ..
+                        } if name.eq_ignore_ascii_case("list") => type_args.first().cloned(),
+                        AstType::Ptr(inner) => match inner.as_ref() {
+                            AstType::Named {
+                                name, type_args, ..
+                            } if name.eq_ignore_ascii_case("list") => type_args.first().cloned(),
+                            _ => None,
+                        },
+                        _ => None,
+                    };
+                    let Some(element) = list else {
+                        return Err(self.error(
+                            span,
+                            SemanticErrorKind::Lowering,
+                            format!("quantifier domain `{arr}` is not a fixed-size array or List"),
+                        ));
+                    };
+                    let len = self.parse_expr(&format!("{arr}'s len"), span)?;
+                    let data = self.parse_expr(&format!("{arr}'s data"), span)?;
+                    Domain::List { element, len, data }
                 }
             }
         };
         let var_ty = match &domain {
             Domain::Range { var_ty, .. } => var_ty.clone(),
-            Domain::Array { element, .. } => element.clone(),
+            Domain::Array { element, .. } | Domain::List { element, .. } => element.clone(),
         };
         let mut prelude = Vec::new();
         let (counter, end_temp, step_temp, first) = match &domain {
@@ -5634,7 +5753,7 @@ impl<'a> Lowerer<'a> {
                 self.next_temp("q_step"),
                 self.next_temp("q_first"),
             ),
-            Domain::Array { .. } => (
+            Domain::Array { .. } | Domain::List { .. } => (
                 self.next_temp("q_idx"),
                 String::new(),
                 String::new(),
@@ -5690,12 +5809,17 @@ impl<'a> Lowerer<'a> {
                     });
                 }
             }
-            Domain::Array { len, .. } => {
-                self.declare_temp(&counter, AstType::I64);
+            Domain::Array { .. } | Domain::List { .. } => {
+                let index_ty = if matches!(&domain, Domain::List { .. }) {
+                    AstType::U64
+                } else {
+                    AstType::I64
+                };
+                self.declare_temp(&counter, index_ty.clone());
                 self.declare_temp(&first, AstType::Bool);
                 prelude.push(AstStmt::Let {
                     name: counter.clone(),
-                    ty: Some(AstType::I64),
+                    ty: Some(index_ty),
                     init: AstExpr::ConstInt(0, None),
                     span: self.span(span),
                 });
@@ -5705,7 +5829,6 @@ impl<'a> Lowerer<'a> {
                     init: AstExpr::ConstBool(true),
                     span: self.span(span),
                 });
-                let _ = len;
             }
         }
         let termination = match &domain {
@@ -5719,6 +5842,11 @@ impl<'a> Lowerer<'a> {
                     i64::try_from(*len).unwrap_or(i64::MAX),
                     None,
                 )),
+            },
+            Domain::List { len, .. } => AstExpr::Binary {
+                op: tc_ir::BinOp::Ge,
+                lhs: Box::new(AstExpr::Var(counter.clone())),
+                rhs: Box::new(len.clone()),
             },
         };
         let mut loop_body = vec![
@@ -5735,7 +5863,7 @@ impl<'a> Lowerer<'a> {
                             lhs: Box::new(AstExpr::Var(counter.clone())),
                             rhs: Box::new(AstExpr::Var(step_temp.clone())),
                         },
-                        Domain::Array { .. } => AstExpr::Binary {
+                        Domain::Array { .. } | Domain::List { .. } => AstExpr::Binary {
                             op: tc_ir::BinOp::Add,
                             lhs: Box::new(AstExpr::Var(counter.clone())),
                             rhs: Box::new(AstExpr::ConstInt(1, None)),
@@ -5762,6 +5890,10 @@ impl<'a> Lowerer<'a> {
             Domain::Range { .. } => AstExpr::Var(counter.clone()),
             Domain::Array { base, .. } => AstExpr::Load(Box::new(AstExpr::IndexAddr {
                 base_ptr: Box::new(base.clone()),
+                index: Box::new(AstExpr::Var(counter.clone())),
+            })),
+            Domain::List { data, .. } => AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                base_ptr: Box::new(data.clone()),
                 index: Box::new(AstExpr::Var(counter.clone())),
             })),
         };

@@ -6,8 +6,8 @@
 use std::fmt;
 
 use tc_lexicon::{
-    ClosedClass, SemanticConcept, VerbPredicate, VerbResolution, classify_verb,
-    lookup_closed_class, prep_role,
+    ClosedClass, SemanticConcept, VERBNET_FRAMES, VerbPredicate, VerbResolution, WORDNET_ENTRIES,
+    classify_verb, lookup_closed_class, prep_role,
 };
 
 use crate::phrases::PhraseMatch;
@@ -330,14 +330,29 @@ fn supported_predicate(
                 && target_ok
         }
         VerbPredicate::Transform => match resolution.concept {
-            Some(SemanticConcept::Double | SemanticConcept::Halve | SemanticConcept::Negate) => {
-                !verb_region_is_empty(text, verb_index)
-            }
+            Some(
+                SemanticConcept::Double
+                | SemanticConcept::Halve
+                | SemanticConcept::Negate
+                | SemanticConcept::Square
+                | SemanticConcept::Cube,
+            ) => !verb_region_is_empty(text, verb_index),
             Some(SemanticConcept::Mul | SemanticConcept::Div) => has(tc_lexicon::PrepRole::Extent),
             _ => has(tc_lexicon::PrepRole::Extent),
         },
         VerbPredicate::Emit => !verb_region_is_empty(text, verb_index),
-        VerbPredicate::Create | VerbPredicate::Destroy | VerbPredicate::Receive => false,
+        VerbPredicate::Create => {
+            let tokens = tokenize(text);
+            let out_particle = tokens
+                .iter()
+                .skip(verb_index + 1)
+                .any(|token| token.is_word() && token.is("out"));
+            out_particle
+                && tc_lexicon::lookup_verbnet(&resolution.lemma, None)
+                    .iter()
+                    .any(|frame| frame.predicate == VerbPredicate::Emit)
+        }
+        VerbPredicate::Destroy | VerbPredicate::Receive => false,
     }
 }
 
@@ -367,9 +382,13 @@ fn supported_concept(
         Some(SemanticConcept::Mul | SemanticConcept::Div) => {
             prep_roles(text).contains(&tc_lexicon::PrepRole::Extent)
         }
-        Some(SemanticConcept::Double | SemanticConcept::Halve | SemanticConcept::Negate) => {
-            !verb_region_is_empty(text, verb_index)
-        }
+        Some(
+            SemanticConcept::Double
+            | SemanticConcept::Halve
+            | SemanticConcept::Negate
+            | SemanticConcept::Square
+            | SemanticConcept::Cube,
+        ) => !verb_region_is_empty(text, verb_index),
         Some(
             SemanticConcept::Mod
             | SemanticConcept::Output
@@ -543,11 +562,29 @@ fn unsupported_reason(text: &str) -> String {
         );
     }
     if let Some(verb) = clause_verb_word(text) {
+        if let Some(hint) = imperative_typo_hint(&verb) {
+            return format!("unrecognized imperative `{verb}` — did you mean '{hint}'?");
+        }
         return format!(
             "imperative verb `{verb}` is not in the computational lexicon; add a Phrase: signature or a supported Core-7 form. Try phrasing it with Put/Let, Add/Remove, Update, or a std/ phrase like Say."
         );
     }
     "directive is outside the finite Core-7 English subset".to_string()
+}
+
+fn imperative_typo_hint(word: &str) -> Option<String> {
+    if word.len() < 5 || classify_verb(word, None).is_some() {
+        return None;
+    }
+    let mut candidates = WORDNET_ENTRIES
+        .iter()
+        .map(|entry| entry.lemma)
+        .chain(VERBNET_FRAMES.iter().map(|frame| frame.verb))
+        .filter(|candidate| candidate.len() >= 5)
+        .collect::<Vec<_>>();
+    candidates.sort_unstable();
+    candidates.dedup();
+    tc_typeck::suggest::closest_match(word, candidates, 2).map(str::to_string)
 }
 
 fn clause_verb_word(text: &str) -> Option<String> {
@@ -728,6 +765,12 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
     if assignment_shape(core) {
         return IntentVerdict::Exec;
     }
+    if clause.voice == Voice::Active && narrative(clause) {
+        return IntentVerdict::CommentOmitted {
+            reason: "past-tense or third-person narrative prose".to_string(),
+        };
+    }
+
     if let Some(hit) = main_verb_hit(core, clause)
         && clause.voice == Voice::Active
         && narrative(clause)

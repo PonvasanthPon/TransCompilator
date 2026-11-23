@@ -15,8 +15,8 @@ tracked.
 - **License:** CC-BY 4.0
 - **Local use:** read-only copy in the sandbox goldmines tree; never modified.
 - **Scanned:** 135,969 lexical entries and 107,519 synsets.
-- **Harvest:** 39 exact `oewn-*` anchor synsets, 630 reachable synsets at
-  hypernym distance <= 3, and **772** emitted `WordNetEntry` rows.
+- **Harvest:** 42 exact `oewn-*` anchor synsets, 632 reachable synsets at
+  hypernym distance <= 3, and **775** emitted `WordNetEntry` rows.
 - **Morphology validation:** 8,749 single-word WordNet verb lemmas emitted as
   `VERB_LEMMAS`, plus **103** standard irregular form -> lemma rows.
 
@@ -32,6 +32,8 @@ tracked.
 | Negate | `oewn-00471015-v` |
 | Double | `oewn-00247103-v` |
 | Halve | `oewn-00644019-v` |
+| Square | `oewn-00145268-v` |
+| Cube | `oewn-00641924-v` |
 | Assign | `oewn-01496967-v` |
 | Transfer | `oewn-02225243-v` |
 | Swap | `oewn-02263812-v` |
@@ -41,7 +43,7 @@ tracked.
 | CompareNe | `oewn-02672316-v` |
 | Create | `oewn-01658171-v` and `oewn-01757596-v` |
 | Destroy | `oewn-01622948-v` and `oewn-01551969-v` |
-| Output | `oewn-01625832-v` |
+| Output | `oewn-01625832-v` and `oewn-00959711-v` (echo) |
 | Input | `oewn-02214901-v` |
 | Loop | `oewn-00960366-v` |
 | Branch | `oewn-00676526-v` |
@@ -56,9 +58,9 @@ tracked.
 | Convert (direct) | `oewn-00381684-v` |
 | Adjust (direct) | `oewn-00296959-v` (adjust), `oewn-00126072-v` (alter), `oewn-00169614-v` (modify) |
 
-The two `direct` anchors are depth-zero anchors: they contribute their own
-synset members (`increase`; `decrease`) without expanding a broad
-`verb.change` hyponym tree.
+The `direct` anchors are depth-zero anchors: they contribute their own synset
+members without expanding a broad `verb.change` hyponym tree. This now also
+covers `square`, `cube`, and `echo`.
 
 The traversal is a multi-source BFS over inverse-hypernym (hyponym) edges,
 retaining the shortest distance to an anchor and discarding lexical material
@@ -69,7 +71,7 @@ from narrative, motion, consumption, emotion, weather, and cooking roots
 `plus`, `times`, `minus`, `equals`, `exists`, `series`, `bus`, `gas`,
 `class`, `diminish`, `lessen`, `fall`). WordNet POS is preserved on every
 row, so unrelated noun/adjective senses cannot collide with computational
-verb senses. The post-v1.0 expansion adds seven direct-only anchor families
+verb senses. The post-0.1.0 expansion adds direct-only anchor families
 for increment/decrement/reset/swap/copy/convert/adjust. OEWN 2025 has noun
 entries but no verb lemma for `increment`/`decrement`; their imperative aliases
 carry the exact increase/decrease synset provenance as explicit derived rows.

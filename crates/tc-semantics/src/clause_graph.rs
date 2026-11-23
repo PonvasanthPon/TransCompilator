@@ -154,7 +154,14 @@ fn decompose_where(text: &str) -> Option<ClauseGraph> {
 pub(crate) fn split_then(text: &str) -> Option<Vec<String>> {
     let tokens = tokenize(text);
     let first = tokens.iter().find(|token| token.kind == TokenKind::Word)?;
-    if first.is("if") || first.is("when") || first.is("unless") || first.is("while") {
+    if first.is("if")
+        || first.is("when")
+        || first.is("unless")
+        || first.is("while")
+        || first.is("repeat")
+        || first.is("loop")
+        || first.is("for")
+    {
         return None;
     }
     let mut parts = Vec::new();

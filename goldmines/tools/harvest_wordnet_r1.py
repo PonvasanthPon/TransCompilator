@@ -42,6 +42,9 @@ DIRECT_ANCHORS = [
     ("Adjust", "oewn-00296959-v"),     # adjust
     ("Adjust", "oewn-00126072-v"),     # alter
     ("Adjust", "oewn-00169614-v"),     # modify
+    ("Square", "oewn-00145268-v"),     # square (unary in-place math)
+    ("Cube", "oewn-00641924-v"),       # cube (unary in-place math)
+    ("Output", "oewn-00959711-v"),     # echo (Emit)
 ]
 
 # OEWN 2025 has noun entries for increment/decrement but no verb lemmas.  The
@@ -152,7 +155,7 @@ POS_ORDER = {"Verb": 0, "Noun": 1, "Adj": 2, "Adv": 3}
 CONCEPT_ORDER = {
     name: index for index, name in enumerate([
         "Add", "Sub", "Mul", "Div", "Mod", "Negate", "Double", "Halve",
-        "Increment", "Decrement", "Reset", "Copy", "Convert", "Adjust",
+        "Increment", "Decrement", "Reset", "Copy", "Convert", "Adjust", "Square", "Cube",
         "Assign", "Transfer", "Swap", "CompareGt", "CompareLt", "CompareEq",
         "CompareNe", "Create", "Destroy", "Output", "Input", "Loop",
         "Branch", "Return",
