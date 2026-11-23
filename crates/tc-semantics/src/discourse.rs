@@ -81,6 +81,8 @@ pub(crate) struct DiscourseScope {
 pub(crate) struct DiscourseStack {
     scopes: Vec<DiscourseScope>,
     next_recency: u64,
+    recent_plural: Vec<String>,
+    last_result: Option<String>,
 }
 
 /// Structured anaphor resolution failure.
@@ -209,6 +211,8 @@ impl DiscourseStack {
         Self {
             scopes: Vec::new(),
             next_recency: 1,
+            recent_plural: Vec::new(),
+            last_result: None,
         }
     }
 
@@ -223,6 +227,32 @@ impl DiscourseStack {
     /// Pops the innermost scope.
     pub(crate) fn pop_scope(&mut self) -> Option<DiscourseScope> {
         self.scopes.pop()
+    }
+
+    /// Records the active plural referent group for `their ...`.
+    pub(crate) fn set_plural(&mut self, names: Vec<String>) {
+        self.recent_plural.clear();
+        for name in names {
+            let name = name.to_ascii_lowercase();
+            if !self.recent_plural.contains(&name) {
+                self.recent_plural.push(name);
+            }
+        }
+    }
+
+    /// Returns the active plural referent group.
+    pub(crate) fn plural_names(&self) -> Vec<String> {
+        self.recent_plural.clone()
+    }
+
+    /// Records the most recent assignment/computation target.
+    pub(crate) fn set_last_result(&mut self, name: &str) {
+        self.last_result = Some(name.to_ascii_lowercase());
+    }
+
+    /// Returns the most recent assignment target.
+    pub(crate) fn last_result(&self) -> Option<String> {
+        self.last_result.clone()
     }
 
     /// Introduces or refreshes a binding in the innermost scope.
