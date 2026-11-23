@@ -2436,15 +2436,53 @@ fn top_level_declaration(text: &str) -> bool {
         || lower.starts_with("to ")
 }
 
-fn paragraph_control_header(text: &str) -> bool {
-    let lower = text.trim().to_ascii_lowercase();
+fn paragraph_control_header(text: &str, allow_colon: bool) -> Option<String> {
+    let trimmed = text.trim();
+    if trimmed.ends_with(':') && !allow_colon {
+        return None;
+    }
+    let lower = trimmed
+        .trim_end_matches(['.', ':'])
+        .trim()
+        .to_ascii_lowercase();
+    if find_top_level_symbol(trimmed, ",").is_some() {
+        return None;
+    }
+    for prefix in ["repeat while ", "repeat until "] {
+        if lower.starts_with(prefix) {
+            let rest = trimmed
+                .trim_end_matches(['.', ':'])
+                .trim()
+                .get(prefix.len()..)?
+                .trim();
+            return Some(if prefix == "repeat while " {
+                format!("While {rest}")
+            } else {
+                format!("While not {rest}")
+            });
+        }
+    }
+    if lower.starts_with("until ") {
+        let rest = trimmed
+            .trim_end_matches(['.', ':'])
+            .trim()
+            .get("until ".len()..)?
+            .trim();
+        return Some(format!("While not {rest}"));
+    }
     (lower.starts_with("while ")
-        || lower.starts_with("until ")
         || lower.starts_with("if ")
         || lower.starts_with("unless ")
         || lower.starts_with("for "))
-        && find_top_level_symbol(text, ",").is_none()
-        && text.trim_end().ends_with('.')
+    .then(|| trimmed.trim_end_matches(['.', ':']).trim().to_string())
+}
+
+fn next_nonblank_indent(lines: &[&str], index: usize) -> Option<usize> {
+    lines
+        .iter()
+        .skip(index + 1)
+        .find(|line| !line.trim().is_empty())
+        .map(|line| line.len() - line.trim_start().len())
 }
 
 fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
@@ -2453,10 +2491,12 @@ fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
     let mut natural_function: Option<usize> = None;
     let mut control_blocks: Vec<usize> = Vec::new();
     let mut names = NamePhrases::default();
-    for (index, raw_line) in text.lines().enumerate() {
+    let lines = text.lines().collect::<Vec<_>>();
+    for (index, raw_line) in lines.iter().copied().enumerate() {
         let source_line = u32::try_from(index + 1).unwrap_or(u32::MAX);
         let indent = raw_line.len() - raw_line.trim_start().len();
         let trimmed = raw_line.trim_start();
+        let allow_colon = next_nonblank_indent(&lines, index).is_none_or(|next| next <= indent);
         if trimmed.is_empty() {
             control_blocks.clear();
             natural_function = None;
@@ -2503,8 +2543,7 @@ fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
         let rewritten = names.rewrite(trimmed);
         let trimmed = rewritten.as_str();
         if let Some(&control_indent) = control_blocks.last() {
-            if paragraph_control_header(trimmed) {
-                let header = trimmed.trim_end_matches('.').trim();
+            if let Some(header) = paragraph_control_header(trimmed, allow_colon) {
                 push_normalized_line(
                     &mut output,
                     &mut line_map,
@@ -2521,8 +2560,7 @@ fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
             continue;
         }
         if let Some(header_indent) = natural_function {
-            if paragraph_control_header(trimmed) {
-                let header = trimmed.trim_end_matches('.').trim();
+            if let Some(header) = paragraph_control_header(trimmed, allow_colon) {
                 push_normalized_line(
                     &mut output,
                     &mut line_map,
@@ -2568,8 +2606,7 @@ fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
                 continue;
             }
         }
-        if paragraph_control_header(trimmed) {
-            let header = trimmed.trim_end_matches('.').trim();
+        if let Some(header) = paragraph_control_header(trimmed, allow_colon) {
             push_normalized_line(
                 &mut output,
                 &mut line_map,
