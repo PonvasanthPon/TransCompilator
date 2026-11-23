@@ -51,6 +51,28 @@ PY
 
 echo "==> Wrote offline zero-AI settings to ${ZED_CONFIG}/settings.json"
 
+FONT_FAMILIES="$(fc-list : family 2>/dev/null || true)"
+if [ -n "${FONT_FAMILIES}" ]; then
+  SERIF_FALLBACK=""
+  for family in "Liberation Serif" "Noto Serif" "DejaVu Serif"; do
+    if printf '%s\n' "${FONT_FAMILIES}" | grep -F "${family}" >/dev/null; then
+      SERIF_FALLBACK="${family}"
+      break
+    fi
+  done
+  if printf '%s\n' "${FONT_FAMILIES}" | grep -E 'EB Garamond|Libre Baskerville' >/dev/null; then
+    echo "==> Book serif font detected for .eng buffers."
+  else
+    echo "==> Book serif fonts not detected; .eng currently uses EB Garamond with an installed serif fallback."
+    echo "    Tip: sudo apt install -y fonts-ebgaramond fonts-libre-baskerville"
+  fi
+  if [ -n "${SERIF_FALLBACK}" ]; then
+    echo "    Installed serif fallback on this host: ${SERIF_FALLBACK}"
+  fi
+else
+  echo "==> fc-list unavailable; .eng uses EB Garamond with serif fallbacks."
+fi
+
 python3 - "${ZED_CONFIG}/tasks.json" "${ROOT}/editors/zed/tasks.json" <<'PYTASKS'
 import json
 import sys
