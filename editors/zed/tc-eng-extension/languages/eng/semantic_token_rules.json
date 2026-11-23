@@ -3,50 +3,35 @@
     "token_type": "variable",
     "token_modifiers": ["readonly"],
     "foreground_color": "#1c1c1e",
-    "font_weight": "normal",
-    "font_style": "italic",
-    "underline": true
+    "font_style": "italic"
   },
   {
     "token_type": "comment",
     "foreground_color": "#7a7a7a",
-    "font_weight": "normal",
-    "font_style": "italic",
-    "underline": false
+    "font_style": "italic"
   },
   {
     "token_type": "function",
     "foreground_color": "#1c1c1e",
-    "font_weight": "bold",
-    "font_style": "normal",
-    "underline": false
+    "font_weight": "bold"
   },
   {
     "token_type": "keyword",
     "foreground_color": "#1c1c1e",
-    "font_weight": "bold",
-    "font_style": "normal",
-    "underline": false
+    "font_weight": "bold"
   },
   {
     "token_type": "variable",
     "foreground_color": "#1c1c1e",
-    "font_weight": "normal",
-    "font_style": "normal",
-    "underline": true
+    "underline": "#c8c8cc"
   },
   {
     "token_type": "string",
     "foreground_color": "#1c1c1e",
-    "font_weight": "normal",
-    "font_style": "italic",
-    "underline": false
+    "font_style": "italic"
   },
   {
     "token_type": "number",
-    "foreground_color": "#1c1c1e",
-    "font_weight": "bold",
-    "font_style": "normal",
-    "underline": false
+    "foreground_color": "#1c1c1e"
   }
 ]

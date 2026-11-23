@@ -426,10 +426,7 @@ fn word_candidates(
         );
         return;
     }
-    if is_glue(lower) {
-        return;
-    }
-    if is_keyword(lower, conditional) {
+    if is_control_keyword(tokens, position, conditional) {
         push(
             candidates,
             line_number,
@@ -441,29 +438,59 @@ fn word_candidates(
         );
         return;
     }
-    if let Some(end) = match_phrase(tokens, position, &index.variable_phrases)
-        .or_else(|| match_phrase(tokens, position, &index.field_phrases))
-    {
-        push(
-            candidates,
-            line_number,
-            token.start,
-            tokens[end - 1].end,
-            VARIABLE,
-            0,
-            70,
-        );
+    if is_glue(lower) {
         return;
     }
-    if let Some(end) = possessive_field_end(tokens, position, index) {
+    let clause_leader = is_clause_leader(tokens, position);
+    if !clause_leader {
+        if let Some(end) = match_phrase(tokens, position, &index.variable_phrases)
+            .or_else(|| match_phrase(tokens, position, &index.field_phrases))
+        {
+            push(
+                candidates,
+                line_number,
+                token.start,
+                tokens[end - 1].end,
+                VARIABLE,
+                0,
+                70,
+            );
+            return;
+        }
+        if let Some(end) = possessive_field_end(tokens, position, index) {
+            push(
+                candidates,
+                line_number,
+                token.start,
+                tokens[end - 1].end,
+                VARIABLE,
+                0,
+                75,
+            );
+            return;
+        }
+        if index.variable_words.contains(lower) || index.field_words.contains(lower) {
+            push(
+                candidates,
+                line_number,
+                token.start,
+                token.end,
+                VARIABLE,
+                0,
+                60,
+            );
+            return;
+        }
+    }
+    if is_predicate_keyword(lower) {
         push(
             candidates,
             line_number,
             token.start,
-            tokens[end - 1].end,
-            VARIABLE,
+            token.end,
+            KEYWORD,
             0,
-            75,
+            25,
         );
         return;
     }
@@ -602,26 +629,53 @@ fn declaration_line(tokens: &[Token]) -> bool {
 }
 
 fn is_glue(word: &str) -> bool {
-    matches!(word, "the" | "of" | "a" | "an" | "by" | "me" | "out")
-}
-
-fn is_keyword(word: &str, conditional: bool) -> bool {
-    if matches!(word, "and" | "or") {
-        return conditional;
-    }
     matches!(
         word,
+        "the"
+            | "of"
+            | "a"
+            | "an"
+            | "by"
+            | "me"
+            | "out"
+            | "is"
+            | "be"
+            | "are"
+            | "was"
+            | "to"
+            | "from"
+            | "for"
+            | "in"
+            | "as"
+            | "at"
+            | "with"
+            | "into"
+            | "onto"
+    )
+}
+
+fn is_control_keyword(tokens: &[Token], position: usize, conditional: bool) -> bool {
+    let lower = tokens[position].lower.as_str();
+    if matches!(lower, "and" | "or") {
+        return conditional;
+    }
+    if lower == "for" {
+        return tokens
+            .get(position + 1)
+            .is_some_and(|next| next.is("each") || next.is("every"));
+    }
+    if lower == "to" {
+        return is_clause_leader(tokens, position);
+    }
+    matches!(
+        lower,
         "if" | "otherwise"
             | "else"
             | "while"
             | "until"
             | "repeat"
-            | "for"
             | "each"
             | "every"
-            | "in"
-            | "from"
-            | "to"
             | "end"
             | "where"
             | "given"
@@ -630,17 +684,21 @@ fn is_keyword(word: &str, conditional: bool) -> bool {
             | "let"
             | "put"
             | "set"
+            | "keep"
             | "use"
             | "return"
             | "record"
             | "phrase"
             | "unless"
-            | "is"
-            | "be"
-            | "not"
-            | "times"
-            | "at"
-            | "least"
+            | "give"
+            | "back"
+    )
+}
+
+fn is_predicate_keyword(word: &str) -> bool {
+    matches!(
+        word,
+        "least"
             | "most"
             | "no"
             | "less"
@@ -658,7 +716,22 @@ fn is_keyword(word: &str, conditional: bool) -> bool {
             | "exceeds"
             | "equals"
             | "differs"
+            | "not"
+            | "times"
     )
+}
+
+fn is_clause_leader(tokens: &[Token], position: usize) -> bool {
+    let mut index = 0;
+    while index < position
+        && matches!(
+            tokens[index].lower.as_str(),
+            "please" | "now" | "first" | "next" | "finally" | "also" | "just"
+        )
+    {
+        index += 1;
+    }
+    index == position
 }
 
 fn is_function(word: &str, index: &LanguageIndex) -> bool {

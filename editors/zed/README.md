@@ -24,11 +24,12 @@ C/Python syntax colors. The rules live in
 `tc-eng-extension/languages/eng/semantic_token_rules.json` and apply only to
 the `TransCompilator English` language:
 
-- **Bold**: computational verbs, phrase heads, control words, and numbers.
-- **Underline**: variables, multi-word names, fields, and record targets.
-- **Italic + underline**: resolved ACE anaphors (`it`, `its`, `their`,
-  `them`, `the result`).
-- **Italic**: string literals.
+- **Bold**: computational verbs, phrase heads, and control words.
+- **Subtle underline** (`#c8c8cc`): variables, multi-word names, fields, and
+  record targets.
+- **Italic**: resolved ACE anaphors (`it`, `its`, `their`, `them`,
+  `the result`) and string literals.
+- **Normal weight**: numbers and mid-sentence copulas/prepositions.
 - **Muted italic gray**: explicit comments and whole sentences classified by
   `tc-semantics` as `COMMENT_OMITTED` narrative prose.
 

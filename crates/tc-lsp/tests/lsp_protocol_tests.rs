@@ -1090,14 +1090,61 @@ fn lsp_semantic_tokens_mark_explicit_comments() {
 fn lsp_semantic_tokens_mark_natural_predicate_keywords() {
     let text = "Let x be 10. If x is at least 10 and x is even, print x.\n";
     let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_predicates.eng", text);
-    for keyword in ["at", "least", "and", "even"] {
+    for keyword in ["least", "and", "even"] {
         assert_eq!(
             token_named(&tokens, keyword).token_type,
             KEYWORD,
             "{keyword}: {tokens:?}"
         );
     }
+    assert!(
+        !has_token(&tokens, "at"),
+        "mid-sentence `at` should stay upright: {tokens:?}"
+    );
     assert_eq!(token_named(&tokens, "print").token_type, FUNCTION);
+}
+
+#[test]
+fn lsp_semantic_tokens_prioritize_alloc_fields_and_locals_over_verbs() {
+    let text = fs::read_to_string(repository_path("std/alloc.eng")).expect("std/alloc.eng");
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_alloc.eng", &text);
+    let padding = tokens
+        .iter()
+        .filter(|token| token.text == "padding")
+        .collect::<Vec<_>>();
+    assert!(!padding.is_empty(), "{tokens:?}");
+    assert!(
+        padding.iter().all(|token| token.token_type == VARIABLE),
+        "{padding:?}"
+    );
+    let rest = tokens
+        .iter()
+        .filter(|token| token.text == "rest")
+        .collect::<Vec<_>>();
+    assert!(rest.len() >= 3, "{rest:?}");
+    assert!(
+        rest.iter().all(|token| token.token_type == VARIABLE),
+        "{rest:?}"
+    );
+}
+
+#[test]
+fn lsp_semantic_tokens_keep_mid_sentence_copulas_and_prepositions_unbolded() {
+    let text = concat!(
+        "Let a be 12.\n",
+        "A record MemoryBlock has a pointer to MemoryBlock.\n",
+        "Its size is 1.\n",
+        "Move a from b for c.\n",
+    );
+    let (_, tokens) = semantic_tokens_for("file:///tmp/tc_lsp_tokens_glue.eng", text);
+    for glue in ["is", "be", "to", "from", "for"] {
+        assert!(
+            !has_token(&tokens, glue),
+            "mid-sentence `{glue}` should stay upright: {tokens:?}"
+        );
+    }
+    assert_eq!(token_named(&tokens, "Let").token_type, KEYWORD);
+    assert_eq!(token_named(&tokens, "Its").token_type, VARIABLE);
 }
 
 #[test]
@@ -1165,6 +1212,11 @@ fn lsp_semantic_token_legend_matches_zed_rules_and_settings() {
                 .and_then(Json::as_str)
                 .is_some()
         );
+        assert_ne!(
+            rule.get("underline").and_then(Json::as_bool),
+            Some(false),
+            "novel-style rules must omit underline:false: {rule:?}"
+        );
         for modifier in rule
             .get("token_modifiers")
             .and_then(Json::as_array)
@@ -1175,6 +1227,17 @@ fn lsp_semantic_token_legend_matches_zed_rules_and_settings() {
             assert!(token_modifiers.contains(&modifier), "{modifier}");
         }
     }
+    let variable_rule = rules
+        .iter()
+        .find(|rule| {
+            rule.get("token_type").and_then(Json::as_str) == Some("variable")
+                && rule.get("token_modifiers").is_none()
+        })
+        .expect("bare variable rule");
+    assert_eq!(
+        variable_rule.get("underline").and_then(Json::as_str),
+        Some("#c8c8cc")
+    );
     let comment_rule = rules
         .iter()
         .find(|rule| rule.get("token_type").and_then(Json::as_str) == Some("comment"))

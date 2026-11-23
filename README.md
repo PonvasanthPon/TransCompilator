@@ -44,7 +44,7 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **963/963 passing**, including the 44-test headless
+for a current suite of **965/965 passing**, including the 46-test headless
 `tc-lsp` protocol suite, 68 compositional parity tests, 89
 paraphrase-invariance fluency tests, and 38 casual-English
 and guard/regression tests. All eight
@@ -366,8 +366,9 @@ stdin/stdout with `Content-Length` framing and provides:
   including verbs, control words, variables, fields, spoken numbers, strings,
   readonly ACE anaphors, and `COMMENT_OMITTED` prose;
 - language-scoped monochrome typographic highlighting for `.eng` in Zed via
-  `semantic_token_rules.json` (bold verbs/control/numbers, underlined
-  variables, italic+underlined anaphors, italic strings, muted italic prose).
+  `semantic_token_rules.json` (bold verbs/control, subtle-underlined
+  variables, italic anaphors and strings, normal-weight numbers, muted italic
+  prose).
 
 ```bash
 CARGO_NET_OFFLINE=true cargo build --release --bin tc-lsp
