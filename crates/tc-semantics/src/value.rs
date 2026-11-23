@@ -529,9 +529,9 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
                 if !self.eat("between") {
                     self.expect("of")?;
                 }
-                let left = self.parse_additive()?;
+                let left = self.parse_multiplicative()?;
                 self.expect("and")?;
-                let right = self.parse_additive()?;
+                let right = self.parse_multiplicative()?;
                 Ok(binary(BinOp::Sub, left, right))
             }
             "quotient" | "ratio" | "remainder" => {
@@ -559,16 +559,16 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
             _ => {
                 let _ = self.eat(operation);
                 self.expect("of")?;
-                let mut values = vec![self.parse_additive()?];
+                let mut values = vec![self.parse_multiplicative()?];
                 while self.eat_symbol(",") {
                     let _ = self.eat("and");
                     if self.tokens.get(self.position).is_none() {
                         break;
                     }
-                    values.push(self.parse_additive()?);
+                    values.push(self.parse_multiplicative()?);
                 }
                 if self.eat("and") && self.tokens.get(self.position).is_some() {
-                    values.push(self.parse_additive()?);
+                    values.push(self.parse_multiplicative()?);
                 }
                 let count = values.len();
                 let value = match operation {
