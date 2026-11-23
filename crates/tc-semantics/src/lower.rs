@@ -18,6 +18,9 @@ use crate::cond::{
 use crate::discourse::{
     DiscourseStack, ReferentKind, ResolvedAnaphor, ResolvedFieldAnaphor, ScopeKind,
 };
+use crate::discourse_scope::{
+    CheckDomain, CheckKind, continuation_rest, parse_check, parse_loop_introduction, post_loop_rest,
+};
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
 };
@@ -2993,6 +2996,12 @@ impl Target {
     }
 }
 
+#[derive(Debug, Clone)]
+struct CheckRecord {
+    matched_var: String,
+    kind: CheckKind,
+}
+
 pub(crate) struct Lowerer<'a> {
     parser: &'a crate::LinkGrammarParser,
     module: String,
@@ -3012,6 +3021,9 @@ pub(crate) struct Lowerer<'a> {
     temp_counter: usize,
     loop_depth: usize,
     bytes_lengths: HashMap<String, usize>,
+    active_loop_var: Option<String>,
+    last_check: Option<CheckRecord>,
+    implicit_counter: Option<String>,
 }
 
 impl<'a> Lowerer<'a> {
@@ -3045,6 +3057,9 @@ impl<'a> Lowerer<'a> {
             temp_counter: 0,
             loop_depth: 0,
             bytes_lengths: HashMap::new(),
+            active_loop_var: None,
+            last_check: None,
+            implicit_counter: None,
         }
     }
 
@@ -3615,6 +3630,20 @@ impl<'a> Lowerer<'a> {
         let normalized = crate::number_words::normalize_hyphens(text);
         let trimmed = normalized.trim();
         let lower = trimmed.to_ascii_lowercase();
+        if let Some(value) = self.count_query(trimmed, span)? {
+            return Ok(value);
+        }
+        for prefix in ["that ", "this "] {
+            if let Some(rest) = lower.strip_prefix(prefix) {
+                let noun = lower_name(rest.trim());
+                if self.lookup(&noun).is_some() {
+                    return Ok(AstExpr::Var(noun));
+                }
+                if self.active_loop_var.as_deref() == Some(noun.as_str()) {
+                    return Ok(AstExpr::Var(noun));
+                }
+            }
+        }
         for prefix in ["the square root of ", "square root of "] {
             if let Some(rest) = lower.strip_prefix(prefix) {
                 let rest = trimmed[trimmed.len() - rest.len()..].trim();
@@ -3990,6 +4019,60 @@ impl<'a> Lowerer<'a> {
         let mut statements = Vec::new();
         let mut index = 0;
         while index < items.len() {
+            if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(intro) = parse_loop_introduction(&sentence.text)
+            {
+                let mut body = Vec::new();
+                let mut cursor = index + 1;
+                let mut last_line = raw_item_end_line(&items[index]);
+                let mut closer = None;
+                while cursor < items.len() {
+                    let start_line = raw_item_start_line(&items[cursor]);
+                    if start_line > last_line.saturating_add(1) {
+                        break;
+                    }
+                    if let RawItem::Sentence(next) = &items[cursor] {
+                        let closer_text = if next.fillers.is_empty() {
+                            next.text.clone()
+                        } else {
+                            format!("{}, {}", next.fillers.join(" "), next.text)
+                        };
+                        if let Some(rest) = post_loop_rest(&closer_text) {
+                            closer = Some((rest, next.span));
+                            cursor += 1;
+                            break;
+                        }
+                        if let Some(rest) = continuation_rest(&next.text, &intro.quantifier.var) {
+                            body.push(RawItem::Sentence(RawSentence {
+                                text: rest.clone(),
+                                raw: rest,
+                                span: next.span,
+                                fillers: Vec::new(),
+                            }));
+                            last_line = raw_item_end_line(&items[cursor]);
+                            cursor += 1;
+                            continue;
+                        }
+                    }
+                    body.push(items[cursor].clone());
+                    last_line = raw_item_end_line(&items[cursor]);
+                    cursor += 1;
+                }
+                let mut lowered = self.ensure_implicit_counter(sentence.span)?;
+                let mut loop_statements = self.lower_global_quantifier(
+                    intro.quantifier,
+                    Some(&body),
+                    sentence.span,
+                    depth + 1,
+                )?;
+                lowered.append(&mut loop_statements);
+                if let Some((rest, closer_span)) = closer {
+                    lowered.extend(self.lower_core(&rest, closer_span, None, None, depth + 1)?);
+                }
+                statements.extend(lowered);
+                index = cursor;
+                continue;
+            }
             match &items[index] {
                 RawItem::Sentence(sentence) => {
                     if sentence.text.to_ascii_lowercase().starts_with("phrase:") {
@@ -4582,6 +4665,459 @@ impl<'a> Lowerer<'a> {
         self.lower_cond_ast(&parsed, span)
     }
 
+    #[allow(clippy::single_match_else)]
+    fn lower_check_whether(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let Some(spec) = parse_check(text) else {
+            return Ok(None);
+        };
+        let matched = self.next_temp("check_matched");
+        self.declare(&matched, AstType::Bool);
+        let initial = matches!(spec.kind, CheckKind::Every | CheckKind::No);
+        let mut statements = vec![AstStmt::Let {
+            name: matched.clone(),
+            ty: Some(AstType::Bool),
+            init: AstExpr::ConstBool(initial),
+            span: self.span(span),
+        }];
+        let inner = self.next_temp(&format!("check_{}", spec.noun));
+        match &spec.domain {
+            CheckDomain::List { name } => {
+                let Some(ty) = self.lookup(name).cloned() else {
+                    return Err(self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        format!("check list `{name}` is not in scope"),
+                    ));
+                };
+                let (element, data) = match ty {
+                    AstType::Named {
+                        name: list_name,
+                        type_args,
+                        ..
+                    } if list_name.eq_ignore_ascii_case("list") => (
+                        type_args.first().cloned().unwrap_or(AstType::I64),
+                        self.parse_expr(&format!("{name}'s data"), span)?,
+                    ),
+                    AstType::Ptr(inner)
+                        if matches!(
+                            inner.as_ref(),
+                            AstType::Named { name: list_name, .. }
+                                if list_name.eq_ignore_ascii_case("list")
+                        ) =>
+                    {
+                        let AstType::Named { type_args, .. } = inner.as_ref() else {
+                            unreachable!()
+                        };
+                        (
+                            type_args.first().cloned().unwrap_or(AstType::I64),
+                            self.parse_expr(&format!("{name}'s data"), span)?,
+                        )
+                    }
+                    AstType::Array(element, _) => (
+                        *element,
+                        self.parse_expr(&format!("address of item 0 of {name}"), span)?,
+                    ),
+                    _ => {
+                        return Err(self.error(
+                            span,
+                            SemanticErrorKind::Lowering,
+                            format!("check domain `{name}` is not a list or array"),
+                        ));
+                    }
+                };
+                let index = self.next_temp("check_index");
+                let length = self.next_temp("check_len");
+                let length_expr = if matches!(self.lookup(name), Some(AstType::Array(_, _))) {
+                    AstExpr::ConstInt(
+                        match self.lookup(name) {
+                            Some(AstType::Array(_, count)) => {
+                                i64::try_from(*count).unwrap_or(i64::MAX)
+                            }
+                            _ => 0,
+                        },
+                        None,
+                    )
+                } else {
+                    self.parse_expr(&format!("{name}'s len"), span)?
+                };
+                statements.push(AstStmt::Let {
+                    name: index.clone(),
+                    ty: Some(AstType::U64),
+                    init: AstExpr::ConstUint(0, None),
+                    span: self.span(span),
+                });
+                statements.push(AstStmt::Let {
+                    name: length.clone(),
+                    ty: None,
+                    init: length_expr,
+                    span: self.span(span),
+                });
+                let (predicate_prelude, predicate) = self.check_predicate(&spec, &inner, span)?;
+                let mut body = vec![AstStmt::If {
+                    cond: AstExpr::Binary {
+                        op: tc_ir::BinOp::Ge,
+                        lhs: Box::new(AstExpr::Var(index.clone())),
+                        rhs: Box::new(AstExpr::Var(length.clone())),
+                    },
+                    then_body: vec![AstStmt::Break(self.span(span))],
+                    else_body: Vec::new(),
+                    span: self.span(span),
+                }];
+                body.push(AstStmt::Let {
+                    name: inner.clone(),
+                    ty: Some(element),
+                    init: AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                        base_ptr: Box::new(data),
+                        index: Box::new(AstExpr::Var(index.clone())),
+                    })),
+                    span: self.span(span),
+                });
+                body.extend(predicate_prelude);
+                body.push(self.check_branch(spec.kind, predicate, &matched, span));
+                body.push(AstStmt::Assign {
+                    name: index.clone(),
+                    val: AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(AstExpr::Var(index)),
+                        rhs: Box::new(AstExpr::ConstInt(1, None)),
+                    },
+                    span: self.span(span),
+                });
+                statements.push(AstStmt::Loop {
+                    body,
+                    span: self.span(span),
+                });
+            }
+            _ => {
+                let (start, end, var_ty) = match &spec.domain {
+                    CheckDomain::Range { start, end } => {
+                        let start = self.parse_expr(start, span)?;
+                        let var_ty = self.shallow_type(&start);
+                        (start, self.parse_expr(end, span)?, var_ty)
+                    }
+                    CheckDomain::Smaller { start } => {
+                        let outer = self.active_loop_var.clone().ok_or_else(|| {
+                            self.error(
+                                span,
+                                SemanticErrorKind::Lowering,
+                                "`smaller` check requires an active discourse loop",
+                            )
+                        })?;
+                        let start = self.parse_expr(start, span)?;
+                        (
+                            start.clone(),
+                            AstExpr::Binary {
+                                op: tc_ir::BinOp::Sub,
+                                lhs: Box::new(AstExpr::Var(outer)),
+                                rhs: Box::new(AstExpr::ConstInt(1, None)),
+                            },
+                            self.shallow_type(&start),
+                        )
+                    }
+                    CheckDomain::Larger { end } => {
+                        let outer = self.active_loop_var.clone().ok_or_else(|| {
+                            self.error(
+                                span,
+                                SemanticErrorKind::Lowering,
+                                "`larger` check requires an active discourse loop",
+                            )
+                        })?;
+                        (
+                            AstExpr::Binary {
+                                op: tc_ir::BinOp::Add,
+                                lhs: Box::new(AstExpr::Var(outer)),
+                                rhs: Box::new(AstExpr::ConstInt(1, None)),
+                            },
+                            self.parse_expr(end, span)?,
+                            AstType::I64,
+                        )
+                    }
+                    CheckDomain::List { .. } => unreachable!(),
+                };
+                let current = self.next_temp("check_current");
+                let limit = self.next_temp("check_limit");
+                statements.push(AstStmt::Let {
+                    name: current.clone(),
+                    ty: Some(var_ty.clone()),
+                    init: start,
+                    span: self.span(span),
+                });
+                statements.push(AstStmt::Let {
+                    name: limit.clone(),
+                    ty: None,
+                    init: end,
+                    span: self.span(span),
+                });
+                let (predicate_prelude, predicate) = self.check_predicate(&spec, &inner, span)?;
+                let mut body = vec![
+                    AstStmt::If {
+                        cond: AstExpr::Binary {
+                            op: tc_ir::BinOp::Gt,
+                            lhs: Box::new(AstExpr::Var(current.clone())),
+                            rhs: Box::new(AstExpr::Var(limit.clone())),
+                        },
+                        then_body: vec![AstStmt::Break(self.span(span))],
+                        else_body: Vec::new(),
+                        span: self.span(span),
+                    },
+                    AstStmt::Let {
+                        name: inner.clone(),
+                        ty: Some(var_ty),
+                        init: AstExpr::Var(current.clone()),
+                        span: self.span(span),
+                    },
+                ];
+                body.extend(predicate_prelude);
+                body.push(self.check_branch(spec.kind, predicate, &matched, span));
+                body.push(AstStmt::Assign {
+                    name: current.clone(),
+                    val: AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(AstExpr::Var(current)),
+                        rhs: Box::new(AstExpr::ConstInt(1, None)),
+                    },
+                    span: self.span(span),
+                });
+                statements.push(AstStmt::Loop {
+                    body,
+                    span: self.span(span),
+                });
+            }
+        }
+        self.last_check = Some(CheckRecord {
+            matched_var: matched,
+            kind: spec.kind,
+        });
+        Ok(Some(statements))
+    }
+
+    fn check_predicate(
+        &mut self,
+        spec: &crate::discourse_scope::CheckSpec,
+        inner: &str,
+        span: Span,
+    ) -> Result<(Vec<AstStmt>, AstExpr), SemanticError> {
+        let predicate = spec.predicate.trim();
+        if starts_with_word(predicate, "divides") {
+            let tokens = tokenize(predicate);
+            let start = tokens.first().map_or(predicate.len(), |token| token.end);
+            let rest = predicate[start..].trim();
+            let rest = strip_leading_word(rest, "into").trim();
+            let rest = rest.trim_end_matches("evenly").trim();
+            let target = rest.trim();
+            let target_value = if matches!(target.to_ascii_lowercase().as_str(), "it" | "them") {
+                let outer = self.active_loop_var.clone().ok_or_else(|| {
+                    self.error(
+                        span,
+                        SemanticErrorKind::Lowering,
+                        "`divides into it` requires an active discourse loop",
+                    )
+                })?;
+                AstExpr::Var(outer)
+            } else {
+                self.parse_value(target, span)?
+            };
+            let modulo = AstExpr::Binary {
+                op: tc_ir::BinOp::Mod,
+                lhs: Box::new(target_value),
+                rhs: Box::new(AstExpr::Var(inner.to_string())),
+            };
+            return Ok((
+                Vec::new(),
+                AstExpr::Binary {
+                    op: tc_ir::BinOp::Eq,
+                    lhs: Box::new(modulo),
+                    rhs: Box::new(AstExpr::ConstInt(0, None)),
+                },
+            ));
+        }
+        let text = format!("{inner} {predicate}");
+        let condition = self.lower_condition(&text, span)?;
+        Ok((condition.prelude, condition.expr))
+    }
+
+    fn check_branch(
+        &self,
+        kind: CheckKind,
+        predicate: AstExpr,
+        matched: &str,
+        span: Span,
+    ) -> AstStmt {
+        let (condition, value) = match kind {
+            CheckKind::Any => (predicate, true),
+            CheckKind::Every | CheckKind::No => (
+                AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(predicate),
+                },
+                false,
+            ),
+        };
+        let condition = if matches!(kind, CheckKind::No) {
+            AstExpr::Unary {
+                op: tc_ir::UnOp::LogNot,
+                val: Box::new(condition),
+            }
+        } else {
+            condition
+        };
+        AstStmt::If {
+            cond: condition,
+            then_body: vec![
+                AstStmt::Assign {
+                    name: matched.to_string(),
+                    val: AstExpr::ConstBool(value),
+                    span: self.span(span),
+                },
+                AstStmt::Break(self.span(span)),
+            ],
+            else_body: Vec::new(),
+            span: self.span(span),
+        }
+    }
+
+    fn check_ellipsis(&self, text: &str, span: Span) -> Result<Option<AstExpr>, SemanticError> {
+        let lower = text
+            .trim()
+            .trim_end_matches(['.', ',', ':'])
+            .trim()
+            .to_ascii_lowercase();
+        let negative = lower == "none do"
+            || lower.starts_with("none of them do")
+            || lower.starts_with("neither of them does")
+            || lower.starts_with("no such ")
+            || lower.ends_with("does not")
+            || lower.ends_with("do not");
+        let positive = lower.starts_with("any of them do")
+            || lower.starts_with("one of them does")
+            || lower.starts_with("some of them do")
+            || lower.starts_with("all of them do")
+            || lower == "it does"
+            || lower == "they do"
+            || lower == "it do";
+        if !negative && !positive {
+            return Ok(None);
+        }
+        let Some(check) = &self.last_check else {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "UNRESOLVED_ANAPHOR: ellipsis `none/any of them do` has no preceding `check whether`",
+            ));
+        };
+        let base = AstExpr::Var(check.matched_var.clone());
+        let expression = match check.kind {
+            CheckKind::No => {
+                if negative {
+                    base
+                } else {
+                    AstExpr::Unary {
+                        op: tc_ir::UnOp::LogNot,
+                        val: Box::new(base),
+                    }
+                }
+            }
+            CheckKind::Any | CheckKind::Every => {
+                if negative {
+                    AstExpr::Unary {
+                        op: tc_ir::UnOp::LogNot,
+                        val: Box::new(base),
+                    }
+                } else {
+                    base
+                }
+            }
+        };
+        Ok(Some(expression))
+    }
+
+    fn ensure_implicit_counter(&mut self, span: Span) -> Result<Vec<AstStmt>, SemanticError> {
+        if self.implicit_counter.is_some() {
+            return Ok(Vec::new());
+        }
+        let name = "__tc_implicit_count".to_string();
+        self.declare(&name, AstType::I64);
+        self.implicit_counter = Some(name.clone());
+        Ok(vec![AstStmt::Let {
+            name,
+            ty: Some(AstType::I64),
+            init: AstExpr::ConstInt(0, None),
+            span: self.span(span),
+        }])
+    }
+
+    fn try_implicit_count(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let rest = strip_leading_word(text, "count").trim();
+        let lower = rest.to_ascii_lowercase();
+        if rest.is_empty()
+            || starts_with_word(&lower, "of")
+            || starts_with_word(&lower, "the number")
+            || starts_with_word(&lower, "how")
+            || lower.starts_with('=')
+            || lower.starts_with("+=")
+            || lower.starts_with("-=")
+            || lower.starts_with("*=")
+            || lower.starts_with("/=")
+        {
+            return Ok(None);
+        }
+        let mut statements = self.ensure_implicit_counter(span)?;
+        let Some(counter) = self.implicit_counter.clone() else {
+            return Ok(None);
+        };
+        statements.push(AstStmt::Assign {
+            name: counter.clone(),
+            val: AstExpr::Binary {
+                op: tc_ir::BinOp::Add,
+                lhs: Box::new(AstExpr::Var(counter)),
+                rhs: Box::new(AstExpr::ConstInt(1, None)),
+            },
+            span: self.span(span),
+        });
+        Ok(Some(statements))
+    }
+
+    fn count_query(&self, text: &str, span: Span) -> Result<Option<AstExpr>, SemanticError> {
+        let lower = text
+            .trim()
+            .trim_end_matches(['.', ',', ':'])
+            .trim()
+            .to_ascii_lowercase();
+        let query = (lower.starts_with("how many ")
+            && (lower.contains("were found")
+                || lower.contains("were counted")
+                || lower.contains("matched")
+                || lower.contains("there were")
+                || lower.contains("there are")))
+            || matches!(
+                lower.as_str(),
+                "the total found"
+                    | "total found"
+                    | "the total counted"
+                    | "total counted"
+                    | "how many were found"
+            );
+        if !query {
+            return Ok(None);
+        }
+        let Some(counter) = &self.implicit_counter else {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "UNRESOLVED_ANAPHOR: count query has no preceding implicit `count`",
+            ));
+        };
+        Ok(Some(AstExpr::Var(counter.clone())))
+    }
+
     fn parse_natural_membership(
         &mut self,
         text: &str,
@@ -4960,6 +5496,14 @@ impl<'a> Lowerer<'a> {
     fn lower_cond_ast(&mut self, node: &CondAst, span: Span) -> Result<LoweredCond, SemanticError> {
         match node {
             CondAst::Atom(text) => {
+                if let Some(expr) = self.check_ellipsis(text, span)? {
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
                 if let Some(condition) = self.parse_natural_membership(text, span)? {
                     return Ok(condition);
                 }
@@ -5822,6 +6366,24 @@ impl<'a> Lowerer<'a> {
         };
         let trimmed = resolved_text.as_str();
         let lower = trimmed.to_ascii_lowercase();
+        for prefix in [
+            "check whether ",
+            "see whether ",
+            "test whether ",
+            "find out whether ",
+        ] {
+            if lower.starts_with(prefix) {
+                let rest = trimmed[prefix.len()..].trim();
+                if let Some(statements) = self.lower_check_whether(rest, span)? {
+                    return Ok(statements);
+                }
+            }
+        }
+        if starts_with_word(&lower, "count")
+            && let Some(statements) = self.try_implicit_count(trimmed, span)?
+        {
+            return Ok(statements);
+        }
         self.set_canonical(crate::paraphrase::canonicalize_statement(trimmed));
         if lower == "end" {
             return Ok(Vec::new());
@@ -6622,6 +7184,7 @@ impl<'a> Lowerer<'a> {
             .body
             .as_deref()
             .filter(|text| !text.trim().is_empty());
+        let previous_loop_var = self.active_loop_var.replace(global.var.clone());
         let body_result = match (block_items, inline_body) {
             (Some(items), _) if !items.is_empty() => self
                 .lower_items(items, depth + 1)
@@ -6633,6 +7196,7 @@ impl<'a> Lowerer<'a> {
                 "`For every` requires an inline body or an indented block",
             )),
         };
+        self.active_loop_var = previous_loop_var;
         self.loop_depth -= 1;
         self.pop_scope();
         let (body, body_lines) = body_result?;
@@ -8095,6 +8659,26 @@ fn split_actions(text: &str) -> Vec<String> {
         result.push(tail.to_string());
     }
     result
+}
+
+fn raw_item_start_line(item: &RawItem) -> u32 {
+    match item {
+        RawItem::Sentence(sentence) => sentence.span.line,
+        RawItem::Block(block) => block.span.line,
+    }
+}
+
+fn raw_item_end_line(item: &RawItem) -> u32 {
+    match item {
+        RawItem::Sentence(sentence) => sentence.span.line,
+        RawItem::Block(block) => block
+            .items
+            .iter()
+            .map(raw_item_end_line)
+            .max()
+            .unwrap_or(block.span.line)
+            .max(block.span.line),
+    }
 }
 
 fn starts_control(text: &str) -> bool {
