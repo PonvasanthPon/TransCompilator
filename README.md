@@ -5,7 +5,7 @@
 inspectable English-to-semantics compiler with a static, zero-libc x86_64
 ELF64 output path.
 
-This repository is **`tc_r1` v1.0**: the hardened Core-7 typed IR, exhaustive
+This repository is **`tc_r1` 0.1.0**: the hardened Core-7 typed IR, exhaustive
 verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
 ELF64 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
 word/verb engine, a finite English front end, the readable natural-English
@@ -34,16 +34,17 @@ declarations such as `A public record ... has ...`, `Keep a shared ...`,
 `Clear bits ... from ...`, and `Ask Linux kernel ... with ...`. Programs that
 import `std/` still compile to static zero-libc ELF64.
 
-## v1.0 convergence status
+## 0.1.0 convergence status
 
-The v1.0 compiler is the fixed point of a five-round zero-bug convergence
+The 0.1.0 compiler is the fixed point of a five-round zero-bug convergence
 campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 **15,000 disjoint differential/paraphrase/prose/crash seeds**, and **7
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **798/798 passing**, including the 30-test headless
-`tc-lsp` protocol suite and 68 compositional end-to-end parity tests. All eight
+for a current suite of **856/856 passing**, including the 32-test headless
+`tc-lsp` protocol suite, 68 compositional parity tests, and 38 casual-English
+and guard/regression tests. All eight
 `std/*.eng` modules pass the Version 2 pure-English readability gate. The
 frontend now auto-loads `std/io` as a prelude, lowers every WordNet/VerbNet
 `Emit` concept (`Print`, `Show`, `Display`, `Output`, `Say`, `Report`) without
@@ -85,6 +86,23 @@ Documentation:
   Linux syscalls and no `libc` or dynamic loader.
 - **Vendored, read-only linguistic assets** — Link Grammar under
   `vendor/link-grammar/` and goldmine tooling under `goldmines/`.
+
+## Build Requirements
+
+- Linux x86_64
+- Rust 1.85+ with edition 2024 support
+- GNU `as` and `ld` from binutils
+- vendored CMU Link Grammar 5.13.2 under `vendor/link-grammar/`
+- no network access is required; all builds and tests run with
+  `CARGO_NET_OFFLINE=true`
+
+## Scope & Verification Note
+
+`tc_r1` compiles a finite, deterministic controlled-to-natural English grammar.
+Interpreter/ELF64 parity verifies backend equivalence: the same lowered Core-7
+IR must produce identical exit status, stdout, stderr, and file effects in the
+reference interpreter and static x86_64 binary. It is not an external semantic
+oracle for unrestricted English.
 
 ## Workspace layout
 
@@ -205,7 +223,7 @@ string and byte literals preserve exact case.
 
 `tc-lexicon` is a compact, deterministic, provenance-backed semantic layer:
 
-- **786** WordNet rows from 27 exact OEWN-2025 anchor synsets, depth <= 3,
+- **775** WordNet rows from 42 exact OEWN-2025 anchor synsets, depth <= 3,
   sorted by `(lemma, pos, concept)`.
 - **10,845** VerbNet 3.4 frames from all 329 class files and 609
   classes/subclasses, sorted by `(verb, prep, predicate, class_id)`.
@@ -218,9 +236,9 @@ string and byte literals preserve exact case.
 - `goldmines/PROVENANCE.md` records dataset versions, hashes, anchors, counts,
   and the reproducible harvester commands.
 
-The two extra WordNet anchors are depth-zero scalar-magnitude anchors for
-`increase` and `decrease`; they add only their own synset members and do not
-open a broad `verb.change` hyponym tree.
+The direct WordNet anchors are depth-zero additions for scalar magnitude,
+unary math, and `Emit`; they add only their own synset members and do not open
+broad `verb.change` hyponym trees.
 
 ## Anti-hardcoding bans
 
