@@ -11,7 +11,7 @@ This directory is fully offline, zero-AI, and never signs in.
    into `~/.local/bin`, backs up any existing Zed settings, and merges the
    offline zero-AI configuration. It never modifies `~/.config/zed` during
    tests; you must run it yourself.
-3. Open `/home/ponvasanth/tc_r1` in Zed, choose
+3. Open your local `tc_r1` checkout in Zed, choose
    `Extensions -> Install Dev Extension`, and select
    `editors/zed/tc-eng-extension`. Open any `.eng` file. You get live
    diagnostics, hover, completion, go-to-definition (including `std/*.eng`),

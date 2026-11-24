@@ -1,11 +1,16 @@
 /target/
 *.o
+*.s
+*.out
 *.elf
 *.tmp
 *.log
+*~
+*.swp
+*.swo
+.DS_Store
 __pycache__/
 *.pyc
-.DS_Store
 editors/zed/tc-eng-extension/target/
 editors/zed/tc-eng-extension/Cargo.lock
 editors/zed/tc-eng-extension/extension.wasm

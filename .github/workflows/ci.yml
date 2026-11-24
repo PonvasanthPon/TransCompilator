@@ -6,20 +6,36 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_NET_OFFLINE: "true"
+  CARGO_TERM_COLOR: always
+
 jobs:
   offline:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - name: Toolchain
+        run: |
+          rustc --version
+          cargo --version
       - name: Format
         run: make fmt-check
       - name: Lint
         run: make lint
       - name: Build (offline)
-        run: CARGO_NET_OFFLINE=true make build
+        run: make build
       - name: Test
         run: make test
       - name: Audit

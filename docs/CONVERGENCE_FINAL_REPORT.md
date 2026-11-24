@@ -1,13 +1,13 @@
 # tc_r1 — Zero-Bug Fixed-Point Convergence Final Report
 
 **Campaign:** Simple Basic Casual English → Advanced Compound-Complex Sentences  
-**Branch:** `battletest-convergence`  
-**Main base:** `883432b03ddaf2d7d27bacb191cd467e3361e606` (untouched after Phase 0)  
-**Status:** **CONVERGED** — clean Round 5  
-**Last code-fix commit:** `feead65`
-**Final campaign artifacts commit:** `640eead`  
+**Campaign branch (historical):** `battletest-convergence`<br>
+**Main base at campaign start:** `883432b03ddaf2d7d27bacb191cd467e3361e606`<br>
+**Status:** **CONVERGED** — clean Round 5<br>
+**Last code-fix commit:** `feead65`<br>
+**Final campaign artifacts commit:** `640eead`<br>
 **Date:** 2026-11-22
-**Archived:** merged into `main`; dashboard stopped and campaign scaffolding removed. The metrics below describe the campaign at convergence.
+**Archived:** merged into `main`; the dashboard and campaign scaffolding were removed. The metrics below describe the campaign at convergence. The GUI editor measured here was later removed; the current repository ships the native terminal editor (`r1-editor`).
 
 ## Executive verdict
 
@@ -32,7 +32,7 @@ bugs**, so the fixed point is reached.
 | Final 500-seed crash block | **500 / 500** |
 | `make build` / `test` / `lint` / `fmt-check` / `audit` | **PASS / PASS / PASS / PASS / PASS** |
 | Static zero-libc ELF64 | `ldd`: not a dynamic executable; no dynamic section; 0 `INTERP` |
-| Native GUI | clean launch, zero stderr |
+| Native GUI (historical, later removed) | clean launch, zero stderr |
 
 ## Round-by-round convergence table
 
@@ -129,16 +129,16 @@ reproducible, clean-failure probes:
 | All-8-`std` static ELF | `not a dynamic executable`; no dynamic section; 0 `INTERP`; exact parity |
 | `r1-editor --check std/alloc.eng` | exact ELF64 == interpreter parity |
 | TUI test suite | 34 / 34 PASS |
-| GUI test suite | 46 / 46 PASS |
-| Native GUI smoke | clean launch; zero stderr; clean timeout |
-| Stray listeners | none on `8780`, `18780`, `8790`, `18790`, `8792`, `8795`, `8796`, `8797`; dashboard only on `8798` |
+| GUI test suite (historical, later removed) | 46 / 46 PASS |
+| Native GUI smoke (historical, later removed) | clean launch; zero stderr; clean timeout |
+| Stray listeners | none on the historical campaign ports |
 
 ## Repository and dashboard state
 
-- `main` remains at `883432b03ddaf2d7d27bacb191cd467e3361e606`, exactly the Phase 0 archive commit.
-- `battletest-convergence` contains all code fixes, regressions, corpora, fuzz logs, harnesses, dashboard, limits, and reports. Its working tree is clean at finalization.
-- `/home/ponvasanth/TransCompilator/`, `/home/ponvasanth/rbmt-sandbox/`, and `/home/ponvasanth/Project FROZEN/` were never read or written by this campaign.
-- The convergence dashboard was stopped after the final audit; it is not a production service.
+- At campaign convergence, `main` remained at `883432b03ddaf2d7d27bacb191cd467e3361e606`, the Phase 0 archive commit.
+- All code fixes, regressions, corpora, fuzz logs, harnesses, limits, and reports were archived into `main`; the temporary campaign dashboard and scaffolding were removed.
+- The external TransCompilator, rbmt-sandbox, and Project FROZEN repositories were never read or written by this campaign.
+- The convergence dashboard was stopped after the final audit; it is not part of this repository.
 - Permanent archive: `docs/CONVERGENCE_FINAL_REPORT.md`, `docs/CONVERGENCE_ROUNDS_HISTORY.json`, `docs/CONVERGENCE_BUGS.json`, and `docs/CONVERGENCE_LIMITS.md`.
 
 ## Readiness
