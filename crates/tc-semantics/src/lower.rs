@@ -1850,6 +1850,8 @@ fn split_tracking_directive(text: &str) -> Option<(String, String)> {
 }
 
 fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
+    let expanded = crate::normalize::expand_contractions(text);
+    let text = expanded.as_str();
     let pieces = tc_syntax::split_sentences(text);
     if pieces.len() > 1 {
         let mut lines = Vec::new();
@@ -4017,7 +4019,7 @@ impl<'a> Lowerer<'a> {
         ))
     }
 
-    fn text_bytes(&self, value: &AstExpr) -> Option<(AstExpr, AstExpr)> {
+    pub(crate) fn text_bytes(&self, value: &AstExpr) -> Option<(AstExpr, AstExpr)> {
         if let AstExpr::BytesLit(bytes) = value {
             return Some((value.clone(), AstExpr::BytesLen(bytes.clone())));
         }
@@ -4961,9 +4963,6 @@ impl<'a> Lowerer<'a> {
         clause: &ClauseTree,
         base: IntentVerdict,
     ) -> Result<IntentVerdict, SemanticError> {
-        if base.is_exec() {
-            return Ok(base);
-        }
         let text = sentence.text.trim();
         let tokens = tokenize(text);
         let first = tokens
@@ -4971,6 +4970,27 @@ impl<'a> Lowerer<'a> {
             .filter(|token| token.is_word())
             .map(|token| token.lower.clone())
             .unwrap_or_default();
+        if base.is_exec() {
+            if matches!(first.as_str(), "that" | "this" | "there") {
+                let second = tokens
+                    .get(1)
+                    .map(|token| token.lower.clone())
+                    .unwrap_or_default();
+                if matches!(
+                    second.as_str(),
+                    "is" | "was" | "were" | "has" | "have" | "had" | "seems" | "looks"
+                ) {
+                    let rhs = text[tokens[1].end..].trim();
+                    if !self.rhs_is_pure_expression(rhs) {
+                        return Ok(IntentVerdict::CommentOmitted {
+                            reason: "demonstrative prose without computational directive"
+                                .to_string(),
+                        });
+                    }
+                }
+            }
+            return Ok(base);
+        }
         if classify_verb(&first, None)
             .is_some_and(|resolution| resolution.predicate == Some(VerbPredicate::Create))
             && self.is_create_declaration(&tokens)
@@ -5037,6 +5057,23 @@ impl<'a> Lowerer<'a> {
             }
             return Ok(base);
         }
+        if matches!(first.as_str(), "that" | "this" | "there") {
+            let second = tokens
+                .get(1)
+                .map(|token| token.lower.clone())
+                .unwrap_or_default();
+            if matches!(
+                second.as_str(),
+                "is" | "was" | "were" | "has" | "have" | "had" | "seems" | "looks"
+            ) {
+                let rhs = text[tokens[1].end..].trim();
+                if !self.rhs_is_pure_expression(rhs) {
+                    return Ok(IntentVerdict::CommentOmitted {
+                        reason: "demonstrative prose without computational directive".to_string(),
+                    });
+                }
+            }
+        }
         for keyword in ["is", "becomes", "equals"] {
             if let Some((start, end)) = find_top_level_word(text, keyword) {
                 let left = canonical_assignment_target(text[..start].trim());
@@ -5073,7 +5110,9 @@ impl<'a> Lowerer<'a> {
             return Ok(IntentVerdict::Exec);
         }
         if base.is_unsupported() || self.contains_anaphor_tokens(&tokens) {
-            let resolved = self.resolve_anaphors(text, sentence.span)?;
+            let Ok(resolved) = self.resolve_anaphors(text, sentence.span) else {
+                return Ok(base);
+            };
             let resolved_sentence = RawSentence {
                 text: resolved.clone(),
                 raw: String::new(),
@@ -5705,6 +5744,9 @@ impl<'a> Lowerer<'a> {
         if !(lower.contains("their positions")
             || lower.contains("their places")
             || lower.contains("the two")
+            || lower.contains("the 2")
+            || lower.contains(" two")
+            || lower.contains(" 2")
             || lower.contains("them")
             || lower.contains("adjacent"))
         {
@@ -9797,11 +9839,21 @@ impl<'a> Lowerer<'a> {
                 } else {
                     self.parse_value(value, span)?
                 };
-                let operator = if predicate == VerbPredicate::Combine {
+                let mut operator = if predicate == VerbPredicate::Combine {
                     tc_ir::BinOp::Add
                 } else {
                     operator
                 };
+                if role == Some(tc_lexicon::PrepRole::Extent) {
+                    let lower_text = text.to_ascii_lowercase();
+                    if lower_text.contains(" up by ") {
+                        operator = tc_ir::BinOp::Add;
+                    } else if lower_text.contains(" down by ")
+                        || matches!(resolution.concept, Some(SemanticConcept::Transfer))
+                    {
+                        operator = tc_ir::BinOp::Sub;
+                    }
+                }
                 Ok(Some(self.write_arithmetic(target, operator, value, span)?))
             }
             VerbPredicate::Create
@@ -9957,6 +10009,8 @@ fn transform_operator(
         Some(SemanticConcept::Mul) => Some(tc_ir::BinOp::Mul),
         Some(SemanticConcept::Div) => Some(tc_ir::BinOp::Div),
         Some(SemanticConcept::Mod) => Some(tc_ir::BinOp::Mod),
+        Some(SemanticConcept::Add | SemanticConcept::Increment) => Some(tc_ir::BinOp::Add),
+        Some(SemanticConcept::Sub | SemanticConcept::Decrement) => Some(tc_ir::BinOp::Sub),
         _ if predicate == VerbPredicate::Combine => Some(tc_ir::BinOp::Add),
         _ => Some(tc_ir::BinOp::Mul),
     }

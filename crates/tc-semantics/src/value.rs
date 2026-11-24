@@ -163,6 +163,13 @@ pub(crate) fn parse_value<C: ValueContext>(
             if !simple_count {
                 continue;
             }
+            if let Some((left, operator, right)) = split_length_arithmetic(rest) {
+                let value = parse_value(context, left, span)?;
+                if let Some(length) = context.length_expression(value, span)? {
+                    let right = parse_value(context, right, span)?;
+                    return Ok(binary(operator, length, right));
+                }
+            }
             if let Ok(value) = parse_value(context, rest, span)
                 && let Some(length) = context.length_expression(value, span)?
             {
@@ -375,6 +382,61 @@ fn split_symbolic_expression(text: &str) -> Option<(&str, BinOp, &str)> {
     Some((&text[..token.start], operator, &text[token.end..]))
 }
 
+fn split_length_arithmetic(text: &str) -> Option<(&str, BinOp, &str)> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                "+" | "-" | "*" | "/" if depth == 0 && index > 0 => {
+                    let operator = match token.text.as_str() {
+                        "+" => BinOp::Add,
+                        "-" => BinOp::Sub,
+                        "*" => BinOp::Mul,
+                        _ => BinOp::Div,
+                    };
+                    return Some((
+                        text[..token.start].trim(),
+                        operator,
+                        text[token.end..].trim(),
+                    ));
+                }
+                _ => {}
+            }
+            continue;
+        }
+        if depth != 0 || index == 0 {
+            continue;
+        }
+        let operator = match token.lower.as_str() {
+            "plus" => Some(BinOp::Add),
+            "minus" => Some(BinOp::Sub),
+            "times" => Some(BinOp::Mul),
+            _ => None,
+        };
+        if let Some(operator) = operator {
+            return Some((
+                text[..token.start].trim(),
+                operator,
+                text[token.end..].trim(),
+            ));
+        }
+        if token.is("divided")
+            && tokens.get(index + 1).is_some_and(|next| next.is("by"))
+            && let Some(by) = tokens.get(index + 1)
+        {
+            return Some((
+                text[..token.start].trim(),
+                BinOp::Div,
+                text[by.end..].trim(),
+            ));
+        }
+    }
+    None
+}
+
 pub(crate) fn is_np_expression(text: &str) -> bool {
     let tokens = tokenize(text);
     if tokens
@@ -415,7 +477,9 @@ pub(crate) fn is_np_expression(text: &str) -> bool {
         Some("square" | "cube") => second == Some("of"),
         Some("absolute") => second == Some("value"),
         Some("magnitude" | "opposite") => second == Some("of"),
-        Some("twice" | "double" | "triple" | "half" | "negative" | "minus") => tokens
+        Some(
+            "twice" | "double" | "triple" | "half" | "quarter" | "third" | "negative" | "minus",
+        ) => tokens
             .get(index + 1)
             .is_some_and(|token| !token.is("and") && token.text != ","),
         _ => false,
@@ -580,6 +644,16 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
             let _ = self.eat("of");
             let value = self.parse_prefix()?;
             return Ok(binary(BinOp::Div, value, AstExpr::ConstInt(2, None)));
+        }
+        if self.eat("quarter") {
+            let _ = self.eat("of");
+            let value = self.parse_prefix()?;
+            return Ok(binary(BinOp::Div, value, AstExpr::ConstInt(4, None)));
+        }
+        if self.eat("third") {
+            let _ = self.eat("of");
+            let value = self.parse_prefix()?;
+            return Ok(binary(BinOp::Div, value, AstExpr::ConstInt(3, None)));
         }
         if self.eat("negative") || self.eat("minus") {
             let value = self.parse_prefix()?;
