@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn two_box_simulation_with_guarded_moves_and_early_stop() {
+    assert_program(
+        "two-box-simulation",
+        "Imagine a red box starting with 5 and a blue box starting with 16. Walk through every number from 1 up to 40. If the number is a multiple of 3, move 4 from the blue box into the red box; otherwise move 1 from the red box into the blue box. However, if a move would ever cause either box to drop below 5, skip that move and leave both boxes unchanged. Stop immediately as soon as the red box holds more than twice as much as the blue box. Finally, print the number where you stopped, followed by the amounts in the red box and the blue box.\n",
+        &["12", "15", "6"],
+    );
+}
+
+#[test]
+fn two_box_simulation_generalizes_colors_amounts_and_floor() {
+    assert_program(
+        "two-box-generalized",
+        "Imagine a green box starting with 10 and an orange box starting with 12. Walk through every number from 1 up to 30. If the number is a multiple of 3, move 4 from the orange box into the green box; otherwise move 1 from the green box into the orange box. However, if a move would ever cause either box to drop below 4, skip that move and leave both boxes unchanged. Stop immediately as soon as the green box holds more than twice as much as the orange box. Finally, print the number where you stopped, followed by the amounts in the green box and the orange box.\n",
+        &["9", "16", "6"],
+    );
+}
+
+#[test]
 fn fibonacci_sequence_running_total_and_overflow_count() {
     assert_program(
         "fibonacci-running-total",

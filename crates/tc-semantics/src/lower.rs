@@ -21,8 +21,9 @@ use crate::discourse::{
 use crate::discourse_scope::{
     CheckDomain, CheckKind, LargestTracker, SequenceGeneration, SequenceIteration,
     SequenceRecurrence, SequenceSeed, continuation_rest, parse_check, parse_largest_tracker,
-    parse_loop_filter, parse_loop_introduction, parse_sequence_generation,
-    parse_sequence_iteration, parse_sequence_seed, post_loop_rest,
+    parse_loop_filter, parse_loop_introduction, parse_move_guard, parse_sequence_generation,
+    parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
+    post_loop_rest,
 };
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
@@ -3125,6 +3126,8 @@ pub(crate) struct Lowerer<'a> {
     print_tracker: Option<ActiveTracker>,
     running_total: Option<String>,
     named_counters: HashMap<String, String>,
+    move_floor: Option<String>,
+    last_iteration_var: Option<String>,
 }
 
 impl<'a> Lowerer<'a> {
@@ -3165,6 +3168,8 @@ impl<'a> Lowerer<'a> {
             print_tracker: None,
             running_total: None,
             named_counters: HashMap::new(),
+            move_floor: None,
+            last_iteration_var: None,
         }
     }
 
@@ -3442,6 +3447,27 @@ impl<'a> Lowerer<'a> {
         let mut current = text.to_string();
         loop {
             let mut replaced = false;
+            if let Some(var) = self.last_iteration_var.clone() {
+                for phrase in [
+                    "the stopping number",
+                    "that stopping number",
+                    "the stop number",
+                    "the number where you stopped",
+                    "the number at which you stopped",
+                ] {
+                    if let Some((start, end)) =
+                        crate::textutil::find_top_level_phrase(&current, phrase)
+                    {
+                        current = format!("{}{}{}", &current[..start], var, &current[end..]);
+                        self.touch_name(&var, span);
+                        replaced = true;
+                        break;
+                    }
+                }
+            }
+            if replaced {
+                continue;
+            }
             if let Some(total) = self.running_total.clone() {
                 for phrase in [
                     "the final running total",
@@ -4228,6 +4254,28 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(declarations) = parse_state_declaration(&sentence.text)
+            {
+                for (name, value_text) in declarations {
+                    let value = self.parse_expr(&value_text, sentence.span)?;
+                    let ty = self.shallow_type(&value);
+                    if self.lookup(&name).is_some() || self.globals.contains_key(&name) {
+                        statements.extend(self.assign_text(&name, value, sentence.span, false)?);
+                    } else {
+                        self.declare(&name, ty.clone());
+                        self.introduce_name(&name, &ty, sentence.span);
+                        statements.push(AstStmt::Let {
+                            name,
+                            ty: Some(ty),
+                            init: value,
+                            span: self.span(sentence.span),
+                        });
+                    }
+                }
+                index += 1;
+                continue;
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(seed) = parse_sequence_seed(&sentence.text)
                 && let Some(RawItem::Sentence(generation_sentence)) = items.get(index + 1)
                 && let Some(generation) = parse_sequence_generation(&generation_sentence.text)
@@ -4312,6 +4360,7 @@ impl<'a> Lowerer<'a> {
                     cursor += 1;
                 }
                 let mut lowered = self.ensure_implicit_counter(sentence.span)?;
+                let (body, move_floor) = prepare_loop_rules(body);
                 let (body, tracker_spec) = extract_largest_trackers(body);
                 if let Some(spec) = tracker_spec {
                     lowered.extend(self.ensure_largest_tracker(spec, sentence.span));
@@ -4320,7 +4369,33 @@ impl<'a> Lowerer<'a> {
                 if let Some(tracker) = self.largest_tracker.clone() {
                     self.print_tracker = Some(tracker);
                 }
-                let body = apply_loop_filters(body, &intro.quantifier.var);
+                let previous_move_floor = self.move_floor.clone();
+                if let Some(floor) = move_floor {
+                    self.move_floor = Some(floor);
+                }
+                let var = intro.quantifier.var.clone();
+                let mut body = body;
+                let stopping_number = if closer
+                    .as_ref()
+                    .is_some_and(|(rest, _)| closer_needs_last_number(rest))
+                {
+                    let ty = self.loop_element_type(&intro.quantifier, sentence.span)?;
+                    let name = self.next_temp("last_number");
+                    lowered.push(self.declare_local(&name, ty, sentence.span));
+                    body.insert(
+                        0,
+                        RawItem::Sentence(RawSentence {
+                            text: format!("Set {name} to {var}"),
+                            raw: String::new(),
+                            span: sentence.span,
+                            fillers: Vec::new(),
+                        }),
+                    );
+                    Some(name)
+                } else {
+                    None
+                };
+                let body = apply_loop_filters(body, &var);
                 let loop_result = self.lower_global_quantifier(
                     intro.quantifier,
                     Some(&body),
@@ -4328,6 +4403,8 @@ impl<'a> Lowerer<'a> {
                     depth + 1,
                 );
                 self.print_tracker = previous_print_tracker;
+                self.move_floor = previous_move_floor;
+                self.last_iteration_var = stopping_number;
                 lowered.append(&mut loop_result?);
                 if let Some((rest, closer_span)) = closer {
                     lowered.extend(self.lower_core(&rest, closer_span, None, None, depth + 1)?);
@@ -5326,6 +5403,10 @@ impl<'a> Lowerer<'a> {
         Ok(Some(expression))
     }
 
+    pub(crate) fn active_move_floor(&self) -> Option<String> {
+        self.move_floor.clone()
+    }
+
     pub(crate) fn active_print_tracker(&self) -> Option<(String, bool)> {
         self.print_tracker
             .as_ref()
@@ -5419,6 +5500,36 @@ impl<'a> Lowerer<'a> {
                     self.scan_accumulators(&block.items, prelude);
                 }
             }
+        }
+    }
+
+    fn loop_element_type(
+        &mut self,
+        global: &GlobalQuantifier,
+        span: Span,
+    ) -> Result<AstType, SemanticError> {
+        match &global.domain {
+            QuantDomainSpec::Range { start, .. } => {
+                let value = self.parse_expr(start, span)?;
+                Ok(self.shallow_type(&value))
+            }
+            QuantDomainSpec::Array { arr } => match self.lookup(arr).cloned() {
+                Some(AstType::Array(element, _)) => Ok(*element),
+                Some(AstType::Named {
+                    name, type_args, ..
+                }) if name.eq_ignore_ascii_case("list") => {
+                    Ok(type_args.first().cloned().unwrap_or(AstType::I64))
+                }
+                Some(AstType::Ptr(inner)) => match inner.as_ref() {
+                    AstType::Named {
+                        name, type_args, ..
+                    } if name.eq_ignore_ascii_case("list") => {
+                        Ok(type_args.first().cloned().unwrap_or(AstType::I64))
+                    }
+                    _ => Ok(AstType::I64),
+                },
+                _ => Ok(AstType::I64),
+            },
         }
     }
 
@@ -5574,6 +5685,7 @@ impl<'a> Lowerer<'a> {
             body: loop_body,
             span: self.span(span),
         });
+        self.last_iteration_var = Some(iteration.var.clone());
         if let Some((rest, closer_span)) = closer {
             statements.extend(self.lower_core(&rest, closer_span, None, None, depth + 1)?);
         }
@@ -6646,15 +6758,27 @@ impl<'a> Lowerer<'a> {
         {
             return None;
         }
-        if find_top_level_phrase(text, "with").is_some()
-            || find_top_level_phrase(text, "followed by").is_some()
-        {
+        if crate::textutil::find_top_level_phrase(text, "with").is_some() {
             return None;
         }
-        let rest = text[first.end..].trim().trim_end_matches('.');
+        let mut rest = text[first.end..].trim().trim_end_matches('.').to_string();
+        while let Some((start, end)) = crate::textutil::find_top_level_phrase(&rest, "followed by")
+        {
+            rest = format!("{}{}", &rest[..start], &rest[end..]);
+        }
+        let rest_tokens = tokenize(&rest);
+        let mut segments = Vec::new();
         let mut depth = 0_i32;
-        for token in &tokens {
+        let mut start = 0;
+        for token in &rest_tokens {
             if token.kind == TokenKind::Symbol {
+                if depth == 0 && token.text == "," {
+                    let segment = rest[start..token.start].trim();
+                    if !segment.is_empty() {
+                        segments.push(segment.to_string());
+                    }
+                    start = token.end;
+                }
                 match token.text.as_str() {
                     "(" | "[" | "{" => depth += 1,
                     ")" | "]" | "}" => depth -= 1,
@@ -6662,34 +6786,42 @@ impl<'a> Lowerer<'a> {
                 }
                 continue;
             }
-            if depth != 0 || !token.is("and") || token.start < first.end {
+            if depth != 0 || !token.is("and") {
                 continue;
             }
-            let left = text[first.end..token.start].trim();
-            let right = text[token.end..].trim().trim_end_matches('.');
-            if left.is_empty() || right.is_empty() {
-                continue;
+            let segment = rest[start..token.start].trim();
+            if !segment.is_empty() {
+                segments.push(segment.to_string());
             }
-            let right_first = right
+            start = token.end;
+        }
+        let tail = rest[start..].trim().trim_end_matches('.');
+        if !tail.is_empty() {
+            segments.push(tail.to_string());
+        }
+        segments.retain(|segment| !segment.is_empty() && !matches!(segment.as_str(), "and" | ","));
+        if segments.len() < 2 {
+            return None;
+        }
+        for segment in &segments {
+            if contains_nary_operator(segment) {
+                return None;
+            }
+            let first_word = segment
                 .split_whitespace()
                 .next()
                 .unwrap_or_default()
                 .to_ascii_lowercase();
-            if classify_verb(&right_first, None)
+            if classify_verb(&first_word, None)
                 .is_some_and(|resolution| resolution.predicate.is_some())
             {
-                continue;
+                return None;
             }
-            if contains_nary_operator(left) || contains_nary_operator(right) {
-                continue;
+            if self.parse_value(segment, span).is_err() {
+                return None;
             }
-            if self.parse_value(left, span).is_err() || self.parse_value(right, span).is_err() {
-                continue;
-            }
-            let _ = rest;
-            return Some(vec![left.to_string(), right.to_string()]);
         }
-        None
+        Some(segments)
     }
 
     fn track_phrase_emit(&mut self, phrase: &PhraseMatch, span: Span) -> Option<AstStmt> {
@@ -9099,9 +9231,28 @@ impl<'a> Lowerer<'a> {
                 statements.extend(self.write_arithmetic(
                     destination,
                     tc_ir::BinOp::Add,
-                    value,
+                    value.clone(),
                     span,
                 )?);
+                if let Some(floor_text) = self.active_move_floor() {
+                    let floor = self.parse_value(&floor_text, span)?;
+                    let available = self.parse_value(source, span)?;
+                    let required = AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(value),
+                        rhs: Box::new(floor),
+                    };
+                    statements = vec![AstStmt::If {
+                        cond: AstExpr::Binary {
+                            op: tc_ir::BinOp::Ge,
+                            lhs: Box::new(available),
+                            rhs: Box::new(required),
+                        },
+                        then_body: statements,
+                        else_body: Vec::new(),
+                        span: self.span(span),
+                    }];
+                }
                 Ok(Some(statements))
             }
             VerbPredicate::Transform | VerbPredicate::Combine => {
@@ -9432,7 +9583,7 @@ fn contains_nary_operator(text: &str) -> bool {
         "opposite of",
     ]
     .iter()
-    .any(|phrase| find_top_level_phrase(text, phrase).is_some())
+    .any(|phrase| crate::textutil::find_top_level_phrase(text, phrase).is_some())
 }
 
 fn singular_noun(word: &str) -> String {
@@ -9556,6 +9707,47 @@ fn extract_largest_trackers(items: Vec<RawItem>) -> (Vec<RawItem>, Option<Larges
         remaining.push(item);
     }
     (remaining, spec)
+}
+
+fn closer_needs_last_number(text: &str) -> bool {
+    let lower = text.to_ascii_lowercase();
+    lower.contains("where you stopped")
+        || lower.contains("where it stopped")
+        || lower.contains("stopping number")
+        || lower.contains("number at which you stopped")
+        || lower.contains("number you stopped at")
+}
+
+fn prepare_loop_rules(items: Vec<RawItem>) -> (Vec<RawItem>, Option<String>) {
+    let mut remaining = Vec::new();
+    let mut move_floor = None;
+    let mut stop = None;
+    for item in items {
+        if let RawItem::Sentence(sentence) = &item {
+            if move_floor.is_none()
+                && let Some(floor) = parse_move_guard(&sentence.text)
+            {
+                move_floor = Some(floor);
+                continue;
+            }
+            if stop.is_none()
+                && let Some(condition) = parse_stop_condition(&sentence.text)
+            {
+                stop = Some((condition, sentence.span));
+                continue;
+            }
+        }
+        remaining.push(item);
+    }
+    if let Some((condition, span)) = stop {
+        remaining.push(RawItem::Sentence(RawSentence {
+            text: format!("If {condition}, break"),
+            raw: String::new(),
+            span,
+            fillers: Vec::new(),
+        }));
+    }
+    (remaining, move_floor)
 }
 
 fn apply_loop_filters(items: Vec<RawItem>, var: &str) -> Vec<RawItem> {

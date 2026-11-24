@@ -17,6 +17,77 @@ pub(crate) fn sentence(text: &str) -> String {
             current = format!("{}is{}", &current[..start], &current[end..]);
             continue;
         }
+        if let Some((start, end)) =
+            crate::textutil::find_top_level_phrase(&current, "the number where you stopped")
+        {
+            current = format!(
+                "{}the stopping number{}",
+                &current[..start],
+                &current[end..]
+            );
+            continue;
+        }
+        if let Some((start, end)) =
+            crate::textutil::find_top_level_phrase(&current, "the number at which you stopped")
+        {
+            current = format!(
+                "{}the stopping number{}",
+                &current[..start],
+                &current[end..]
+            );
+            continue;
+        }
+        if let Some((start, end)) =
+            crate::textutil::find_top_level_phrase(&current, "the number you stopped at")
+        {
+            current = format!(
+                "{}the stopping number{}",
+                &current[..start],
+                &current[end..]
+            );
+            continue;
+        }
+        if let Some((start, end)) =
+            crate::textutil::find_top_level_phrase(&current, "the number where it stopped")
+        {
+            current = format!(
+                "{}the stopping number{}",
+                &current[..start],
+                &current[end..]
+            );
+            continue;
+        }
+        for (phrase, replacement) in [
+            ("holds more than twice as much as", "is more than twice"),
+            ("has more than twice as much as", "is more than twice"),
+            ("is more than twice as much as", "is more than twice"),
+            ("holds more than", "is more than"),
+            ("contains more than", "is more than"),
+            ("holds at least", "is at least"),
+            ("holds less than", "is less than"),
+        ] {
+            if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, phrase) {
+                current = format!("{}{}{}", &current[..start], replacement, &current[end..]);
+                break;
+            }
+        }
+        let mut stripped_amount_phrase = false;
+        for phrase in [
+            "the amounts in ",
+            "the amount in ",
+            "the values in ",
+            "the value in ",
+            "the contents of ",
+        ] {
+            if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, phrase) {
+                current = format!("{}{}", &current[..start], &current[end..]);
+                stripped_amount_phrase = true;
+                break;
+            }
+        }
+        if stripped_amount_phrase {
+            continue;
+        }
         if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, "ends up") {
             current = format!("{}is{}", &current[..start], &current[end..]);
             continue;
