@@ -93,7 +93,17 @@ starts/ends/contains/trim/parse/format helpers in pure Version 2 English.
 ./target/debug/tc-lsp --stdio
 ```
 
-Documentation:
+## Documentation
+
+Project and agent documents:
+
+- [Engineering contract for coding agents](AGENTS.md)
+- [English authoring skill guide](SKILL.md)
+- [Architecture manifest and roadmap](MANIFEST.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+
+Language and verification references:
 
 - [English language specification](docs/TC_ENGLISH_SPEC.md)
 - [Convergence final report](docs/CONVERGENCE_FINAL_REPORT.md)
@@ -146,6 +156,11 @@ tc_r1/
   Cargo.lock
   Makefile
   README.md
+  AGENTS.md
+  SKILL.md
+  MANIFEST.md
+  CONTRIBUTING.md
+  CHANGELOG.md
   LICENSE
   THIRD_PARTY_NOTICES.md
   .gitignore
