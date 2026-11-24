@@ -11,6 +11,28 @@ use tc_typeck::AstType;
 
 use crate::token::{Token, TokenKind, decode_string_token, tokenize};
 
+const MAX_GROUP_DEPTH: usize = 16;
+
+fn groups_exceed_limit(tokens: &[Token]) -> bool {
+    let mut depth = 0_usize;
+    for token in tokens {
+        if token.kind != TokenKind::Symbol {
+            continue;
+        }
+        match token.text.as_str() {
+            "(" | "[" | "{" => {
+                depth += 1;
+                if depth > MAX_GROUP_DEPTH {
+                    return true;
+                }
+            }
+            ")" | "]" | "}" => depth = depth.saturating_sub(1),
+            _ => {}
+        }
+    }
+    false
+}
+
 /// Field metadata for one struct or union.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct AggregateInfo {
@@ -890,7 +912,7 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Symbol => {
                 if self.eat_symbol("(") {
-                    if self.group_depth >= 32 {
+                    if self.group_depth >= MAX_GROUP_DEPTH {
                         return Err("expression nesting exceeds the Core-7 limit".to_string());
                     }
                     self.group_depth += 1;
@@ -1466,6 +1488,9 @@ fn explicit_address(value: &AstExpr, env: &ExprEnv) -> Option<AstExpr> {
 /// Parses a complete expression, requiring all tokens to be consumed.
 pub(crate) fn parse_expression(text: &str, env: &ExprEnv) -> Result<AstExpr> {
     let tokens = tokenize(text);
+    if groups_exceed_limit(&tokens) {
+        return Err("expression nesting exceeds the Core-7 limit".to_string());
+    }
     let mut parser = Parser {
         tokens: &tokens,
         position: 0,

@@ -260,6 +260,7 @@ pub(crate) fn parse_value<C: ValueContext>(
             position: 0,
             context,
             span,
+            group_depth: 0,
         };
         let value = parser.parse_all()?;
         return Ok(value);
@@ -427,6 +428,7 @@ struct NpParser<'a, 'c, C> {
     position: usize,
     context: &'c mut C,
     span: Span,
+    group_depth: usize,
 }
 
 impl<C: ValueContext> NpParser<'_, '_, C> {
@@ -706,7 +708,14 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
 
     fn parse_primary(&mut self) -> Result<AstExpr, SemanticError> {
         if self.eat_symbol("(") {
+            if self.group_depth >= 16 {
+                return Err(self
+                    .context
+                    .value_error(self.span, "expression nesting exceeds the Core-7 limit"));
+            }
+            self.group_depth += 1;
             let value = self.parse_additive()?;
+            self.group_depth -= 1;
             if !self.eat_symbol(")") {
                 return Err(self.context.value_error(self.span, "expected `)`"));
             }

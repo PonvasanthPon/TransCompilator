@@ -19,8 +19,10 @@ use crate::discourse::{
     DiscourseStack, ReferentKind, ResolvedAnaphor, ResolvedFieldAnaphor, ScopeKind,
 };
 use crate::discourse_scope::{
-    CheckDomain, CheckKind, LargestTracker, continuation_rest, parse_check, parse_largest_tracker,
-    parse_loop_filter, parse_loop_introduction, post_loop_rest,
+    CheckDomain, CheckKind, LargestTracker, SequenceGeneration, SequenceIteration,
+    SequenceRecurrence, SequenceSeed, continuation_rest, parse_check, parse_largest_tracker,
+    parse_loop_filter, parse_loop_introduction, parse_sequence_generation,
+    parse_sequence_iteration, parse_sequence_seed, post_loop_rest,
 };
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
@@ -1868,6 +1870,15 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
     if lower.starts_with("phrase:") {
         return vec![format!("{spaces}{trimmed}.")];
     }
+    if lower.starts_with("keep generating ")
+        || lower.starts_with("keep going ")
+        || lower.starts_with("continue generating ")
+        || lower.starts_with("keep building ")
+        || lower.starts_with("generate ")
+        || lower.starts_with("continue ")
+    {
+        return vec![format!("{spaces}{trimmed}.")];
+    }
     if crate::clause_graph::decompose(trimmed).is_some() {
         return vec![format!("{spaces}{trimmed}.")];
     }
@@ -3112,6 +3123,8 @@ pub(crate) struct Lowerer<'a> {
     implicit_counter: Option<String>,
     largest_tracker: Option<ActiveTracker>,
     print_tracker: Option<ActiveTracker>,
+    running_total: Option<String>,
+    named_counters: HashMap<String, String>,
 }
 
 impl<'a> Lowerer<'a> {
@@ -3150,6 +3163,8 @@ impl<'a> Lowerer<'a> {
             implicit_counter: None,
             largest_tracker: None,
             print_tracker: None,
+            running_total: None,
+            named_counters: HashMap::new(),
         }
     }
 
@@ -3427,6 +3442,29 @@ impl<'a> Lowerer<'a> {
         let mut current = text.to_string();
         loop {
             let mut replaced = false;
+            if let Some(total) = self.running_total.clone() {
+                for phrase in [
+                    "the final running total",
+                    "the running total",
+                    "a running total",
+                    "that running total",
+                    "the final total",
+                    "that total",
+                    "the running sum",
+                    "a running sum",
+                ] {
+                    if let Some((start, end)) =
+                        crate::textutil::find_top_level_phrase(&current, phrase)
+                    {
+                        current = format!("{}{}{}", &current[..start], total, &current[end..]);
+                        replaced = true;
+                        break;
+                    }
+                }
+            }
+            if replaced {
+                continue;
+            }
             for phrase in [
                 "that largest value",
                 "the largest value",
@@ -3452,6 +3490,7 @@ impl<'a> Lowerer<'a> {
                         ));
                     };
                     current = format!("{}{}{}", &current[..start], tracker.name, &current[end..]);
+                    self.touch_name(&tracker.name, span);
                     replaced = true;
                     break;
                 }
@@ -3485,6 +3524,7 @@ impl<'a> Lowerer<'a> {
                         ));
                     };
                     current = format!("{}{}{}", &current[..start], target, &current[end..]);
+                    self.touch_name(&target, span);
                     replaced = true;
                     break;
                 }
@@ -3497,8 +3537,8 @@ impl<'a> Lowerer<'a> {
     }
 
     fn resolve_anaphors(&mut self, text: &str, span: Span) -> Result<String, SemanticError> {
-        let rewritten = self.rewrite_known_names(text);
-        let rewritten = self.replace_value_referent_phrases(&rewritten, span)?;
+        let rewritten = self.replace_value_referent_phrases(text, span)?;
+        let rewritten = self.rewrite_known_names(&rewritten);
         let text = rewritten.as_str();
         let tokens = tokenize(text);
         let mut replacements: Vec<(usize, usize, String)> = Vec::new();
@@ -4188,6 +4228,51 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(seed) = parse_sequence_seed(&sentence.text)
+                && let Some(RawItem::Sentence(generation_sentence)) = items.get(index + 1)
+                && let Some(generation) = parse_sequence_generation(&generation_sentence.text)
+                && let Some(RawItem::Sentence(iteration_sentence)) = items.get(index + 2)
+                && let Some(iteration) = parse_sequence_iteration(&iteration_sentence.text)
+            {
+                let mut body = Vec::new();
+                let mut cursor = index + 3;
+                let mut last_line = raw_item_end_line(&items[index + 2]);
+                let mut closer = None;
+                while cursor < items.len() {
+                    let start_line = raw_item_start_line(&items[cursor]);
+                    if start_line > last_line.saturating_add(1) {
+                        break;
+                    }
+                    if let RawItem::Sentence(next) = &items[cursor] {
+                        let closer_text = if next.fillers.is_empty() {
+                            next.text.clone()
+                        } else {
+                            format!("{}, {}", next.fillers.join(" "), next.text)
+                        };
+                        if let Some(rest) = post_loop_rest(&closer_text) {
+                            closer = Some((rest, next.span));
+                            cursor += 1;
+                            break;
+                        }
+                    }
+                    body.push(items[cursor].clone());
+                    last_line = raw_item_end_line(&items[cursor]);
+                    cursor += 1;
+                }
+                let lowered = self.lower_sequence(
+                    seed,
+                    generation,
+                    iteration,
+                    body,
+                    closer,
+                    sentence.span,
+                    depth + 1,
+                )?;
+                statements.extend(lowered);
+                index = cursor;
+                continue;
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(intro) = parse_loop_introduction(&sentence.text)
             {
                 let mut body = Vec::new();
@@ -4832,7 +4917,13 @@ impl<'a> Lowerer<'a> {
     }
 
     fn lower_condition(&mut self, text: &str, span: Span) -> Result<LoweredCond, SemanticError> {
-        let (condition, where_clause) = split_where(text);
+        let resolved = self.replace_value_referent_phrases(text, span)?;
+        if let Some(total) = self.running_total.clone()
+            && resolved.contains(&total)
+        {
+            self.touch_name(&total, span);
+        }
+        let (condition, where_clause) = split_where(&resolved);
         if where_clause.is_some() {
             return Err(self.error(
                 span,
@@ -5265,6 +5356,230 @@ impl<'a> Lowerer<'a> {
         }]
     }
 
+    fn ensure_running_total(&mut self, span: Span) -> Vec<AstStmt> {
+        if self.running_total.is_some() {
+            return Vec::new();
+        }
+        let name = "running_total".to_string();
+        if self.lookup(&name).is_none() {
+            self.declare(&name, AstType::I64);
+            self.introduce_name(&name, &AstType::I64, span);
+            self.running_total = Some(name.clone());
+            return vec![AstStmt::Let {
+                name,
+                ty: Some(AstType::I64),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            }];
+        }
+        self.running_total = Some(name);
+        Vec::new()
+    }
+
+    fn ensure_named_counter(&mut self, noun: &str, span: Span) -> Vec<AstStmt> {
+        if self.named_counters.contains_key(noun) {
+            return Vec::new();
+        }
+        let name = format!("__tc_count_{noun}");
+        self.named_counters.insert(noun.to_string(), name.clone());
+        if self.lookup(&name).is_none() {
+            self.declare(&name, AstType::I64);
+            self.introduce_name(&name, &AstType::I64, span);
+            return vec![AstStmt::Let {
+                name,
+                ty: Some(AstType::I64),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            }];
+        }
+        Vec::new()
+    }
+
+    fn scan_accumulators(&mut self, items: &[RawItem], prelude: &mut Vec<AstStmt>) {
+        for item in items {
+            match item {
+                RawItem::Sentence(sentence) => {
+                    let lower = sentence.text.to_ascii_lowercase();
+                    if lower.contains("running total")
+                        || lower.contains("running sum")
+                        || lower.contains("running tally")
+                    {
+                        prelude.extend(self.ensure_running_total(sentence.span));
+                    }
+                    if let Some(noun) = named_counter_noun(&sentence.text) {
+                        prelude.extend(self.ensure_named_counter(&noun, sentence.span));
+                    }
+                }
+                RawItem::Block(block) => {
+                    if let Some(header) = &block.header
+                        && let Some(noun) = named_counter_noun(&header.text)
+                    {
+                        prelude.extend(self.ensure_named_counter(&noun, header.span));
+                    }
+                    self.scan_accumulators(&block.items, prelude);
+                }
+            }
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn lower_sequence(
+        &mut self,
+        seed: SequenceSeed,
+        generation: SequenceGeneration,
+        iteration: SequenceIteration,
+        mut body_items: Vec<RawItem>,
+        closer: Option<(String, Span)>,
+        span: Span,
+        depth: usize,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        if seed.values.len() != 2 {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "a sum-of-previous-two sequence needs exactly two starting values",
+            ));
+        }
+        if generation.recurrence != SequenceRecurrence::SumPreviousTwo {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "unsupported sequence recurrence",
+            ));
+        }
+        if let Some(text) = iteration.body {
+            body_items.insert(
+                0,
+                RawItem::Sentence(RawSentence {
+                    text: text.clone(),
+                    raw: text,
+                    span,
+                    fillers: Vec::new(),
+                }),
+            );
+        }
+        let mut prelude = Vec::new();
+        self.scan_accumulators(&body_items, &mut prelude);
+        let first = self.parse_expr(&seed.values[0], span)?;
+        let second = self.parse_expr(&seed.values[1], span)?;
+        let ty = self.shallow_type(&first);
+        if !Self::is_integer_type(&ty) {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "sequence starting values must be integers",
+            ));
+        }
+        let bound = self.parse_expr(&generation.bound, span)?;
+        let prev2 = self.next_temp("seq_prev2");
+        let prev1 = self.next_temp("seq_prev1");
+        let next = self.next_temp("seq_next");
+        self.declare_temp(&prev2, ty.clone());
+        self.declare_temp(&prev1, ty.clone());
+        self.declare_temp(&next, ty.clone());
+        self.declare(&iteration.var, ty.clone());
+        self.introduce_name(&iteration.var, &ty, span);
+        prelude.push(AstStmt::Let {
+            name: prev2.clone(),
+            ty: Some(ty.clone()),
+            init: first.clone(),
+            span: self.span(span),
+        });
+        prelude.push(AstStmt::Let {
+            name: prev1.clone(),
+            ty: Some(ty.clone()),
+            init: second.clone(),
+            span: self.span(span),
+        });
+        prelude.push(AstStmt::Let {
+            name: next.clone(),
+            ty: Some(ty.clone()),
+            init: AstExpr::ConstInt(0, None),
+            span: self.span(span),
+        });
+        prelude.push(AstStmt::Let {
+            name: iteration.var.clone(),
+            ty: Some(ty.clone()),
+            init: first.clone(),
+            span: self.span(span),
+        });
+        self.push_scope(ScopeKind::QuantifierBody);
+        self.declare(&iteration.var, ty.clone());
+        let previous_loop_var = self.active_loop_var.replace(iteration.var.clone());
+        let body = self.lower_items(&body_items, depth + 1)?;
+        self.active_loop_var = previous_loop_var;
+        self.pop_scope();
+        let body_block = || AstStmt::Block(body.clone(), self.span(span));
+        let mut statements = prelude;
+        statements.push(AstStmt::Assign {
+            name: iteration.var.clone(),
+            val: first,
+            span: self.span(span),
+        });
+        statements.push(body_block());
+        statements.push(AstStmt::Assign {
+            name: iteration.var.clone(),
+            val: second,
+            span: self.span(span),
+        });
+        statements.push(body_block());
+        let comparison = if generation.inclusive {
+            tc_ir::BinOp::Le
+        } else {
+            tc_ir::BinOp::Lt
+        };
+        let mut loop_body = vec![
+            AstStmt::Assign {
+                name: next.clone(),
+                val: AstExpr::Binary {
+                    op: tc_ir::BinOp::Add,
+                    lhs: Box::new(AstExpr::Var(prev2.clone())),
+                    rhs: Box::new(AstExpr::Var(prev1.clone())),
+                },
+                span: self.span(span),
+            },
+            AstStmt::If {
+                cond: AstExpr::Unary {
+                    op: tc_ir::UnOp::LogNot,
+                    val: Box::new(AstExpr::Binary {
+                        op: comparison,
+                        lhs: Box::new(AstExpr::Var(next.clone())),
+                        rhs: Box::new(bound),
+                    }),
+                },
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: iteration.var.clone(),
+                val: AstExpr::Var(next.clone()),
+                span: self.span(span),
+            },
+            body_block(),
+            AstStmt::Assign {
+                name: prev2.clone(),
+                val: AstExpr::Var(prev1.clone()),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: prev1.clone(),
+                val: AstExpr::Var(next.clone()),
+                span: self.span(span),
+            },
+        ];
+        loop_body
+            .retain(|statement| !matches!(statement, AstStmt::Block(items, _) if items.is_empty()));
+        statements.push(AstStmt::Loop {
+            body: loop_body,
+            span: self.span(span),
+        });
+        if let Some((rest, closer_span)) = closer {
+            statements.extend(self.lower_core(&rest, closer_span, None, None, depth + 1)?);
+        }
+        Ok(statements)
+    }
+
     fn ensure_implicit_counter(&mut self, span: Span) -> Result<Vec<AstStmt>, SemanticError> {
         if self.implicit_counter.is_some() {
             return Ok(Vec::new());
@@ -5298,6 +5613,49 @@ impl<'a> Lowerer<'a> {
             || lower.starts_with("/=")
         {
             return Ok(None);
+        }
+        let object_word = tokenize(rest)
+            .into_iter()
+            .find(|token| token.is_word())
+            .map(|token| token.lower);
+        if object_word.as_ref().is_some_and(|word| {
+            matches!(
+                word.as_str(),
+                "it" | "them" | "that" | "this" | "those" | "these"
+            ) || self.lookup(word).is_some()
+                || self.globals.contains_key(word)
+                || self.active_loop_var.as_ref().is_some_and(|var| var == word)
+        }) {
+            let mut statements = self.ensure_implicit_counter(span)?;
+            let Some(counter) = self.implicit_counter.clone() else {
+                return Ok(None);
+            };
+            statements.push(AstStmt::Assign {
+                name: counter.clone(),
+                val: AstExpr::Binary {
+                    op: tc_ir::BinOp::Add,
+                    lhs: Box::new(AstExpr::Var(counter)),
+                    rhs: Box::new(AstExpr::ConstInt(1, None)),
+                },
+                span: self.span(span),
+            });
+            return Ok(Some(statements));
+        }
+        if let Some(noun) = named_counter_noun(text) {
+            let mut statements = self.ensure_named_counter(&noun, span);
+            let Some(counter) = self.named_counters.get(&noun).cloned() else {
+                return Ok(None);
+            };
+            statements.push(AstStmt::Assign {
+                name: counter.clone(),
+                val: AstExpr::Binary {
+                    op: tc_ir::BinOp::Add,
+                    lhs: Box::new(AstExpr::Var(counter)),
+                    rhs: Box::new(AstExpr::ConstInt(1, None)),
+                },
+                span: self.span(span),
+            });
+            return Ok(Some(statements));
         }
         let mut statements = self.ensure_implicit_counter(span)?;
         let Some(counter) = self.implicit_counter.clone() else {
@@ -5336,7 +5694,19 @@ impl<'a> Lowerer<'a> {
                     | "how many were found"
             );
         if !query {
-            return Ok(None);
+            let Some(noun) = named_counter_query_noun(&lower) else {
+                return Ok(None);
+            };
+            let Some(counter) = self.named_counters.get(&noun) else {
+                return Err(self.error(
+                    span,
+                    SemanticErrorKind::Lowering,
+                    format!(
+                        "UNRESOLVED_ANAPHOR: count query `{noun}` has no preceding `count {noun}`"
+                    ),
+                ));
+            };
+            return Ok(Some(AstExpr::Var(counter.clone())));
         }
         let Some(counter) = &self.implicit_counter else {
             return Err(self.error(
@@ -6265,6 +6635,63 @@ impl<'a> Lowerer<'a> {
         ))
     }
 
+    fn split_multi_emit(&mut self, text: &str, span: Span) -> Option<Vec<String>> {
+        let tokens = tokenize(text);
+        let first = tokens.first()?;
+        if !first.is_word()
+            || !matches!(
+                first.lower.as_str(),
+                "print" | "say" | "show" | "display" | "emit" | "output"
+            )
+        {
+            return None;
+        }
+        if find_top_level_phrase(text, "with").is_some()
+            || find_top_level_phrase(text, "followed by").is_some()
+        {
+            return None;
+        }
+        let rest = text[first.end..].trim().trim_end_matches('.');
+        let mut depth = 0_i32;
+        for token in &tokens {
+            if token.kind == TokenKind::Symbol {
+                match token.text.as_str() {
+                    "(" | "[" | "{" => depth += 1,
+                    ")" | "]" | "}" => depth -= 1,
+                    _ => {}
+                }
+                continue;
+            }
+            if depth != 0 || !token.is("and") || token.start < first.end {
+                continue;
+            }
+            let left = text[first.end..token.start].trim();
+            let right = text[token.end..].trim().trim_end_matches('.');
+            if left.is_empty() || right.is_empty() {
+                continue;
+            }
+            let right_first = right
+                .split_whitespace()
+                .next()
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+            if classify_verb(&right_first, None)
+                .is_some_and(|resolution| resolution.predicate.is_some())
+            {
+                continue;
+            }
+            if contains_nary_operator(left) || contains_nary_operator(right) {
+                continue;
+            }
+            if self.parse_value(left, span).is_err() || self.parse_value(right, span).is_err() {
+                continue;
+            }
+            let _ = rest;
+            return Some(vec![left.to_string(), right.to_string()]);
+        }
+        None
+    }
+
     fn track_phrase_emit(&mut self, phrase: &PhraseMatch, span: Span) -> Option<AstStmt> {
         let (tracker, maximum) = self.active_print_tracker()?;
         let emitter = phrase
@@ -6668,6 +7095,13 @@ impl<'a> Lowerer<'a> {
         self.set_canonical(crate::paraphrase::canonicalize_statement(trimmed));
         if lower == "end" {
             return Ok(Vec::new());
+        }
+        if let Some(parts) = self.split_multi_emit(trimmed, span) {
+            let mut statements = Vec::new();
+            for part in parts {
+                statements.extend(self.lower_emit_value(&part, span)?);
+            }
+            return Ok(statements);
         }
         if let Some(phrase) = self
             .match_phrase_typed(trimmed, span)?
@@ -8975,6 +9409,138 @@ fn split_actions(text: &str) -> Vec<String> {
         result.push(tail.to_string());
     }
     result
+}
+
+fn contains_nary_operator(text: &str) -> bool {
+    [
+        "sum of",
+        "total of",
+        "product of",
+        "average of",
+        "mean of",
+        "minimum of",
+        "maximum of",
+        "difference between",
+        "difference of",
+        "quotient of",
+        "ratio of",
+        "remainder of",
+        "square of",
+        "cube of",
+        "absolute value of",
+        "magnitude of",
+        "opposite of",
+    ]
+    .iter()
+    .any(|phrase| find_top_level_phrase(text, phrase).is_some())
+}
+
+fn singular_noun(word: &str) -> String {
+    if word.ends_with("ies") && word.len() > 3 {
+        format!("{}y", &word[..word.len() - 3])
+    } else if (word.ends_with("ses")
+        || word.ends_with("xes")
+        || word.ends_with("zes")
+        || word.ends_with("ches")
+        || word.ends_with("shes"))
+        && word.len() > 3
+    {
+        word[..word.len() - 2].to_string()
+    } else if word.ends_with('s') && !word.ends_with("ss") && word.len() > 1 {
+        word[..word.len() - 1].to_string()
+    } else {
+        word.to_string()
+    }
+}
+
+fn named_counter_noun(text: &str) -> Option<String> {
+    let tokens = tokenize(text);
+    for (index, token) in tokens.iter().enumerate() {
+        if !token.is("count") {
+            continue;
+        }
+        let mut words = Vec::new();
+        for next in &tokens[index + 1..] {
+            if next.kind == TokenKind::Symbol {
+                if matches!(next.text.as_str(), "," | ";" | ".") {
+                    break;
+                }
+                continue;
+            }
+            if next.is("and") {
+                break;
+            }
+            words.push(next.lower.clone());
+        }
+        let Some(first) = words.first() else {
+            continue;
+        };
+        if matches!(
+            first.as_str(),
+            "it" | "them" | "that" | "this" | "those" | "these" | "of" | "how"
+        ) {
+            continue;
+        }
+        if first == "the" && words.get(1).is_some_and(|word| word == "number") {
+            continue;
+        }
+        let noun = words.iter().find(|word| {
+            !matches!(
+                word.as_str(),
+                "a" | "an" | "the" | "any" | "every" | "each" | "one" | "another"
+            )
+        })?;
+        return Some(singular_noun(noun));
+    }
+    None
+}
+
+fn named_counter_query_noun(lower: &str) -> Option<String> {
+    let rest = if let Some(rest) = lower.strip_prefix("how many ") {
+        rest
+    } else if let Some(rest) = lower.strip_prefix("the total number of ") {
+        rest
+    } else if let Some(rest) = lower.strip_prefix("the number of ") {
+        rest
+    } else {
+        lower.strip_prefix("the count of ")?
+    };
+    let words = rest
+        .trim_end_matches(['.', ',', ':'])
+        .split_whitespace()
+        .collect::<Vec<_>>();
+    let event = words
+        .iter()
+        .position(|word| matches!(*word, "occurred" | "happened" | "there"));
+    let event = event.or_else(|| {
+        words.iter().enumerate().find_map(|(index, word)| {
+            (*word == "were"
+                && words
+                    .get(index + 1)
+                    .is_some_and(|next| matches!(*next, "counted" | "found" | "recorded")))
+            .then_some(index)
+        })
+    })?;
+    let noun_words = &words[..event];
+    let noun = noun_words.iter().find(|word| {
+        !matches!(
+            **word,
+            "a" | "an"
+                | "the"
+                | "any"
+                | "every"
+                | "each"
+                | "one"
+                | "another"
+                | "total"
+                | "number"
+                | "count"
+                | "of"
+                | "that"
+                | "which"
+        )
+    })?;
+    Some(singular_noun(noun))
 }
 
 fn extract_largest_trackers(items: Vec<RawItem>) -> (Vec<RawItem>, Option<LargestTracker>) {
