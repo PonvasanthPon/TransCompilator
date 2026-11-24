@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn message_spread_reports_target_minute_and_never_heard_count() {
+    assert_program(
+        "message-spread",
+        "Consider 8 people: Alice, Bob, Charlie, Diana, Eve, Frank, Grace, and Henry. Alice can message Bob and Charlie; Bob can message Diana and Eve; Charlie can message Eve; Eve can message Frank and Henry; Diana can message Grace; and Grace can message Frank. Alice starts with a secret message at minute 0. At each subsequent minute, everyone who first heard the message during the previous minute forwards it to all the people they can message, except that Eve never forwards anything to anyone, and anyone who has already heard the message ignores duplicates. Keep advancing minute by minute until nobody new hears the message. At the end, print the minute when Frank first heard the message, followed by how many of the 8 people never heard it at all.\n",
+        &["4", "1"],
+    );
+}
+
+#[test]
+fn message_spread_generalizes_graph_and_blocked_forwarder() {
+    assert_program(
+        "message-spread-generalized",
+        "Consider 5 people: Ana, Ben, Cara, Dan, and Eli. Ana can message Ben and Cara; Ben can message Dan; Cara can message Dan and Eli; Dan can message Eli. Ana starts with a secret message at minute 0. At each subsequent minute, everyone who first heard the message during the previous minute forwards it to all the people they can message, except that Cara never forwards anything to anyone, and anyone who has already heard the message ignores duplicates. Keep advancing minute by minute until nobody new hears the message. At the end, print the minute when Eli first heard the message, followed by how many of the 5 people never heard it at all.\n",
+        &["3", "0"],
+    );
+}
+
+#[test]
 fn switch_ring_simulation_reports_on_count_and_first_repeat() {
     assert_program(
         "switch-ring",

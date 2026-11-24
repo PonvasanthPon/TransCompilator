@@ -26,10 +26,11 @@ use crate::discourse_scope::{
     is_word_split_request, parse_adjacent_pass, parse_check, parse_circle_arrangement,
     parse_circle_removal, parse_circle_report, parse_grid_moves, parse_grid_start,
     parse_inspect_text, parse_largest_tracker, parse_loop_filter, parse_loop_introduction,
-    parse_move_guard, parse_named_list_start, parse_pass_cleanup, parse_sentence_literal,
-    parse_sequence_generation, parse_sequence_iteration, parse_sequence_seed,
-    parse_state_declaration, parse_stop_condition, parse_switch_rounds, parse_switch_setup,
-    parse_word_filter, post_loop_rest,
+    parse_message_edge, parse_message_report, parse_message_start, parse_move_guard,
+    parse_named_list_start, parse_never_forward, parse_pass_cleanup, parse_people_list,
+    parse_sentence_literal, parse_sequence_generation, parse_sequence_iteration,
+    parse_sequence_seed, parse_state_declaration, parse_stop_condition, parse_switch_rounds,
+    parse_switch_setup, parse_word_filter, post_loop_rest,
 };
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
@@ -4322,6 +4323,60 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(people) = parse_people_list(&sentence.text)
+            {
+                let mut cursor = index + 1;
+                let mut edges = Vec::new();
+                while let Some(RawItem::Sentence(next)) = items.get(cursor) {
+                    let Some(edge) = parse_message_edge(&next.text) else {
+                        break;
+                    };
+                    edges.push(edge);
+                    cursor += 1;
+                }
+                if let Some(RawItem::Sentence(start_sentence)) = items.get(cursor)
+                    && let Some((start, start_minute)) = parse_message_start(&start_sentence.text)
+                {
+                    cursor += 1;
+                    let mut blocked = Vec::new();
+                    let mut target = None;
+                    while cursor < items.len() {
+                        let combined = raw_item_text(&items[cursor]);
+                        if let Some(names) = parse_never_forward(&combined) {
+                            blocked.extend(names);
+                        }
+                        if let Some(parsed) = parse_message_report(&combined) {
+                            target = Some(parsed);
+                            cursor += 1;
+                            break;
+                        }
+                        let lower = combined.to_ascii_lowercase();
+                        if lower.contains("forward")
+                            || lower.contains("duplicates")
+                            || lower.contains("minute by minute")
+                            || lower.contains("already heard")
+                        {
+                            cursor += 1;
+                            continue;
+                        }
+                        break;
+                    }
+                    if let Some(target) = target {
+                        statements.extend(self.lower_message_spread(
+                            people,
+                            edges,
+                            start,
+                            start_minute,
+                            blocked,
+                            target,
+                            sentence.span,
+                        )?);
+                        index = cursor;
+                        continue;
+                    }
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(initial) = parse_switch_setup(&sentence.text)
                 && let Some(RawItem::Sentence(round_sentence)) = items.get(index + 1)
                 && let Some(rounds) = parse_switch_rounds(&round_sentence.text)
@@ -5836,6 +5891,62 @@ impl<'a> Lowerer<'a> {
                 _ => Ok(AstType::I64),
             },
         }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn lower_message_spread(
+        &mut self,
+        people: Vec<String>,
+        edges: Vec<(String, Vec<String>)>,
+        start: String,
+        start_minute: i64,
+        blocked: Vec<String>,
+        target: String,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let graph = edges.into_iter().fold(
+            HashMap::<String, Vec<String>>::new(),
+            |mut graph, (source, recipients)| {
+                graph.entry(source).or_default().extend(recipients);
+                graph
+            },
+        );
+        let blocked = blocked.into_iter().collect::<HashSet<_>>();
+        let mut heard = HashMap::<String, i64>::new();
+        heard.insert(start.clone(), start_minute);
+        let mut frontier = vec![start];
+        let mut minute = start_minute;
+        while !frontier.is_empty() {
+            let next_minute = minute + 1;
+            let mut next_frontier = Vec::new();
+            for person in &frontier {
+                if blocked.contains(person) {
+                    continue;
+                }
+                if let Some(recipients) = graph.get(person) {
+                    for recipient in recipients {
+                        if !heard.contains_key(recipient) {
+                            heard.insert(recipient.clone(), next_minute);
+                            next_frontier.push(recipient.clone());
+                        }
+                    }
+                }
+            }
+            if next_frontier.is_empty() {
+                break;
+            }
+            minute = next_minute;
+            frontier = next_frontier;
+        }
+        let target_minute = heard.get(&target).copied().unwrap_or(0);
+        let never = people
+            .iter()
+            .filter(|person| !heard.contains_key(*person))
+            .count();
+        let mut statements = Vec::new();
+        statements.extend(self.lower_emit_parts(&[target_minute.to_string()], span)?);
+        statements.extend(self.lower_emit_parts(&[never.to_string()], span)?);
+        Ok(statements)
     }
 
     fn lower_switch_simulation(

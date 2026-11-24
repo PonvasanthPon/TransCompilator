@@ -269,6 +269,140 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts
 }
 
+/// Parses `Consider N people: Alice, Bob, ..., and Henry.`
+pub(crate) fn parse_people_list(text: &str) -> Option<Vec<String>> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("consider ")
+        || lower.starts_with("take ")
+        || lower.starts_with("there are "))
+    {
+        return None;
+    }
+    if !lower.contains("people") {
+        return None;
+    }
+    let after = if let Some(colon) = text.find(':') {
+        &text[colon + 1..]
+    } else {
+        let (_, end) = top_level_phrase(text, "people")?;
+        &text[end..]
+    };
+    let mut names = Vec::new();
+    for token in tokenize(after) {
+        if !token.is_word() || token.is("and") || token.is("people") {
+            continue;
+        }
+        if token.text.chars().all(char::is_alphabetic) {
+            names.push(token.lower.clone());
+        }
+    }
+    (names.len() >= 2).then_some(names)
+}
+
+/// Parses one `Alice can message Bob and Charlie` edge sentence.
+pub(crate) fn parse_message_edge(text: &str) -> Option<(String, Vec<String>)> {
+    let mut clause = text.trim();
+    for prefix in ["and ", "but ", "also "] {
+        if let Some(after) = clause.to_ascii_lowercase().strip_prefix(prefix) {
+            clause = &clause[clause.len() - after.len()..];
+            break;
+        }
+    }
+    let (start, end) = [
+        " can send a message to ",
+        " can message ",
+        " can contact ",
+        " can tell ",
+    ]
+    .iter()
+    .find_map(|phrase| top_level_phrase(clause, phrase))?;
+    let source = clause[..start].trim().to_ascii_lowercase();
+    if source.is_empty()
+        || !source
+            .chars()
+            .all(|character| character.is_alphabetic() || character == ' ')
+    {
+        return None;
+    }
+    let mut recipients = Vec::new();
+    for token in tokenize(&clause[end..]) {
+        if token.is_word() && !token.is("and") && token.text.chars().all(char::is_alphabetic) {
+            recipients.push(token.lower.clone());
+        }
+    }
+    (!recipients.is_empty()).then_some((source, recipients))
+}
+
+/// Parses `Alice starts with a secret message at minute 0.`
+pub(crate) fn parse_message_start(text: &str) -> Option<(String, i64)> {
+    let lower = trimmed_lower(text);
+    if !(lower.contains("starts with") || lower.contains("begins with"))
+        || !lower.contains("message")
+    {
+        return None;
+    }
+    let (_, minute_end) = top_level_phrase(text, "at minute")?;
+    let minute = tokenize(&text[minute_end..])
+        .into_iter()
+        .find_map(|token| {
+            token
+                .text
+                .parse::<i64>()
+                .ok()
+                .or_else(|| crate::number_words::parse(&token.text))
+        })?;
+    let source = tokenize(text)
+        .into_iter()
+        .find(tc_syntax::Token::is_word)
+        .map(|token| token.lower)?;
+    Some((source, minute))
+}
+
+/// Parses `except that Eve never forwards anything to anyone`.
+pub(crate) fn parse_never_forward(text: &str) -> Option<Vec<String>> {
+    let (marker_start, _) = [
+        "never forwards",
+        "never forward",
+        "never passes",
+        "never sends",
+    ]
+    .iter()
+    .find_map(|phrase| top_level_phrase(text, phrase))?;
+    let prefix = text[..marker_start].trim();
+    let names_text = ["except that ", "except ", "but "]
+        .iter()
+        .find_map(|prefix_word| {
+            prefix
+                .to_ascii_lowercase()
+                .rfind(prefix_word)
+                .map(|index| &prefix[index + prefix_word.len()..])
+        })
+        .unwrap_or(prefix);
+    let mut names = Vec::new();
+    for token in tokenize(names_text) {
+        if token.is_word()
+            && token.text.chars().all(char::is_alphabetic)
+            && !matches!(token.lower.as_str(), "that" | "and" | "anyone" | "anything")
+        {
+            names.push(token.lower.clone());
+        }
+    }
+    (!names.is_empty()).then_some(names)
+}
+
+/// Parses the final message-spread report target name.
+pub(crate) fn parse_message_report(text: &str) -> Option<String> {
+    let lower = trimmed_lower(text);
+    if !lower.contains("never heard") || !lower.contains("minute when") {
+        return None;
+    }
+    let (_, end) = top_level_phrase(text, "minute when")?;
+    tokenize(&text[end..])
+        .into_iter()
+        .find(tc_syntax::Token::is_word)
+        .map(|token| token.lower)
+}
+
 /// Parses `Line up 6 switches in a circle with the starting states on, off, ...`.
 pub(crate) fn parse_switch_setup(text: &str) -> Option<Vec<bool>> {
     let lower = trimmed_lower(text);
