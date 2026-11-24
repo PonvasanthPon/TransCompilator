@@ -13,6 +13,7 @@ pub use clause::{ClauseTree, PrepPhrase, VerbHead, Voice, analyze_clause};
 pub use lg_ffi::{LgLink, LgParse, LinkGrammarParser, SyntaxError};
 pub use segment::{
     RawBlock, RawDocument, RawItem, RawSentence, SourceFile, segment_source, sentence_tokens,
+    split_sentences,
 };
 pub use token::{Token, TokenKind, decode_string_token, tokenize};
 

@@ -7,7 +7,7 @@
 
 use crate::quantifier::{GlobalQuantifier, QuantDomainSpec};
 use crate::textutil::find_top_level_word;
-use crate::token::{Token, TokenKind, tokenize};
+use crate::token::{TokenKind, tokenize};
 
 /// Quantifier used by a `check whether` sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,11 +46,187 @@ pub(crate) struct CheckSpec {
     pub predicate: String,
 }
 
+/// A running extremum tracker over emitted values.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct LargestTracker {
+    /// True for maximum, false for minimum.
+    pub maximum: bool,
+}
+
+/// Parses `keep track of the largest value you printed` / `track the minimum`.
+pub(crate) fn parse_largest_tracker(text: &str) -> Option<LargestTracker> {
+    let lower = trimmed_lower(text);
+    let words = lower.split_whitespace().collect::<Vec<_>>();
+    let first = words.first().copied()?;
+    if !matches!(
+        first,
+        "keep" | "track" | "record" | "remember" | "maintain" | "store"
+    ) {
+        return None;
+    }
+    if !words.iter().any(|word| {
+        matches!(
+            *word,
+            "largest"
+                | "biggest"
+                | "maximum"
+                | "max"
+                | "greatest"
+                | "smallest"
+                | "least"
+                | "minimum"
+                | "min"
+        )
+    }) {
+        return None;
+    }
+    let maximum = !words
+        .iter()
+        .any(|word| matches!(*word, "smallest" | "least" | "minimum" | "min" | "lowest"));
+    Some(LargestTracker { maximum })
+}
+
 /// One parsed discourse loop introduction.
 #[derive(Debug, Clone)]
 pub(crate) struct LoopIntroduction {
     /// Existing global quantifier shape.
     pub quantifier: GlobalQuantifier,
+}
+
+const FILTER_PRONOUNS: [&str; 6] = ["it", "they", "he", "she", "we", "you"];
+const FILTER_DETERMINERS: [&str; 10] = [
+    "any", "all", "every", "each", "the", "those", "these", "a", "an", "also",
+];
+const FILTER_GENERIC_NOUNS: [&str; 12] = [
+    "number", "numbers", "value", "values", "item", "items", "element", "elements", "one", "ones",
+    "entry", "entries",
+];
+
+fn predicate_condition(var: &str, phrase: &str) -> Option<String> {
+    let mut words = phrase
+        .split_whitespace()
+        .map(|word| word.trim_matches([',', '.', ':']).to_ascii_lowercase())
+        .filter(|word| !word.is_empty())
+        .collect::<Vec<_>>();
+    if words
+        .first()
+        .is_some_and(|word| FILTER_PRONOUNS.contains(&word.as_str()))
+    {
+        words.remove(0);
+    }
+    if words
+        .first()
+        .is_some_and(|word| matches!(word.as_str(), "is" | "are"))
+    {
+        words.remove(0);
+    }
+    while words
+        .first()
+        .is_some_and(|word| FILTER_DETERMINERS.contains(&word.as_str()))
+    {
+        words.remove(0);
+    }
+    if words
+        .first()
+        .is_some_and(|word| matches!(word.as_str(), "that" | "which"))
+    {
+        words.remove(0);
+    }
+    if words
+        .first()
+        .is_some_and(|word| FILTER_GENERIC_NOUNS.contains(&word.as_str()))
+    {
+        words.remove(0);
+        if words
+            .first()
+            .is_some_and(|word| matches!(word.as_str(), "that" | "which"))
+        {
+            words.remove(0);
+        }
+    }
+    if words
+        .last()
+        .is_some_and(|word| FILTER_GENERIC_NOUNS.contains(&word.as_str()))
+    {
+        words.pop();
+    }
+    if words.is_empty() {
+        return None;
+    }
+    let phrase = words.join(" ");
+    let first = words.first().map(String::as_str).unwrap_or_default();
+    if matches!(
+        first,
+        "divisible"
+            | "greater"
+            | "less"
+            | "more"
+            | "smaller"
+            | "larger"
+            | "equal"
+            | "between"
+            | "odd"
+            | "even"
+            | "positive"
+            | "negative"
+            | "zero"
+            | "true"
+            | "false"
+            | "is"
+            | "are"
+    ) {
+        if first == "is" || first == "are" {
+            return Some(format!("{var} is {}", words[1..].join(" ")));
+        }
+        return Some(format!("{var} is {phrase}"));
+    }
+    if let Some(rest) = phrase.strip_prefix("multiple of ") {
+        return Some(format!("{var} is a multiple of {rest}"));
+    }
+    if let Some(rest) = phrase.strip_prefix("multiples of ") {
+        return Some(format!("{var} is a multiple of {rest}"));
+    }
+    if let Some(rest) = phrase.strip_prefix("factor of ") {
+        return Some(format!("{var} is a factor of {rest}"));
+    }
+    Some(format!("{var} is {phrase}"))
+}
+
+/// Parses `Skip any multiple of 4, unless it is also divisible by 6.` into a
+/// guard condition that keeps the element when the guard is true.
+pub(crate) fn parse_loop_filter(text: &str, var: &str) -> Option<String> {
+    let tokens = tokenize(text);
+    let first = tokens.first()?;
+    if first.kind != TokenKind::Word {
+        return None;
+    }
+    let filter_end = if first.is("leave") || first.is("filter") || first.is("throw") {
+        let second = tokens.get(1)?;
+        second.is("out").then_some(second.end)?
+    } else if matches!(
+        first.lower.as_str(),
+        "skip" | "ignore" | "exclude" | "omit" | "drop" | "bypass"
+    ) {
+        first.end
+    } else {
+        return None;
+    };
+    let body = text[filter_end..].trim();
+    if body.is_empty() {
+        return None;
+    }
+    let (base_text, exception_text) =
+        if let Some((start, end)) = find_top_level_word(body, "unless") {
+            (body[..start].trim(), Some(body[end..].trim()))
+        } else {
+            (body, None)
+        };
+    let base = predicate_condition(var, base_text)?;
+    let Some(exception_text) = exception_text else {
+        return Some(format!("not ({base})"));
+    };
+    let exception = predicate_condition(var, exception_text)?;
+    Some(format!("not ({base}) or {exception}"))
 }
 
 fn top_level_phrase(text: &str, phrase: &str) -> Option<(usize, usize)> {
@@ -87,21 +263,36 @@ fn trimmed_lower(text: &str) -> String {
         .to_ascii_lowercase()
 }
 
-fn capture_name(tokens: &[Token], start: usize, end: usize) -> Option<String> {
-    let words = tokens
-        .get(start..end)?
+fn singular_referent(words: &[String]) -> Option<String> {
+    const DETERMINERS: [&str; 6] = ["the", "a", "an", "of", "all", "remaining"];
+    let word = words
         .iter()
-        .filter(|token| token.is_word())
-        .map(|token| token.lower.clone())
-        .collect::<Vec<_>>();
-    (!words.is_empty()).then(|| words.join("_"))
+        .rev()
+        .find(|word| !DETERMINERS.contains(&word.as_str()))?;
+    let singular = if word.ends_with("ies") && word.len() > 3 {
+        format!("{}y", &word[..word.len() - 3])
+    } else if (word.ends_with("ses")
+        || word.ends_with("xes")
+        || word.ends_with("zes")
+        || word.ends_with("ches")
+        || word.ends_with("shes"))
+        && word.len() > 3
+    {
+        word[..word.len() - 2].to_string()
+    } else if word.ends_with('s') && !word.ends_with("ss") && word.len() > 1 {
+        word[..word.len() - 1].to_string()
+    } else {
+        word.clone()
+    };
+    (!singular.is_empty()).then_some(singular)
 }
 
-/// Parses `Look at every x from a up to b.` / `each x in list`.
+/// Parses `Look at every x from a up to b.` / `each x in list` /
+/// `Take all the numbers between a and b`.
 pub(crate) fn parse_loop_introduction(text: &str) -> Option<LoopIntroduction> {
     let tokens = tokenize(text);
     let quantifier_index = tokens.iter().position(|token| {
-        token.kind == TokenKind::Word && (token.is("every") || token.is("each"))
+        token.kind == TokenKind::Word && (token.is("every") || token.is("each") || token.is("all"))
     })?;
     if quantifier_index == 0 {
         return None;
@@ -113,7 +304,8 @@ pub(crate) fn parse_loop_introduction(text: &str) -> Option<LoopIntroduction> {
         .map(|token| token.lower.as_str())
         .collect::<Vec<_>>();
     let allowed = [
-        "look", "at", "consider", "examine", "take", "go", "through", "check",
+        "look", "at", "consider", "examine", "take", "go", "through", "check", "run", "process",
+        "work",
     ];
     if opener.is_empty() || !opener.iter().all(|word| allowed.contains(word)) {
         return None;
@@ -122,12 +314,25 @@ pub(crate) fn parse_loop_introduction(text: &str) -> Option<LoopIntroduction> {
         .iter()
         .enumerate()
         .skip(quantifier_index + 1)
-        .find(|(_, token)| token.is("from") || token.is("in"))
+        .find(|(_, token)| token.is("from") || token.is("in") || token.is("between"))
         .map(|(index, _)| index)?;
-    let var = capture_name(&tokens, quantifier_index + 1, domain_index)?;
+    let var_words = tokens
+        .get(quantifier_index + 1..domain_index)?
+        .iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower.clone())
+        .collect::<Vec<_>>();
+    let var = singular_referent(&var_words)?;
     let domain_token = &tokens[domain_index];
     if domain_token.is("in") {
-        let list = capture_name(&tokens, domain_index + 1, tokens.len())?;
+        let list_words = tokens
+            .get(domain_index + 1..)?
+            .iter()
+            .filter(|token| token.is_word())
+            .map(|token| token.lower.clone())
+            .filter(|word| !matches!(word.as_str(), "the" | "a" | "an"))
+            .collect::<Vec<_>>();
+        let list = (!list_words.is_empty()).then(|| list_words.join("_"))?;
         return Some(LoopIntroduction {
             quantifier: GlobalQuantifier {
                 var: var.clone(),
@@ -138,7 +343,17 @@ pub(crate) fn parse_loop_introduction(text: &str) -> Option<LoopIntroduction> {
         });
     }
     let rest = &text[domain_token.end..];
-    let (start, end) = parse_range_bounds(rest)?;
+    let (start, end) = if domain_token.is("between") {
+        let (low_end, high_start) = find_top_level_word(rest, "and")?;
+        let start = rest[..low_end].trim();
+        let end = rest[high_start..]
+            .trim()
+            .trim_end_matches(['.', ',', ':'])
+            .trim();
+        (!start.is_empty() && !end.is_empty()).then(|| (start.to_string(), end.to_string()))?
+    } else {
+        parse_range_bounds(rest)?
+    };
     Some(LoopIntroduction {
         quantifier: GlobalQuantifier {
             var: var.clone(),
@@ -169,26 +384,48 @@ fn parse_range_bounds(text: &str) -> Option<(String, String)> {
     (!start.is_empty() && !end.is_empty()).then(|| (start.to_string(), end.to_string()))
 }
 
-/// Strips `For each <var>,` / `For every <var>,` when it continues an active
-/// discourse loop without a new domain.
+/// Strips `For each <var>,` / `For every remaining <var>,` when it continues
+/// an active discourse loop without a new domain.
 pub(crate) fn continuation_rest(text: &str, var: &str) -> Option<String> {
     let tokens = tokenize(text);
-    let [first, second, named, comma, ..] = tokens.as_slice() else {
-        return None;
-    };
-    if !first.is("for")
-        || !(second.is("each") || second.is("every"))
-        || !named.is_word()
-        || comma.text != ","
+    if !tokens.first().is_some_and(|token| token.is("for"))
+        || !tokens
+            .get(1)
+            .is_some_and(|token| token.is("each") || token.is("every"))
     {
         return None;
     }
-    let name = &named.lower[..];
+    let comma = tokens.iter().position(|token| token.text == ",")?;
+    if comma <= 2 {
+        return None;
+    }
+    let words = tokens[2..comma]
+        .iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower.clone())
+        .collect::<Vec<_>>();
+    let name = singular_referent(&words)?;
     if name != var && name.replace('_', " ") != var {
         return None;
     }
-    let rest = text[comma.end..].trim();
+    let rest = text[tokens[comma].end..].trim();
     (!rest.is_empty()).then(|| rest.to_string())
+}
+
+fn top_level_comma(text: &str) -> Option<(usize, usize)> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for token in &tokens {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                "," if depth == 0 => return Some((token.start, token.end)),
+                _ => {}
+            }
+        }
+    }
+    None
 }
 
 /// Returns the post-loop statement after a discourse closer opener.
@@ -217,7 +454,30 @@ pub(crate) fn post_loop_rest(text: &str) -> Option<String> {
             }
         }
     }
-    None
+    let (comma_start, comma_end) = top_level_comma(text)?;
+    let prefix = trimmed_lower(&text[..comma_start]);
+    let words = prefix.split_whitespace().collect::<Vec<_>>();
+    let opener = words.first().copied()?;
+    if !matches!(opener, "once" | "when" | "after") {
+        return None;
+    }
+    if !words
+        .get(1)
+        .is_some_and(|word| *word == "you" || *word == "we")
+    {
+        return None;
+    }
+    let completion = words.iter().skip(2).any(|word| {
+        matches!(
+            *word,
+            "done" | "done," | "finished" | "finish" | "complete" | "completed" | "through"
+        )
+    });
+    if !completion {
+        return None;
+    }
+    let rest = text[comma_end..].trim();
+    (!rest.is_empty()).then(|| rest.to_string())
 }
 
 /// Parses a `check whether ...` sentence body (without the leading verb).

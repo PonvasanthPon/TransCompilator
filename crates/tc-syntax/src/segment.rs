@@ -210,7 +210,10 @@ fn split_at_header_colon(text: &str) -> Option<(String, Option<String>, usize)> 
     None
 }
 
-fn split_sentences(text: &str) -> Vec<(usize, String)> {
+/// Splits text at top-level sentence terminators while preserving quoted
+/// strings, decimal points, and bracketed expressions.
+#[must_use]
+pub fn split_sentences(text: &str) -> Vec<(usize, String)> {
     let mut result = Vec::new();
     let mut start = 0;
     let mut index = 0;
@@ -240,6 +243,10 @@ fn split_sentences(text: &str) -> Vec<(usize, String)> {
                     .chars()
                     .next()
                     .unwrap_or('\0');
+                if character == '!' && next == '=' {
+                    index += character.len_utf8();
+                    continue;
+                }
                 let boundary = character != '.'
                     || next.is_whitespace()
                     || next == '\0'
@@ -396,10 +403,13 @@ fn units_from_line(line_text: &str, line_number: u32) -> Vec<Unit> {
         });
         return units;
     }
-    for (offset, piece) in split_sentences(&header) {
+    for (index, (offset, piece)) in split_sentences(&header).into_iter().enumerate() {
         let column =
             content_column + u32::try_from(header[..offset].chars().count()).unwrap_or_default();
-        let sentence = sentence_from_piece(&piece, &piece, line_number, column);
+        let mut sentence = sentence_from_piece(&piece, &piece, line_number, column);
+        if index == 0 {
+            sentence.fillers.clone_from(&fillers);
+        }
         if !sentence.text.is_empty() {
             units.push(Unit {
                 indent,
@@ -455,14 +465,15 @@ pub fn segment_source(source: &SourceFile) -> RawDocument {
         items: Vec::new(),
         span: root_span,
     }];
+    let mut stack_indents: Vec<usize> = vec![0];
     for unit in units {
         while stack.len() > 1
-            && stack
+            && stack_indents
                 .last()
-                .and_then(|block| block.header.as_ref())
-                .is_some_and(|header| header.span.col >= unit.sentence.span.col)
+                .is_some_and(|indent| *indent >= unit.indent)
         {
             let finished = stack.pop().expect("root remains");
+            stack_indents.pop();
             if let Some(parent) = stack.last_mut() {
                 parent.items.push(RawItem::Block(finished));
             }
@@ -475,6 +486,7 @@ pub fn segment_source(source: &SourceFile) -> RawDocument {
                 span,
             };
             stack.push(block);
+            stack_indents.push(unit.indent);
         } else {
             stack
                 .last_mut()
@@ -485,6 +497,7 @@ pub fn segment_source(source: &SourceFile) -> RawDocument {
     }
     while stack.len() > 1 {
         let finished = stack.pop().expect("root remains");
+        stack_indents.pop();
         if let Some(parent) = stack.last_mut() {
             parent.items.push(RawItem::Block(finished));
         }

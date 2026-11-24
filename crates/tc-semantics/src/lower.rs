@@ -19,7 +19,8 @@ use crate::discourse::{
     DiscourseStack, ReferentKind, ResolvedAnaphor, ResolvedFieldAnaphor, ScopeKind,
 };
 use crate::discourse_scope::{
-    CheckDomain, CheckKind, continuation_rest, parse_check, parse_loop_introduction, post_loop_rest,
+    CheckDomain, CheckKind, LargestTracker, continuation_rest, parse_check, parse_largest_tracker,
+    parse_loop_filter, parse_loop_introduction, post_loop_rest,
 };
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
@@ -40,8 +41,8 @@ use crate::textutil::{
 use crate::token::{Token, TokenKind, decode_string_token, tokenize};
 use crate::value::ValueContext;
 use crate::{
-    ClauseTree, RawItem, RawSentence, SemanticError, SemanticErrorKind, SentenceTrace, SourceFile,
-    Span, Voice, analyze_clause, segment_source,
+    ClauseTree, RawBlock, RawItem, RawSentence, SemanticError, SemanticErrorKind, SentenceTrace,
+    SourceFile, Span, Voice, analyze_clause, segment_source,
 };
 
 const MAX_DEPTH: usize = 32;
@@ -1704,6 +1705,38 @@ fn split_inline_function_body(text: &str) -> Option<(String, String)> {
     None
 }
 
+fn sentence_terminator_before(tokens: &[Token], index: usize) -> bool {
+    tokens.iter().take(index).rev().any(|token| {
+        token.kind == TokenKind::Symbol && matches!(token.text.as_str(), "." | ";" | "!" | "?")
+    })
+}
+
+fn trailing_conditional_marker(tokens: &[Token], index: usize) -> Option<(usize, usize)> {
+    let token = tokens.get(index)?;
+    if token.kind != TokenKind::Word {
+        return None;
+    }
+    if token.is("if") {
+        let previous = index
+            .checked_sub(1)
+            .and_then(|previous| tokens.get(previous));
+        if previous.is_some_and(|value| value.is("only")) {
+            return previous.map(|value| (value.start, token.end));
+        }
+        return Some((token.start, token.end));
+    }
+    if token.is("provided") && tokens.get(index + 1).is_some_and(|value| value.is("that")) {
+        return Some((token.start, tokens[index + 1].end));
+    }
+    if token.is("as")
+        && tokens.get(index + 1).is_some_and(|value| value.is("long"))
+        && tokens.get(index + 2).is_some_and(|value| value.is("as"))
+    {
+        return Some((token.start, tokens[index + 2].end));
+    }
+    None
+}
+
 fn split_trailing_if(text: &str) -> Option<(String, String, Option<String>)> {
     let tokens = tokenize(text);
     let mut depth = 0_i32;
@@ -1716,14 +1749,21 @@ fn split_trailing_if(text: &str) -> Option<(String, String, Option<String>)> {
             }
             continue;
         }
-        if depth != 0 || !token.is("if") || index == 0 {
+        if depth != 0 || index == 0 {
             continue;
         }
-        let action = text[..token.start].trim();
+        let Some((action_end, condition_start)) = trailing_conditional_marker(&tokens, index)
+        else {
+            continue;
+        };
+        if sentence_terminator_before(&tokens, index) {
+            continue;
+        }
+        let action = text[..action_end].trim();
         if action.is_empty() || !v2_action_start(action) {
             continue;
         }
-        let suffix = &text[token.end..];
+        let suffix = &text[condition_start..];
         let suffix_tokens = tokenize(suffix);
         let mut suffix_depth = 0_i32;
         let mut otherwise = None;
@@ -1778,7 +1818,47 @@ fn split_call_it(text: &str) -> Option<(String, String)> {
     Some((name.to_string(), expression))
 }
 
+fn split_tracking_directive(text: &str) -> Option<(String, String)> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for token in &tokens {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+            continue;
+        }
+        if depth != 0 || !token.is("and") {
+            continue;
+        }
+        let directive = text[token.end..].trim();
+        if crate::discourse_scope::parse_largest_tracker(directive).is_none() {
+            continue;
+        }
+        let main = text[..token.start].trim().trim_end_matches(',').trim();
+        if !main.is_empty() {
+            return Some((main.to_string(), directive.to_string()));
+        }
+    }
+    None
+}
+
 fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
+    let pieces = tc_syntax::split_sentences(text);
+    if pieces.len() > 1 {
+        let mut lines = Vec::new();
+        for (_, piece) in pieces {
+            lines.extend(normalize_prose_line(&piece, indent));
+        }
+        return lines;
+    }
+    if let Some((main, directive)) = split_tracking_directive(text) {
+        let mut lines = normalize_prose_line(&main, indent);
+        lines.extend(normalize_prose_line(&directive, indent));
+        return lines;
+    }
     let spaces = " ".repeat(indent);
     let trimmed = text.trim().trim_end_matches(['.', ',']).trim();
     if trimmed.is_empty() {
@@ -3002,6 +3082,12 @@ struct CheckRecord {
     kind: CheckKind,
 }
 
+#[derive(Debug, Clone)]
+struct ActiveTracker {
+    name: String,
+    maximum: bool,
+}
+
 pub(crate) struct Lowerer<'a> {
     parser: &'a crate::LinkGrammarParser,
     module: String,
@@ -3024,6 +3110,8 @@ pub(crate) struct Lowerer<'a> {
     active_loop_var: Option<String>,
     last_check: Option<CheckRecord>,
     implicit_counter: Option<String>,
+    largest_tracker: Option<ActiveTracker>,
+    print_tracker: Option<ActiveTracker>,
 }
 
 impl<'a> Lowerer<'a> {
@@ -3060,6 +3148,8 @@ impl<'a> Lowerer<'a> {
             active_loop_var: None,
             last_check: None,
             implicit_counter: None,
+            largest_tracker: None,
+            print_tracker: None,
         }
     }
 
@@ -3329,8 +3419,86 @@ impl<'a> Lowerer<'a> {
         output
     }
 
+    fn replace_value_referent_phrases(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<String, SemanticError> {
+        let mut current = text.to_string();
+        loop {
+            let mut replaced = false;
+            for phrase in [
+                "that largest value",
+                "the largest value",
+                "the largest one",
+                "that maximum value",
+                "the maximum value",
+                "the biggest value",
+                "that biggest value",
+                "that smallest value",
+                "the smallest value",
+                "the minimum value",
+                "that minimum value",
+            ] {
+                if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, phrase)
+                {
+                    let Some(tracker) = self.largest_tracker.clone() else {
+                        return Err(self.error(
+                            span,
+                            SemanticErrorKind::Lowering,
+                            format!(
+                                "UNRESOLVED_ANAPHOR: '{phrase}' has no preceding `keep track of the largest`"
+                            ),
+                        ));
+                    };
+                    current = format!("{}{}{}", &current[..start], tracker.name, &current[end..]);
+                    replaced = true;
+                    break;
+                }
+            }
+            if replaced {
+                continue;
+            }
+            for phrase in [
+                "the final value",
+                "the resulting value",
+                "the new value",
+                "the transformed value",
+                "the updated value",
+                "the current value",
+                "the final number",
+                "the final result",
+            ] {
+                if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, phrase)
+                {
+                    let Some(target) = self
+                        .active_loop_var
+                        .clone()
+                        .or_else(|| self.discourse.last_result())
+                    else {
+                        return Err(self.error(
+                            span,
+                            SemanticErrorKind::Lowering,
+                            format!(
+                                "UNRESOLVED_ANAPHOR: '{phrase}' has no active loop value in scope"
+                            ),
+                        ));
+                    };
+                    current = format!("{}{}{}", &current[..start], target, &current[end..]);
+                    replaced = true;
+                    break;
+                }
+            }
+            if !replaced {
+                break;
+            }
+        }
+        Ok(current)
+    }
+
     fn resolve_anaphors(&mut self, text: &str, span: Span) -> Result<String, SemanticError> {
         let rewritten = self.rewrite_known_names(text);
+        let rewritten = self.replace_value_referent_phrases(&rewritten, span)?;
         let text = rewritten.as_str();
         let tokens = tokenize(text);
         let mut replacements: Vec<(usize, usize, String)> = Vec::new();
@@ -4059,13 +4227,23 @@ impl<'a> Lowerer<'a> {
                     cursor += 1;
                 }
                 let mut lowered = self.ensure_implicit_counter(sentence.span)?;
-                let mut loop_statements = self.lower_global_quantifier(
+                let (body, tracker_spec) = extract_largest_trackers(body);
+                if let Some(spec) = tracker_spec {
+                    lowered.extend(self.ensure_largest_tracker(spec, sentence.span));
+                }
+                let previous_print_tracker = self.print_tracker.clone();
+                if let Some(tracker) = self.largest_tracker.clone() {
+                    self.print_tracker = Some(tracker);
+                }
+                let body = apply_loop_filters(body, &intro.quantifier.var);
+                let loop_result = self.lower_global_quantifier(
                     intro.quantifier,
                     Some(&body),
                     sentence.span,
                     depth + 1,
-                )?;
-                lowered.append(&mut loop_statements);
+                );
+                self.print_tracker = previous_print_tracker;
+                lowered.append(&mut loop_result?);
                 if let Some((rest, closer_span)) = closer {
                     lowered.extend(self.lower_core(&rest, closer_span, None, None, depth + 1)?);
                 }
@@ -4186,7 +4364,14 @@ impl<'a> Lowerer<'a> {
                         if let Some(phrase) = phrase {
                             self.add_annotation(format!("[phrase: \"{}\"]", phrase.pattern));
                             match self.lower_phrase_call(&phrase, sentence.span) {
-                                Ok(statement) => statements.push(statement),
+                                Ok(statement) => {
+                                    statements.push(statement);
+                                    if let Some(update) =
+                                        self.track_phrase_emit(&phrase, sentence.span)
+                                    {
+                                        statements.push(update);
+                                    }
+                                }
                                 Err(error) => self.errors.push(error),
                             }
                         } else if let Some(graph) = graph {
@@ -5050,6 +5235,36 @@ impl<'a> Lowerer<'a> {
         Ok(Some(expression))
     }
 
+    pub(crate) fn active_print_tracker(&self) -> Option<(String, bool)> {
+        self.print_tracker
+            .as_ref()
+            .map(|tracker| (tracker.name.clone(), tracker.maximum))
+    }
+
+    fn ensure_largest_tracker(&mut self, spec: LargestTracker, span: Span) -> Vec<AstStmt> {
+        if self.largest_tracker.is_some() {
+            return Vec::new();
+        }
+        let name = "__tc_extreme_printed".to_string();
+        self.declare(&name, AstType::I64);
+        self.introduce_name(&name, &AstType::I64, span);
+        self.largest_tracker = Some(ActiveTracker {
+            name: name.clone(),
+            maximum: spec.maximum,
+        });
+        let init = if spec.maximum {
+            AstExpr::ConstInt(i64::MIN, None)
+        } else {
+            AstExpr::ConstInt(i64::MAX, None)
+        };
+        vec![AstStmt::Let {
+            name,
+            ty: Some(AstType::I64),
+            init,
+            span: self.span(span),
+        }]
+    }
+
     fn ensure_implicit_counter(&mut self, span: Span) -> Result<Vec<AstStmt>, SemanticError> {
         if self.implicit_counter.is_some() {
             return Ok(Vec::new());
@@ -5296,7 +5511,16 @@ impl<'a> Lowerer<'a> {
         text: &str,
         span: Span,
     ) -> Result<Option<AstExpr>, SemanticError> {
-        for phrase in ["is not divisible by", "is divisible by"] {
+        for (phrase, negated) in [
+            ("is not an exact multiple of", true),
+            ("is an exact multiple of", false),
+            ("is not a multiple of", true),
+            ("is a multiple of", false),
+            ("is not divisible by", true),
+            ("is divisible by", false),
+            ("is not a factor of", true),
+            ("is a factor of", false),
+        ] {
             if let Some((left, end)) = find_top_level_phrase(text, phrase) {
                 let right = text[end..].trim();
                 if !left.trim().is_empty() && !right.is_empty() {
@@ -5307,7 +5531,7 @@ impl<'a> Lowerer<'a> {
                         lhs: Box::new(lhs),
                         rhs: Box::new(rhs),
                     };
-                    let operator = if phrase.contains("not") {
+                    let operator = if negated {
                         tc_ir::BinOp::Ne
                     } else {
                         tc_ir::BinOp::Eq
@@ -6041,6 +6265,48 @@ impl<'a> Lowerer<'a> {
         ))
     }
 
+    fn track_phrase_emit(&mut self, phrase: &PhraseMatch, span: Span) -> Option<AstStmt> {
+        let (tracker, maximum) = self.active_print_tracker()?;
+        let emitter = phrase
+            .pattern
+            .split_whitespace()
+            .next()
+            .map(str::to_ascii_lowercase)?;
+        if !matches!(
+            emitter.as_str(),
+            "print" | "say" | "show" | "display" | "emit" | "output"
+        ) {
+            return None;
+        }
+        let argument = phrase.args.first()?;
+        let value = self.parse_value(argument, span).ok()?;
+        let ty = self.shallow_type_opt(&value);
+        if !matches!(
+            ty,
+            None | Some(AstType::I8 | AstType::I16 | AstType::I32 | AstType::I64)
+        ) {
+            return None;
+        }
+        Some(AstStmt::If {
+            cond: AstExpr::Binary {
+                op: if maximum {
+                    tc_ir::BinOp::Gt
+                } else {
+                    tc_ir::BinOp::Lt
+                },
+                lhs: Box::new(value.clone()),
+                rhs: Box::new(AstExpr::Var(tracker.clone())),
+            },
+            then_body: vec![AstStmt::Assign {
+                name: tracker,
+                val: value,
+                span: self.span(span),
+            }],
+            else_body: Vec::new(),
+            span: self.span(span),
+        })
+    }
+
     fn lower_stmt(
         &mut self,
         sentence: &RawSentence,
@@ -6408,7 +6674,12 @@ impl<'a> Lowerer<'a> {
             .filter(|phrase| !self.emit_phrase_defers(phrase, trimmed))
         {
             self.add_annotation(format!("[phrase: \"{}\"]", phrase.pattern));
-            return Ok(vec![self.lower_phrase_call(&phrase, span)?]);
+            let statement = self.lower_phrase_call(&phrase, span)?;
+            let mut statements = vec![statement];
+            if let Some(update) = self.track_phrase_emit(&phrase, span) {
+                statements.push(update);
+            }
+            return Ok(statements);
         }
         if starts_with_word(&lower, "return") {
             let rest = strip_leading_word(trimmed, "return").trim();
@@ -8258,6 +8529,20 @@ impl<'a> Lowerer<'a> {
                     span,
                 )?));
             }
+            Some(SemanticConcept::Triple) => {
+                let target = if passive {
+                    subject_text.as_str()
+                } else {
+                    after_verb_start_text(&tokens, verb_index, text)
+                };
+                let value = AstExpr::ConstInt(3, None);
+                return Ok(Some(self.write_arithmetic(
+                    target,
+                    tc_ir::BinOp::Mul,
+                    value,
+                    span,
+                )?));
+            }
             Some(SemanticConcept::Negate) => {
                 let target = if passive {
                     subject_text.as_str()
@@ -8436,7 +8721,23 @@ impl<'a> Lowerer<'a> {
         span: Span,
     ) -> Result<Vec<AstStmt>, SemanticError> {
         let Some(prep_index) = first_prep else {
-            return Ok(Vec::new());
+            let target = self
+                .active_loop_var
+                .clone()
+                .or_else(|| self.discourse.last_result());
+            let Some(target) = target else {
+                return Ok(Vec::new());
+            };
+            let after_verb = tokens
+                .get(verb_index + 1)
+                .map_or(text.len(), |token| token.start);
+            let amount_text = text[after_verb..].trim();
+            let amount = if amount_text.is_empty() {
+                AstExpr::ConstInt(1, None)
+            } else {
+                self.parse_value(amount_text, span)?
+            };
+            return self.write_arithmetic(&target, operator, amount, span);
         };
         let after_verb = tokens
             .get(verb_index + 1)
@@ -8672,6 +8973,48 @@ fn split_actions(text: &str) -> Vec<String> {
     let tail = text[start..].trim();
     if !tail.is_empty() {
         result.push(tail.to_string());
+    }
+    result
+}
+
+fn extract_largest_trackers(items: Vec<RawItem>) -> (Vec<RawItem>, Option<LargestTracker>) {
+    let mut remaining = Vec::new();
+    let mut spec = None;
+    for item in items {
+        if let RawItem::Sentence(sentence) = &item
+            && let Some(parsed) = parse_largest_tracker(&sentence.text)
+        {
+            spec = Some(parsed);
+            continue;
+        }
+        remaining.push(item);
+    }
+    (remaining, spec)
+}
+
+fn apply_loop_filters(items: Vec<RawItem>, var: &str) -> Vec<RawItem> {
+    let mut result = Vec::new();
+    let mut index = 0;
+    while index < items.len() {
+        if let RawItem::Sentence(sentence) = &items[index]
+            && let Some(guard) = parse_loop_filter(&sentence.text, var)
+        {
+            let header = RawSentence {
+                text: format!("If {guard}"),
+                raw: sentence.raw.clone(),
+                span: sentence.span,
+                fillers: Vec::new(),
+            };
+            let block = RawBlock {
+                header: Some(header),
+                items: apply_loop_filters(items[index + 1..].to_vec(), var),
+                span: sentence.span,
+            };
+            result.push(RawItem::Block(block));
+            return result;
+        }
+        result.push(items[index].clone());
+        index += 1;
     }
     result
 }

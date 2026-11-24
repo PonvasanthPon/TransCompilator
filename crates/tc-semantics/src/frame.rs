@@ -208,6 +208,7 @@ impl Lowerer<'_> {
         span: Span,
     ) -> Result<Vec<AstStmt>, SemanticError> {
         let value = self.parse_value(text, span)?;
+        let ty = self.shallow_type_opt(&value);
         let statement = if let AstExpr::BytesLit(bytes) = &value {
             AstExpr::Call {
                 module: None,
@@ -216,7 +217,6 @@ impl Lowerer<'_> {
                 args: vec![value.clone(), AstExpr::BytesLen(bytes.clone())],
             }
         } else {
-            let ty = self.shallow_type_opt(&value);
             let name = match ty {
                 Some(
                     tc_typeck::AstType::U8
@@ -235,7 +235,39 @@ impl Lowerer<'_> {
                 args: vec![value.clone()],
             }
         };
-        Ok(vec![AstStmt::Expr(statement, self.span(span))])
+        let mut statements = vec![AstStmt::Expr(statement, self.span(span))];
+        if let Some((tracker, maximum)) = self.active_print_tracker()
+            && !matches!(value, AstExpr::BytesLit(_))
+            && matches!(
+                ty,
+                None | Some(
+                    tc_typeck::AstType::I8
+                        | tc_typeck::AstType::I16
+                        | tc_typeck::AstType::I32
+                        | tc_typeck::AstType::I64
+                )
+            )
+        {
+            statements.push(AstStmt::If {
+                cond: AstExpr::Binary {
+                    op: if maximum {
+                        tc_ir::BinOp::Gt
+                    } else {
+                        tc_ir::BinOp::Lt
+                    },
+                    lhs: Box::new(value.clone()),
+                    rhs: Box::new(AstExpr::Var(tracker.clone())),
+                },
+                then_body: vec![AstStmt::Assign {
+                    name: tracker,
+                    val: value,
+                    span: self.span(span),
+                }],
+                else_body: Vec::new(),
+                span: self.span(span),
+            });
+        }
+        Ok(statements)
     }
 
     pub(crate) fn lower_transfer_frame(
@@ -476,17 +508,19 @@ impl Lowerer<'_> {
                     | SemanticConcept::Cube
                     | SemanticConcept::Double
                     | SemanticConcept::Halve
+                    | SemanticConcept::Triple
                     | SemanticConcept::Negate
             )
         ) {
             let target = self.semantic_place(rest, span)?;
             let rendered = target.render();
-            let numeric_two = self
+            let numeric = self
                 .resolve_target(rest, span)
                 .ok()
                 .and_then(|(_, target)| self.shallow_type_opt(&target.read()))
                 .is_some_and(|ty| matches!(ty, tc_typeck::AstType::F32 | tc_typeck::AstType::F64));
-            let two = if numeric_two { "2.0" } else { "2" };
+            let two = if numeric { "2.0" } else { "2" };
+            let three = if numeric { "3.0" } else { "3" };
             let value = match resolution.concept {
                 Some(SemanticConcept::Square) => format!("{rendered} times {rendered}"),
                 Some(SemanticConcept::Cube) => {
@@ -494,6 +528,7 @@ impl Lowerer<'_> {
                 }
                 Some(SemanticConcept::Double) => format!("{rendered} times {two}"),
                 Some(SemanticConcept::Halve) => format!("{rendered} divided by {two}"),
+                Some(SemanticConcept::Triple) => format!("{rendered} times {three}"),
                 _ => format!("negative {rendered}"),
             };
             return self

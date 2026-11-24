@@ -15,8 +15,8 @@ tracked.
 - **License:** CC-BY 4.0
 - **Local use:** read-only copy in the sandbox goldmines tree; never modified.
 - **Scanned:** 135,969 lexical entries and 107,519 synsets.
-- **Harvest:** 42 exact `oewn-*` anchor synsets, 632 reachable synsets at
-  hypernym distance <= 3, and **775** emitted `WordNetEntry` rows.
+- **Harvest:** 43 exact `oewn-*` anchor synsets, 633 reachable synsets at
+  hypernym distance <= 3, and **777** emitted `WordNetEntry` rows.
 - **Morphology validation:** 8,749 single-word WordNet verb lemmas emitted as
   `VERB_LEMMAS`, plus **103** standard irregular form -> lemma rows.
 
@@ -32,6 +32,7 @@ tracked.
 | Negate | `oewn-00471015-v` |
 | Double | `oewn-00247103-v` |
 | Halve | `oewn-00644019-v` |
+| Triple | `oewn-00247632-v` |
 | Square | `oewn-00145268-v` |
 | Cube | `oewn-00641924-v` |
 | Assign | `oewn-01496967-v` |
