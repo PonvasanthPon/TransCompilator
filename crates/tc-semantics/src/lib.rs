@@ -302,6 +302,9 @@ fn augmented_sources(
         || source_text.contains("an empty list of ")
         || source_text.contains("number of items in ")
         || source_text.contains("the size of ")
+        || source_text.contains("the list ")
+        || source_text.contains("the list,")
+        || source_text.contains("list of numbers ")
         || (source_text.contains("for each ") && source_text.contains(" in "));
     let needs_string = source_text.contains("a list of \"")
         || source_text.contains("list of text")

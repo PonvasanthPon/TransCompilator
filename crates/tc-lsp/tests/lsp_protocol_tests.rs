@@ -40,6 +40,8 @@ const FIBONACCI_SEQUENCE_REPRO: &str = "Start with 1 and 2. Keep generating the 
 
 const TWO_BOX_SIMULATION_REPRO: &str = "Imagine a red box starting with 5 and a blue box starting with 16. Walk through every number from 1 up to 40. If the number is a multiple of 3, move 4 from the blue box into the red box; otherwise move 1 from the red box into the blue box. However, if a move would ever cause either box to drop below 5, skip that move and leave both boxes unchanged. Stop immediately as soon as the red box holds more than twice as much as the blue box. Finally, print the number where you stopped, followed by the amounts in the red box and the blue box.\n";
 
+const ADJACENT_SWAP_REPRO: &str = "Start with the list of numbers 14, 7, 22, 9, 15, 4, and 18. Go through the list from left to right, comparing each number with the one immediately after it. Whenever the left number is larger than the right one, swap their positions and count a swap. After finishing that pass, remove any number from the list that is divisible by 3. Finally, print the remaining numbers in order, followed by the total number of swaps made.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1777,6 +1779,44 @@ fn lsp_two_box_simulation_has_zero_diagnostics_and_no_comment_tokens() {
         tokens
             .iter()
             .any(|token| token.text == "number" && token.token_type == VARIABLE),
+        "{tokens:?}"
+    );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_adjacent_swap_pass_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_adjacent_swap.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, ADJACENT_SWAP_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, ADJACENT_SWAP_REPRO);
+    assert!(
+        tokens
+            .iter()
+            .any(|token| token.text == "numbers" && token.token_type == VARIABLE),
         "{tokens:?}"
     );
     assert!(
