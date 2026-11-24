@@ -83,6 +83,28 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn literal_sentence_word_frequency_with_length_filter() {
+    assert_program(
+        "word-frequency",
+        "Take the sentence \"the quick brown fox jumps over the lazy dog and the fox runs\". Split it into words, and count how many times each word appears. Ignore any word that has fewer than 4 letters, unless it appears more than once. Among the remaining words, print each word along with its count, and finally print the word that appeared the most times.\n",
+        &[
+            "the 3", "quick 1", "brown 1", "fox 2", "jumps 1", "over 1", "lazy 1", "runs 1", "the",
+        ],
+    );
+}
+
+#[test]
+fn word_frequency_generalizes_text_and_minimum_length() {
+    assert_program(
+        "word-frequency-generalized",
+        "Take the sentence \"one fish two fish red fish blue fish and a cat\". Split it into words, and count how many times each word appears. Ignore any word that has fewer than 3 letters, unless it appears more than once. Among the remaining words, print each word along with its count, and finally print the word that appeared the most times.\n",
+        &[
+            "one 1", "fish 4", "two 1", "red 1", "blue 1", "and 1", "cat 1", "fish",
+        ],
+    );
+}
+
+#[test]
 fn adjacent_swap_pass_then_filter_and_print() {
     assert_program(
         "adjacent-swap-pass",

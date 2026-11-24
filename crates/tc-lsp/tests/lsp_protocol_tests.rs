@@ -42,6 +42,8 @@ const TWO_BOX_SIMULATION_REPRO: &str = "Imagine a red box starting with 5 and a 
 
 const ADJACENT_SWAP_REPRO: &str = "Start with the list of numbers 14, 7, 22, 9, 15, 4, and 18. Go through the list from left to right, comparing each number with the one immediately after it. Whenever the left number is larger than the right one, swap their positions and count a swap. After finishing that pass, remove any number from the list that is divisible by 3. Finally, print the remaining numbers in order, followed by the total number of swaps made.\n";
 
+const WORD_FREQUENCY_REPRO: &str = "Take the sentence \"the quick brown fox jumps over the lazy dog and the fox runs\". Split it into words, and count how many times each word appears. Ignore any word that has fewer than 4 letters, unless it appears more than once. Among the remaining words, print each word along with its count, and finally print the word that appeared the most times.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1817,6 +1819,42 @@ fn lsp_adjacent_swap_pass_has_zero_diagnostics_and_no_comment_tokens() {
         tokens
             .iter()
             .any(|token| token.text == "numbers" && token.token_type == VARIABLE),
+        "{tokens:?}"
+    );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_word_frequency_pipeline_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_word_frequency.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, WORD_FREQUENCY_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, WORD_FREQUENCY_REPRO);
+    assert!(
+        tokens.iter().any(|token| token.token_type == STRING),
         "{tokens:?}"
     );
     assert!(
