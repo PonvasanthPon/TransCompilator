@@ -51,8 +51,16 @@ fn readme_lexicon_counts_match_generated_tables() {
 #[test]
 fn readme_version_matches_workspace_package_version() {
     let readme = std::fs::read_to_string(root().join("README.md")).expect("README");
-    assert!(readme.contains("`tc_r1` 0.1.0"), "README version label");
+    let version = env!("CARGO_PKG_VERSION");
+    assert!(
+        readme.contains(&format!("`tc_r1` {version}")),
+        "README version label is stale; expected `tc_r1` {version}"
+    );
     assert!(!readme.contains("`tc_r1` v1.0"), "stale v1.0 label");
+    assert!(
+        readme.contains("All Rights Reserved"),
+        "README license label is stale"
+    );
     assert!(
         readme.contains("Build Requirements"),
         "missing build requirements"

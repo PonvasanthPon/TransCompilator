@@ -7,8 +7,9 @@ discourse context, reference, quantification, and computational meaning, then
 lowered deterministically to Core-7 with a static, zero-libc x86_64 ELF64
 output path.
 
-This repository is **`tc_r1` 0.1.0**: the hardened Core-7 typed IR, exhaustive
-verifier, byte-accurate reference interpreter, direct x86_64 static zero-libc
+This repository is **`tc_r1` 0.1.0-alpha-preview** (Alpha Preview): the
+hardened Core-7 typed IR, exhaustive verifier, byte-accurate reference
+interpreter, direct x86_64 static zero-libc
 ELF64 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
 word/verb engine, a general-purpose English front end, the readable natural-English
 `std/` standard library, a terminal editor (`r1-editor`), a native `std`-only
@@ -51,10 +52,13 @@ For a release build and the offline Zed setup, see
 [Build Requirements](#build-requirements) and
 [Language Server (`tc-lsp`) and Zed](#language-server-tc-lsp-and-zed).
 
-## 0.1.0 convergence status
+## 0.1.0-alpha-preview status
 
-The 0.1.0 compiler is the fixed point of a five-round zero-bug convergence
-campaign: **640 fresh `.eng` programs** across eight English-variety bands,
+**Alpha Preview** — the core compiler, static ELF64 backend, eight
+`std/*.eng` modules, and `tc-lsp` work end-to-end; the English grammar
+surface is actively evolving. The release includes the fixed point of a
+five-round zero-bug convergence campaign: **640 fresh `.eng` programs**
+across eight English-variety bands,
 **15,000 disjoint differential/paraphrase/prose/crash seeds**, and **7
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
@@ -182,7 +186,7 @@ The graph is strictly acyclic. The TUI and LSP call the compiler in-process;
 neither shells out to a compiler binary. Every workspace crate remains Rust
 `std`-only. `crates/tc-cli` produces the `tc` binary:
 
-- `tc --version` prints `tc_r1 0.1.0`.
+- `tc --version` prints `tc_r1 0.1.0-alpha-preview`.
 - `tc --audit` checks the workspace crate identities and reports the exact
   WordNet, VerbNet, morphology, and closed-class counts.
 - `tc --selftest` verifies, interprets, compiles, executes, and
@@ -423,7 +427,6 @@ the repository `.zed/tasks.json`.
 
 ## License
 
-`tc_r1` is released under the MIT License; see `LICENSE`. Vendored and
-generated third-party assets are documented in `THIRD_PARTY_NOTICES.md`, and
-the vendored Link Grammar license text is in
-`vendor/link-grammar/LICENSE`.
+Copyright (c) 2026 Ponvasanth — All Rights Reserved (see `LICENSE`).
+Third-party components are listed in `THIRD_PARTY_NOTICES.md`; the vendored
+Link Grammar license text is in `vendor/link-grammar/LICENSE`.

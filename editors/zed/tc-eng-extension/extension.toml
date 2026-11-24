@@ -1,6 +1,6 @@
 id = "tc-eng"
 name = "TransCompilator English (.eng)"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 schema_version = 1
 
 [language_servers.tc-lsp]

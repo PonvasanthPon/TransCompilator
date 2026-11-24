@@ -13,10 +13,11 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 edition = "2024"
 rust-version = "1.85"
-license = "MIT"
+license-file = "LICENSE"
+publish = false
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

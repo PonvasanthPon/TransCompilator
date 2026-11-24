@@ -588,7 +588,7 @@ fn r1_editor_cli_version_and_check_flag() {
     assert!(version.status.success());
     assert_eq!(
         String::from_utf8_lossy(&version.stdout).trim(),
-        "R1 Editor 0.1.0 (tc_r1)"
+        format!("R1 Editor {} (tc_r1)", env!("CARGO_PKG_VERSION"))
     );
     let presets = Command::new(&editor)
         .arg("--list-presets")
