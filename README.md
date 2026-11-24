@@ -1,4 +1,4 @@
-# tc_r1
+# The TransCompilator Project
 
 ## What is TransCompilator?
 
