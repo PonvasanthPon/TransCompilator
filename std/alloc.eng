@@ -1,4 +1,7 @@
-A dynamic memory allocator with reusable blocks over Linux pages.
+A reusable memory allocator built on Linux pages.
+
+A shared free list of reusable blocks.
+Whole-page growth for large blocks.
 
 Use core.
 
@@ -9,13 +12,18 @@ Keep a shared bytes in use as an unsigned number.
 Keep a shared free count as an unsigned number.
 
 To find the smaller of a and b (unsigned numbers), giving an unsigned number.
-Give back a if a is less than b, otherwise give back b.
+If a is less than b, give back a.
+Give back b.
 
 To round n (an unsigned number) up to 16 bytes, giving an unsigned number.
-Add 15 to n, clear bits 15 from it, and give back it.
+Add 15 to n.
+Clear bits 15 from it.
+Give back it.
 
 To round n (an unsigned number) up to a page, giving an unsigned number.
-Add 4095 to n, clear bits 4095 from it, and give back it.
+Add 4095 to n.
+Clear bits 4095 from it.
+Give back it.
 
 To find the header of p (a pointer to byte), giving a pointer to MemoryBlock.
 Give back 32 bytes before p as a pointer to MemoryBlock.
@@ -25,31 +33,37 @@ Give back 32 bytes after block as a pointer to byte.
 
 To split leftover space from block (a pointer to MemoryBlock) for need (an unsigned number).
 Let rest be 32 plus need bytes after block as a pointer to MemoryBlock.
-Update rest so its size is block's size minus need minus 32, its free flag is 1, and its next link is block's next link.
+Update rest so its size is block's size minus need minus 32, its free flag is one, and its next link is block's next link.
 Update block so its size is need and its next link is rest.
 Add need to bytes in use.
 
 To claim block (a pointer to MemoryBlock) for need (an unsigned number).
-If block's size is at least need plus 64, split leftover space from block for need, otherwise add block's size to bytes in use.
-Set block's free flag to 0.
+If block's size is at least need plus 64, split leftover space from block for need.
+Otherwise, add block's size to bytes in use.
+Set block's free flag to zero.
 
 To request a new memory page for need (an unsigned number), giving a pointer to MemoryBlock.
-Let chunk be 65536 as an unsigned number.
+Let chunk start at 65536 as an unsigned number.
 If need is more than 65504, let rounded be round need plus 32 up to a page, set chunk to rounded.
 Let raw be ask Linux kernel 9 with 0, chunk, 3, 34, -1, and 0.
-Stop with error "out of memory" if raw is less than 0.
+If raw is negative, stop with error "out of memory".
 Let fresh be raw as an unsigned number as a pointer to MemoryBlock.
-Update fresh so its size is chunk minus 32, its free flag is 0, and its next link is memory head.
+Update fresh so its size is chunk minus 32, its free flag is zero, and its next link is memory head.
 Set memory head to fresh.
-If fresh's size is at least need plus 64, split leftover space from fresh for need, otherwise add fresh's size to bytes in use.
+If fresh's size is at least need plus 64, split leftover space from fresh for need.
+Otherwise, add fresh's size to bytes in use.
 Give back fresh.
 
 Publicly, to allocate size (an unsigned number) bytes, named heap_alloc, giving a pointer to byte.
 Let need be round size up to 16 bytes.
 If need is less than 16, make need 16 as an unsigned number.
 Let block be memory head.
-While block is not empty.
-If block's free flag equals 1 and block's size is at least need, claim block for need, give back payload of block, otherwise move block to block's next link.
+Repeat while block is not empty.
+If block's free flag is one and block's size is at least need.
+Claim block for need.
+Give back payload of block.
+End the condition.
+Set block to block's next link.
 End the loop.
 Let fresh be request a new memory page for need.
 Give back payload of fresh.
@@ -57,17 +71,17 @@ Give back payload of fresh.
 Publicly, to release memory at p (a pointer to byte), named heap_free.
 Give back if p is empty.
 Let h be header of p.
-Give back if h's free flag equals 1.
-Update h so its free flag is 1.
+Give back if h's free flag is one.
+Set h's free flag to one.
 Set bytes in use to bytes in use minus h's size.
 Add 1 to free count.
 Let following be h's next link.
-If following is not empty and following's free flag equals 1 and (h as an unsigned number plus 32 plus h's size) equals (following as an unsigned number), update h so its size is h's size plus 32 plus following's size and its next link is following's next link.
+If following is not empty and following's free flag is one and (h as an unsigned number plus 32 plus h's size) equals (following as an unsigned number), update h so its size is h's size plus 32 plus following's size and its next link is following's next link.
 
 Publicly, to resize memory at p (a pointer to byte) from old_size (an unsigned number) to new_size (an unsigned number), named heap_realloc, giving a pointer to byte.
-Give back allocate new_size bytes if p is empty.
+If p is empty, give back allocate new_size bytes.
 Let h be header of p.
-Give back p if new_size is at most h's size.
+If new_size is at most h's size, give back p.
 Let replacement be allocate new_size bytes.
 Let copy length be smaller of old_size and new_size.
 Copy copy length bytes from p to replacement.

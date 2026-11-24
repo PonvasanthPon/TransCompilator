@@ -7,7 +7,7 @@ A public record File has an fd (a whole number).
 To open path (a pointer to TcString) with flags flags (a whole number), giving Result of File and whole number.
 Let descriptor be ask Linux kernel 257 with -100, path's data, flags, and 420.
 Let answer be Result of File and whole number.
-If descriptor is less than 0, set answer's is_ok to false, set answer's err_val to descriptor, give back answer.
+If descriptor is negative, set answer's is_ok to false, set answer's err_val to descriptor, give back answer.
 Let handle be File.
 Set handle's fd to descriptor.
 Update answer so its is_ok is true and its ok_val is handle.
@@ -38,7 +38,7 @@ Give back result.
 
 Publicly, to save s (a pointer to TcString) to file path (a pointer to TcString), named write_str_to_file, giving a whole number.
 Let opened be open path for writing.
-If opened's is_ok equals false, give back opened's err_val.
+If opened's is_ok is false, give back opened's err_val.
 Let handle be File.
 Set handle to opened's ok_val.
 Let written be ask Linux kernel 1 with handle's fd, s's data, and s's len.
@@ -51,7 +51,7 @@ Publicly, to save n (a whole number) to file path (a pointer to TcString), named
 Let buffer be block of 32 byte.
 Let text length be format n into address of item 0 of buffer.
 Let opened be open path for writing.
-If opened's is_ok equals false, give back opened's err_val.
+If opened's is_ok is false, give back opened's err_val.
 Let handle be File.
 Set handle to opened's ok_val.
 Let written be ask Linux kernel 1 with handle's fd, address of item 0 of buffer, and text length.
@@ -64,7 +64,7 @@ Publicly, to save x (a decimal) to file path (a pointer to TcString), named writ
 Let buffer be block of 64 byte.
 Let text length be format x into address of item 0 of buffer.
 Let opened be open path for writing.
-If opened's is_ok equals false, give back opened's err_val.
+If opened's is_ok is false, give back opened's err_val.
 Let handle be File.
 Set handle to opened's ok_val.
 Let written be ask Linux kernel 1 with handle's fd, address of item 0 of buffer, and text length.
@@ -77,18 +77,18 @@ Publicly, to read text given path as a pointer to TcString, named read_file_to_s
 Call this as "read text from file <path>".
 Let answer be Result of TcString and whole number.
 Let opened be open path for reading.
-If opened's is_ok equals false, set answer's is_ok to false, set answer's err_val to opened's err_val, give back answer.
+If opened's is_ok is false, set answer's is_ok to false, set answer's err_val to opened's err_val, give back answer.
 Let handle be File.
 Set handle to opened's ok_val.
 Let size be ask Linux kernel 8 with handle's fd, 0, and 2.
-If size is less than 0, let descriptor be handle's fd, ask Linux kernel 3 with descriptor, set answer's is_ok to false, set answer's err_val to -5, give back answer.
+If size is negative, let descriptor be handle's fd, ask Linux kernel 3 with descriptor, set answer's is_ok to false, set answer's err_val to -5, give back answer.
 Ask Linux kernel 8 with handle's fd, 0, and 0.
 Let text be TcString.
 Let capacity be size as an unsigned number plus 1.
 Let allocated be allocate capacity bytes.
 Update text so its len is size as an unsigned number, its cap is capacity, and its data is allocated.
 Let read count be ask Linux kernel 0 with handle's fd, text's data, and text's len.
-If read count is less than 0, let descriptor be handle's fd, ask Linux kernel 3 with descriptor, release memory at text's data, set answer's is_ok to false, set answer's err_val to -5, give back answer.
+If read count is negative, let descriptor be handle's fd, ask Linux kernel 3 with descriptor, release memory at text's data, set answer's is_ok to false, set answer's err_val to -5, give back answer.
 Set text's len to read count as an unsigned number.
 Set item text's len of text's data to 0.
 Let descriptor be handle's fd.
@@ -99,10 +99,10 @@ Give back answer.
 
 Publicly, to display file path (a pointer to TcString), named display_file, giving a whole number.
 Let opened be read text from file path.
-If opened's is_ok equals false, give back opened's err_val.
+If opened's is_ok is false, give back opened's err_val.
 Let text be TcString.
 Set text to opened's ok_val.
-If text's len is more than 0, ask Linux kernel 1 with 1, text's data, and text's len.
+If text's len is positive, ask Linux kernel 1 with 1, text's data, and text's len.
 Ask Linux kernel 1 with 1, "\n", and 1.
 Let length be text's len as a whole number.
 Release text address of text.
@@ -111,7 +111,7 @@ Give back length.
 Publicly, to check file given path as a pointer to TcString, named file_exists, giving a truth value.
 Call this as "file exists <path>".
 Let opened be open path for reading.
-If opened's is_ok equals false, give back false.
+If opened's is_ok is false, give back false.
 Let handle be File.
 Set handle to opened's ok_val.
 Let descriptor be handle's fd.
