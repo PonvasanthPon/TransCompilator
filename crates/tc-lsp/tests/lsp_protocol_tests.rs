@@ -1826,6 +1826,50 @@ fn lsp_adjacent_swap_pass_has_zero_diagnostics_and_no_comment_tokens() {
 }
 
 #[test]
+fn lsp_human_english_battle_cases_have_zero_diagnostics() {
+    let cases: [(&str, &str); 8] = [
+        (
+            "band1",
+            "Let n be 9.\nIf n isn't divisible by 4, print \"ok\".\n",
+        ),
+        (
+            "band2",
+            "Take every number from 1 to 6. Skip any multiple of 2. Print that number.\n",
+        ),
+        (
+            "band3",
+            "Start with 1 and 2. Keep generating the next number by adding the previous two numbers together, as long as the new number doesn't exceed 40. For each number in this entire sequence, including the starting two, add it to a running total. Whenever that total goes over 50, subtract 50 from it and count an overflow. At the end, print the final running total and how many overflows happened.\n",
+        ),
+        (
+            "band4",
+            "Imagine a red box starting with 5 and a blue box starting with 16. Walk through every number from 1 up to 40. If the number is a multiple of 3, move 4 from the blue box into the red box; otherwise move 1 from the red box into the blue box. However, if a move would ever cause either one to drop below 5, skip it. Stop immediately as soon as the red box holds more than twice as much as the blue box. Finally, print the number where you stopped, followed by the amounts in the red box and the blue box.\n",
+        ),
+        (
+            "band5",
+            "Start with the list of numbers 14, 7, 22, 9, 15, 4, and 18. Go through the list from left to right, comparing each number with the one immediately after it. If the left number is larger than the right one, swap their positions and count a swap. After finishing that pass, remove any number from the list that is divisible by 3. Finally, print the remaining numbers in order, followed by the total number of swaps made.\n",
+        ),
+        ("band6", "Let x be 20.\nPrint a quarter of x.\n"),
+        ("band7", "Let label be \"  Ada  \".\nPrint trim label.\n"),
+        (
+            "band8",
+            "She skipped the meeting because it wasn't urgent.\nPrint 5.\n",
+        ),
+    ];
+    for (index, (name, source)) in cases.iter().enumerate() {
+        let uri = format!("file:///tmp/tc_lsp_battle_{index}.eng");
+        let (_, responses) = run(vec![
+            request(1, "initialize", object([])),
+            open(&uri, source),
+            shutdown(),
+            exit(),
+        ]);
+        let batches = diagnostics_after(&responses, &uri);
+        assert_eq!(batches.len(), 1, "{name}");
+        assert!(batches[0].is_empty(), "{name}: {:?}", batches[0]);
+    }
+}
+
+#[test]
 fn lsp_empty_loop_body_reports_header_line() {
     let uri = "file:///tmp/tc_lsp_empty_loop.eng";
     let text = "Let x be 5.\nRepeat while x is greater than 1:\n\nPrint x.\n";
