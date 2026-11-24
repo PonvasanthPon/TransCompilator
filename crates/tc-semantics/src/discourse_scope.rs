@@ -131,12 +131,17 @@ pub(crate) fn parse_state_declaration(text: &str) -> Option<Vec<(String, String)
             .trim()
             .trim_end_matches(['.', ',', ':'])
             .trim();
-        let words = tokenize(name_text)
+        let mut words = tokenize(name_text)
             .into_iter()
             .filter(tc_syntax::Token::is_word)
             .map(|token| token.lower)
-            .filter(|word| !matches!(word.as_str(), "a" | "an" | "the" | "some" | "one"))
             .collect::<Vec<_>>();
+        if words
+            .first()
+            .is_some_and(|word| matches!(word.as_str(), "a" | "an" | "the" | "some"))
+        {
+            words.remove(0);
+        }
         if words.is_empty() || value.is_empty() {
             return None;
         }
@@ -285,15 +290,30 @@ pub(crate) fn parse_named_list_start(text: &str) -> Option<NamedListStart> {
         .strip_prefix("start with ")
         .or_else(|| lower.strip_prefix("begin with "))
         .or_else(|| lower.strip_prefix("start from "))?;
-    if !rest.contains("list") {
-        return None;
-    }
-    let mut body = rest
+    let (mut body, mut name) = if let Some(body) = rest
         .strip_prefix("the list of ")
         .or_else(|| rest.strip_prefix("a list of "))
         .or_else(|| rest.strip_prefix("the list "))
-        .or_else(|| rest.strip_prefix("a list "))?;
-    let mut name = "items".to_string();
+        .or_else(|| rest.strip_prefix("a list "))
+    {
+        (body, "items".to_string())
+    } else {
+        let body = rest
+            .strip_prefix("the numbers ")
+            .or_else(|| rest.strip_prefix("the following numbers "))
+            .or_else(|| rest.strip_prefix("numbers "))
+            .or_else(|| rest.strip_prefix("the values "))
+            .or_else(|| rest.strip_prefix("the following values "))
+            .or_else(|| rest.strip_prefix("values "))
+            .or_else(|| rest.strip_prefix("the items "))
+            .or_else(|| rest.strip_prefix("items "))?;
+        let name = rest
+            .split_whitespace()
+            .find(|word| matches!(*word, "numbers" | "values" | "items"))
+            .unwrap_or("items")
+            .to_string();
+        (body, name)
+    };
     for noun in [
         "whole numbers ",
         "numbers ",
@@ -325,6 +345,9 @@ pub(crate) struct AdjacentPass;
 /// the one immediately after it.`
 pub(crate) fn parse_adjacent_pass(text: &str) -> Option<AdjacentPass> {
     let lower = trimmed_lower(text);
+    if lower.starts_with("compare each ") || lower.starts_with("compare every ") {
+        return Some(AdjacentPass);
+    }
     if !(lower.starts_with("go through ")
         || lower.starts_with("walk through ")
         || lower.starts_with("scan ")
@@ -334,10 +357,17 @@ pub(crate) fn parse_adjacent_pass(text: &str) -> Option<AdjacentPass> {
     {
         return None;
     }
-    if !lower.contains("list") {
+    if !lower.contains("list")
+        && !lower.starts_with("go through ")
+        && !lower.starts_with("walk through ")
+    {
         return None;
     }
-    let (_, _end) = top_level_phrase(text, "comparing each ")?;
+    if top_level_phrase(text, "comparing each ").is_none()
+        && top_level_phrase(text, "comparing every ").is_none()
+    {
+        return None;
+    }
     Some(AdjacentPass)
 }
 
@@ -365,19 +395,48 @@ pub(crate) fn parse_pass_cleanup(text: &str) -> Option<String> {
     {
         return None;
     }
-    if !(rest.contains("from the list")
-        || rest.contains("from it")
-        || rest.contains("from the numbers")
-        || rest.contains("from the values")
-        || rest.contains("from the items"))
-    {
+    let (marker, end) = ["that is ", "which is ", "that are ", "which are "]
+        .iter()
+        .find_map(|phrase| top_level_phrase(text, phrase).map(|(_, end)| (*phrase, end)))
+        .or_else(|| {
+            [
+                "divisible by ",
+                "under ",
+                "below ",
+                "over ",
+                "above ",
+                "greater than ",
+                "less than ",
+                "even",
+                "odd",
+            ]
+            .iter()
+            .find_map(|phrase| top_level_phrase(text, phrase).map(|(_, end)| (*phrase, end)))
+        })?;
+    let tail = text[end..].trim().trim_end_matches(['.', ',', ':']).trim();
+    let predicate = if matches!(
+        marker,
+        "that is " | "which is " | "that are " | "which are "
+    ) {
+        tail.to_string()
+    } else {
+        format!("{marker}{tail}").trim().to_string()
+    };
+    if predicate.is_empty() {
         return None;
     }
-    let (_, end) = ["that is ", "which is ", "that are ", "which are "]
-        .iter()
-        .find_map(|phrase| top_level_phrase(text, phrase))?;
-    let predicate = text[end..].trim().trim_end_matches(['.', ',', ':']).trim();
-    (!predicate.is_empty()).then(|| predicate.to_string())
+    let predicate = if let Some(rest) = predicate.strip_prefix("under ") {
+        format!("less than {rest}")
+    } else if let Some(rest) = predicate.strip_prefix("below ") {
+        format!("less than {rest}")
+    } else if let Some(rest) = predicate.strip_prefix("over ") {
+        format!("greater than {rest}")
+    } else if let Some(rest) = predicate.strip_prefix("above ") {
+        format!("greater than {rest}")
+    } else {
+        predicate
+    };
+    Some(predicate)
 }
 
 /// Parses `Start with 1 and 2.`

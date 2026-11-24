@@ -209,12 +209,33 @@ impl Lowerer<'_> {
     ) -> Result<Vec<AstStmt>, SemanticError> {
         let value = self.parse_value(text, span)?;
         let ty = self.shallow_type_opt(&value);
-        let statement = if let AstExpr::BytesLit(bytes) = &value {
+        let mut statements = Vec::new();
+        let statement = if let Some((pointer, length)) = self.text_bytes(&value) {
             AstExpr::Call {
                 module: None,
                 name: "print_bytes".to_string(),
                 type_args: Vec::new(),
-                args: vec![value.clone(), AstExpr::BytesLen(bytes.clone())],
+                args: vec![pointer, length],
+            }
+        } else if let Some(tcstring) = ty.clone().filter(|ty| {
+            matches!(
+                ty,
+                tc_typeck::AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring")
+            )
+        }) {
+            let temporary = self.next_temp("emit_text");
+            self.declare_temp(&temporary, tcstring.clone());
+            statements.push(AstStmt::Let {
+                name: temporary.clone(),
+                ty: Some(tcstring),
+                init: value.clone(),
+                span: self.span(span),
+            });
+            AstExpr::Call {
+                module: None,
+                name: "print_str".to_string(),
+                type_args: Vec::new(),
+                args: vec![AstExpr::AddrOfVar(temporary)],
             }
         } else {
             let name = match ty {
@@ -235,7 +256,7 @@ impl Lowerer<'_> {
                 args: vec![value.clone()],
             }
         };
-        let mut statements = vec![AstStmt::Expr(statement, self.span(span))];
+        statements.push(AstStmt::Expr(statement, self.span(span)));
         if let Some((tracker, maximum)) = self.active_print_tracker()
             && !matches!(value, AstExpr::BytesLit(_))
             && matches!(

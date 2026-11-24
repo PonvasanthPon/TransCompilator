@@ -6,11 +6,193 @@
 
 use crate::token::{TokenKind, tokenize};
 
+fn contraction_replacement(stem: &str, suffix: &str) -> Option<&'static str> {
+    match suffix {
+        "t" => match stem {
+            "isn" => Some("is not"),
+            "aren" => Some("are not"),
+            "wasn" => Some("was not"),
+            "weren" => Some("were not"),
+            "doesn" => Some("does not"),
+            "don" => Some("do not"),
+            "didn" => Some("did not"),
+            "hasn" => Some("has not"),
+            "haven" => Some("have not"),
+            "hadn" => Some("had not"),
+            "can" => Some("cannot"),
+            "won" => Some("will not"),
+            "wouldn" => Some("would not"),
+            "couldn" => Some("could not"),
+            "shouldn" => Some("should not"),
+            "mustn" => Some("must not"),
+            "shan" => Some("shall not"),
+            _ => None,
+        },
+        "s" => match stem {
+            "it" => Some("it is"),
+            "that" => Some("that is"),
+            "there" => Some("there is"),
+            "here" => Some("here is"),
+            "what" => Some("what is"),
+            "who" => Some("who is"),
+            "let" => Some("let us"),
+            _ => None,
+        },
+        "re" => match stem {
+            "you" => Some("you are"),
+            "we" => Some("we are"),
+            "they" => Some("they are"),
+            _ => None,
+        },
+        "m" if stem == "i" => Some("I am"),
+        "ll" => match stem {
+            "you" => Some("you will"),
+            "we" => Some("we will"),
+            "they" => Some("they will"),
+            "it" => Some("it will"),
+            _ => None,
+        },
+        "ve" => match stem {
+            "you" => Some("you have"),
+            "we" => Some("we have"),
+            "they" => Some("they have"),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// Expands common English contractions outside quoted strings.
+#[must_use]
+pub(crate) fn expand_contractions(text: &str) -> String {
+    let tokens = tokenize(text);
+    let mut output = String::with_capacity(text.len());
+    let mut cursor = 0;
+    let mut index = 0;
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if token.kind != TokenKind::Word {
+            index += 1;
+            continue;
+        }
+        let mut suffix = None;
+        let mut consumed = 0;
+        if let Some(next) = tokens.get(index + 1) {
+            if next.text == "'" {
+                if let Some(word) = tokens.get(index + 2)
+                    && text[token.end..next.start].is_empty()
+                    && text[next.end..word.start].is_empty()
+                {
+                    suffix = Some(word.lower.clone());
+                    consumed = 3;
+                }
+            } else if next.kind == TokenKind::Symbol
+                && next.text.starts_with('\'')
+                && next.text.len() > 1
+                && text[token.end..next.start].is_empty()
+            {
+                suffix = Some(next.text[1..].to_ascii_lowercase());
+                consumed = 2;
+            }
+        }
+        let replacement = suffix
+            .as_deref()
+            .and_then(|suffix| contraction_replacement(&token.lower, suffix));
+        if let (Some(replacement_text), true) = (replacement, consumed > 0) {
+            output.push_str(&text[cursor..token.start]);
+            output.push_str(replacement_text);
+            cursor = tokens[index + consumed - 1].end;
+            index += consumed;
+        } else {
+            index += 1;
+        }
+    }
+    output.push_str(&text[cursor..]);
+    output
+}
+
+fn strip_casual_openers(text: &str) -> String {
+    let mut current = text.trim().to_string();
+    loop {
+        let lower = current.to_ascii_lowercase();
+        let mut changed = false;
+        for (prefix, replacement) in [
+            ("start by setting ", "set "),
+            ("start by putting ", "put "),
+            ("start by ", ""),
+            ("go ahead and ", ""),
+            ("at the end, ", ""),
+            ("at the end ", ""),
+            ("when that is done, ", ""),
+            ("when that is done ", ""),
+            ("once everything is finished, ", ""),
+            ("once everything is finished ", ""),
+            ("when everything is finished, ", ""),
+            ("once everything is done, ", ""),
+            ("when everything is done, ", ""),
+            ("tell me the result", "print the result"),
+            ("tell me ", "print "),
+            ("show me ", "print "),
+        ] {
+            if lower.starts_with(prefix) {
+                let rest = current[prefix.len()..].trim_start();
+                current = format!("{replacement}{rest}");
+                changed = true;
+                break;
+            }
+        }
+        if !changed {
+            return current;
+        }
+    }
+}
+
 /// Normalizes one sentence while preserving its original source span.
 #[must_use]
 pub(crate) fn sentence(text: &str) -> String {
-    let mut current = text.trim().to_string();
+    let expanded = expand_contractions(text);
+    let mut current = strip_casual_openers(&expanded);
     loop {
+        if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, " up by ")
+            .or_else(|| crate::textutil::find_top_level_phrase(&current, " upward by "))
+            .or_else(|| crate::textutil::find_top_level_phrase(&current, " down by "))
+            .or_else(|| crate::textutil::find_top_level_phrase(&current, " downward by "))
+        {
+            let before = current[..start].trim();
+            let amount = current[end..].trim();
+            let tokens = tokenize(before);
+            if let Some(first) = tokens.first() {
+                let target = before[first.end..].trim();
+                let first_lower = first.lower.as_str();
+                if !target.is_empty()
+                    && !before.contains(',')
+                    && amount.contains(|character: char| character.is_ascii_digit())
+                    && !matches!(
+                        first_lower,
+                        "the"
+                            | "a"
+                            | "an"
+                            | "it"
+                            | "he"
+                            | "she"
+                            | "they"
+                            | "we"
+                            | "i"
+                            | "otherwise"
+                            | "else"
+                            | "then"
+                    )
+                {
+                    let down = current[..end].to_ascii_lowercase().contains("down");
+                    current = if down {
+                        format!("subtract {amount} from {target}")
+                    } else {
+                        format!("add {amount} to {target}")
+                    };
+                    continue;
+                }
+            }
+        }
         if let Some((start, end)) =
             crate::textutil::find_top_level_phrase(&current, "ends up being")
         {
@@ -58,6 +240,19 @@ pub(crate) fn sentence(text: &str) -> String {
             continue;
         }
         for (phrase, replacement) in [
+            ("does not equal", "is not equal to"),
+            ("do not equal", "are not equal to"),
+            ("is not bigger than", "is at most"),
+            ("is not larger than", "is at most"),
+            ("is not higher than", "is at most"),
+            ("is not smaller than", "is at least"),
+            ("is not lower than", "is at least"),
+            ("is no bigger than", "is at most"),
+            ("is no larger than", "is at most"),
+            ("is no smaller than", "is at least"),
+            ("is no less than", "is at least"),
+            ("is higher than", "is greater than"),
+            ("is lower than", "is less than"),
             ("is larger than", "is greater than"),
             ("is bigger than", "is greater than"),
             ("is smaller than", "is less than"),

@@ -305,7 +305,10 @@ fn strip_fillers(text: &str, column: u32) -> (String, Vec<String>, u32) {
         let lower = remaining.to_ascii_lowercase();
         let mut consumed = 0;
         if let Some(length) = starts_phrase(&lower, "after that") {
-            consumed = length;
+            let after_phrase = remaining[length..].trim_start();
+            if after_phrase.starts_with(',') || after_phrase.is_empty() {
+                consumed = length;
+            }
         } else {
             let first = lower
                 .split(|character: char| {

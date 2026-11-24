@@ -305,6 +305,10 @@ fn augmented_sources(
         || source_text.contains("the list ")
         || source_text.contains("the list,")
         || source_text.contains("list of numbers ")
+        || source_text.contains("start with the numbers ")
+        || source_text.contains("begin with the numbers ")
+        || source_text.contains("start with the values ")
+        || source_text.contains("start with the items ")
         || (source_text.contains("for each ") && source_text.contains(" in "));
     let needs_string = source_text.contains("a list of \"")
         || source_text.contains("list of text")
@@ -313,8 +317,13 @@ fn augmented_sources(
         || source_text.contains("trim ")
         || source_text.contains("trimmed ")
         || source_text.contains(" starts with ")
+        || source_text.contains(" start with ")
         || source_text.contains(" ends with ")
-        || source_text.contains(" contains ");
+        || source_text.contains(" end with ")
+        || source_text.contains(" contains ")
+        || source_text.contains(" contain ")
+        || source_text.contains("length of ")
+        || source_text.contains(" matches text ");
     let needs_math = source_text.contains("square root of");
     let mut present = all
         .iter()

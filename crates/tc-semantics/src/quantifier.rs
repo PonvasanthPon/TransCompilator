@@ -191,21 +191,30 @@ pub(crate) fn parse_global(text: &str) -> Result<Option<GlobalQuantifier>, Strin
         ));
     };
     if domain_keyword.is("from") {
-        let to_index = top_level_word(&tokens, "to", 4)
-            .ok_or_else(|| format!("range quantifier `{var}` is missing `to`"))?;
-        let start = text_between(text, domain_keyword.end, tokens[to_index].start);
+        let up_index = top_level_word(&tokens, "up", 4)
+            .filter(|index| tokens.get(index + 1).is_some_and(|token| token.is("to")));
+        let (separator_index, start_boundary) = if let Some(up_index) = up_index {
+            (up_index + 1, tokens[up_index].start)
+        } else if let Some(to_index) = top_level_word(&tokens, "to", 4) {
+            (to_index, tokens[to_index].start)
+        } else if let Some(through_index) = top_level_word(&tokens, "through", 4) {
+            (through_index, tokens[through_index].start)
+        } else {
+            return Err(format!("range quantifier `{var}` is missing `to`"));
+        };
+        let start = text_between(text, domain_keyword.end, start_boundary);
         if start.is_empty() {
             return Err(format!("range quantifier `{var}` has an empty start bound"));
         }
-        let comma = top_level_comma(&tokens, to_index + 1);
-        let by_index = top_level_word(&tokens, "by", to_index + 1);
+        let comma = top_level_comma(&tokens, separator_index + 1);
+        let by_index = top_level_word(&tokens, "by", separator_index + 1);
         let end_boundary = by_index
             .filter(|index| comma.is_none_or(|comma| *index < comma))
             .or(comma)
             .unwrap_or(tokens.len());
         let end = text_between(
             text,
-            tokens[to_index].end,
+            tokens[separator_index].end,
             tokens
                 .get(end_boundary)
                 .map_or(text.len(), |token| token.start),
