@@ -69,6 +69,6 @@ mod tests {
     #[test]
     fn crate_identity() {
         assert_eq!(crate_name(), "tc-lsp");
-        assert_eq!(version(), "0.1.0");
+        assert_eq!(version(), env!("CARGO_PKG_VERSION"));
     }
 }

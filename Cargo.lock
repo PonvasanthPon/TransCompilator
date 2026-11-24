@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "tc-cli"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-codegen-x86",
  "tc-editor",
@@ -17,14 +17,14 @@ dependencies = [
 
 [[package]]
 name = "tc-codegen-x86"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-ir",
 ]
 
 [[package]]
 name = "tc-editor"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-codegen-x86",
  "tc-ir",
@@ -36,15 +36,15 @@ dependencies = [
 
 [[package]]
 name = "tc-ir"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 
 [[package]]
 name = "tc-lexicon"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 
 [[package]]
 name = "tc-lsp"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-ir",
  "tc-lexicon",
@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "tc-semantics"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-codegen-x86",
  "tc-editor",
@@ -67,14 +67,14 @@ dependencies = [
 
 [[package]]
 name = "tc-syntax"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-lexicon",
 ]
 
 [[package]]
 name = "tc-typeck"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 dependencies = [
  "tc-codegen-x86",
  "tc-ir",

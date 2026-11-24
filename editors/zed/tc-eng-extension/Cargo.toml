@@ -1,7 +1,9 @@
 [package]
 name = "tc-eng-extension"
-version = "0.1.0"
+version = "0.1.0-alpha-preview"
 edition = "2021"
+publish = false
+license-file = "../../../LICENSE"
 
 [lib]
 crate-type = ["cdylib"]

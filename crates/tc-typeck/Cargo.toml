@@ -3,7 +3,8 @@ name = "tc-typeck"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+license-file.workspace = true
+publish.workspace = true
 description = "Typed AST, modules, overloads, generics, and Core-7 lowering"
 
 [lints]

@@ -3,7 +3,8 @@ name = "tc-editor"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+license-file.workspace = true
+publish.workspace = true
 description = "Native std-only R1 English code editor for tc_r1 .eng programs"
 
 [[bin]]

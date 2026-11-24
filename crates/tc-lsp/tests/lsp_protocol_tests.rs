@@ -2009,7 +2009,7 @@ fn lsp_cli_version_flag() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("tc-lsp"), "{stdout}");
-    assert!(stdout.contains("0.1.0"), "{stdout}");
+    assert!(stdout.contains(env!("CARGO_PKG_VERSION")), "{stdout}");
 }
 
 #[test]

@@ -1,8 +1,8 @@
 # Third-Party Notices
 
-`tc_r1` itself is MIT-licensed; see `LICENSE`. The following third-party
-assets are used or referenced by the repository. The canonical license text
-for each asset governs its use.
+`tc_r1` itself is proprietary and All Rights Reserved; see `LICENSE`. The
+following third-party assets are used or referenced by the repository. The
+canonical license text for each asset governs its use.
 
 ## CMU Link Grammar 5.13.2
 
