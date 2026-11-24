@@ -269,6 +269,145 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts
 }
 
+/// A circle of consecutive numbers.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CircleSetup {
+    /// First number.
+    pub start: i64,
+    /// Last number.
+    pub end: i64,
+}
+
+/// A count-and-remove rule for a circle.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CircleRemoval {
+    /// Optional starting number, defaulting to the first circle entry.
+    pub start_at: Option<i64>,
+    /// Count step.
+    pub step: i64,
+}
+
+fn parse_integer_token(token: &str) -> Option<i64> {
+    token
+        .parse::<i64>()
+        .ok()
+        .or_else(|| crate::number_words::parse(token))
+}
+
+fn parse_ordinal(token: &str) -> Option<usize> {
+    let lower = token.to_ascii_lowercase();
+    let digits = lower
+        .strip_suffix("st")
+        .or_else(|| lower.strip_suffix("nd"))
+        .or_else(|| lower.strip_suffix("rd"))
+        .or_else(|| lower.strip_suffix("th"));
+    if let Some(digits) = digits
+        && let Ok(value) = digits.parse::<usize>()
+    {
+        return (value > 0).then_some(value);
+    }
+    let value = match lower.as_str() {
+        "first" => 1,
+        "second" => 2,
+        "third" => 3,
+        "fourth" => 4,
+        "fifth" => 5,
+        "sixth" => 6,
+        "seventh" => 7,
+        "eighth" => 8,
+        "ninth" => 9,
+        "tenth" => 10,
+        "eleventh" => 11,
+        "twelfth" => 12,
+        "thirteenth" => 13,
+        "fourteenth" => 14,
+        "fifteenth" => 15,
+        "sixteenth" => 16,
+        "seventeenth" => 17,
+        "eighteenth" => 18,
+        "nineteenth" => 19,
+        "twentieth" => 20,
+        _ => return None,
+    };
+    Some(value)
+}
+
+/// Parses `Arrange the numbers from 1 to 10 in a circle.`
+pub(crate) fn parse_circle_arrangement(text: &str) -> Option<CircleSetup> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("arrange the numbers ")
+        || lower.starts_with("arrange numbers ")
+        || lower.starts_with("place the numbers ")
+        || lower.starts_with("place numbers ")
+        || lower.starts_with("put the numbers ")
+        || lower.starts_with("put numbers "))
+    {
+        return None;
+    }
+    if !lower.contains("circle") {
+        return None;
+    }
+    let (_, from_end) = top_level_phrase(text, "from")?;
+    let after_from = &text[from_end..];
+    let (to_start, _) = top_level_phrase(after_from, "to")?;
+    let start_text = after_from[..to_start].trim();
+    let end_text = tokenize(&after_from[to_start + 2..])
+        .into_iter()
+        .find(|token| token.kind == TokenKind::Number || token.is_word())?
+        .text;
+    let start = parse_integer_token(start_text)?;
+    let end = parse_integer_token(&end_text)?;
+    (start <= end).then_some(CircleSetup { start, end })
+}
+
+/// Parses `Starting at 1, count around the circle and remove every third
+/// remaining number until only one number is left.`
+pub(crate) fn parse_circle_removal(text: &str) -> Option<CircleRemoval> {
+    let lower = trimmed_lower(text);
+    if !lower.contains("circle") || !lower.contains("remove every") {
+        return None;
+    }
+    let start_at = top_level_phrase(text, "starting at")
+        .or_else(|| top_level_phrase(text, "start at"))
+        .and_then(|(_, end)| {
+            tokenize(&text[end..])
+                .into_iter()
+                .find(|token| token.kind == TokenKind::Number || token.is_word())
+                .and_then(|token| parse_integer_token(&token.text))
+        });
+    let (_, end) = top_level_phrase(text, "remove every")?;
+    let token = tokenize(&text[end..])
+        .into_iter()
+        .find(|token| token.kind == TokenKind::Number || token.is_word())?;
+    let step = parse_ordinal(&token.text)
+        .and_then(|value| i64::try_from(value).ok())
+        .or_else(|| parse_integer_token(&token.text))?;
+    (step > 0).then_some(CircleRemoval { start_at, step })
+}
+
+/// Parses the ordinal in `print the fourth number that was removed ...`.
+pub(crate) fn parse_circle_report(text: &str) -> Option<usize> {
+    let lower = trimmed_lower(text);
+    if !lower.contains("removed") {
+        return None;
+    }
+    if !(lower.contains("single number left")
+        || lower.contains("only one number left")
+        || lower.contains("last number left")
+        || lower.contains("one number remaining"))
+    {
+        return None;
+    }
+    let tokens = tokenize(text);
+    let removed = tokens.iter().position(|token| token.is("removed"))?;
+    tokens
+        .iter()
+        .take(removed)
+        .rev()
+        .filter(|token| token.is_word() || token.kind == TokenKind::Number)
+        .find_map(|token| parse_ordinal(&token.text))
+}
+
 /// One cardinal grid direction.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum GridDirection {

@@ -46,6 +46,8 @@ const WORD_FREQUENCY_REPRO: &str = "Take the sentence \"the quick brown fox jump
 
 const GRID_WALK_REPRO: &str = "Imagine standing at the center of a grid, facing north. Follow these moves in order: walk forward 3 steps, turn right and walk forward 4 steps, turn right and walk forward 2 steps, turn right and walk forward 5 steps, and finally turn right and walk forward 3 steps. Take one step at a time, and count every time you step onto a spot you have already visited, including your starting spot. When all the moves are finished, print how many times you crossed your own path, followed by your east-west distance plus your north-south distance from the starting spot.\n";
 
+const CIRCLE_REMOVAL_REPRO: &str = "Arrange the numbers from 1 to 10 in a circle. Starting at 1, count around the circle and remove every third remaining number until only one number is left. Remember the order in which the numbers were removed. At the end, print the fourth number that was removed, followed by the single number left in the circle.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1891,6 +1893,39 @@ fn lsp_grid_walk_has_zero_diagnostics_and_no_comment_tokens() {
         .filter_map(Json::as_i64)
         .collect::<Vec<_>>();
     let tokens = decode_semantic_tokens(&data, GRID_WALK_REPRO);
+    assert!(!tokens.is_empty(), "{tokens:?}");
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_circle_removal_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_circle_removal.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, CIRCLE_REMOVAL_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, CIRCLE_REMOVAL_REPRO);
     assert!(!tokens.is_empty(), "{tokens:?}");
     assert!(
         !tokens.iter().any(|token| token.token_type == COMMENT),

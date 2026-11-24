@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn circle_removal_reports_requested_removed_and_survivor() {
+    assert_program(
+        "circle-removal",
+        "Arrange the numbers from 1 to 10 in a circle. Starting at 1, count around the circle and remove every third remaining number until only one number is left. Remember the order in which the numbers were removed. At the end, print the fourth number that was removed, followed by the single number left in the circle.\n",
+        &["2", "4"],
+    );
+}
+
+#[test]
+fn circle_removal_generalizes_range_step_and_ordinal() {
+    assert_program(
+        "circle-removal-generalized",
+        "Arrange the numbers from 1 to 8 in a circle. Starting at 1, count around the circle and remove every fourth remaining number until only one number is left. Remember the order in which the numbers were removed. At the end, print the second number that was removed, followed by the single number left in the circle.\n",
+        &["8", "6"],
+    );
+}
+
+#[test]
 fn grid_walk_counts_revisits_and_manhattan_distance() {
     assert_program(
         "grid-walk",
