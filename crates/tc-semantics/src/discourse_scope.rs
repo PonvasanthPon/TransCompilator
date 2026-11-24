@@ -7,7 +7,7 @@
 
 use crate::quantifier::{GlobalQuantifier, QuantDomainSpec};
 use crate::textutil::find_top_level_word;
-use crate::token::{TokenKind, tokenize};
+use crate::token::{TokenKind, decode_string_token, tokenize};
 
 /// Quantifier used by a `check whether` sentence.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -267,6 +267,80 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts.push(text[start..].trim().to_string());
     parts.retain(|part| !part.is_empty());
     parts
+}
+
+/// Parses `Take the sentence "..."` and returns the quoted literal.
+pub(crate) fn parse_sentence_literal(text: &str) -> Option<String> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("take the sentence ")
+        || lower.starts_with("take this sentence ")
+        || lower.starts_with("consider the sentence ")
+        || lower.starts_with("here is the sentence ")
+        || lower.starts_with("given the sentence "))
+    {
+        return None;
+    }
+    let token = tokenize(text)
+        .into_iter()
+        .find(|token| token.kind == TokenKind::String)?;
+    let bytes = decode_string_token(&token.text)?;
+    String::from_utf8(bytes).ok()
+}
+
+/// True for `Split it into words, and count how many times each word appears.`
+pub(crate) fn is_word_split_request(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("split") && lower.contains("words")
+}
+
+/// True for a separate `count how many times each word appears` sentence.
+pub(crate) fn is_word_count_request(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("count") && lower.contains("how many times") && lower.contains("word")
+}
+
+/// Parses `Ignore any word that has fewer than 4 letters, unless it appears
+/// more than once.` into `(min_letters, keep_repeated)`.
+pub(crate) fn parse_word_filter(text: &str) -> Option<(usize, bool)> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("ignore ")
+        || lower.starts_with("exclude ")
+        || lower.starts_with("skip ")
+        || lower.starts_with("filter out "))
+    {
+        return None;
+    }
+    if !lower.contains("word") {
+        return None;
+    }
+    let (_, end) = ["fewer than", "less than", "shorter than"]
+        .iter()
+        .find_map(|phrase| top_level_phrase(text, phrase))?;
+    let word = tokenize(&text[end..])
+        .into_iter()
+        .find(|token| token.is_word() || token.kind == TokenKind::Number)?
+        .text;
+    let minimum = word
+        .parse::<i64>()
+        .ok()
+        .or_else(|| crate::number_words::parse(&word))?;
+    let minimum = usize::try_from(minimum).ok()?;
+    let keep_repeated = lower.contains("unless it appears more than once")
+        || lower.contains("unless it occurs more than once")
+        || lower.contains("unless repeated")
+        || lower.contains("unless it is repeated");
+    Some((minimum, keep_repeated))
+}
+
+/// True for the final word-frequency output request.
+pub(crate) fn is_word_output_request(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("remaining words")
+        && lower.contains("print")
+        && (lower.contains("most times")
+            || lower.contains("most often")
+            || lower.contains("most frequently")
+            || lower.contains("highest count"))
 }
 
 /// A list introduced with inline starting values.

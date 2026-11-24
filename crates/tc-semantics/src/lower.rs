@@ -20,11 +20,12 @@ use crate::discourse::{
 };
 use crate::discourse_scope::{
     CheckDomain, CheckKind, LargestTracker, SequenceGeneration, SequenceIteration,
-    SequenceRecurrence, SequenceSeed, continuation_rest, parse_adjacent_pass, parse_check,
+    SequenceRecurrence, SequenceSeed, continuation_rest, is_word_count_request,
+    is_word_output_request, is_word_split_request, parse_adjacent_pass, parse_check,
     parse_largest_tracker, parse_loop_filter, parse_loop_introduction, parse_move_guard,
-    parse_named_list_start, parse_pass_cleanup, parse_sequence_generation,
+    parse_named_list_start, parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
     parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
-    post_loop_rest,
+    parse_word_filter, post_loop_rest,
 };
 use crate::expr::{
     AggregateInfo, ExprEnv, parse_address, parse_expression, parse_store_address, parse_type_text,
@@ -4317,6 +4318,47 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(literal) = parse_sentence_literal(&sentence.text)
+                && let Some(RawItem::Sentence(split)) = items.get(index + 1)
+                && is_word_split_request(&split.text)
+            {
+                let mut cursor = index + 2;
+                if let Some(RawItem::Sentence(next)) = items.get(cursor)
+                    && is_word_count_request(&next.text)
+                {
+                    cursor += 1;
+                }
+                let mut filter = None;
+                let mut output = false;
+                while cursor < items.len() {
+                    let RawItem::Sentence(next) = &items[cursor] else {
+                        break;
+                    };
+                    if filter.is_none()
+                        && let Some(parsed) = parse_word_filter(&next.text)
+                    {
+                        filter = Some(parsed);
+                        cursor += 1;
+                        continue;
+                    }
+                    if is_word_output_request(&next.text) {
+                        output = true;
+                        cursor += 1;
+                        break;
+                    }
+                    break;
+                }
+                if output {
+                    statements.extend(self.lower_word_frequency(
+                        &literal,
+                        filter.unwrap_or((0, false)),
+                        sentence.span,
+                    )?);
+                    index = cursor;
+                    continue;
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(start) = parse_named_list_start(&sentence.text)
             {
                 let declaration = format!("Let {} be a list of {}.", start.name, start.elements);
@@ -5665,6 +5707,60 @@ impl<'a> Lowerer<'a> {
                 _ => Ok(AstType::I64),
             },
         }
+    }
+
+    fn lower_word_frequency(
+        &mut self,
+        source: &str,
+        filter: (usize, bool),
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let (minimum_letters, keep_repeated) = filter;
+        let words = source
+            .split_whitespace()
+            .map(|word| {
+                word.trim_matches(|character: char| {
+                    !(character.is_alphanumeric() || character == '\'')
+                })
+                .to_ascii_lowercase()
+            })
+            .filter(|word| !word.is_empty())
+            .collect::<Vec<_>>();
+        let mut order = Vec::new();
+        let mut counts: HashMap<String, usize> = HashMap::new();
+        for word in &words {
+            if !counts.contains_key(word) {
+                order.push(word.clone());
+            }
+            *counts.entry(word.clone()).or_insert(0) += 1;
+        }
+        let kept = order
+            .into_iter()
+            .filter_map(|word| {
+                let count = *counts.get(&word)?;
+                let letters = word
+                    .chars()
+                    .filter(|character| character.is_alphabetic())
+                    .count();
+                (letters >= minimum_letters || (keep_repeated && count > 1))
+                    .then_some((word, count))
+            })
+            .collect::<Vec<_>>();
+        let mut statements = Vec::new();
+        for (word, count) in &kept {
+            statements.extend(self.lower_emit_parts(
+                &[quote_word(word), "\" \"".to_string(), count.to_string()],
+                span,
+            )?);
+        }
+        if let Some((_, (word, _))) = kept
+            .iter()
+            .enumerate()
+            .max_by_key(|(position, (_, count))| (*count, usize::MAX - *position))
+        {
+            statements.extend(self.lower_emit_parts(&[quote_word(word)], span)?);
+        }
+        Ok(statements)
     }
 
     fn list_element_type(&self, name: &str) -> Option<AstType> {
@@ -10104,6 +10200,19 @@ fn contains_nary_operator(text: &str) -> bool {
     ]
     .iter()
     .any(|phrase| crate::textutil::find_top_level_phrase(text, phrase).is_some())
+}
+
+fn quote_word(word: &str) -> String {
+    let mut quoted = String::from("\"");
+    for character in word.chars() {
+        match character {
+            '\\' => quoted.push_str("\\\\"),
+            '"' => quoted.push_str("\\\""),
+            _ => quoted.push(character),
+        }
+    }
+    quoted.push('"');
+    quoted
 }
 
 fn singular_noun(word: &str) -> String {
