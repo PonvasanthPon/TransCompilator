@@ -48,6 +48,8 @@ const GRID_WALK_REPRO: &str = "Imagine standing at the center of a grid, facing 
 
 const CIRCLE_REMOVAL_REPRO: &str = "Arrange the numbers from 1 to 10 in a circle. Starting at 1, count around the circle and remove every third remaining number until only one number is left. Remember the order in which the numbers were removed. At the end, print the fourth number that was removed, followed by the single number left in the circle.\n";
 
+const BRACKET_SCAN_REPRO: &str = "Inspect the text \"([{}])([]{})([)]\" one character at a time from left to right. Whenever you see an opening bracket, remember it as the most recent unmatched one; whenever you see a closing bracket, check whether it matches the most recent unmatched opening bracket and clear that pair if it does. Keep track of the deepest level of simultaneous open brackets you reach. If a closing bracket ever fails to match, or appears when no opening bracket is waiting, stop immediately and print the 1-based position of that broken character, followed by the deepest nesting level reached so far.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1926,6 +1928,39 @@ fn lsp_circle_removal_has_zero_diagnostics_and_no_comment_tokens() {
         .filter_map(Json::as_i64)
         .collect::<Vec<_>>();
     let tokens = decode_semantic_tokens(&data, CIRCLE_REMOVAL_REPRO);
+    assert!(!tokens.is_empty(), "{tokens:?}");
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_bracket_scan_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_bracket_scan.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, BRACKET_SCAN_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, BRACKET_SCAN_REPRO);
     assert!(!tokens.is_empty(), "{tokens:?}");
     assert!(
         !tokens.iter().any(|token| token.token_type == COMMENT),

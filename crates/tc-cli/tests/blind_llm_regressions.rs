@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn bracket_scan_reports_mismatch_position_and_deepest_nesting() {
+    assert_program(
+        "bracket-scan",
+        "Inspect the text \"([{}])([]{})([)]\" one character at a time from left to right. Whenever you see an opening bracket, remember it as the most recent unmatched one; whenever you see a closing bracket, check whether it matches the most recent unmatched opening bracket and clear that pair if it does. Keep track of the deepest level of simultaneous open brackets you reach. If a closing bracket ever fails to match, or appears when no opening bracket is waiting, stop immediately and print the 1-based position of that broken character, followed by the deepest nesting level reached so far.\n",
+        &["15", "3"],
+    );
+}
+
+#[test]
+fn bracket_scan_generalizes_text_and_mismatch() {
+    assert_program(
+        "bracket-scan-generalized",
+        "Inspect the text \"([)]\" one character at a time from left to right. Whenever you see an opening bracket, remember it as the most recent unmatched one; whenever you see a closing bracket, check whether it matches the most recent unmatched opening bracket and clear that pair if it does. Keep track of the deepest level of simultaneous open brackets you reach. If a closing bracket ever fails to match, or appears when no opening bracket is waiting, stop immediately and print the 1-based position of that broken character, followed by the deepest nesting level reached so far.\n",
+        &["3", "2"],
+    );
+}
+
+#[test]
 fn circle_removal_reports_requested_removed_and_survivor() {
     assert_program(
         "circle-removal",

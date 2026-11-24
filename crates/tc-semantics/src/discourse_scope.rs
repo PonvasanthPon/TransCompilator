@@ -269,6 +269,39 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts
 }
 
+/// Parses `Inspect the text "..."` and returns the quoted literal.
+pub(crate) fn parse_inspect_text(text: &str) -> Option<String> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("inspect the text ")
+        || lower.starts_with("scan the text ")
+        || lower.starts_with("examine the text ")
+        || lower.starts_with("read the text "))
+    {
+        return None;
+    }
+    let token = tokenize(text)
+        .into_iter()
+        .find(|token| token.kind == TokenKind::String)?;
+    let bytes = decode_string_token(&token.text)?;
+    String::from_utf8(bytes).ok()
+}
+
+/// True for a bracket-scan rule sentence that can be skipped before the report.
+pub(crate) fn is_bracket_rule(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("opening bracket")
+        || lower.contains("closing bracket")
+        || lower.contains("open brackets")
+        || lower.contains("deepest level")
+        || lower.contains("unmatched")
+}
+
+/// True for the final bracket-scan report sentence.
+pub(crate) fn is_bracket_report(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("fails to match") && lower.contains("position") && lower.contains("deepest")
+}
+
 /// A circle of consecutive numbers.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CircleSetup {
