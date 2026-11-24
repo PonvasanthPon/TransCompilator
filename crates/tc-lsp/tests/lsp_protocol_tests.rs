@@ -38,6 +38,8 @@ const FILTER_PIPELINE_REPRO: &str = "Take all the numbers between 1 and 30. Skip
 
 const FIBONACCI_SEQUENCE_REPRO: &str = "Start with 1 and 2. Keep generating the next number by adding the previous two numbers together, as long as the new number does not exceed 200. For each number in this entire sequence, including the starting two, add it to a running total. Whenever that total goes over 100, subtract 100 from it and count an overflow. At the end, print the final running total and how many overflows occurred.\n";
 
+const TWO_BOX_SIMULATION_REPRO: &str = "Imagine a red box starting with 5 and a blue box starting with 16. Walk through every number from 1 up to 40. If the number is a multiple of 3, move 4 from the blue box into the red box; otherwise move 1 from the red box into the blue box. However, if a move would ever cause either box to drop below 5, skip that move and leave both boxes unchanged. Stop immediately as soon as the red box holds more than twice as much as the blue box. Finally, print the number where you stopped, followed by the amounts in the red box and the blue box.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1733,6 +1735,44 @@ fn lsp_fibonacci_sequence_pipeline_has_zero_diagnostics_and_no_comment_tokens() 
         .filter_map(Json::as_i64)
         .collect::<Vec<_>>();
     let tokens = decode_semantic_tokens(&data, FIBONACCI_SEQUENCE_REPRO);
+    assert!(
+        tokens
+            .iter()
+            .any(|token| token.text == "number" && token.token_type == VARIABLE),
+        "{tokens:?}"
+    );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_two_box_simulation_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_two_box_simulation.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, TWO_BOX_SIMULATION_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, TWO_BOX_SIMULATION_REPRO);
     assert!(
         tokens
             .iter()

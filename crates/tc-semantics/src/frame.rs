@@ -350,9 +350,28 @@ impl Lowerer<'_> {
                 statements.extend(self.write_arithmetic(
                     &dest.render(),
                     tc_ir::BinOp::Add,
-                    amount,
+                    amount.clone(),
                     span,
                 )?);
+                if let Some(floor_text) = self.active_move_floor() {
+                    let floor = self.parse_value(&floor_text, span)?;
+                    let available = self.parse_value(&source.render(), span)?;
+                    let required = AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(amount),
+                        rhs: Box::new(floor),
+                    };
+                    statements = vec![AstStmt::If {
+                        cond: AstExpr::Binary {
+                            op: tc_ir::BinOp::Ge,
+                            lhs: Box::new(available),
+                            rhs: Box::new(required),
+                        },
+                        then_body: statements,
+                        else_body: Vec::new(),
+                        span: self.span(span),
+                    }];
+                }
                 Ok(statements)
             }
             TransferOp::Double | TransferOp::Halve | TransferOp::Negate => {

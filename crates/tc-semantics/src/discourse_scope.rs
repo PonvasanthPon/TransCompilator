@@ -86,6 +86,122 @@ pub(crate) fn parse_largest_tracker(text: &str) -> Option<LargestTracker> {
     Some(LargestTracker { maximum })
 }
 
+fn singular_word(word: &str) -> String {
+    if word.ends_with("ies") && word.len() > 3 {
+        format!("{}y", &word[..word.len() - 3])
+    } else if (word.ends_with("ses")
+        || word.ends_with("xes")
+        || word.ends_with("zes")
+        || word.ends_with("ches")
+        || word.ends_with("shes"))
+        && word.len() > 3
+    {
+        word[..word.len() - 2].to_string()
+    } else if word.ends_with('s') && !word.ends_with("ss") && word.len() > 1 {
+        word[..word.len() - 1].to_string()
+    } else {
+        word.to_string()
+    }
+}
+
+/// Parses `Imagine a red box starting with 5 and a blue box starting with 16.`
+/// into named starting values.
+pub(crate) fn parse_state_declaration(text: &str) -> Option<Vec<(String, String)>> {
+    let tokens = tokenize(text);
+    let first = tokens.first()?;
+    if !matches!(
+        first.lower.as_str(),
+        "imagine" | "suppose" | "assume" | "consider"
+    ) {
+        return None;
+    }
+    let rest = text[first.end..].trim();
+    let clauses = split_top_level_list(rest, "and");
+    if clauses.len() < 2 {
+        return None;
+    }
+    let mut declarations = Vec::new();
+    for clause in clauses {
+        let lower = clause.to_ascii_lowercase();
+        let (marker, marker_len) = ["starting with", "holding", "containing", "with"]
+            .iter()
+            .find_map(|marker| lower.find(marker).map(|index| (*marker, index)))?;
+        let name_text = clause[..marker_len].trim();
+        let value = clause[marker_len + marker.len()..]
+            .trim()
+            .trim_end_matches(['.', ',', ':'])
+            .trim();
+        let words = tokenize(name_text)
+            .into_iter()
+            .filter(tc_syntax::Token::is_word)
+            .map(|token| token.lower)
+            .filter(|word| !matches!(word.as_str(), "a" | "an" | "the" | "some" | "one"))
+            .collect::<Vec<_>>();
+        if words.is_empty() || value.is_empty() {
+            return None;
+        }
+        let last = words.last().map(|word| singular_word(word))?;
+        let mut name_words = words.clone();
+        if let Some(last_word) = name_words.last_mut() {
+            *last_word = last;
+        }
+        declarations.push((name_words.join("_"), value.to_string()));
+    }
+    Some(declarations)
+}
+
+/// Parses a loop-wide move guard such as `if a move would ever cause either box
+/// to drop below 5, skip that move`.
+pub(crate) fn parse_move_guard(text: &str) -> Option<String> {
+    let lower = trimmed_lower(text);
+    let lower = lower
+        .strip_prefix("however, ")
+        .or_else(|| lower.strip_prefix("however "))
+        .unwrap_or(&lower)
+        .trim();
+    if !lower.starts_with("if ") || !lower.contains("move") {
+        return None;
+    }
+    if !(lower.contains("skip that move")
+        || lower.contains("skip the move")
+        || lower.contains("skip it")
+        || lower.contains("leave both boxes unchanged")
+        || lower.contains("leave the boxes unchanged"))
+    {
+        return None;
+    }
+    let (_, end) = [
+        "drop below",
+        "fall below",
+        "go below",
+        "dip below",
+        "become less than",
+    ]
+    .iter()
+    .find_map(|phrase| top_level_phrase(text, phrase))?;
+    let floor = text[end..]
+        .trim()
+        .trim_end_matches(['.', ',', ':'])
+        .split(',')
+        .next()
+        .unwrap_or_default()
+        .trim();
+    (!floor.is_empty()).then(|| floor.to_string())
+}
+
+/// Parses `Stop immediately as soon as <condition>`.
+pub(crate) fn parse_stop_condition(text: &str) -> Option<String> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("stop ") || lower.starts_with("halt ") || lower == "stop") {
+        return None;
+    }
+    let (_, end) = ["as soon as", "as early as", "when", "once", "if"]
+        .iter()
+        .find_map(|phrase| top_level_phrase(text, phrase))?;
+    let condition = text[end..].trim().trim_end_matches(['.', ',', ':']).trim();
+    (!condition.is_empty()).then(|| condition.to_string())
+}
+
 /// One parsed discourse loop introduction.
 #[derive(Debug, Clone)]
 pub(crate) struct LoopIntroduction {
@@ -518,7 +634,7 @@ pub(crate) fn parse_loop_introduction(text: &str) -> Option<LoopIntroduction> {
         .collect::<Vec<_>>();
     let allowed = [
         "look", "at", "consider", "examine", "take", "go", "through", "check", "run", "process",
-        "work",
+        "work", "walk", "across", "over",
     ];
     if opener.is_empty() || !opener.iter().all(|word| allowed.contains(word)) {
         return None;
