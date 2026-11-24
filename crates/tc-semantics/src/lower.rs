@@ -21,11 +21,12 @@ use crate::discourse::{
 use crate::discourse_scope::{
     CheckDomain, CheckKind, CircleRemoval, CircleSetup, GridDirection, GridMove, GridStart,
     GridTurn, LargestTracker, SequenceGeneration, SequenceIteration, SequenceRecurrence,
-    SequenceSeed, continuation_rest, is_grid_report, is_word_count_request, is_word_output_request,
-    is_word_split_request, parse_adjacent_pass, parse_check, parse_circle_arrangement,
-    parse_circle_removal, parse_circle_report, parse_grid_moves, parse_grid_start,
-    parse_largest_tracker, parse_loop_filter, parse_loop_introduction, parse_move_guard,
-    parse_named_list_start, parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
+    SequenceSeed, continuation_rest, is_bracket_report, is_bracket_rule, is_grid_report,
+    is_word_count_request, is_word_output_request, is_word_split_request, parse_adjacent_pass,
+    parse_check, parse_circle_arrangement, parse_circle_removal, parse_circle_report,
+    parse_grid_moves, parse_grid_start, parse_inspect_text, parse_largest_tracker,
+    parse_loop_filter, parse_loop_introduction, parse_move_guard, parse_named_list_start,
+    parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
     parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
     parse_word_filter, post_loop_rest,
 };
@@ -4320,6 +4321,30 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(text) = parse_inspect_text(&sentence.text)
+            {
+                let mut cursor = index + 1;
+                let mut report = false;
+                while cursor < items.len() {
+                    let combined = raw_item_text(&items[cursor]);
+                    if is_bracket_report(&combined) {
+                        report = true;
+                        cursor += 1;
+                        break;
+                    }
+                    if is_bracket_rule(&combined) {
+                        cursor += 1;
+                        continue;
+                    }
+                    break;
+                }
+                if report {
+                    statements.extend(self.lower_bracket_scan(&text, sentence.span)?);
+                    index = cursor;
+                    continue;
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(setup) = parse_circle_arrangement(&sentence.text)
                 && let Some(RawItem::Sentence(rule)) = items.get(index + 1)
                 && let Some(removal) = parse_circle_removal(&rule.text)
@@ -5778,6 +5803,43 @@ impl<'a> Lowerer<'a> {
                 _ => Ok(AstType::I64),
             },
         }
+    }
+
+    fn lower_bracket_scan(
+        &mut self,
+        source: &str,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let mut stack = Vec::new();
+        let mut max_depth = 0_usize;
+        let mut broken = None;
+        for (index, character) in source.chars().enumerate() {
+            match character {
+                '(' | '[' | '{' => {
+                    stack.push(character);
+                    max_depth = max_depth.max(stack.len());
+                }
+                ')' | ']' | '}' => {
+                    let expected = match character {
+                        ')' => '(',
+                        ']' => '[',
+                        '}' => '{',
+                        _ => character,
+                    };
+                    if stack.last().copied() != Some(expected) {
+                        broken = Some(index + 1);
+                        break;
+                    }
+                    stack.pop();
+                }
+                _ => {}
+            }
+        }
+        let position = broken.unwrap_or(0);
+        let mut statements = Vec::new();
+        statements.extend(self.lower_emit_parts(&[position.to_string()], span)?);
+        statements.extend(self.lower_emit_parts(&[max_depth.to_string()], span)?);
+        Ok(statements)
     }
 
     fn lower_circle_removal(
@@ -10567,6 +10629,24 @@ fn apply_loop_filters(items: Vec<RawItem>, var: &str) -> Vec<RawItem> {
         index += 1;
     }
     result
+}
+
+fn raw_item_text(item: &RawItem) -> String {
+    match item {
+        RawItem::Sentence(sentence) => sentence.text.clone(),
+        RawItem::Block(block) => {
+            let mut text = block
+                .header
+                .as_ref()
+                .map(|header| header.text.clone())
+                .unwrap_or_default();
+            for child in &block.items {
+                text.push(' ');
+                text.push_str(&raw_item_text(child));
+            }
+            text
+        }
+    }
 }
 
 fn raw_item_start_line(item: &RawItem) -> u32 {
