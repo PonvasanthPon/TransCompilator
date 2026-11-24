@@ -1,41 +1,157 @@
 # tc_r1
 
-`tc_r1` is a clean-slate Rust rewrite of TransCompilator built on the
-**Core-7 + English `std/`** philosophy. `tc_r1` is a general-purpose English
-compiler with general NL understanding: English is analyzed for intent,
-discourse context, reference, quantification, and computational meaning, then
-lowered deterministically to Core-7 with a static, zero-libc x86_64 ELF64
-output path.
+## What is TransCompilator?
 
-This repository is **`tc_r1` 0.1.0-alpha-preview** (Alpha Preview): the
-hardened Core-7 typed IR, exhaustive verifier, byte-accurate reference
-interpreter, direct x86_64 static zero-libc
-ELF64 backend, the high-level `tc-typeck` front end, the zero-ML `tc-lexicon`
-word/verb engine, a general-purpose English front end, the readable natural-English
-`std/` standard library, a terminal editor (`r1-editor`), a native `std`-only
-Language Server (`tc-lsp`), and a Zed `.eng` extension with offline zero-AI
-configuration are implemented. English source now flows through vendored
-CMU Link Grammar 5.13.2, paragraph/block segmentation, a normalized clause
-tree, a strict three-way intent gate, a declarative `Phrase:` dispatcher, a
-DRS-style discourse referent stack (`it`, `its <field>`, `the <type>`), a
-comma-aware boolean condition parser, deterministic global/local quantifier
-lowering, and one unified recursive Core-7 statement lowerer. `tc build`,
-`tc run`, `tc interp`, `tc trace`, and `tc paraphrase` compile and inspect
-real English programs end to end. Differential parity suites in
-`crates/tc-codegen-x86/tests/`, `crates/tc-typeck/tests/`, and
-`crates/tc-semantics/tests/` require exact exit-status/stdout/stderr
-agreement between the reference interpreter and compiled ELF64 binaries,
-including sandboxed file creation, appends, seeks, and deletion.
+TransCompilator is a compiler family whose source language is structured human
+language rather than a conventional programming language. The name means
+*translate + compile*: it reads instructions written in everyday language,
+recovers their computational intent through deterministic grammar and lexical
+analysis, lowers that intent into a typed intermediate representation, and
+emits executable code.
 
-The standard library in `std/` is written entirely in readable `.eng`
-English. It provides `Option`/`Result` and panic helpers, a free-list
-allocator, exact console formatting and byte-safe input, heap strings,
-generic `List of T`, streaming file I/O, `sqrt`/integer math, and
-open-addressing `IntMap`/`StrMap` tables. The source uses prose-style
-declarations such as `A public record ... has ...`, `Keep a shared ...`,
-`Publicly, to ... given ..., returning ... . ... Done.`, `Give back ...`,
-`Clear bits ... from ...`, and `Ask Linux kernel ... with ...`. Programs that
-import `std/` still compile to static zero-libc ELF64.
+It is not an AI code generator. There are no models, embeddings, or
+probabilistic guesses in the compilation path. A TransCompilator program should
+be readable by a person and reproducible by a machine.
+
+The current implementation uses English as its source language, Core-7 as its
+shared middle-end, and static x86_64 ELF64 as its first target. The long-term
+architecture is many natural languages in, one Core-7 IR, and many native or
+portable targets out; see [MANIFEST.md](MANIFEST.md).
+
+## What is tc_r1?
+
+`tc_r1` is the clean-slate Rust implementation of TransCompilator, currently
+**`tc_r1` 0.1.0-alpha-preview**. It is a nine-crate `std`-only workspace with
+zero external crates, zero ML, and zero network access.
+
+English source flows through vendored CMU Link Grammar 5.13.2, paragraph and
+block segmentation, a normalized clause tree, a three-way intent gate,
+discourse and anaphora resolution, compositional `where`/`Given`/`then`
+analysis, and deterministic quantifier lowering. The typed front end resolves
+modules, checks types and generics, and lowers verified Core-7 IR.
+`tc-codegen-x86` emits Intel-syntax assembly and links a static zero-libc
+ELF64 binary. The reference interpreter executes the same verified IR, and
+parity tests require identical exit status, stdout, stderr, and file effects
+between both paths.
+
+The eight `std/*.eng` modules are written in readable English and provide
+`Option`/`Result`, a reusable-block allocator, console formatting and input,
+growable text, generic lists, file I/O, integer/text maps, and math helpers.
+They compile to the same static zero-libc target.
+
+The same compiler crates power `tc`, `tc-lsp`, and `r1-editor`; neither the
+LSP nor the editor shells out to the compiler.
+
+## What English looks like
+
+Each example below is a complete program that was compiled and run with this
+release.
+
+### FizzBuzz
+
+```text
+Use io.
+
+For every n from 1 up to 20:
+    If n is divisible by 15:
+        Print "FizzBuzz".
+    Otherwise:
+        If n is divisible by 3:
+            Print "Fizz".
+        Otherwise:
+            If n is divisible by 5:
+                Print "Buzz".
+            Otherwise:
+                Print n.
+```
+
+Output:
+
+```text
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+16
+17
+Fizz
+19
+Buzz
+```
+
+### Collatz sequence
+
+```text
+Use io.
+
+Let n start at 27.
+Let steps start at 0.
+
+Repeat while n isn't 1.
+    If n is even, halve n. Otherwise, set n to n times 3 plus 1.
+    Add 1 to steps.
+End the loop.
+
+Print "27 reaches 1 in " with steps and " steps."
+```
+
+Output:
+
+```text
+27 reaches 1 in 111 steps.
+```
+
+### Generic list statistics
+
+```text
+Use list, io.
+
+Let scores be List of whole number.
+Push 92 to address of scores.
+Push 68 to address of scores.
+Push 77 to address of scores.
+Push 100 to address of scores.
+Push 85 to address of scores.
+
+Let low be minimum of address of scores.
+Let high be maximum of address of scores.
+
+Print "Scores: " with count of address of scores.
+Print "Total: " with sum of address of scores.
+Print "Average: " with average of address of scores.
+Print "Range: " with low and " to " with high.
+
+list_free(address of scores).
+```
+
+Output:
+
+```text
+Scores: 5
+Total: 422
+Average: 84.4000
+Range: 68 to 100
+```
+
+Save an example as `fizzbuzz.eng`, then run it directly or compile it to a
+standalone binary:
+
+```bash
+./target/debug/tc run fizzbuzz.eng
+./target/debug/tc build fizzbuzz.eng -o fizzbuzz.elf
+./fizzbuzz.elf
+```
 
 ## Quickstart
 
@@ -44,7 +160,18 @@ From a checkout of this repository:
 ```bash
 CARGO_NET_OFFLINE=true make build
 ./target/debug/tc --selftest
-printf 'Let total be 2.\nAdd 3 to total.\nPrint total.\n' > hello.eng
+```
+
+Create `hello.eng`:
+
+```text
+Let name be "world".
+Print "Hello, " with name and "!".
+```
+
+Then:
+
+```bash
 ./target/debug/tc run hello.eng
 ```
 
@@ -52,38 +179,40 @@ For a release build and the offline Zed setup, see
 [Build Requirements](#build-requirements) and
 [Language Server (`tc-lsp`) and Zed](#language-server-tc-lsp-and-zed).
 
-## 0.1.0-alpha-preview status
+## Release status
 
-**Alpha Preview** — the core compiler, static ELF64 backend, eight
-`std/*.eng` modules, and `tc-lsp` work end-to-end; the English grammar
-surface is actively evolving. The release includes the fixed point of a
-five-round zero-bug convergence campaign: **640 fresh `.eng` programs**
-across eight English-variety bands,
-**15,000 disjoint differential/paraphrase/prose/crash seeds**, and **7
-root-cause bugs fixed** with permanent regressions. The final suite is
-**663/663 passing**, and Round 5 completed its entire fresh budget with zero
-bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **1054/1054 passing**, including the 63-test headless
-`tc-lsp` protocol suite, 68 compositional parity tests, 89
-paraphrase-invariance fluency tests, and 38 casual-English
-and guard/regression tests. All eight
-`std/*.eng` modules pass the Version 2 pure-English readability gate. The
-frontend now auto-loads `std/io` as a prelude plus `std/list`, `std/string`,
-and `std/math` when their everyday forms are used, lowers every WordNet/VerbNet
-`Emit` concept (`Print`, `Show`, `Display`, `Output`, `Say`, `Report`) without
-requiring `Use io.`, decomposes `where`/`Given`/`then` clause graphs, tracks
-plural `their ...` and `the result` anaphora, and recursively parses English
-math noun phrases such as `the product of the sum of a and b and the difference
-between c and d`. `trim <x>`, `the square root of <x>`, and natural
+`0.1.0-alpha-preview` is an Alpha Preview. The core compiler, Core-7 IR and
+verifier, reference interpreter, static ELF64 backend, eight `std/*.eng`
+modules, CLI, language server, terminal editor, and Zed integration work end
+to end. The English grammar surface is actively evolving; unsupported
+constructs produce diagnostics rather than guesses.
+
+The current suite is **1054/1054 passing**, including 63 headless `tc-lsp`
+protocol tests, 68 compositional parity tests, 89 paraphrase-invariance tests,
+38 casual-English and guard tests, the human-English battle suite, the
+orthogonality matrix, the std purity gates, and the IR runtime-honesty test.
+The release includes the fixed point of a five-round convergence campaign:
+**640 fresh `.eng` programs**, **15,000 disjoint
+differential/paraphrase/prose/crash seeds**, and **7 root-cause bugs fixed**
+with permanent regressions. Round 5 completed its entire fresh budget with
+zero bugs.
+
+All eight `std/*.eng` modules pass the Version 2 pure-English readability
+gate. The frontend auto-loads `std/io` as a prelude plus `std/list`,
+`std/string`, and `std/math` when their everyday forms are used, lowers every
+WordNet/VerbNet `Emit` concept (`Print`, `Show`, `Display`, `Output`, `Say`,
+`Report`) without requiring `Use io.`, decomposes `where`/`Given`/`then`
+clause graphs, tracks plural `their ...` and `the result` anaphora, and parses
+English math noun phrases such as `the product of the sum of a and b and the
+difference between c and d`. `trim <x>`, `the square root of <x>`, and natural
 `starts with` / `ends with` / `contains` predicates work without boilerplate.
-Polite and sequence openers (`Please`, `Now`, `First`,
-`Let's`), English number words, natural predicates, inline list construction,
-and length/count queries normalize into the same deterministic Core-7 forms, so
-paraphrases preserve exact IR and ELF64 behavior. Compiler diagnostics suggest
-natural spellings for unknown
-names and fields, explain reserved control words, and point unresolved anaphors
-at concrete fixes; `std/list` and `std/string` add everyday
-sum/average/minimum/maximum/contains/find/reverse and text
+Polite and sequence openers (`Please`, `Now`, `First`, `Let's`), English
+number words, natural predicates, inline list construction, and length/count
+queries normalize into the same deterministic Core-7 forms, so paraphrases
+preserve exact IR and ELF64 behavior. Compiler diagnostics suggest natural
+spellings for unknown names and fields, explain reserved control words, and
+point unresolved anaphors at concrete fixes; `std/list` and `std/string` add
+everyday sum/average/minimum/maximum/contains/find/reverse and text
 starts/ends/contains/trim/parse/format helpers in pure Version 2 English.
 
 ```bash
