@@ -269,6 +269,117 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts
 }
 
+/// A list introduced with inline starting values.
+#[derive(Debug, Clone)]
+pub(crate) struct NamedListStart {
+    /// Variable name.
+    pub name: String,
+    /// Comma/and separated element text.
+    pub elements: String,
+}
+
+/// Parses `Start with the list of numbers 14, 7, ..., and 18.`
+pub(crate) fn parse_named_list_start(text: &str) -> Option<NamedListStart> {
+    let lower = trimmed_lower(text);
+    let rest = lower
+        .strip_prefix("start with ")
+        .or_else(|| lower.strip_prefix("begin with "))
+        .or_else(|| lower.strip_prefix("start from "))?;
+    if !rest.contains("list") {
+        return None;
+    }
+    let mut body = rest
+        .strip_prefix("the list of ")
+        .or_else(|| rest.strip_prefix("a list of "))
+        .or_else(|| rest.strip_prefix("the list "))
+        .or_else(|| rest.strip_prefix("a list "))?;
+    let mut name = "items".to_string();
+    for noun in [
+        "whole numbers ",
+        "numbers ",
+        "values ",
+        "items ",
+        "integers ",
+    ] {
+        if let Some(after) = body.strip_prefix(noun) {
+            name = noun.trim().replace(' ', "_");
+            body = after;
+            break;
+        }
+    }
+    let elements = body.trim();
+    if elements.is_empty() || !(elements.contains(',') || elements.contains(" and ")) {
+        return None;
+    }
+    Some(NamedListStart {
+        name,
+        elements: elements.to_string(),
+    })
+}
+
+/// One adjacent-pair list pass.
+#[derive(Debug, Clone)]
+pub(crate) struct AdjacentPass;
+
+/// Parses `Go through the list from left to right, comparing each number with
+/// the one immediately after it.`
+pub(crate) fn parse_adjacent_pass(text: &str) -> Option<AdjacentPass> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("go through ")
+        || lower.starts_with("walk through ")
+        || lower.starts_with("scan ")
+        || lower.starts_with("iterate over ")
+        || lower.starts_with("loop over ")
+        || lower.starts_with("pass through "))
+    {
+        return None;
+    }
+    if !lower.contains("list") {
+        return None;
+    }
+    let (_, _end) = top_level_phrase(text, "comparing each ")?;
+    Some(AdjacentPass)
+}
+
+/// Parses the post-pass filter sentence, returning its predicate text.
+pub(crate) fn parse_pass_cleanup(text: &str) -> Option<String> {
+    let lower = trimmed_lower(text);
+    let mut rest = lower.as_str();
+    for opener in [
+        "after finishing that pass, ",
+        "after finishing the pass, ",
+        "after that pass, ",
+        "after the pass, ",
+        "once that pass is finished, ",
+        "once the pass is finished, ",
+    ] {
+        if let Some(after) = rest.strip_prefix(opener) {
+            rest = after;
+            break;
+        }
+    }
+    if !(rest.starts_with("remove ")
+        || rest.starts_with("delete ")
+        || rest.starts_with("filter out ")
+        || rest.starts_with("drop "))
+    {
+        return None;
+    }
+    if !(rest.contains("from the list")
+        || rest.contains("from it")
+        || rest.contains("from the numbers")
+        || rest.contains("from the values")
+        || rest.contains("from the items"))
+    {
+        return None;
+    }
+    let (_, end) = ["that is ", "which is ", "that are ", "which are "]
+        .iter()
+        .find_map(|phrase| top_level_phrase(text, phrase))?;
+    let predicate = text[end..].trim().trim_end_matches(['.', ',', ':']).trim();
+    (!predicate.is_empty()).then(|| predicate.to_string())
+}
+
 /// Parses `Start with 1 and 2.`
 pub(crate) fn parse_sequence_seed(text: &str) -> Option<SequenceSeed> {
     let tokens = tokenize(text);

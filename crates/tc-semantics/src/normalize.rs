@@ -58,6 +58,16 @@ pub(crate) fn sentence(text: &str) -> String {
             continue;
         }
         for (phrase, replacement) in [
+            ("is larger than", "is greater than"),
+            ("is bigger than", "is greater than"),
+            ("is smaller than", "is less than"),
+        ] {
+            if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, phrase) {
+                current = format!("{}{}{}", &current[..start], replacement, &current[end..]);
+                break;
+            }
+        }
+        for (phrase, replacement) in [
             ("holds more than twice as much as", "is more than twice"),
             ("has more than twice as much as", "is more than twice"),
             ("is more than twice as much as", "is more than twice"),

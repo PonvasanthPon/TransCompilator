@@ -20,8 +20,9 @@ use crate::discourse::{
 };
 use crate::discourse_scope::{
     CheckDomain, CheckKind, LargestTracker, SequenceGeneration, SequenceIteration,
-    SequenceRecurrence, SequenceSeed, continuation_rest, parse_check, parse_largest_tracker,
-    parse_loop_filter, parse_loop_introduction, parse_move_guard, parse_sequence_generation,
+    SequenceRecurrence, SequenceSeed, continuation_rest, parse_adjacent_pass, parse_check,
+    parse_largest_tracker, parse_loop_filter, parse_loop_introduction, parse_move_guard,
+    parse_named_list_start, parse_pass_cleanup, parse_sequence_generation,
     parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
     post_loop_rest,
 };
@@ -3100,6 +3101,15 @@ struct ActiveTracker {
     maximum: bool,
 }
 
+#[derive(Debug, Clone)]
+struct AdjacentContext {
+    list: String,
+    index: String,
+    left: String,
+    right: String,
+    element: AstType,
+}
+
 pub(crate) struct Lowerer<'a> {
     parser: &'a crate::LinkGrammarParser,
     module: String,
@@ -3128,6 +3138,8 @@ pub(crate) struct Lowerer<'a> {
     named_counters: HashMap<String, String>,
     move_floor: Option<String>,
     last_iteration_var: Option<String>,
+    last_list: Option<String>,
+    adjacent: Option<AdjacentContext>,
 }
 
 impl<'a> Lowerer<'a> {
@@ -3170,6 +3182,8 @@ impl<'a> Lowerer<'a> {
             named_counters: HashMap::new(),
             move_floor: None,
             last_iteration_var: None,
+            last_list: None,
+            adjacent: None,
         }
     }
 
@@ -3447,6 +3461,55 @@ impl<'a> Lowerer<'a> {
         let mut current = text.to_string();
         loop {
             let mut replaced = false;
+            if let Some(context) = self.adjacent.clone() {
+                for (phrase, value) in [
+                    ("the left number", &context.left),
+                    ("the left one", &context.left),
+                    ("the left value", &context.left),
+                    ("the right number", &context.right),
+                    ("the right one", &context.right),
+                    ("the right value", &context.right),
+                ] {
+                    if let Some((start, end)) =
+                        crate::textutil::find_top_level_phrase(&current, phrase)
+                    {
+                        current = format!("{}{}{}", &current[..start], value, &current[end..]);
+                        self.touch_name(value, span);
+                        replaced = true;
+                        break;
+                    }
+                }
+            }
+            if replaced {
+                continue;
+            }
+            if let Some(list) = self.last_list.clone() {
+                for phrase in [
+                    "the remaining numbers in order",
+                    "the remaining items in order",
+                    "the remaining values in order",
+                    "the numbers in order",
+                    "the items in order",
+                    "the values in order",
+                    "the remaining numbers",
+                    "the remaining items",
+                    "the remaining values",
+                    "the numbers that remain",
+                    "the items that remain",
+                ] {
+                    if let Some((start, end)) =
+                        crate::textutil::find_top_level_phrase(&current, phrase)
+                    {
+                        current = format!("{}{}{}", &current[..start], list, &current[end..]);
+                        self.touch_name(&list, span);
+                        replaced = true;
+                        break;
+                    }
+                }
+            }
+            if replaced {
+                continue;
+            }
             if let Some(var) = self.last_iteration_var.clone() {
                 for phrase in [
                     "the stopping number",
@@ -4253,6 +4316,77 @@ impl<'a> Lowerer<'a> {
         let mut statements = Vec::new();
         let mut index = 0;
         while index < items.len() {
+            if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(start) = parse_named_list_start(&sentence.text)
+            {
+                let declaration = format!("Let {} be a list of {}.", start.name, start.elements);
+                let mut lowered =
+                    self.lower_core(&declaration, sentence.span, None, None, depth + 1)?;
+                self.last_list = Some(start.name.clone());
+                let mut cursor = index + 1;
+                let has_pass = items.get(cursor).is_some_and(|item| {
+                    matches!(
+                        item,
+                        RawItem::Sentence(pass)
+                            if parse_adjacent_pass(&pass.text).is_some()
+                    )
+                });
+                if has_pass {
+                    let pass_item = &items[cursor];
+                    let pass_span = match pass_item {
+                        RawItem::Sentence(pass) => pass.span,
+                        RawItem::Block(block) => block.span,
+                    };
+                    cursor += 1;
+                    let mut body = Vec::new();
+                    let mut cleanup = None;
+                    let mut closer = None;
+                    let mut last_line = raw_item_end_line(pass_item);
+                    while cursor < items.len() {
+                        let start_line = raw_item_start_line(&items[cursor]);
+                        if start_line > last_line.saturating_add(1) {
+                            break;
+                        }
+                        if let RawItem::Sentence(next) = &items[cursor] {
+                            if cleanup.is_none()
+                                && let Some(predicate) = parse_pass_cleanup(&next.text)
+                            {
+                                cleanup = Some(predicate);
+                                last_line = raw_item_end_line(&items[cursor]);
+                                cursor += 1;
+                                continue;
+                            }
+                            let closer_text = if next.fillers.is_empty() {
+                                next.text.clone()
+                            } else {
+                                format!("{}, {}", next.fillers.join(" "), next.text)
+                            };
+                            if let Some(rest) = post_loop_rest(&closer_text) {
+                                closer = Some((rest, next.span));
+                                cursor += 1;
+                                break;
+                            }
+                        }
+                        body.push(items[cursor].clone());
+                        last_line = raw_item_end_line(&items[cursor]);
+                        cursor += 1;
+                    }
+                    lowered.extend(self.lower_adjacent_pass(
+                        &start.name,
+                        body,
+                        cleanup,
+                        closer,
+                        pass_span,
+                        depth + 1,
+                    )?);
+                    statements.extend(lowered);
+                    index = cursor;
+                    continue;
+                }
+                statements.extend(lowered);
+                index += 1;
+                continue;
+            }
             if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(declarations) = parse_state_declaration(&sentence.text)
             {
@@ -5533,6 +5667,395 @@ impl<'a> Lowerer<'a> {
         }
     }
 
+    fn list_element_type(&self, name: &str) -> Option<AstType> {
+        match self.lookup(name) {
+            Some(AstType::Array(element, _)) => Some((**element).clone()),
+            Some(AstType::Named {
+                name, type_args, ..
+            }) if name.eq_ignore_ascii_case("list") => type_args.first().cloned(),
+            Some(AstType::Ptr(inner)) => match inner.as_ref() {
+                AstType::Named {
+                    name, type_args, ..
+                } if name.eq_ignore_ascii_case("list") => type_args.first().cloned(),
+                AstType::Array(element, _) => Some((**element).clone()),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    fn is_list_variable(&self, text: &str) -> bool {
+        let trimmed = text.trim();
+        is_simple_name(trimmed) && self.list_element_type(&lower_name(trimmed)).is_some()
+    }
+
+    fn try_swap_adjacent(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let lower = text
+            .trim()
+            .trim_end_matches(['.', ','])
+            .trim()
+            .to_ascii_lowercase();
+        if !lower.starts_with("swap ") {
+            return Ok(None);
+        }
+        if !(lower.contains("their positions")
+            || lower.contains("their places")
+            || lower.contains("the two")
+            || lower.contains("them")
+            || lower.contains("adjacent"))
+        {
+            return Ok(None);
+        }
+        let Some(context) = self.adjacent.clone() else {
+            return Ok(None);
+        };
+        let data = self.parse_expr(&format!("{}'s data", context.list), span)?;
+        let index = AstExpr::Var(context.index.clone());
+        let next = AstExpr::Binary {
+            op: tc_ir::BinOp::Add,
+            lhs: Box::new(index.clone()),
+            rhs: Box::new(AstExpr::ConstInt(1, None)),
+        };
+        let temporary = self.next_temp("swap_value");
+        let first = AstExpr::Load(Box::new(AstExpr::IndexAddr {
+            base_ptr: Box::new(data.clone()),
+            index: Box::new(index.clone()),
+        }));
+        let second = AstExpr::Load(Box::new(AstExpr::IndexAddr {
+            base_ptr: Box::new(data.clone()),
+            index: Box::new(next.clone()),
+        }));
+        Ok(Some(vec![
+            AstStmt::Let {
+                name: temporary.clone(),
+                ty: Some(context.element.clone()),
+                init: first,
+                span: self.span(span),
+            },
+            AstStmt::Store {
+                ptr: AstExpr::IndexAddr {
+                    base_ptr: Box::new(data.clone()),
+                    index: Box::new(index),
+                },
+                val: second,
+                span: self.span(span),
+            },
+            AstStmt::Store {
+                ptr: AstExpr::IndexAddr {
+                    base_ptr: Box::new(data),
+                    index: Box::new(next),
+                },
+                val: AstExpr::Var(temporary),
+                span: self.span(span),
+            },
+        ]))
+    }
+
+    fn emit_list_elements(
+        &mut self,
+        list: &str,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let Some(element) = self.list_element_type(list) else {
+            return Ok(Vec::new());
+        };
+        let data = self.parse_expr(&format!("{list}'s data"), span)?;
+        let len = self.parse_expr(&format!("{list}'s len"), span)?;
+        let index = self.next_temp("print_index");
+        let value = self.next_temp("print_value");
+        self.declare_temp(&index, AstType::U64);
+        self.declare_temp(&value, element.clone());
+        let mut loop_body = vec![
+            AstStmt::If {
+                cond: AstExpr::Binary {
+                    op: tc_ir::BinOp::Ge,
+                    lhs: Box::new(AstExpr::Var(index.clone())),
+                    rhs: Box::new(len.clone()),
+                },
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: value.clone(),
+                val: AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                    base_ptr: Box::new(data.clone()),
+                    index: Box::new(AstExpr::Var(index.clone())),
+                })),
+                span: self.span(span),
+            },
+        ];
+        let print_name = match element {
+            AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64 => "print_u64",
+            AstType::F32 | AstType::F64 => "print_f64",
+            AstType::Bool => "print_bool",
+            _ => "print_i64",
+        };
+        loop_body.push(AstStmt::Expr(
+            AstExpr::Call {
+                module: None,
+                name: print_name.to_string(),
+                type_args: Vec::new(),
+                args: vec![AstExpr::Var(value.clone())],
+            },
+            self.span(span),
+        ));
+        loop_body.push(AstStmt::Assign {
+            name: index.clone(),
+            val: AstExpr::Binary {
+                op: tc_ir::BinOp::Add,
+                lhs: Box::new(AstExpr::Var(index.clone())),
+                rhs: Box::new(AstExpr::ConstInt(1, None)),
+            },
+            span: self.span(span),
+        });
+        Ok(vec![AstStmt::Block(
+            vec![
+                AstStmt::Let {
+                    name: index,
+                    ty: Some(AstType::U64),
+                    init: AstExpr::ConstInt(0, None),
+                    span: self.span(span),
+                },
+                AstStmt::Let {
+                    name: value,
+                    ty: Some(element),
+                    init: AstExpr::ConstInt(0, None),
+                    span: self.span(span),
+                },
+                AstStmt::Loop {
+                    body: loop_body,
+                    span: self.span(span),
+                },
+            ],
+            self.span(span),
+        )])
+    }
+
+    fn lower_list_cleanup(
+        &mut self,
+        list: &str,
+        predicate: &str,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let Some(element) = self.list_element_type(list) else {
+            return Ok(Vec::new());
+        };
+        let data = self.parse_expr(&format!("{list}'s data"), span)?;
+        let len = self.parse_expr(&format!("{list}'s len"), span)?;
+        let read = self.next_temp("read");
+        let write = self.next_temp("write");
+        let value = self.next_temp("filter_value");
+        self.declare_temp(&read, AstType::U64);
+        self.declare_temp(&write, AstType::U64);
+        self.declare_temp(&value, element.clone());
+        let condition = self.lower_condition(&format!("{value} is not {predicate}"), span)?;
+        let mut loop_body = vec![
+            AstStmt::If {
+                cond: AstExpr::Binary {
+                    op: tc_ir::BinOp::Ge,
+                    lhs: Box::new(AstExpr::Var(read.clone())),
+                    rhs: Box::new(len.clone()),
+                },
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: value.clone(),
+                val: AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                    base_ptr: Box::new(data.clone()),
+                    index: Box::new(AstExpr::Var(read.clone())),
+                })),
+                span: self.span(span),
+            },
+        ];
+        loop_body.extend(condition.prelude);
+        loop_body.push(AstStmt::If {
+            cond: condition.expr,
+            then_body: vec![
+                AstStmt::Store {
+                    ptr: AstExpr::IndexAddr {
+                        base_ptr: Box::new(data),
+                        index: Box::new(AstExpr::Var(write.clone())),
+                    },
+                    val: AstExpr::Var(value.clone()),
+                    span: self.span(span),
+                },
+                AstStmt::Assign {
+                    name: write.clone(),
+                    val: AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(AstExpr::Var(write.clone())),
+                        rhs: Box::new(AstExpr::ConstInt(1, None)),
+                    },
+                    span: self.span(span),
+                },
+            ],
+            else_body: Vec::new(),
+            span: self.span(span),
+        });
+        loop_body.push(AstStmt::Assign {
+            name: read.clone(),
+            val: AstExpr::Binary {
+                op: tc_ir::BinOp::Add,
+                lhs: Box::new(AstExpr::Var(read.clone())),
+                rhs: Box::new(AstExpr::ConstInt(1, None)),
+            },
+            span: self.span(span),
+        });
+        let mut statements = vec![
+            AstStmt::Let {
+                name: read,
+                ty: Some(AstType::U64),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: write.clone(),
+                ty: Some(AstType::U64),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: value,
+                ty: Some(element),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+            AstStmt::Loop {
+                body: loop_body,
+                span: self.span(span),
+            },
+        ];
+        statements.extend(self.assign_text(
+            &format!("{list}'s len"),
+            AstExpr::Var(write),
+            span,
+            false,
+        )?);
+        Ok(statements)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn lower_adjacent_pass(
+        &mut self,
+        list: &str,
+        body_items: Vec<RawItem>,
+        cleanup: Option<String>,
+        closer: Option<(String, Span)>,
+        span: Span,
+        depth: usize,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let Some(element) = self.list_element_type(list) else {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                format!("`{list}` is not a list"),
+            ));
+        };
+        let data = self.parse_expr(&format!("{list}'s data"), span)?;
+        let len = self.parse_expr(&format!("{list}'s len"), span)?;
+        let index = self.next_temp("pass_index");
+        let left = self.next_temp("left");
+        let right = self.next_temp("right");
+        self.declare_temp(&index, AstType::U64);
+        self.declare_temp(&left, element.clone());
+        self.declare_temp(&right, element.clone());
+        let mut statements = vec![
+            AstStmt::Let {
+                name: index.clone(),
+                ty: Some(AstType::U64),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: left.clone(),
+                ty: Some(element.clone()),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+            AstStmt::Let {
+                name: right.clone(),
+                ty: Some(element.clone()),
+                init: AstExpr::ConstInt(0, None),
+                span: self.span(span),
+            },
+        ];
+        self.scan_accumulators(&body_items, &mut statements);
+        let previous_adjacent = self.adjacent.clone();
+        self.adjacent = Some(AdjacentContext {
+            list: list.to_string(),
+            index: index.clone(),
+            left: left.clone(),
+            right: right.clone(),
+            element: element.clone(),
+        });
+        self.last_list = Some(list.to_string());
+        let body = self.lower_items(&body_items, depth + 1)?;
+        self.adjacent = previous_adjacent;
+        let next = AstExpr::Binary {
+            op: tc_ir::BinOp::Add,
+            lhs: Box::new(AstExpr::Var(index.clone())),
+            rhs: Box::new(AstExpr::ConstInt(1, None)),
+        };
+        let mut loop_body = vec![
+            AstStmt::If {
+                cond: AstExpr::Binary {
+                    op: tc_ir::BinOp::Ge,
+                    lhs: Box::new(next.clone()),
+                    rhs: Box::new(len),
+                },
+                then_body: vec![AstStmt::Break(self.span(span))],
+                else_body: Vec::new(),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: left.clone(),
+                val: AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                    base_ptr: Box::new(data.clone()),
+                    index: Box::new(AstExpr::Var(index.clone())),
+                })),
+                span: self.span(span),
+            },
+            AstStmt::Assign {
+                name: right.clone(),
+                val: AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                    base_ptr: Box::new(data),
+                    index: Box::new(next),
+                })),
+                span: self.span(span),
+            },
+            AstStmt::Block(body, self.span(span)),
+            AstStmt::Assign {
+                name: index.clone(),
+                val: AstExpr::Binary {
+                    op: tc_ir::BinOp::Add,
+                    lhs: Box::new(AstExpr::Var(index)),
+                    rhs: Box::new(AstExpr::ConstInt(1, None)),
+                },
+                span: self.span(span),
+            },
+        ];
+        loop_body
+            .retain(|statement| !matches!(statement, AstStmt::Block(items, _) if items.is_empty()));
+        statements.push(AstStmt::Loop {
+            body: loop_body,
+            span: self.span(span),
+        });
+        if let Some(predicate) = cleanup {
+            statements.extend(self.lower_list_cleanup(list, &predicate, span)?);
+        }
+        if let Some((rest, closer_span)) = closer {
+            statements.extend(self.lower_core(&rest, closer_span, None, None, depth + 1)?);
+        }
+        Ok(statements)
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn lower_sequence(
         &mut self,
@@ -6807,17 +7330,7 @@ impl<'a> Lowerer<'a> {
             if contains_nary_operator(segment) {
                 return None;
             }
-            let first_word = segment
-                .split_whitespace()
-                .next()
-                .unwrap_or_default()
-                .to_ascii_lowercase();
-            if classify_verb(&first_word, None)
-                .is_some_and(|resolution| resolution.predicate.is_some())
-            {
-                return None;
-            }
-            if self.parse_value(segment, span).is_err() {
+            if !self.is_list_variable(segment) && self.parse_value(segment, span).is_err() {
                 return None;
             }
         }
@@ -7228,10 +7741,17 @@ impl<'a> Lowerer<'a> {
         if lower == "end" {
             return Ok(Vec::new());
         }
+        if let Some(statements) = self.try_swap_adjacent(trimmed, span)? {
+            return Ok(statements);
+        }
         if let Some(parts) = self.split_multi_emit(trimmed, span) {
             let mut statements = Vec::new();
             for part in parts {
-                statements.extend(self.lower_emit_value(&part, span)?);
+                if self.is_list_variable(&part) {
+                    statements.extend(self.emit_list_elements(&part, span)?);
+                } else {
+                    statements.extend(self.lower_emit_value(&part, span)?);
+                }
             }
             return Ok(statements);
         }
@@ -9649,12 +10169,20 @@ fn named_counter_noun(text: &str) -> Option<String> {
 fn named_counter_query_noun(lower: &str) -> Option<String> {
     let rest = if let Some(rest) = lower.strip_prefix("how many ") {
         rest
-    } else if let Some(rest) = lower.strip_prefix("the total number of ") {
+    } else if let Some(rest) = lower
+        .strip_prefix("the total number of ")
+        .or_else(|| lower.strip_prefix("total number of "))
+    {
         rest
-    } else if let Some(rest) = lower.strip_prefix("the number of ") {
+    } else if let Some(rest) = lower
+        .strip_prefix("the number of ")
+        .or_else(|| lower.strip_prefix("number of "))
+    {
         rest
     } else {
-        lower.strip_prefix("the count of ")?
+        lower
+            .strip_prefix("the count of ")
+            .or_else(|| lower.strip_prefix("count of "))?
     };
     let words = rest
         .trim_end_matches(['.', ',', ':'])
@@ -9662,7 +10190,7 @@ fn named_counter_query_noun(lower: &str) -> Option<String> {
         .collect::<Vec<_>>();
     let event = words
         .iter()
-        .position(|word| matches!(*word, "occurred" | "happened" | "there"));
+        .position(|word| matches!(*word, "occurred" | "happened" | "there" | "made"));
     let event = event.or_else(|| {
         words.iter().enumerate().find_map(|(index, word)| {
             (*word == "were"

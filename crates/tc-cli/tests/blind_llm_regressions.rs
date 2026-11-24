@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn adjacent_swap_pass_then_filter_and_print() {
+    assert_program(
+        "adjacent-swap-pass",
+        "Start with the list of numbers 14, 7, 22, 9, 15, 4, and 18. Go through the list from left to right, comparing each number with the one immediately after it. Whenever the left number is larger than the right one, swap their positions and count a swap. After finishing that pass, remove any number from the list that is divisible by 3. Finally, print the remaining numbers in order, followed by the total number of swaps made.\n",
+        &["7", "14", "4", "22", "5"],
+    );
+}
+
+#[test]
+fn adjacent_swap_pass_generalizes_values_and_divisor() {
+    assert_program(
+        "adjacent-swap-generalized",
+        "Start with the list of numbers 20, 5, 10, 8, 27, 3, and 11. Go through the list from left to right, comparing each number with the one immediately after it. Whenever the left number is larger than the right one, swap their positions and count a swap. After finishing that pass, remove any number from the list that is divisible by 4. Finally, print the remaining numbers in order, followed by the total number of swaps made.\n",
+        &["5", "10", "3", "11", "27", "5"],
+    );
+}
+
+#[test]
 fn two_box_simulation_with_guarded_moves_and_early_stop() {
     assert_program(
         "two-box-simulation",
