@@ -617,11 +617,26 @@ pub(crate) fn resolve_program(program: &Program) -> Result<ResolvedProgram<'_>, 
         return Err(errors);
     }
 
+    let entry_span = Span::new(program.entry_module.clone(), 1, 1);
+    let entry_module = entry_module.ok_or_else(|| {
+        vec![TypeError::new(
+            entry_span.clone(),
+            TypeErrorKind::MissingEntryModule,
+            format!("entry module `{}` was not resolved", program.entry_module),
+        )]
+    })?;
+    let entry_fn = entry_fn.ok_or_else(|| {
+        vec![TypeError::new(
+            Span::new(program.entry_module.clone(), 1, 1),
+            TypeErrorKind::MissingEntryFunction,
+            format!("entry function `{}` was not resolved", program.entry_fn),
+        )]
+    })?;
     Ok(ResolvedProgram {
         modules,
         module_by_name,
-        entry_module: entry_module.expect("checked entry module"),
-        entry_fn: entry_fn.expect("checked entry function"),
+        entry_module,
+        entry_fn,
     })
 }
 

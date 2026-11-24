@@ -1,13 +1,12 @@
 //! In-memory project analysis for one open document.
 
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use tc_semantics::{
     IntentVerdict, LoweredProject, RawItem, SemanticError, SentenceTrace, SourceFile, Token,
-    lower_project_outcome, segment_source, tokenize,
+    find_std_dir, lower_project_outcome, segment_source, tokenize,
 };
 use tc_typeck::{AstExpr, AstModule, AstStmt, AstType, Program};
 
@@ -155,35 +154,6 @@ pub struct Analysis {
     pub entry: String,
     /// Symbol index.
     pub symbols: SymbolIndex,
-}
-
-/// Finds the repository `std/` directory.
-#[must_use]
-pub fn find_std_dir() -> Option<PathBuf> {
-    if let Some(value) = env::var_os("TC_STD_DIR") {
-        let path = PathBuf::from(value);
-        if path.join("core.eng").is_file() {
-            return Some(path);
-        }
-    }
-    if let Ok(executable) = env::current_exe() {
-        let mut directory = executable.parent().map(Path::to_path_buf);
-        for _ in 0..5 {
-            let Some(current) = &directory else {
-                break;
-            };
-            let candidate = current.join("std");
-            if candidate.join("core.eng").is_file() {
-                return Some(candidate);
-            }
-            directory = current.parent().map(Path::to_path_buf);
-        }
-    }
-    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../std");
-    manifest
-        .join("core.eng")
-        .is_file()
-        .then(|| manifest.canonicalize().unwrap_or(manifest))
 }
 
 /// Analyzes one open document, resolving sibling and `std/` imports.

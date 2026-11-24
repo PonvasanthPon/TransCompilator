@@ -475,7 +475,9 @@ pub fn segment_source(source: &SourceFile) -> RawDocument {
                 .last()
                 .is_some_and(|indent| *indent >= unit.indent)
         {
-            let finished = stack.pop().expect("root remains");
+            let Some(finished) = stack.pop() else {
+                break;
+            };
             stack_indents.pop();
             if let Some(parent) = stack.last_mut() {
                 parent.items.push(RawItem::Block(finished));
@@ -490,22 +492,22 @@ pub fn segment_source(source: &SourceFile) -> RawDocument {
             };
             stack.push(block);
             stack_indents.push(unit.indent);
-        } else {
-            stack
-                .last_mut()
-                .expect("root")
-                .items
-                .push(RawItem::Sentence(unit.sentence));
+        } else if let Some(parent) = stack.last_mut() {
+            parent.items.push(RawItem::Sentence(unit.sentence));
         }
     }
     while stack.len() > 1 {
-        let finished = stack.pop().expect("root remains");
+        let Some(finished) = stack.pop() else {
+            break;
+        };
         stack_indents.pop();
         if let Some(parent) = stack.last_mut() {
             parent.items.push(RawItem::Block(finished));
         }
     }
-    let root = stack.pop().expect("root");
+    let Some(root) = stack.pop() else {
+        return RawDocument { items: Vec::new() };
+    };
     RawDocument { items: root.items }
 }
 

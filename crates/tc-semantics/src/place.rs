@@ -10,9 +10,6 @@ pub(crate) enum PlaceSpec {
     Var {
         /// Canonical name.
         name: String,
-        /// True when the source spelling was a new multi-word identifier.
-        #[allow(dead_code)]
-        is_new_multiword: bool,
     },
     /// Discourse pronoun `it`.
     AnaphorIt,
@@ -241,10 +238,7 @@ pub(crate) fn parse_place(text: &str) -> Result<PlaceSpec, String> {
             "'{name}' is a reserved control word — choose a different variable name (for example, 'counter')"
         ));
     }
-    Ok(PlaceSpec::Var {
-        name,
-        is_new_multiword: trimmed.split_whitespace().count() > 1 && canonical.contains('_'),
-    })
+    Ok(PlaceSpec::Var { name })
 }
 
 impl PlaceSpec {

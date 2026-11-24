@@ -6,7 +6,7 @@
 //! and an `and`/comma separator is consumed only when the following segment
 //! starts a new binding.
 
-use crate::textutil::find_top_level_word;
+use crate::textutil::{find_top_level_phrase, find_top_level_symbol, find_top_level_word};
 use crate::token::{TokenKind, tokenize};
 
 /// One decomposed sentence.
@@ -109,7 +109,7 @@ fn decompose_leading(text: &str) -> Option<ClauseGraph> {
         start = that.end;
     }
     let rest = text[start..].trim_start();
-    let comma = first_top_level_comma(rest)?;
+    let comma = find_top_level_symbol(rest, ",").map(|(start, _)| start)?;
     let bindings = split_binding_sequence(rest[..comma].trim())?;
     let main = rest[comma + 1..].trim();
     if main.is_empty() {
@@ -387,33 +387,6 @@ fn binding_operator(text: &str) -> Option<(usize, usize)> {
         .or_else(|| find_top_level_symbol(text, "="))
 }
 
-fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(usize, usize)> {
-    let words = phrase.split_whitespace().collect::<Vec<_>>();
-    let tokens = tokenize(text);
-    let mut depth = 0_i32;
-    for (index, token) in tokens.iter().enumerate() {
-        if token.kind == TokenKind::Symbol {
-            match token.text.as_str() {
-                "(" | "[" | "{" => depth += 1,
-                ")" | "]" | "}" => depth -= 1,
-                _ => {}
-            }
-        }
-        if depth != 0 {
-            continue;
-        }
-        let matched = words.iter().enumerate().all(|(offset, word)| {
-            tokens
-                .get(index + offset)
-                .is_some_and(|candidate| candidate.kind == TokenKind::Word && candidate.is(word))
-        });
-        if matched {
-            return Some((token.start, tokens[index + words.len() - 1].end));
-        }
-    }
-    None
-}
-
 fn binding_name(text: &str) -> Option<String> {
     let (start, _) = binding_operator(text)?;
     let name = canonical_name(text[..start].trim());
@@ -425,40 +398,6 @@ fn canonical_name(text: &str) -> String {
         .map(str::to_ascii_lowercase)
         .collect::<Vec<_>>()
         .join("_")
-}
-
-fn first_top_level_comma(text: &str) -> Option<usize> {
-    let tokens = tokenize(text);
-    let mut depth = 0_i32;
-    for token in &tokens {
-        if token.kind == TokenKind::Symbol {
-            match token.text.as_str() {
-                "(" | "[" | "{" => depth += 1,
-                ")" | "]" | "}" => depth -= 1,
-                "," if depth == 0 => return Some(token.start),
-                _ => {}
-            }
-        }
-    }
-    None
-}
-
-fn find_top_level_symbol(text: &str, symbol: &str) -> Option<(usize, usize)> {
-    let tokens = tokenize(text);
-    let mut depth = 0_i32;
-    for token in &tokens {
-        if token.kind == TokenKind::Symbol {
-            match token.text.as_str() {
-                "(" | "[" | "{" => depth += 1,
-                ")" | "]" | "}" => depth -= 1,
-                _ => {}
-            }
-        }
-        if depth == 0 && token.text == symbol {
-            return Some((token.start, token.end));
-        }
-    }
-    None
 }
 
 /// Returns the binding parts `(name, expression)`.

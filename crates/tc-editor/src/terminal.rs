@@ -46,6 +46,9 @@ struct Winsize {
     ws_ypixel: u16,
 }
 
+// SAFETY: this declaration matches the Linux x86_64 `ioctl` ABI. Every call
+// below passes a request constant plus a pointer to a live `Termios` or
+// `Winsize`, or omits the optional third argument for the same ABI.
 unsafe extern "C" {
     fn ioctl(fd: i32, request: u64, ...) -> i32;
 }
@@ -54,6 +57,8 @@ static ORIGINAL: Mutex<Option<Termios>> = Mutex::new(None);
 static HOOK_INSTALLED: AtomicBool = AtomicBool::new(false);
 
 fn apply(termios: &Termios) -> io::Result<()> {
+    // SAFETY: stdin is process-owned, `termios` is a live reference, and
+    // TCSETS reads one `struct termios` through the supplied pointer.
     let result = unsafe { ioctl(0, TCSETS, std::ptr::from_ref(termios)) };
     if result == 0 {
         Ok(())
@@ -112,6 +117,8 @@ impl RawTerminal {
             c_ispeed: 0,
             c_ospeed: 0,
         };
+        // SAFETY: `original` is a live, correctly sized `Termios`; TCGETS
+        // writes the current terminal state into that pointer.
         let result = unsafe { ioctl(0, TCGETS, &raw mut original) };
         if result != 0 {
             return Err(io::Error::last_os_error());
@@ -178,6 +185,8 @@ impl Drop for RawTerminal {
 #[must_use]
 pub fn terminal_size() -> (usize, usize) {
     let mut size = Winsize::default();
+    // SAFETY: `size` is a live, correctly sized `Winsize`; TIOCGWINSZ writes
+    // the terminal geometry into that pointer.
     let result = unsafe { ioctl(0, TIOCGWINSZ, &raw mut size) };
     if result == 0 && size.ws_col > 0 && size.ws_row > 0 {
         (usize::from(size.ws_col), usize::from(size.ws_row))

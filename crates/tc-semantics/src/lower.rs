@@ -2124,7 +2124,6 @@ fn normalize_prose_line(text: &str, indent: usize) -> Vec<String> {
     vec![format!("{spaces}{trimmed}.")]
 }
 
-#[allow(dead_code)]
 fn pattern_parts_to_text(parts: &[PhrasePart]) -> String {
     parts
         .iter()
@@ -8111,12 +8110,14 @@ impl<'a> Lowerer<'a> {
             let body_result = if let Some(items) = then_items {
                 self.lower_items(items, depth + 1)
                     .map(|body| (body, Vec::new()))
+            } else if let Some((_, body)) = inline.as_ref() {
+                self.lower_actions_capturing(body, span, depth)
             } else {
-                self.lower_actions_capturing(
-                    &inline.as_ref().expect("inline repeat").1,
+                Err(self.error(
                     span,
-                    depth,
-                )
+                    SemanticErrorKind::Lowering,
+                    "`Repeat` requires a body",
+                ))
             };
             self.pop_scope();
             self.loop_depth -= 1;

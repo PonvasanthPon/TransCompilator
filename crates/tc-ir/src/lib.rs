@@ -1,4 +1,7 @@
 //! Core-7 typed IR, verifier, formatter, and reference interpreter.
+//!
+//! Pipeline position: shared middle-end between the typed front end and every
+//! backend.
 
 pub mod fmt;
 pub mod interp;

@@ -1,4 +1,7 @@
 //! Command-line driver for the `tc_r1` workspace.
+//!
+//! Pipeline position: end-to-end driver over the compiler crates, reference
+//! interpreter, and static backend.
 
 use std::collections::{HashMap, VecDeque};
 use std::env;
@@ -11,7 +14,7 @@ use tc_ir::{
     BinOp, CallTarget, Expr, FnId, Function, LocalDef, LocalId, Module, RodataDef, Stmt, Type,
     interpret, interpret_in_dir, verify_module,
 };
-use tc_semantics::{CompiledProject, LoweredProject, SourceFile};
+use tc_semantics::{CompiledProject, LoweredProject, SourceFile, find_std_dir};
 
 /// Version reported by `tc --version`, sourced from the workspace manifest.
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -146,32 +149,6 @@ fn module_imports(source: &SourceFile) -> Vec<String> {
         }
     }
     imports
-}
-
-fn find_std_dir() -> Option<PathBuf> {
-    if let Some(value) = env::var_os("TC_STD_DIR") {
-        let path = PathBuf::from(value);
-        if path.join("core.eng").is_file() {
-            return Some(path);
-        }
-    }
-    if let Ok(executable) = env::current_exe() {
-        let mut directory = executable.parent().map(Path::to_path_buf);
-        for _ in 0..4 {
-            if let Some(current) = &directory {
-                let candidate = current.join("std");
-                if candidate.join("core.eng").is_file() {
-                    return Some(candidate);
-                }
-                directory = current.parent().map(Path::to_path_buf);
-            }
-        }
-    }
-    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../std");
-    manifest
-        .join("core.eng")
-        .is_file()
-        .then(|| manifest.canonicalize().unwrap_or(manifest))
 }
 
 fn find_import(
@@ -310,7 +287,10 @@ fn run_build(args: Vec<String>) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
-    let file = command.file.expect("validated");
+    let Some(file) = command.file else {
+        eprintln!("tc build: missing English source file");
+        return ExitCode::from(2);
+    };
     let output = command.output.unwrap_or_else(|| {
         let stem = file
             .file_stem()
@@ -421,7 +401,10 @@ fn run_trace(args: Vec<String>) -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let file = command.file.as_ref().expect("validated");
+    let Some(file) = command.file.as_ref() else {
+        eprintln!("tc trace: missing English source file");
+        return ExitCode::from(2);
+    };
     let (sources, entry_module) = match load_sources(file, &command.includes) {
         Ok(value) => value,
         Err(message) => {

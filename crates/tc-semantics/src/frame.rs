@@ -14,42 +14,18 @@ use crate::token::tokenize;
 use crate::value::ValueSpec;
 use crate::{SemanticError, SemanticErrorKind, Span};
 
-/// Transfer/mutation operations that share place + amount lowering.
-#[allow(dead_code)]
+/// Live transfer/mutation operations that share place + amount lowering.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TransferOp {
-    /// Additive transfer.
-    Add,
-    /// Subtractive transfer.
-    Sub,
-    /// Source-to-destination move.
-    Move,
-    /// Multiplication.
-    Mul,
-    /// Division.
-    Div,
-    /// Multiply by two.
-    Double,
-    /// Divide by two.
-    Halve,
-    /// Arithmetic negation.
-    Negate,
     /// Add one or a supplied amount.
     Increment,
     /// Subtract one or a supplied amount.
     Decrement,
-    /// Reset to zero or a supplied value.
-    Reset,
-    /// Clear selected bits.
-    ClearBits,
-    /// Set selected bits.
-    SetBits,
     /// Adjust by a supplied amount.
     Adjust,
 }
 
 /// Finite frame IR produced by the normalizer and consumed by `lower_frame`.
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub(crate) enum SemanticFrame {
     /// Concept-driven output: Print/Show/Display/Output/Say/Report.
@@ -72,10 +48,8 @@ pub(crate) enum SemanticFrame {
         op: TransferOp,
         /// Optional amount; `None` means the operation's default.
         amount: Option<ValueSpec>,
-        /// Optional source.
-        source: Option<PlaceSpec>,
-        /// Optional destination.
-        dest: Option<PlaceSpec>,
+        /// Destination place.
+        dest: PlaceSpec,
     },
     /// Swap/exchange two places.
     Swap {
@@ -84,46 +58,6 @@ pub(crate) enum SemanticFrame {
         /// Right place.
         rhs: PlaceSpec,
     },
-    /// Field-wise aggregate update.
-    Update {
-        /// Aggregate target.
-        target: PlaceSpec,
-        /// Field/value pairs.
-        fields: Vec<(String, ValueSpec)>,
-    },
-    /// Control flow wrapper.
-    Control(ControlFrame),
-    /// Declarative phrase/auto-phrase call.
-    PhraseCall(PhraseCallFrame),
-    /// Declaration wrapper.
-    Decl(DeclFrame),
-}
-
-/// Control-flow frame wrapper.  The body is normalized by the existing
-/// recursive control lowerer.
-#[allow(dead_code)]
-#[derive(Debug, Clone)]
-pub(crate) struct ControlFrame {
-    /// Header text (`If ...`, `While ...`, etc.).
-    pub header: String,
-    /// Inline or block body.
-    pub body: String,
-}
-
-/// Phrase call frame.
-#[allow(dead_code)]
-#[derive(Debug, Clone)]
-pub(crate) struct PhraseCallFrame {
-    /// Phrase text.
-    pub text: String,
-}
-
-/// Declaration frame.
-#[allow(dead_code)]
-#[derive(Debug, Clone)]
-pub(crate) struct DeclFrame {
-    /// Declaration text.
-    pub text: String,
 }
 
 impl SemanticFrame {
@@ -137,18 +71,8 @@ impl SemanticFrame {
     }
 
     /// Transfer constructor.
-    pub(crate) fn transfer(
-        op: TransferOp,
-        amount: Option<ValueSpec>,
-        source: Option<PlaceSpec>,
-        dest: Option<PlaceSpec>,
-    ) -> Self {
-        Self::Transfer {
-            op,
-            amount,
-            source,
-            dest,
-        }
+    pub(crate) fn transfer(op: TransferOp, amount: Option<ValueSpec>, dest: PlaceSpec) -> Self {
+        Self::Transfer { op, amount, dest }
     }
 }
 
@@ -176,29 +100,10 @@ impl Lowerer<'_> {
                 let value = self.parse_value(&value.text, span)?;
                 self.assign_text(&target.render(), value, span, allow_declare)
             }
-            SemanticFrame::Transfer {
-                op,
-                amount,
-                source,
-                dest,
-            } => self.lower_transfer_frame(op, amount, source, dest, span),
-            SemanticFrame::Swap { lhs, rhs } => self.lower_swap_places(lhs, rhs, span),
-            SemanticFrame::Update { target, fields } => {
-                let mut statements = Vec::new();
-                for (field, value) in fields {
-                    let value = self.parse_value(&value.text, span)?;
-                    let place = format!("{}'s {field}", target.render());
-                    statements.extend(self.assign_text(&place, value, span, false)?);
-                }
-                Ok(statements)
+            SemanticFrame::Transfer { op, amount, dest } => {
+                self.lower_transfer_frame(op, amount, dest, span)
             }
-            SemanticFrame::Control(_)
-            | SemanticFrame::PhraseCall(_)
-            | SemanticFrame::Decl(_) => Err(self.error(
-                span,
-                SemanticErrorKind::Lowering,
-                "control, phrase, and declaration frames are lowered by their dedicated dispatchers",
-            )),
+            SemanticFrame::Swap { lhs, rhs } => self.lower_swap_places(lhs, rhs, span),
         }
     }
 
@@ -295,170 +200,19 @@ impl Lowerer<'_> {
         &mut self,
         op: TransferOp,
         amount: Option<ValueSpec>,
-        source: Option<PlaceSpec>,
-        dest: Option<PlaceSpec>,
+        dest: PlaceSpec,
         span: Span,
     ) -> Result<Vec<AstStmt>, SemanticError> {
-        let parse_amount = |lower: &mut Self| -> Result<AstExpr, SemanticError> {
-            match &amount {
-                Some(value) => lower.parse_value(&value.text, span),
-                None => Ok(AstExpr::ConstInt(1, None)),
-            }
+        let amount = amount
+            .as_ref()
+            .map_or(Ok(AstExpr::ConstInt(1, None)), |value| {
+                self.parse_value(&value.text, span)
+            })?;
+        let operator = match op {
+            TransferOp::Increment | TransferOp::Adjust => tc_ir::BinOp::Add,
+            TransferOp::Decrement => tc_ir::BinOp::Sub,
         };
-        match op {
-            TransferOp::Increment => {
-                let amount = parse_amount(self)?;
-                let Some(dest) = dest else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "increment requires a destination place",
-                    ));
-                };
-                self.write_arithmetic(&dest.render(), tc_ir::BinOp::Add, amount, span)
-            }
-            TransferOp::Decrement => {
-                let amount = parse_amount(self)?;
-                let Some(dest) = dest else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "decrement requires a destination place",
-                    ));
-                };
-                self.write_arithmetic(&dest.render(), tc_ir::BinOp::Sub, amount, span)
-            }
-            TransferOp::Add | TransferOp::Sub | TransferOp::Mul | TransferOp::Div => {
-                let Some(dest) = dest else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "transfer requires a destination place",
-                    ));
-                };
-                let amount = amount
-                    .as_ref()
-                    .map_or(Ok(AstExpr::ConstInt(1, None)), |value| {
-                        self.parse_value(&value.text, span)
-                    })?;
-                let operator = match op {
-                    TransferOp::Add => tc_ir::BinOp::Add,
-                    TransferOp::Sub => tc_ir::BinOp::Sub,
-                    TransferOp::Mul => tc_ir::BinOp::Mul,
-                    _ => tc_ir::BinOp::Div,
-                };
-                self.write_arithmetic(&dest.render(), operator, amount, span)
-            }
-            TransferOp::Move => {
-                let (Some(source), Some(dest)) = (source, dest) else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "move requires source and destination places",
-                    ));
-                };
-                let amount = amount
-                    .as_ref()
-                    .map_or(Ok(AstExpr::ConstInt(1, None)), |value| {
-                        self.parse_value(&value.text, span)
-                    })?;
-                let mut statements = self.write_arithmetic(
-                    &source.render(),
-                    tc_ir::BinOp::Sub,
-                    amount.clone(),
-                    span,
-                )?;
-                statements.extend(self.write_arithmetic(
-                    &dest.render(),
-                    tc_ir::BinOp::Add,
-                    amount.clone(),
-                    span,
-                )?);
-                if let Some(floor_text) = self.active_move_floor() {
-                    let floor = self.parse_value(&floor_text, span)?;
-                    let available = self.parse_value(&source.render(), span)?;
-                    let required = AstExpr::Binary {
-                        op: tc_ir::BinOp::Add,
-                        lhs: Box::new(amount),
-                        rhs: Box::new(floor),
-                    };
-                    statements = vec![AstStmt::If {
-                        cond: AstExpr::Binary {
-                            op: tc_ir::BinOp::Ge,
-                            lhs: Box::new(available),
-                            rhs: Box::new(required),
-                        },
-                        then_body: statements,
-                        else_body: Vec::new(),
-                        span: self.span(span),
-                    }];
-                }
-                Ok(statements)
-            }
-            TransferOp::Double | TransferOp::Halve | TransferOp::Negate => {
-                let Some(dest) = dest else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "transform requires a destination place",
-                    ));
-                };
-                let operator = match op {
-                    TransferOp::Double => tc_ir::BinOp::Mul,
-                    TransferOp::Halve => tc_ir::BinOp::Div,
-                    _ => tc_ir::BinOp::Add,
-                };
-                match op {
-                    TransferOp::Negate => {
-                        let (prelude, target) = self.resolve_target(&dest.render(), span)?;
-                        let value = AstExpr::Unary {
-                            op: tc_ir::UnOp::Neg,
-                            val: Box::new(target.read()),
-                        };
-                        let mut statements = prelude;
-                        statements.push(self.write_target(&target, value, span));
-                        Ok(statements)
-                    }
-                    _ => self.write_arithmetic(
-                        &dest.render(),
-                        operator,
-                        AstExpr::ConstInt(2, None),
-                        span,
-                    ),
-                }
-            }
-            TransferOp::Reset => {
-                let Some(dest) = dest else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "reset requires a destination place",
-                    ));
-                };
-                let value = amount
-                    .as_ref()
-                    .map_or(Ok(AstExpr::ConstInt(0, None)), |value| {
-                        self.parse_value(&value.text, span)
-                    })?;
-                self.assign_text(&dest.render(), value, span, true)
-            }
-            TransferOp::Adjust => {
-                let Some(dest) = dest else {
-                    return Err(self.error(
-                        span,
-                        SemanticErrorKind::Lowering,
-                        "adjust requires a destination place",
-                    ));
-                };
-                let amount = parse_amount(self)?;
-                self.write_arithmetic(&dest.render(), tc_ir::BinOp::Add, amount, span)
-            }
-            TransferOp::ClearBits | TransferOp::SetBits => Err(self.error(
-                span,
-                SemanticErrorKind::Lowering,
-                "bitwise frames are lowered by the bitwise dispatcher",
-            )),
-        }
+        self.write_arithmetic(&dest.render(), operator, amount, span)
     }
 
     pub(crate) fn lower_swap_places(
@@ -597,26 +351,21 @@ impl Lowerer<'_> {
                         TransferOp::Decrement
                     },
                     amount,
-                    None,
-                    Some(place),
+                    place,
                 )
             }
             Some(SemanticConcept::Reset) => {
                 let (target, amount) = if let Some((start, end)) = find_top_level_word(rest, "to") {
                     (
                         rest[..start].trim(),
-                        Some(ValueSpec::classify(rest[end..].trim())),
+                        ValueSpec::classify(rest[end..].trim()),
                     )
                 } else {
-                    (rest.trim(), Some(ValueSpec::classify("0")))
+                    (rest.trim(), ValueSpec::classify("0"))
                 };
                 return self
                     .lower_frame(
-                        SemanticFrame::assign(
-                            self.semantic_place(target, span)?,
-                            amount.unwrap(),
-                            true,
-                        ),
+                        SemanticFrame::assign(self.semantic_place(target, span)?, amount, true),
                         span,
                     )
                     .map(Some);
@@ -691,8 +440,7 @@ impl Lowerer<'_> {
                             SemanticFrame::transfer(
                                 TransferOp::Adjust,
                                 Some(ValueSpec::classify(rest[end..].trim())),
-                                None,
-                                Some(place),
+                                place,
                             ),
                             span,
                         )
