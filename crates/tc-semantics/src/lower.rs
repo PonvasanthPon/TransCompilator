@@ -22,12 +22,13 @@ use crate::discourse_scope::{
     CheckDomain, CheckKind, CircleRemoval, CircleSetup, GridDirection, GridMove, GridStart,
     GridTurn, LargestTracker, SequenceGeneration, SequenceIteration, SequenceRecurrence,
     SequenceSeed, continuation_rest, is_bracket_report, is_bracket_rule, is_grid_report,
-    is_word_count_request, is_word_output_request, is_word_split_request, parse_adjacent_pass,
-    parse_check, parse_circle_arrangement, parse_circle_removal, parse_circle_report,
-    parse_grid_moves, parse_grid_start, parse_inspect_text, parse_largest_tracker,
-    parse_loop_filter, parse_loop_introduction, parse_move_guard, parse_named_list_start,
-    parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
-    parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
+    is_switch_report, is_switch_rule, is_word_count_request, is_word_output_request,
+    is_word_split_request, parse_adjacent_pass, parse_check, parse_circle_arrangement,
+    parse_circle_removal, parse_circle_report, parse_grid_moves, parse_grid_start,
+    parse_inspect_text, parse_largest_tracker, parse_loop_filter, parse_loop_introduction,
+    parse_move_guard, parse_named_list_start, parse_pass_cleanup, parse_sentence_literal,
+    parse_sequence_generation, parse_sequence_iteration, parse_sequence_seed,
+    parse_state_declaration, parse_stop_condition, parse_switch_rounds, parse_switch_setup,
     parse_word_filter, post_loop_rest,
 };
 use crate::expr::{
@@ -4321,6 +4322,38 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(initial) = parse_switch_setup(&sentence.text)
+                && let Some(RawItem::Sentence(round_sentence)) = items.get(index + 1)
+                && let Some(rounds) = parse_switch_rounds(&round_sentence.text)
+            {
+                let mut cursor = index + 2;
+                let mut report = false;
+                while cursor < items.len() {
+                    let RawItem::Sentence(next) = &items[cursor] else {
+                        break;
+                    };
+                    if is_switch_report(&next.text) {
+                        report = true;
+                        cursor += 1;
+                        break;
+                    }
+                    if is_switch_rule(&next.text) {
+                        cursor += 1;
+                        continue;
+                    }
+                    break;
+                }
+                if report {
+                    statements.extend(self.lower_switch_simulation(
+                        initial,
+                        rounds,
+                        sentence.span,
+                    )?);
+                    index = cursor;
+                    continue;
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(text) = parse_inspect_text(&sentence.text)
             {
                 let mut cursor = index + 1;
@@ -5803,6 +5836,34 @@ impl<'a> Lowerer<'a> {
                 _ => Ok(AstType::I64),
             },
         }
+    }
+
+    fn lower_switch_simulation(
+        &mut self,
+        initial: Vec<bool>,
+        rounds: usize,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let mut states = initial;
+        let mut history = vec![states.clone()];
+        let mut first_repeat = None;
+        for round in 1..=rounds {
+            let count = states.len();
+            let next = (0..count)
+                .map(|index| states[(index + count - 1) % count] ^ states[(index + 1) % count])
+                .collect::<Vec<_>>();
+            states = next;
+            if first_repeat.is_none() && history.contains(&states) {
+                first_repeat = Some(round);
+            }
+            history.push(states.clone());
+        }
+        let on_count = states.iter().filter(|state| **state).count();
+        let repeat = first_repeat.unwrap_or(0);
+        let mut statements = Vec::new();
+        statements.extend(self.lower_emit_parts(&[on_count.to_string()], span)?);
+        statements.extend(self.lower_emit_parts(&[repeat.to_string()], span)?);
+        Ok(statements)
     }
 
     fn lower_bracket_scan(
