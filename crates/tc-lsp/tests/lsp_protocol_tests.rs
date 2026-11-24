@@ -44,6 +44,8 @@ const ADJACENT_SWAP_REPRO: &str = "Start with the list of numbers 14, 7, 22, 9, 
 
 const WORD_FREQUENCY_REPRO: &str = "Take the sentence \"the quick brown fox jumps over the lazy dog and the fox runs\". Split it into words, and count how many times each word appears. Ignore any word that has fewer than 4 letters, unless it appears more than once. Among the remaining words, print each word along with its count, and finally print the word that appeared the most times.\n";
 
+const GRID_WALK_REPRO: &str = "Imagine standing at the center of a grid, facing north. Follow these moves in order: walk forward 3 steps, turn right and walk forward 4 steps, turn right and walk forward 2 steps, turn right and walk forward 5 steps, and finally turn right and walk forward 3 steps. Take one step at a time, and count every time you step onto a spot you have already visited, including your starting spot. When all the moves are finished, print how many times you crossed your own path, followed by your east-west distance plus your north-south distance from the starting spot.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1857,6 +1859,39 @@ fn lsp_word_frequency_pipeline_has_zero_diagnostics_and_no_comment_tokens() {
         tokens.iter().any(|token| token.token_type == STRING),
         "{tokens:?}"
     );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_grid_walk_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_grid_walk.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, GRID_WALK_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, GRID_WALK_REPRO);
+    assert!(!tokens.is_empty(), "{tokens:?}");
     assert!(
         !tokens.iter().any(|token| token.token_type == COMMENT),
         "{tokens:?}"

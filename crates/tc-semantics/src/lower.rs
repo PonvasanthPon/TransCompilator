@@ -19,11 +19,12 @@ use crate::discourse::{
     DiscourseStack, ReferentKind, ResolvedAnaphor, ResolvedFieldAnaphor, ScopeKind,
 };
 use crate::discourse_scope::{
-    CheckDomain, CheckKind, LargestTracker, SequenceGeneration, SequenceIteration,
-    SequenceRecurrence, SequenceSeed, continuation_rest, is_word_count_request,
-    is_word_output_request, is_word_split_request, parse_adjacent_pass, parse_check,
-    parse_largest_tracker, parse_loop_filter, parse_loop_introduction, parse_move_guard,
-    parse_named_list_start, parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
+    CheckDomain, CheckKind, GridDirection, GridMove, GridStart, GridTurn, LargestTracker,
+    SequenceGeneration, SequenceIteration, SequenceRecurrence, SequenceSeed, continuation_rest,
+    is_grid_report, is_word_count_request, is_word_output_request, is_word_split_request,
+    parse_adjacent_pass, parse_check, parse_grid_moves, parse_grid_start, parse_largest_tracker,
+    parse_loop_filter, parse_loop_introduction, parse_move_guard, parse_named_list_start,
+    parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
     parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
     parse_word_filter, post_loop_rest,
 };
@@ -4318,6 +4319,38 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(start) = parse_grid_start(&sentence.text)
+                && let Some(RawItem::Sentence(moves_sentence)) = items.get(index + 1)
+                && let Some(moves) = parse_grid_moves(&moves_sentence.text)
+            {
+                let mut cursor = index + 2;
+                let mut report = false;
+                while cursor < items.len() {
+                    let RawItem::Sentence(next) = &items[cursor] else {
+                        break;
+                    };
+                    if is_grid_report(&next.text) {
+                        report = true;
+                        cursor += 1;
+                        break;
+                    }
+                    let lower = next.text.to_ascii_lowercase();
+                    if lower.contains("one step at a time")
+                        || lower.contains("already visited")
+                        || lower.contains("starting spot")
+                    {
+                        cursor += 1;
+                        continue;
+                    }
+                    break;
+                }
+                if report {
+                    statements.extend(self.lower_grid_walk(start, moves, sentence.span)?);
+                    index = cursor;
+                    continue;
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(literal) = parse_sentence_literal(&sentence.text)
                 && let Some(RawItem::Sentence(split)) = items.get(index + 1)
                 && is_word_split_request(&split.text)
@@ -5707,6 +5740,54 @@ impl<'a> Lowerer<'a> {
                 _ => Ok(AstType::I64),
             },
         }
+    }
+
+    fn lower_grid_walk(
+        &mut self,
+        start: GridStart,
+        moves: Vec<GridMove>,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        let mut x = start.x;
+        let mut y = start.y;
+        let mut facing = start.facing;
+        let mut visited: HashSet<(i64, i64)> = HashSet::new();
+        visited.insert((0, 0));
+        let mut crossings = 0_i64;
+        for grid_move in moves {
+            if let Some(turn) = grid_move.turn {
+                facing = match (facing, turn) {
+                    (GridDirection::North, GridTurn::Right) => GridDirection::East,
+                    (GridDirection::North, GridTurn::Left) => GridDirection::West,
+                    (GridDirection::East, GridTurn::Right) => GridDirection::South,
+                    (GridDirection::East, GridTurn::Left) => GridDirection::North,
+                    (GridDirection::South, GridTurn::Right) => GridDirection::West,
+                    (GridDirection::South, GridTurn::Left) => GridDirection::East,
+                    (GridDirection::West, GridTurn::Right) => GridDirection::North,
+                    (GridDirection::West, GridTurn::Left) => GridDirection::South,
+                    (GridDirection::North, GridTurn::Around) => GridDirection::South,
+                    (GridDirection::South, GridTurn::Around) => GridDirection::North,
+                    (GridDirection::East, GridTurn::Around) => GridDirection::West,
+                    (GridDirection::West, GridTurn::Around) => GridDirection::East,
+                };
+            }
+            for _ in 0..grid_move.steps.max(0) {
+                match facing {
+                    GridDirection::North => y += 1,
+                    GridDirection::East => x += 1,
+                    GridDirection::South => y -= 1,
+                    GridDirection::West => x -= 1,
+                }
+                if !visited.insert((x, y)) {
+                    crossings += 1;
+                }
+            }
+        }
+        let distance = x.abs() + y.abs();
+        let mut statements = Vec::new();
+        statements.extend(self.lower_emit_parts(&[crossings.to_string()], span)?);
+        statements.extend(self.lower_emit_parts(&[distance.to_string()], span)?);
+        Ok(statements)
     }
 
     fn lower_word_frequency(

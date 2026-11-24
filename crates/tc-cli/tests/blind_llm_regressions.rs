@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn grid_walk_counts_revisits_and_manhattan_distance() {
+    assert_program(
+        "grid-walk",
+        "Imagine standing at the center of a grid, facing north. Follow these moves in order: walk forward 3 steps, turn right and walk forward 4 steps, turn right and walk forward 2 steps, turn right and walk forward 5 steps, and finally turn right and walk forward 3 steps. Take one step at a time, and count every time you step onto a spot you have already visited, including your starting spot. When all the moves are finished, print how many times you crossed your own path, followed by your east-west distance plus your north-south distance from the starting spot.\n",
+        &["1", "5"],
+    );
+}
+
+#[test]
+fn grid_walk_generalizes_moves_and_returns_to_start() {
+    assert_program(
+        "grid-walk-square",
+        "Imagine standing at the center of a grid, facing north. Follow these moves in order: walk forward 2 steps, turn right and walk forward 2 steps, turn right and walk forward 2 steps, and finally turn right and walk forward 2 steps. Take one step at a time, and count every time you step onto a spot you have already visited, including your starting spot. When all the moves are finished, print how many times you crossed your own path, followed by your east-west distance plus your north-south distance from the starting spot.\n",
+        &["1", "0"],
+    );
+}
+
+#[test]
 fn literal_sentence_word_frequency_with_length_filter() {
     assert_program(
         "word-frequency",

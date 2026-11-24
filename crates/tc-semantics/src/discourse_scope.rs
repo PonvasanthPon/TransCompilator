@@ -269,6 +269,158 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts
 }
 
+/// One cardinal grid direction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum GridDirection {
+    North,
+    East,
+    South,
+    West,
+}
+
+/// One relative turn on the grid.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum GridTurn {
+    Right,
+    Left,
+    Around,
+}
+
+/// One literal grid move clause.
+#[derive(Debug, Clone)]
+pub(crate) struct GridMove {
+    /// Optional turn before walking.
+    pub turn: Option<GridTurn>,
+    /// Forward steps after the turn.
+    pub steps: i64,
+}
+
+/// Starting pose for a literal grid walk.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GridStart {
+    /// Starting east-west coordinate.
+    pub x: i64,
+    /// Starting north-south coordinate.
+    pub y: i64,
+    /// Starting facing direction.
+    pub facing: GridDirection,
+}
+
+fn parse_grid_direction(word: &str) -> Option<GridDirection> {
+    match word {
+        "north" | "up" => Some(GridDirection::North),
+        "east" | "rightward" => Some(GridDirection::East),
+        "south" | "down" => Some(GridDirection::South),
+        "west" | "leftward" => Some(GridDirection::West),
+        _ => None,
+    }
+}
+
+/// Parses `Imagine standing at the center of a grid, facing north.`
+pub(crate) fn parse_grid_start(text: &str) -> Option<GridStart> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("imagine standing ")
+        || lower.starts_with("imagine you are standing ")
+        || lower.starts_with("start standing ")
+        || lower.starts_with("begin standing "))
+    {
+        return None;
+    }
+    let (x, y) = if lower.contains("center") || lower.contains("centre") || lower.contains("origin")
+    {
+        (0, 0)
+    } else {
+        return None;
+    };
+    let (_, end) = top_level_phrase(text, "facing")?;
+    let direction = tokenize(&text[end..])
+        .into_iter()
+        .find(tc_syntax::Token::is_word)
+        .map(|token| token.lower)?;
+    let facing = parse_grid_direction(&direction)?;
+    Some(GridStart { x, y, facing })
+}
+
+/// Parses `Follow these moves in order: walk forward 3 steps, turn right ...`.
+pub(crate) fn parse_grid_moves(text: &str) -> Option<Vec<GridMove>> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("follow these moves ")
+        || lower.starts_with("follow the moves ")
+        || lower.starts_with("make these moves ")
+        || lower.starts_with("perform these moves ")
+        || lower.starts_with("follow this path "))
+    {
+        return None;
+    }
+    let colon = text.find(':')?;
+    let rest = &text[colon + 1..];
+    let clauses = split_top_level_list(rest, ",");
+    if clauses.is_empty() {
+        return None;
+    }
+    let mut moves = Vec::new();
+    for clause in clauses {
+        let mut clause = clause.trim();
+        for prefix in ["and finally ", "and then ", "and ", "finally ", "then "] {
+            if let Some(after) = clause.to_ascii_lowercase().strip_prefix(prefix) {
+                clause = &clause[clause.len() - after.len()..];
+                break;
+            }
+        }
+        let lower_clause = clause.to_ascii_lowercase();
+        let turn = if lower_clause.contains("turn right") || lower_clause.contains("turn clockwise")
+        {
+            Some(GridTurn::Right)
+        } else if lower_clause.contains("turn left")
+            || lower_clause.contains("turn counterclockwise")
+            || lower_clause.contains("turn anticlockwise")
+        {
+            Some(GridTurn::Left)
+        } else if lower_clause.contains("turn around") || lower_clause.contains("turn back") {
+            Some(GridTurn::Around)
+        } else {
+            None
+        };
+        let mut steps = 0;
+        for phrase in [
+            "walk forward ",
+            "walk ",
+            "move forward ",
+            "move ",
+            "go forward ",
+            "step forward ",
+        ] {
+            if let Some((_, end)) = top_level_phrase(clause, phrase) {
+                if let Some(token) = tokenize(&clause[end..])
+                    .into_iter()
+                    .find(|token| token.is_word() || token.kind == TokenKind::Number)
+                {
+                    steps = token
+                        .text
+                        .parse::<i64>()
+                        .ok()
+                        .or_else(|| crate::number_words::parse(&token.text))
+                        .unwrap_or(0);
+                }
+                break;
+            }
+        }
+        if turn.is_none() && steps == 0 {
+            return None;
+        }
+        moves.push(GridMove { turn, steps });
+    }
+    Some(moves)
+}
+
+/// True for the final grid-walk report sentence.
+pub(crate) fn is_grid_report(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("crossed your own path")
+        && lower.contains("east-west")
+        && lower.contains("north-south")
+}
+
 /// Parses `Take the sentence "..."` and returns the quoted literal.
 pub(crate) fn parse_sentence_literal(text: &str) -> Option<String> {
     let lower = trimmed_lower(text);
