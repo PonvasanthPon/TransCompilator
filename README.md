@@ -44,113 +44,67 @@ LSP nor the editor shells out to the compiler.
 
 ## What English looks like
 
-Each example below is a complete program that was compiled and run with this
-release.
+These are complete programs, not pseudo-code. They use ordinary prose: no
+braces, no semicolons, no `Print` statements, and no indentation-based control
+flow. The compiler recovers the algorithm from the English.
 
-### FizzBuzz
+### A running Fibonacci total
 
 ```text
-Use io.
-
-For every n from 1 up to 20:
-    If n is divisible by 15:
-        Print "FizzBuzz".
-    Otherwise:
-        If n is divisible by 3:
-            Print "Fizz".
-        Otherwise:
-            If n is divisible by 5:
-                Print "Buzz".
-            Otherwise:
-                Print n.
+Start with 1 and 2. Keep generating the next number by adding the previous two numbers together, as long as the new number doesn't exceed 200. For each number in this entire sequence, including the starting two, add it to a running total. Whenever that total goes over 100, subtract 100 from it and count an overflow. At the end, print the final running total and how many overflows happened.
 ```
 
 Output:
 
 ```text
-1
-2
-Fizz
-4
-Buzz
-Fizz
+75
+3
+```
+
+The first line is the final running total; the second is the number of
+overflows.
+
+### Two boxes with guarded moves
+
+```text
+Imagine a red box starting with 5 and a blue box starting with 16. Walk through every number from 1 up to 40. If the number is a multiple of 3, move 4 from the blue box into the red box; otherwise, move 1 from the red box into the blue box. However, if a move would ever cause either box to drop below 5, skip it. Stop immediately as soon as the red box holds more than twice as much as the blue box. Finally, print the number where you stopped, followed by the amounts in the red box and the blue box.
+```
+
+Output:
+
+```text
+12
+15
+6
+```
+
+The simulation stops at step 12, with 15 in the red box and 6 in the blue box.
+
+### A single pass over a list
+
+```text
+Start with the list of numbers 14, 7, 22, 9, 15, 4, and 18. Go through the list from left to right, comparing each number with the one immediately after it. Whenever the left number is larger than the right one, swap their positions and count a swap. After finishing that pass, remove any number from the list that is divisible by 3. Finally, print the remaining numbers in order, followed by the total number of swaps made.
+```
+
+Output:
+
+```text
 7
-8
-Fizz
-Buzz
-11
-Fizz
-13
 14
-FizzBuzz
-16
-17
-Fizz
-19
-Buzz
+4
+22
+5
 ```
 
-### Collatz sequence
+The four remaining numbers are printed first, followed by the total swap count.
 
-```text
-Use io.
-
-Let n start at 27.
-Let steps start at 0.
-
-Repeat while n isn't 1.
-    If n is even, halve n. Otherwise, set n to n times 3 plus 1.
-    Add 1 to steps.
-End the loop.
-
-Print "27 reaches 1 in " with steps and " steps."
-```
-
-Output:
-
-```text
-27 reaches 1 in 111 steps.
-```
-
-### Generic list statistics
-
-```text
-Use list, io.
-
-Let scores be List of whole number.
-Push 92 to address of scores.
-Push 68 to address of scores.
-Push 77 to address of scores.
-Push 100 to address of scores.
-Push 85 to address of scores.
-
-Let low be minimum of address of scores.
-Let high be maximum of address of scores.
-
-Print "Scores: " with count of address of scores.
-Print "Total: " with sum of address of scores.
-Print "Average: " with average of address of scores.
-Print "Range: " with low and " to " with high.
-
-list_free(address of scores).
-```
-
-Output:
-
-```text
-Scores: 5
-Total: 422
-Average: 84.4000
-Range: 68 to 100
-```
-
-Save an example as `fizzbuzz.eng`, then run it directly or compile it to a
+Save any example as `program.eng`, then run it directly or compile it to a
 standalone binary:
 
 ```bash
-./target/debug/tc run fizzbuzz.eng
-./target/debug/tc build fizzbuzz.eng -o fizzbuzz.elf
-./fizzbuzz.elf
+./target/debug/tc run program.eng
+./target/debug/tc build program.eng -o program.elf
+./program.elf
 ```
 
 ## Quickstart
@@ -165,8 +119,7 @@ CARGO_NET_OFFLINE=true make build
 Create `hello.eng`:
 
 ```text
-Let name be "world".
-Print "Hello, " with name and "!".
+Say "Hello, world!".
 ```
 
 Then:
