@@ -83,6 +83,39 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn fibonacci_sequence_running_total_and_overflow_count() {
+    assert_program(
+        "fibonacci-running-total",
+        "Start with 1 and 2. Keep generating the next number by adding the previous two numbers together, as long as the new number does not exceed 200. For each number in this entire sequence, including the starting two, add it to a running total. Whenever that total goes over 100, subtract 100 from it and count an overflow. At the end, print the final running total and how many overflows occurred.\n",
+        &["75", "3"],
+    );
+}
+
+#[test]
+fn fibonacci_sequence_generalizes_seeds_bound_and_modulus() {
+    assert_program(
+        "fibonacci-generalized",
+        "Start with 1 and 3. Keep generating the next number by adding the previous two numbers together, as long as the new number does not exceed 100. For each number in this entire sequence, including the starting two, add it to a running total. Whenever that total goes over 50, subtract 50 from it and count an overflow. At the end, print the final running total and how many overflows occurred.\n",
+        &["46", "3"],
+    );
+}
+
+#[test]
+fn overflow_query_without_counter_is_a_clean_anaphor_error() {
+    let result = run_elf_with_parity("Print how many overflows occurred.\n", None, "");
+    assert!(!result.ok);
+    assert!(
+        result.lines.iter().any(|line| {
+            line.contains("UNRESOLVED_ANAPHOR")
+                && line.contains("count query `overflow`")
+                && line.contains("count overflow")
+        }),
+        "{}",
+        result.lines.join("\n")
+    );
+}
+
+#[test]
 fn tracking_minimum_uses_the_smaller_emitted_value() {
     assert_program(
         "minimum-tracker",

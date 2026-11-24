@@ -21,6 +21,32 @@ pub(crate) fn sentence(text: &str) -> String {
             current = format!("{}is{}", &current[..start], &current[end..]);
             continue;
         }
+        if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, "goes over") {
+            current = format!("{}is greater than{}", &current[..start], &current[end..]);
+            continue;
+        }
+        if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, "goes above") {
+            current = format!("{}is greater than{}", &current[..start], &current[end..]);
+            continue;
+        }
+        if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, "exceeds") {
+            current = format!("{}is greater than{}", &current[..start], &current[end..]);
+            continue;
+        }
+        if let Some(rest) = current
+            .strip_prefix("Whenever ")
+            .or_else(|| current.strip_prefix("whenever "))
+        {
+            current = format!("If {rest}");
+            continue;
+        }
+        if let Some(rest) = current
+            .strip_prefix("When ")
+            .or_else(|| current.strip_prefix("when "))
+        {
+            current = format!("If {rest}");
+            continue;
+        }
         if let Some(rewritten) = halving_resultative(&current) {
             current = rewritten;
             continue;

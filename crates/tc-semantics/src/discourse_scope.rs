@@ -93,6 +93,219 @@ pub(crate) struct LoopIntroduction {
     pub quantifier: GlobalQuantifier,
 }
 
+/// A generated sequence introduced by `Start with a and b`.
+#[derive(Debug, Clone)]
+pub(crate) struct SequenceSeed {
+    /// Initial terms, in order.
+    pub values: Vec<String>,
+}
+
+/// Recurrence rule for a generated sequence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SequenceRecurrence {
+    /// Next term is the sum of the previous two.
+    SumPreviousTwo,
+}
+
+/// One parsed sequence-generation rule.
+#[derive(Debug, Clone)]
+pub(crate) struct SequenceGeneration {
+    /// Recurrence rule.
+    pub recurrence: SequenceRecurrence,
+    /// Exclusive or inclusive upper bound for generated terms.
+    pub bound: String,
+    /// True when `bound` itself is allowed.
+    pub inclusive: bool,
+}
+
+/// One parsed iteration over an entire generated sequence.
+#[derive(Debug, Clone)]
+pub(crate) struct SequenceIteration {
+    /// Loop variable name.
+    pub var: String,
+    /// Inline body action, if present.
+    pub body: Option<String>,
+}
+
+fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    let mut parts = Vec::new();
+    let mut start = 0;
+    for token in &tokens {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                "," if depth == 0 && separator == "," => {
+                    parts.push(text[start..token.start].trim().to_string());
+                    start = token.end;
+                }
+                _ => {}
+            }
+        } else if depth == 0 && token.is_word() && token.is(separator) {
+            parts.push(text[start..token.start].trim().to_string());
+            start = token.end;
+        }
+    }
+    parts.push(text[start..].trim().to_string());
+    parts.retain(|part| !part.is_empty());
+    parts
+}
+
+/// Parses `Start with 1 and 2.`
+pub(crate) fn parse_sequence_seed(text: &str) -> Option<SequenceSeed> {
+    let tokens = tokenize(text);
+    let [first, second, ..] = tokens.as_slice() else {
+        return None;
+    };
+    if !(first.is("start") || first.is("begin")) || !(second.is("with") || second.is("from")) {
+        return None;
+    }
+    let rest = text[second.end..].trim();
+    let values = split_top_level_list(rest, "and");
+    if values.len() < 2 {
+        return None;
+    }
+    Some(SequenceSeed { values })
+}
+
+/// Parses `Keep generating the next number by adding the previous two numbers
+/// together, as long as the new number does not exceed 200.`
+pub(crate) fn parse_sequence_generation(text: &str) -> Option<SequenceGeneration> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("keep generating ")
+        || lower.starts_with("keep going ")
+        || lower.starts_with("continue generating ")
+        || lower.starts_with("keep building ")
+        || lower.starts_with("generate ")
+        || lower.starts_with("continue "))
+    {
+        return None;
+    }
+    let by = find_top_level_word(text, "by")?;
+    let after_by = &text[by.1..];
+    let separator = ["as long as", "while", "until"]
+        .iter()
+        .find_map(|phrase| top_level_phrase(after_by, phrase))
+        .or_else(|| {
+            let tokens = tokenize(after_by);
+            tokens
+                .iter()
+                .find(|token| token.text == ",")
+                .map(|token| (token.start, token.end))
+        })?;
+    let recurrence_text = after_by[..separator.0].trim().to_ascii_lowercase();
+    let adding = recurrence_text.contains("adding")
+        || recurrence_text.contains("add ")
+        || recurrence_text.contains("sum of");
+    let previous_two = recurrence_text.contains("previous two")
+        || recurrence_text.contains("two previous")
+        || recurrence_text.contains("last two")
+        || recurrence_text.contains("two last");
+    if !(adding && previous_two) {
+        return None;
+    }
+    let condition = after_by[separator.1..]
+        .trim()
+        .trim_end_matches(['.', ',', ':'])
+        .trim();
+    parse_sequence_bound(condition)
+}
+
+const SEQUENCE_BOUND_PREFIXES: [(&str, bool); 7] = [
+    ("does not exceed ", true),
+    ("is at most ", true),
+    ("is no more than ", true),
+    ("is not greater than ", true),
+    ("is less than ", false),
+    ("is under ", false),
+    ("exceeds ", false),
+];
+
+fn parse_sequence_bound(condition: &str) -> Option<SequenceGeneration> {
+    let mut lower = condition.to_ascii_lowercase();
+    for prefix in [
+        "the new number ",
+        "the next number ",
+        "the new value ",
+        "the next value ",
+        "the result ",
+        "it ",
+    ] {
+        if let Some(rest) = lower.strip_prefix(prefix) {
+            lower = rest.to_string();
+            break;
+        }
+    }
+    for (prefix, inclusive) in SEQUENCE_BOUND_PREFIXES {
+        if let Some(rest) = lower.strip_prefix(prefix) {
+            let bound = condition[condition.len() - rest.len()..]
+                .trim()
+                .trim_end_matches(['.', ',', ':'])
+                .trim();
+            return (!bound.is_empty()).then(|| SequenceGeneration {
+                recurrence: SequenceRecurrence::SumPreviousTwo,
+                bound: bound.to_string(),
+                inclusive,
+            });
+        }
+    }
+    None
+}
+
+/// Parses `For each number in this entire sequence, including the starting two,
+/// add it to a running total.`
+pub(crate) fn parse_sequence_iteration(text: &str) -> Option<SequenceIteration> {
+    let tokens = tokenize(text);
+    if !tokens.first().is_some_and(|token| token.is("for"))
+        || !tokens
+            .get(1)
+            .is_some_and(|token| token.is("each") || token.is("every"))
+    {
+        return None;
+    }
+    let in_index = tokens
+        .iter()
+        .enumerate()
+        .skip(2)
+        .find(|(_, token)| token.is("in"))
+        .map(|(index, _)| index)?;
+    let var_words = tokens[2..in_index]
+        .iter()
+        .filter(|token| token.is_word())
+        .map(|token| token.lower.clone())
+        .collect::<Vec<_>>();
+    let var = singular_referent(&var_words)?;
+    let sequence_index = tokens
+        .iter()
+        .enumerate()
+        .skip(in_index + 1)
+        .find(|(_, token)| token.is("sequence") || token.is("series"))
+        .map(|(index, _)| index)?;
+    let comma_index = tokens
+        .iter()
+        .enumerate()
+        .skip(sequence_index + 1)
+        .find(|(_, token)| token.text == ",")
+        .map(|(index, _)| index)?;
+    let after_comma = &text[tokens[comma_index].end..];
+    let body = if after_comma
+        .trim_start()
+        .to_ascii_lowercase()
+        .starts_with("including ")
+    {
+        let next_comma = tokenize(after_comma)
+            .into_iter()
+            .find(|token| token.text == ",")?;
+        after_comma[next_comma.end..].trim()
+    } else {
+        after_comma.trim()
+    };
+    let body = (!body.is_empty()).then(|| body.to_string());
+    Some(SequenceIteration { var, body })
+}
+
 const FILTER_PRONOUNS: [&str; 6] = ["it", "they", "he", "she", "we", "you"];
 const FILTER_DETERMINERS: [&str; 10] = [
     "any", "all", "every", "each", "the", "those", "these", "a", "an", "also",
@@ -440,6 +653,10 @@ pub(crate) fn post_loop_rest(text: &str) -> Option<String> {
         "afterward",
         "after checking all of them",
         "after that",
+        "at the very end",
+        "at the end",
+        "in the end",
+        "finally",
     ] {
         if lower == opener {
             return None;

@@ -36,6 +36,8 @@ const PRIME_DISCOURSE_REPRO: &str = "Look at every number from 2 up to 50. For e
 
 const FILTER_PIPELINE_REPRO: &str = "Take all the numbers between 1 and 30. Skip any multiple of 4, unless it is also divisible by 6. For each remaining number, if it is odd, triple it and add 1; otherwise cut it in half. Print the final value only if it ends up greater than 20, and keep track of the largest value you printed. Once you finish going through all of them, print that largest value.\n";
 
+const FIBONACCI_SEQUENCE_REPRO: &str = "Start with 1 and 2. Keep generating the next number by adding the previous two numbers together, as long as the new number does not exceed 200. For each number in this entire sequence, including the starting two, add it to a running total. Whenever that total goes over 100, subtract 100 from it and count an overflow. At the end, print the final running total and how many overflows occurred.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1697,6 +1699,44 @@ fn lsp_filtered_range_pipeline_has_zero_diagnostics_and_no_comment_tokens() {
         tokens
             .iter()
             .any(|token| token.text == "triple" && token.token_type == FUNCTION),
+        "{tokens:?}"
+    );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_fibonacci_sequence_pipeline_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_fibonacci_sequence.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, FIBONACCI_SEQUENCE_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, FIBONACCI_SEQUENCE_REPRO);
+    assert!(
+        tokens
+            .iter()
+            .any(|token| token.text == "number" && token.token_type == VARIABLE),
         "{tokens:?}"
     );
     assert!(
