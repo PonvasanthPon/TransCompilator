@@ -45,7 +45,7 @@ fn readme_lexicon_counts_match_generated_tables() {
         readme_anchors, provenance_anchors,
         "README and PROVENANCE anchor counts disagree"
     );
-    assert_eq!(readme_anchors, 42, "unexpected anchor count");
+    assert_eq!(readme_anchors, 43, "unexpected anchor count");
 }
 
 #[test]

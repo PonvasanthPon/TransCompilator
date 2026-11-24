@@ -42,6 +42,39 @@ pub(crate) fn find_top_level_word(text: &str, word: &str) -> Option<(usize, usiz
     None
 }
 
+/// Finds a top-level multi-word phrase, ignoring strings and bracketed
+/// expressions.  Returns the phrase's start and end byte offsets.
+#[must_use]
+pub(crate) fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(usize, usize)> {
+    let words = phrase.split_whitespace().collect::<Vec<_>>();
+    if words.is_empty() {
+        return None;
+    }
+    let tokens = tokenize(text);
+    let mut depth = 0_i32;
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+        }
+        if depth != 0 {
+            continue;
+        }
+        let matched = words.iter().enumerate().all(|(offset, word)| {
+            tokens
+                .get(index + offset)
+                .is_some_and(|candidate| candidate.kind == TokenKind::Word && candidate.is(word))
+        });
+        if matched {
+            return Some((token.start, tokens[index + words.len() - 1].end));
+        }
+    }
+    None
+}
+
 /// Finds a top-level symbol token.
 #[must_use]
 pub(crate) fn find_top_level_symbol(text: &str, symbol: &str) -> Option<(usize, usize)> {

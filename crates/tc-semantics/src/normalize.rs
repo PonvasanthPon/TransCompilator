@@ -11,6 +11,20 @@ use crate::token::{TokenKind, tokenize};
 pub(crate) fn sentence(text: &str) -> String {
     let mut current = text.trim().to_string();
     loop {
+        if let Some((start, end)) =
+            crate::textutil::find_top_level_phrase(&current, "ends up being")
+        {
+            current = format!("{}is{}", &current[..start], &current[end..]);
+            continue;
+        }
+        if let Some((start, end)) = crate::textutil::find_top_level_phrase(&current, "ends up") {
+            current = format!("{}is{}", &current[..start], &current[end..]);
+            continue;
+        }
+        if let Some(rewritten) = halving_resultative(&current) {
+            current = rewritten;
+            continue;
+        }
         let lower = current.to_ascii_lowercase();
         if lower.starts_with("add up ") {
             let rest = current[7..].trim().trim_end_matches('.').trim();
@@ -77,6 +91,68 @@ pub(crate) fn sentence(text: &str) -> String {
         current = rest.to_string();
     }
     current
+}
+
+fn halving_resultative(text: &str) -> Option<String> {
+    let trimmed = text.trim().trim_end_matches(['.', '!', '?']).trim();
+    let tokens = tokenize(trimmed);
+    let mut depth = 0_i32;
+    let mut halves = None;
+    for (index, token) in tokens.iter().enumerate() {
+        if token.kind == TokenKind::Symbol {
+            match token.text.as_str() {
+                "(" | "[" | "{" => depth += 1,
+                ")" | "]" | "}" => depth -= 1,
+                _ => {}
+            }
+            continue;
+        }
+        if depth == 0
+            && token.is("half")
+            && tokens
+                .get(index.wrapping_sub(1))
+                .is_some_and(|previous| previous.is("in"))
+        {
+            halves = Some(index);
+        }
+    }
+    let half_index = halves?;
+    if tokens
+        .iter()
+        .skip(half_index + 1)
+        .any(|token| token.kind != TokenKind::Symbol)
+    {
+        return None;
+    }
+    let verb = tokens.first()?;
+    if !verb.is_word() || verb.is("print") || verb.is("say") || verb.is("show") {
+        return None;
+    }
+    let resolution = tc_lexicon::classify_verb(&verb.lower, None)?;
+    if !matches!(
+        resolution.concept,
+        Some(tc_lexicon::SemanticConcept::Div | tc_lexicon::SemanticConcept::Destroy)
+    ) {
+        return None;
+    }
+    let in_index = half_index.checked_sub(1)?;
+    let object_start = tokens.get(1)?.start;
+    let object = &trimmed[object_start..tokens[in_index].start];
+    let object = object
+        .strip_prefix("the ")
+        .or_else(|| object.strip_prefix("The "))
+        .unwrap_or(object)
+        .trim();
+    if object.is_empty()
+        || !object.split_whitespace().all(|word| {
+            word.chars().all(|character| {
+                character.is_ascii_alphanumeric() || character == '_' || character == '\''
+            })
+        })
+    {
+        return None;
+    }
+    Some(format!("Set {object} to half of {object}."))
 }
 
 fn polite_question(text: &str) -> Option<&str> {

@@ -34,6 +34,8 @@ const ELEVEN_LINE_REPRO: &str = concat!(
 
 const PRIME_DISCOURSE_REPRO: &str = "Look at every number from 2 up to 50. For each number, check whether any smaller number starting from 2 divides into it evenly. If none of them do, print that number out and count it. Once you are done, print how many numbers were found.\n";
 
+const FILTER_PIPELINE_REPRO: &str = "Take all the numbers between 1 and 30. Skip any multiple of 4, unless it is also divisible by 6. For each remaining number, if it is odd, triple it and add 1; otherwise cut it in half. Print the final value only if it ends up greater than 20, and keep track of the largest value you printed. Once you finish going through all of them, print that largest value.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1651,6 +1653,50 @@ fn lsp_prime_discourse_program_has_zero_diagnostics_and_no_comment_tokens() {
         tokens
             .iter()
             .any(|token| token.text == "number" && token.token_type == VARIABLE),
+        "{tokens:?}"
+    );
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_filtered_range_pipeline_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_filter_pipeline.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, FILTER_PIPELINE_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, FILTER_PIPELINE_REPRO);
+    assert!(
+        tokens
+            .iter()
+            .any(|token| token.text == "number" && token.token_type == VARIABLE),
+        "{tokens:?}"
+    );
+    assert!(
+        tokens
+            .iter()
+            .any(|token| token.text == "triple" && token.token_type == FUNCTION),
         "{tokens:?}"
     );
     assert!(

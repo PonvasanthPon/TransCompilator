@@ -44,6 +44,7 @@ DIRECT_ANCHORS = [
     ("Adjust", "oewn-00169614-v"),     # modify
     ("Square", "oewn-00145268-v"),     # square (unary in-place math)
     ("Cube", "oewn-00641924-v"),       # cube (unary in-place math)
+    ("Triple", "oewn-00247632-v"),     # triple/treble (unary in-place math)
     ("Output", "oewn-00959711-v"),     # echo (Emit)
 ]
 
@@ -154,7 +155,7 @@ POS_MAP = {"v": "Verb", "n": "Noun", "a": "Adj", "s": "Adj", "r": "Adv"}
 POS_ORDER = {"Verb": 0, "Noun": 1, "Adj": 2, "Adv": 3}
 CONCEPT_ORDER = {
     name: index for index, name in enumerate([
-        "Add", "Sub", "Mul", "Div", "Mod", "Negate", "Double", "Halve",
+        "Add", "Sub", "Mul", "Div", "Mod", "Negate", "Double", "Halve", "Triple",
         "Increment", "Decrement", "Reset", "Copy", "Convert", "Adjust", "Square", "Cube",
         "Assign", "Transfer", "Swap", "CompareGt", "CompareLt", "CompareEq",
         "CompareNe", "Create", "Destroy", "Output", "Input", "Loop",

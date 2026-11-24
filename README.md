@@ -44,7 +44,7 @@ campaign: **640 fresh `.eng` programs** across eight English-variety bands,
 root-cause bugs fixed** with permanent regressions. The final suite is
 **663/663 passing**, and Round 5 completed its entire fresh budget with zero
 bugs. The live-test hotfix and orthogonality audit add four permanent tests,
-for a current suite of **1024/1024 passing**, including the 58-test headless
+for a current suite of **1030/1030 passing**, including the 59-test headless
 `tc-lsp` protocol suite, 68 compositional parity tests, 89
 paraphrase-invariance fluency tests, and 38 casual-English
 and guard/regression tests. All eight
@@ -237,7 +237,7 @@ string and byte literals preserve exact case.
 
 `tc-lexicon` is a compact, deterministic, provenance-backed semantic layer:
 
-- **775** WordNet rows from 42 exact OEWN-2025 anchor synsets, depth <= 3,
+- **777** WordNet rows from 43 exact OEWN-2025 anchor synsets, depth <= 3,
   sorted by `(lemma, pos, concept)`.
 - **10,845** VerbNet 3.4 frames from all 329 class files and 609
   classes/subclasses, sorted by `(verb, prep, predicate, class_id)`.

@@ -44,6 +44,8 @@ pub enum SemanticConcept {
     Double,
     /// Halving.
     Halve,
+    /// Tripling.
+    Triple,
     /// Squaring.
     Square,
     /// Cubing.
@@ -319,6 +321,7 @@ fn concept_priority(concept: SemanticConcept) -> u8 {
         SemanticConcept::Negate => 5,
         SemanticConcept::Double => 6,
         SemanticConcept::Halve => 7,
+        SemanticConcept::Triple => 8,
         SemanticConcept::Square => 0,
         SemanticConcept::Cube => 0,
         SemanticConcept::Increment => 10,

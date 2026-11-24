@@ -352,11 +352,13 @@ fn supported_predicate(
                 && target_ok
         }
         VerbPredicate::TransferAdd => {
-            (has(tc_lexicon::PrepRole::Destination) || has(tc_lexicon::PrepRole::Extent))
-                && target_ok
+            ((has(tc_lexicon::PrepRole::Destination) || has(tc_lexicon::PrepRole::Extent))
+                && target_ok)
+                || (roles.is_empty() && !verb_region_is_empty(text, verb_index))
         }
         VerbPredicate::TransferSub => {
-            (has(tc_lexicon::PrepRole::Source) || has(tc_lexicon::PrepRole::Extent)) && target_ok
+            ((has(tc_lexicon::PrepRole::Source) || has(tc_lexicon::PrepRole::Extent)) && target_ok)
+                || (roles.is_empty() && !verb_region_is_empty(text, verb_index))
         }
         VerbPredicate::TransferMove => {
             has(tc_lexicon::PrepRole::Source) && has(tc_lexicon::PrepRole::Destination)
@@ -369,6 +371,7 @@ fn supported_predicate(
             Some(
                 SemanticConcept::Double
                 | SemanticConcept::Halve
+                | SemanticConcept::Triple
                 | SemanticConcept::Negate
                 | SemanticConcept::Square
                 | SemanticConcept::Cube,
@@ -421,6 +424,7 @@ fn supported_concept(
         Some(
             SemanticConcept::Double
             | SemanticConcept::Halve
+            | SemanticConcept::Triple
             | SemanticConcept::Negate
             | SemanticConcept::Square
             | SemanticConcept::Cube,
@@ -747,6 +751,14 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
     }
     if is_control_anchor(&first) {
         return IntentVerdict::Exec;
+    }
+    if first == "count" {
+        let tokens = tokenize(trimmed);
+        if tokens.get(1).is_some_and(|token| {
+            token.kind != TokenKind::Symbol && !token.is("of") && !token.text.starts_with('=')
+        }) {
+            return IntentVerdict::Exec;
+        }
     }
     let check_lower = core_or_trimmed_lower(trimmed);
     if check_lower.starts_with("check whether ")

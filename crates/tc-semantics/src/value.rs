@@ -182,7 +182,29 @@ pub(crate) fn parse_value<C: ValueContext>(
             && lower.len() > prefix.len()
         {
             let rest = trimmed[prefix.len()..].trim();
-            return parse_value(context, rest, span);
+            let first = rest
+                .split_whitespace()
+                .next()
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+            let starts_operator = matches!(
+                first.as_str(),
+                "times"
+                    | "plus"
+                    | "minus"
+                    | "divided"
+                    | "over"
+                    | "modulo"
+                    | "mod"
+                    | "and"
+                    | "or"
+                    | "is"
+                    | "are"
+                    | "equals"
+            );
+            if !starts_operator {
+                return parse_value(context, rest, span);
+            }
         }
     }
     let specification = ValueSpec::classify(trimmed);
