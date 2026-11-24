@@ -83,6 +83,24 @@ fn largest_value_referent_without_tracker_is_a_clean_anaphor_error() {
 }
 
 #[test]
+fn switch_ring_simulation_reports_on_count_and_first_repeat() {
+    assert_program(
+        "switch-ring",
+        "Line up 6 switches in a circle with the starting states on, off, on, on, off, and off. Run 5 update rounds. In each round, determine the next state of every switch simultaneously based on its two neighbors at the start of that round: a switch becomes on if exactly one of its two neighbors is on, and otherwise it becomes off. Keep a history of the full row of states after every round, and note the first round number whose resulting pattern matches an earlier state. After all 5 rounds finish, print how many switches are currently on, followed by that first repeating round number.\n",
+        &["4", "3"],
+    );
+}
+
+#[test]
+fn switch_ring_generalizes_size_initial_state_and_rounds() {
+    assert_program(
+        "switch-ring-generalized",
+        "Line up 5 switches in a circle with the starting states on, on, off, on, and off. Run 5 update rounds. In each round, determine the next state of every switch simultaneously based on its two neighbors at the start of that round: a switch becomes on if exactly one of its two neighbors is on, and otherwise it becomes off. Keep a history of the full row of states after every round, and note the first round number whose resulting pattern matches an earlier state. After all 5 rounds finish, print how many switches are currently on, followed by that first repeating round number.\n",
+        &["4", "4"],
+    );
+}
+
+#[test]
 fn bracket_scan_reports_mismatch_position_and_deepest_nesting() {
     assert_program(
         "bracket-scan",

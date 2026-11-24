@@ -50,6 +50,8 @@ const CIRCLE_REMOVAL_REPRO: &str = "Arrange the numbers from 1 to 10 in a circle
 
 const BRACKET_SCAN_REPRO: &str = "Inspect the text \"([{}])([]{})([)]\" one character at a time from left to right. Whenever you see an opening bracket, remember it as the most recent unmatched one; whenever you see a closing bracket, check whether it matches the most recent unmatched opening bracket and clear that pair if it does. Keep track of the deepest level of simultaneous open brackets you reach. If a closing bracket ever fails to match, or appears when no opening bracket is waiting, stop immediately and print the 1-based position of that broken character, followed by the deepest nesting level reached so far.\n";
 
+const SWITCH_RING_REPRO: &str = "Line up 6 switches in a circle with the starting states on, off, on, on, off, and off. Run 5 update rounds. In each round, determine the next state of every switch simultaneously based on its two neighbors at the start of that round: a switch becomes on if exactly one of its two neighbors is on, and otherwise it becomes off. Keep a history of the full row of states after every round, and note the first round number whose resulting pattern matches an earlier state. After all 5 rounds finish, print how many switches are currently on, followed by that first repeating round number.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1961,6 +1963,39 @@ fn lsp_bracket_scan_has_zero_diagnostics_and_no_comment_tokens() {
         .filter_map(Json::as_i64)
         .collect::<Vec<_>>();
     let tokens = decode_semantic_tokens(&data, BRACKET_SCAN_REPRO);
+    assert!(!tokens.is_empty(), "{tokens:?}");
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_switch_ring_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_switch_ring.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, SWITCH_RING_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, SWITCH_RING_REPRO);
     assert!(!tokens.is_empty(), "{tokens:?}");
     assert!(
         !tokens.iter().any(|token| token.token_type == COMMENT),

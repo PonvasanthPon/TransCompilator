@@ -269,6 +269,69 @@ fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
     parts
 }
 
+/// Parses `Line up 6 switches in a circle with the starting states on, off, ...`.
+pub(crate) fn parse_switch_setup(text: &str) -> Option<Vec<bool>> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("line up ")
+        || lower.starts_with("arrange ")
+        || lower.starts_with("place ")
+        || lower.starts_with("put "))
+    {
+        return None;
+    }
+    if !lower.contains("switch") || !lower.contains("circle") {
+        return None;
+    }
+    let (_, end) = top_level_phrase(text, "starting states")?;
+    let mut states = Vec::new();
+    for token in tokenize(&text[end..]) {
+        if token.is("on") || token.is("true") {
+            states.push(true);
+        } else if token.is("off") || token.is("false") {
+            states.push(false);
+        }
+    }
+    (states.len() >= 2).then_some(states)
+}
+
+/// Parses `Run 5 update rounds.`
+pub(crate) fn parse_switch_rounds(text: &str) -> Option<usize> {
+    let lower = trimmed_lower(text);
+    if !(lower.starts_with("run ") || lower.starts_with("perform ") || lower.starts_with("do ")) {
+        return None;
+    }
+    if !lower.contains("round") {
+        return None;
+    }
+    let value = tokenize(text).into_iter().find_map(|token| {
+        token
+            .text
+            .parse::<i64>()
+            .ok()
+            .or_else(|| crate::number_words::parse(&token.text))
+    })?;
+    usize::try_from(value).ok()
+}
+
+/// True for switch-rule or history sentences that can be skipped before the report.
+pub(crate) fn is_switch_rule(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("neighbor")
+        || lower.contains("neighbour")
+        || lower.contains("simultaneously")
+        || lower.contains("history of the full row")
+        || lower.contains("matches an earlier state")
+}
+
+/// True for the final switch-simulation report.
+pub(crate) fn is_switch_report(text: &str) -> bool {
+    let lower = trimmed_lower(text);
+    lower.contains("how many switches")
+        && (lower.contains("repeating round number")
+            || lower.contains("first repeating round")
+            || lower.contains("repeat round"))
+}
+
 /// Parses `Inspect the text "..."` and returns the quoted literal.
 pub(crate) fn parse_inspect_text(text: &str) -> Option<String> {
     let lower = trimmed_lower(text);
