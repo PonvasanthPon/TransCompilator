@@ -52,6 +52,8 @@ const BRACKET_SCAN_REPRO: &str = "Inspect the text \"([{}])([]{})([)]\" one char
 
 const SWITCH_RING_REPRO: &str = "Line up 6 switches in a circle with the starting states on, off, on, on, off, and off. Run 5 update rounds. In each round, determine the next state of every switch simultaneously based on its two neighbors at the start of that round: a switch becomes on if exactly one of its two neighbors is on, and otherwise it becomes off. Keep a history of the full row of states after every round, and note the first round number whose resulting pattern matches an earlier state. After all 5 rounds finish, print how many switches are currently on, followed by that first repeating round number.\n";
 
+const MESSAGE_SPREAD_REPRO: &str = "Consider 8 people: Alice, Bob, Charlie, Diana, Eve, Frank, Grace, and Henry. Alice can message Bob and Charlie; Bob can message Diana and Eve; Charlie can message Eve; Eve can message Frank and Henry; Diana can message Grace; and Grace can message Frank. Alice starts with a secret message at minute 0. At each subsequent minute, everyone who first heard the message during the previous minute forwards it to all the people they can message, except that Eve never forwards anything to anyone, and anyone who has already heard the message ignores duplicates. Keep advancing minute by minute until nobody new hears the message. At the end, print the minute when Frank first heard the message, followed by how many of the 8 people never heard it at all.\n";
+
 const COLLATZ_REPRO: &str = concat!(
     "Let current be 27, and let steps start at 0.\n",
     "\n",
@@ -1996,6 +1998,39 @@ fn lsp_switch_ring_has_zero_diagnostics_and_no_comment_tokens() {
         .filter_map(Json::as_i64)
         .collect::<Vec<_>>();
     let tokens = decode_semantic_tokens(&data, SWITCH_RING_REPRO);
+    assert!(!tokens.is_empty(), "{tokens:?}");
+    assert!(
+        !tokens.iter().any(|token| token.token_type == COMMENT),
+        "{tokens:?}"
+    );
+}
+
+#[test]
+fn lsp_message_spread_has_zero_diagnostics_and_no_comment_tokens() {
+    let uri = "file:///tmp/tc_lsp_message_spread.eng";
+    let (_, responses) = run(vec![
+        request(1, "initialize", object([])),
+        open(uri, MESSAGE_SPREAD_REPRO),
+        request(
+            2,
+            "textDocument/semanticTokens/full",
+            object([("textDocument", text_document(uri))]),
+        ),
+        shutdown(),
+        exit(),
+    ]);
+    let batches = diagnostics_after(&responses, uri);
+    assert_eq!(batches.len(), 1);
+    assert!(batches[0].is_empty(), "{:?}", batches[0]);
+    let data = result_for(&responses, 2)
+        .expect("tokens")
+        .get("data")
+        .and_then(Json::as_array)
+        .expect("data")
+        .iter()
+        .filter_map(Json::as_i64)
+        .collect::<Vec<_>>();
+    let tokens = decode_semantic_tokens(&data, MESSAGE_SPREAD_REPRO);
     assert!(!tokens.is_empty(), "{tokens:?}");
     assert!(
         !tokens.iter().any(|token| token.token_type == COMMENT),
