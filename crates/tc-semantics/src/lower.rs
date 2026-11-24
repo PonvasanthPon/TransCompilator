@@ -19,12 +19,13 @@ use crate::discourse::{
     DiscourseStack, ReferentKind, ResolvedAnaphor, ResolvedFieldAnaphor, ScopeKind,
 };
 use crate::discourse_scope::{
-    CheckDomain, CheckKind, GridDirection, GridMove, GridStart, GridTurn, LargestTracker,
-    SequenceGeneration, SequenceIteration, SequenceRecurrence, SequenceSeed, continuation_rest,
-    is_grid_report, is_word_count_request, is_word_output_request, is_word_split_request,
-    parse_adjacent_pass, parse_check, parse_grid_moves, parse_grid_start, parse_largest_tracker,
-    parse_loop_filter, parse_loop_introduction, parse_move_guard, parse_named_list_start,
-    parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
+    CheckDomain, CheckKind, CircleRemoval, CircleSetup, GridDirection, GridMove, GridStart,
+    GridTurn, LargestTracker, SequenceGeneration, SequenceIteration, SequenceRecurrence,
+    SequenceSeed, continuation_rest, is_grid_report, is_word_count_request, is_word_output_request,
+    is_word_split_request, parse_adjacent_pass, parse_check, parse_circle_arrangement,
+    parse_circle_removal, parse_circle_report, parse_grid_moves, parse_grid_start,
+    parse_largest_tracker, parse_loop_filter, parse_loop_introduction, parse_move_guard,
+    parse_named_list_start, parse_pass_cleanup, parse_sentence_literal, parse_sequence_generation,
     parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_stop_condition,
     parse_word_filter, post_loop_rest,
 };
@@ -4319,6 +4320,43 @@ impl<'a> Lowerer<'a> {
         let mut index = 0;
         while index < items.len() {
             if let RawItem::Sentence(sentence) = &items[index]
+                && let Some(setup) = parse_circle_arrangement(&sentence.text)
+                && let Some(RawItem::Sentence(rule)) = items.get(index + 1)
+                && let Some(removal) = parse_circle_removal(&rule.text)
+            {
+                let mut cursor = index + 2;
+                let mut ordinal = None;
+                while cursor < items.len() {
+                    let RawItem::Sentence(next) = &items[cursor] else {
+                        break;
+                    };
+                    if let Some(parsed) = parse_circle_report(&next.text) {
+                        ordinal = Some(parsed);
+                        cursor += 1;
+                        break;
+                    }
+                    let lower = next.text.to_ascii_lowercase();
+                    if lower.contains("order in which")
+                        || lower.contains("remember")
+                        || lower.contains("removal order")
+                    {
+                        cursor += 1;
+                        continue;
+                    }
+                    break;
+                }
+                if let Some(ordinal) = ordinal {
+                    statements.extend(self.lower_circle_removal(
+                        setup,
+                        removal,
+                        ordinal,
+                        sentence.span,
+                    )?);
+                    index = cursor;
+                    continue;
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(start) = parse_grid_start(&sentence.text)
                 && let Some(RawItem::Sentence(moves_sentence)) = items.get(index + 1)
                 && let Some(moves) = parse_grid_moves(&moves_sentence.text)
@@ -5740,6 +5778,42 @@ impl<'a> Lowerer<'a> {
                 _ => Ok(AstType::I64),
             },
         }
+    }
+
+    fn lower_circle_removal(
+        &mut self,
+        setup: CircleSetup,
+        removal: CircleRemoval,
+        ordinal: usize,
+        span: Span,
+    ) -> Result<Vec<AstStmt>, SemanticError> {
+        if setup.start > setup.end {
+            return Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "circle range start must not exceed its end",
+            ));
+        }
+        let mut numbers = (setup.start..=setup.end).collect::<Vec<_>>();
+        let mut index = removal
+            .start_at
+            .and_then(|value| numbers.iter().position(|number| *number == value))
+            .unwrap_or(0);
+        let step = usize::try_from(removal.step).unwrap_or(1);
+        let mut removed = Vec::new();
+        while numbers.len() > 1 {
+            index = (index + step - 1) % numbers.len();
+            removed.push(numbers.remove(index));
+            if index == numbers.len() {
+                index = 0;
+            }
+        }
+        let last = numbers.first().copied().unwrap_or(0);
+        let wanted = removed.get(ordinal.saturating_sub(1)).copied().unwrap_or(0);
+        let mut statements = Vec::new();
+        statements.extend(self.lower_emit_parts(&[wanted.to_string()], span)?);
+        statements.extend(self.lower_emit_parts(&[last.to_string()], span)?);
+        Ok(statements)
     }
 
     fn lower_grid_walk(
