@@ -11,7 +11,7 @@ Give back created.
 Publicly, to push for T val (a T) to items (a pointer to List of T), named list_push.
 If items's len equals items's cap.
 Let new cap be items's cap times 2.
-If items's cap equals 0, make new cap 8 as an unsigned number.
+If items's cap is zero, make new cap 8 as an unsigned number.
 If new cap is less than 16, make new cap 16 as an unsigned number.
 Let old bytes be items's cap times (byte size of T).
 Let new bytes be new cap times (byte size of T).
@@ -22,7 +22,7 @@ Set item items's len of items's data to val.
 Add 1 to items's len.
 
 Publicly, to pop for T from items (a pointer to List of T), named list_pop, giving T.
-If items's len equals 0, stop with error "pop from empty list".
+If items's len is zero, stop with error "pop from empty list".
 Set items's len to items's len minus 1.
 Give back item items's len of items's data.
 
@@ -40,12 +40,12 @@ Give back items's len.
 
 Publicly, to get the first item for T given items as a pointer to List of T, named list_first, giving T.
 Call this as "first item of <items>".
-If items's len equals 0, stop with error "first item of empty list".
+If items's len is zero, stop with error "first item of empty list".
 Give back item 0 of items's data.
 
 Publicly, to get the last item for T given items as a pointer to List of T, named list_last, giving T.
 Call this as "last item of <items>".
-If items's len equals 0, stop with error "last item of empty list".
+If items's len is zero, stop with error "last item of empty list".
 Give back item (items's len minus 1) of items's data.
 
 Publicly, to clear a list for T given items as a pointer to List of T, named list_clear.
@@ -58,22 +58,29 @@ Update items so its data is no address as a pointer to T, its len is 0 as an uns
 
 Publicly, to sort a list for T given items as a pointer to List of T, compare as a function taking pointer to T and pointer to T returning whole number, named list_sort.
 Call this as "sort <items> using <compare>".
-Let outer be 0 as an unsigned number.
-While outer is less than items's len.
-Let inner be outer.
-While inner is more than 0.
+Let outer start at 0 as an unsigned number.
+Repeat while outer is less than items's len.
+Let inner start at outer.
+Repeat while inner is more than 0.
 Let left be address of item (inner minus 1) of items's data.
 Let right be address of item inner of items's data.
-If apply compare to right with left is less than 0, let temporary be item inner of items's data, set item inner of items's data to item (inner minus 1) of items's data, set item (inner minus 1) of items's data to temporary, set inner to inner minus 1, otherwise break.
+Let order be apply compare to right with left.
+If order is less than 0.
+Let temporary be item inner of items's data.
+Set item inner of items's data to item (inner minus 1) of items's data.
+Set item (inner minus 1) of items's data to temporary.
+Subtract 1 from inner.
+End the condition.
+If order is at least 0, break.
 End the loop.
 Add 1 to outer.
 End the loop.
 
 Publicly, to sum the values of items (a pointer to List of whole number), named list_sum_i64, giving a whole number.
 Call this as "sum of <items>".
-Let total be 0.
-Let i be 0 as an unsigned number.
-While i is less than items's len.
+Let total start at 0.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than items's len.
 Set total to total plus item i of items's data.
 Add 1 to i.
 End the loop.
@@ -81,9 +88,9 @@ Give back total.
 
 Publicly, to sum the values of items (a pointer to List of decimal), named list_sum_f64, giving a decimal.
 Call this as "sum of <items>".
-Let total be 0.0.
-Let i be 0 as an unsigned number.
-While i is less than items's len.
+Let total start at 0.0.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than items's len.
 Set total to total plus item i of items's data.
 Add 1 to i.
 End the loop.
@@ -91,10 +98,10 @@ Give back total.
 
 Publicly, to average the values of items (a pointer to List of whole number), named list_avg_i64, giving a decimal.
 Call this as "average of <items>".
-If items's len equals 0, give back 0.0.
-Let total be 0.0.
-Let i be 0 as an unsigned number.
-While i is less than items's len.
+If items's len is zero, give back 0.0.
+Let total start at 0.0.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than items's len.
 Set total to total plus (item i of items's data) as a decimal.
 Add 1 to i.
 End the loop.
@@ -102,10 +109,10 @@ Give back total divided by (items's len as a decimal).
 
 Publicly, to average the values of items (a pointer to List of decimal), named list_avg_f64, giving a decimal.
 Call this as "average of <items>".
-If items's len equals 0, give back 0.0.
-Let total be 0.0.
-Let i be 0 as an unsigned number.
-While i is less than items's len.
+If items's len is zero, give back 0.0.
+Let total start at 0.0.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than items's len.
 Set total to total plus item i of items's data.
 Add 1 to i.
 End the loop.
@@ -113,10 +120,10 @@ Give back total divided by (items's len as a decimal).
 
 Publicly, to find the smallest value in items (a pointer to List of whole number), named list_min_i64, giving a whole number.
 Call this as "minimum of <items>".
-If items's len equals 0, stop with error "minimum of empty list".
+If items's len is zero, stop with error "minimum of empty list".
 Let best be item 0 of items's data.
-Let i be 1 as an unsigned number.
-While i is less than items's len.
+Let i start at 1 as an unsigned number.
+Repeat while i is less than items's len.
 If item i of items's data is less than best, set best to item i of items's data.
 Add 1 to i.
 End the loop.
@@ -124,10 +131,10 @@ Give back best.
 
 Publicly, to find the largest value in items (a pointer to List of whole number), named list_max_i64, giving a whole number.
 Call this as "maximum of <items>".
-If items's len equals 0, stop with error "maximum of empty list".
+If items's len is zero, stop with error "maximum of empty list".
 Let best be item 0 of items's data.
-Let i be 1 as an unsigned number.
-While i is less than items's len.
+Let i start at 1 as an unsigned number.
+Repeat while i is less than items's len.
 If item i of items's data is more than best, set best to item i of items's data.
 Add 1 to i.
 End the loop.
@@ -135,8 +142,8 @@ Give back best.
 
 Publicly, to check a list given bag as a pointer to List of whole number, target as a whole number, named list_contains_i64, giving a truth value.
 Call this as "list <bag> contains <target>".
-Let i be 0 as an unsigned number.
-While i is less than bag's len.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than bag's len.
 If item i of bag's data equals target, give back true.
 Add 1 to i.
 End the loop.
@@ -144,8 +151,8 @@ Give back false.
 
 Publicly, to locate target (a whole number) in bag (a pointer to List of whole number), named list_find_i64, giving a whole number.
 Call this as "find <target> in <bag>".
-Let i be 0 as an unsigned number.
-While i is less than bag's len.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than bag's len.
 If item i of bag's data equals target, give back i as a whole number.
 Add 1 to i.
 End the loop.
@@ -154,12 +161,12 @@ Give back -1.
 Publicly, to reverse a list for T given items as a pointer to List of T, named list_reverse.
 Call this as "reverse <items>".
 If items's len is less than 2, give back.
-Let left be 0 as an unsigned number.
+Let left start at 0 as an unsigned number.
 Let right be items's len minus 1.
-While left is less than right.
+Repeat while left is less than right.
 Let temporary be item left of items's data.
 Set item left of items's data to item right of items's data.
 Set item right of items's data to temporary.
 Add 1 to left.
-Set right to right minus 1.
+Subtract 1 from right.
 End the loop.

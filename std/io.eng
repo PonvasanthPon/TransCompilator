@@ -1,21 +1,31 @@
-A module of console output, decimal formatting, and byte-safe input.
+Everyday console output, decimal formatting, and byte-safe input.
+
+Leading whitespace and an optional sign on input.
 
 Use core.
 
 To format n (an unsigned number) into buf (a pointer to byte), named format_u64_into, giving an unsigned number.
 Let digits be block of 20 byte.
-Let count be 0 as an unsigned number.
-Let value be n.
-If value equals 0, set item 0 of buf to 48, give back 1.
-While value is more than 0, set item count of digits to 48 plus (value modulo 10) as a byte, set value to value divided by 10, add 1 to count.
-Let len be 0 as an unsigned number.
-While count is more than 0, set count to count minus 1, set item len of buf to item count of digits, add 1 to len.
+Let count start at 0 as an unsigned number.
+Let value start at n.
+If value is zero, set item 0 of buf to 48, give back 1.
+Repeat while value is positive.
+Set item count of digits to 48 plus (value modulo 10) as a byte.
+Divide value by 10.
+Add 1 to count.
+End the loop.
+Let len start at 0 as an unsigned number.
+Repeat while count is positive.
+Subtract 1 from count.
+Set item len of buf to item count of digits.
+Add 1 to len.
+End the loop.
 Give back len.
 
 Publicly, to format n (a whole number) into buf (a pointer to byte), named format_i64_into, giving an unsigned number.
-Let len be 0 as an unsigned number.
-Let magnitude be 0 as an unsigned number.
-If n is less than 0, set item 0 of buf to 45, set len to 1 as an unsigned number, set magnitude to (0 as an unsigned number) minus (n as an unsigned number), otherwise set magnitude to n as an unsigned number.
+Let len start at 0 as an unsigned number.
+Let magnitude start at 0 as an unsigned number.
+If n is negative, set item 0 of buf to 45, set len to 1 as an unsigned number, set magnitude to (0 as an unsigned number) minus (n as an unsigned number), otherwise set magnitude to n as an unsigned number.
 Let written be format magnitude into (buf as an unsigned number plus len) as a pointer to byte.
 Give back len plus written.
 
@@ -26,14 +36,19 @@ If x is less than 0.0, set negative to true, set absolute to 0.0 minus x.
 Let scaled be (absolute times 10000.0 plus 0.5) as an unsigned number.
 Let integer part be scaled divided by 10000.
 Let frac be scaled modulo 10000.
-Let len be 0 as an unsigned number.
-If negative and scaled is not equal to 0, set item 0 of buf to 45, set len to 1 as an unsigned number.
+Let len start at 0 as an unsigned number.
+If negative and scaled isn't zero, set item 0 of buf to 45, set len to 1 as an unsigned number.
 Let text length be format integer part into (buf as an unsigned number plus len) as a pointer to byte.
-Set len to len plus text length.
+Add text length to len.
 Set item len of buf to 46.
-Set len to len plus 1.
-Let divisor be 1000 as an unsigned number.
-While divisor is more than 0, set item len of buf to (48 plus frac divided by divisor) as a byte, set frac to frac modulo divisor, set divisor to divisor divided by 10, add 1 to len.
+Add 1 to len.
+Let divisor start at 1000 as an unsigned number.
+Repeat while divisor is positive.
+Set item len of buf to (48 plus frac divided by divisor) as a byte.
+Set frac to frac modulo divisor.
+Divide divisor by 10.
+Add 1 to len.
+End the loop.
 Give back len.
 
 To print a newline, named newline.
@@ -127,48 +142,41 @@ Print a newline.
 
 Publicly, to read a whole number from input, named read_i64_stdin, giving a whole number.
 Let ch be block of 1 byte.
-Let value be 0.
-Let sign be 1.
+Let value start at 0.
+Let sign start at 1.
 Let seen be false.
 Let done be false.
-Let read count be 1.
+Let read count start at 1.
 Let code be 0.
-While done is false.
+Repeat while done is false.
 Set read count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
 If read count is at most 0, set done to true.
 If done is false, set code to (item 0 of ch) as a whole number.
-If done is false and seen is false and code equals 45, set sign to -1.
-If done is false and seen is false and code equals 32, set done to false.
-If done is false and seen is false and code equals 9, set done to false.
-If done is false and seen is false and code equals 13, set done to false.
-If done is false and seen is false and code equals 10, set done to false.
-If done is false and code is at least 48 and code is at most 57, set value to value times 10 plus (code minus 48), set seen to true.
+If done is false and seen is false and code is 45, set sign to -1.
+If done is false and code is between 48 and 57, set value to value times 10 plus (code minus 48), set seen to true.
 If done is false and seen is true and (code is less than 48 or code is more than 57), set done to true.
 End the loop.
-Give back value times sign.
+Multiply value by sign.
+Give back value.
 
 Publicly, to read a decimal from input, named read_f64_stdin, giving a decimal.
 Let ch be block of 1 byte.
-Let value be 0.0.
-Let sign be 1.0.
-Let divisor be 10.0.
+Let value start at 0.0.
+Let sign start at 1.0.
+Let divisor start at 10.0.
 Let seen be false.
 Let fractional be false.
 Let done be false.
-Let read count be 1.
+Let read count start at 1.
 Let code be 0.
-While done is false.
+Repeat while done is false.
 Set read count to ask Linux kernel 0 with 0, address of item 0 of ch, and 1.
 If read count is at most 0, set done to true.
 If done is false, set code to (item 0 of ch) as a whole number.
-If done is false and seen is false and fractional is false and code equals 45, set sign to -1.0.
-If done is false and seen is false and fractional is false and code equals 32, set done to false.
-If done is false and seen is false and fractional is false and code equals 9, set done to false.
-If done is false and seen is false and fractional is false and code equals 13, set done to false.
-If done is false and seen is false and fractional is false and code equals 10, set done to false.
-If done is false and fractional is false and code equals 46, set seen to true, set fractional to true.
-If done is false and fractional and code is at least 48 and code is at most 57, set value to value plus (code minus 48) as a decimal divided by divisor, set divisor to divisor times 10.0.
-If done is false and fractional is false and code is at least 48 and code is at most 57, set value to value times 10.0 plus (code minus 48) as a decimal, set seen to true.
+If done is false and seen is false and fractional is false and code is 45, set sign to -1.0.
+If done is false and fractional is false and code is 46, set seen to true, set fractional to true.
+If done is false and fractional and code is between 48 and 57, set value to value plus (code minus 48) as a decimal divided by divisor, set divisor to divisor times 10.0.
+If done is false and fractional is false and code is between 48 and 57, set value to value times 10.0 plus (code minus 48) as a decimal, set seen to true.
 If done is false and fractional and code is not 46 and (code is less than 48 or code is more than 57), set done to true.
 If done is false and fractional is false and seen is true and code is not 46 and (code is less than 48 or code is more than 57), set done to true.
 End the loop.

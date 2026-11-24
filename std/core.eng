@@ -1,42 +1,47 @@
-A module of optional values, result values, panic helpers, and byte utilities.
+A small foundation of optional values, results, panic helpers, and byte utilities.
+
+Inline option and result payloads, with no heap allocation.
+A standard-error message for every panic.
 
 A public record Option of T has a has value (a truth value), and a value (T).
 
 A public record Result of T and E has an is ok (a truth value), an ok val (T), and an err val (E).
 
 Publicly, to wrap option for T given value as T, named option_some, giving Option of T.
-Let value out be Option of T.
-Set value out's has value to true.
-Set value out's value to value.
-Give back value out.
+Let wrapped be Option of T.
+Set wrapped's has value to true.
+Set wrapped's value to value.
+Give back wrapped.
 
 Publicly, to empty option for T, named option_none, giving Option of T.
-Let value out be Option of T.
-Give back value out.
+Let empty option be Option of T.
+Give back empty option.
 
 Publicly, to inspect option for T given candidate as a pointer to Option of T, named option_is_some, giving a truth value.
 Give back candidate's has value.
 
 Publicly, to unwrap option for T given candidate as a pointer to Option of T, fallback as T, named option_unwrap_or, giving T.
-Give back candidate's value if candidate's has value equals true, otherwise give back fallback.
+If candidate's has value, give back candidate's value.
+Give back fallback.
 
 Publicly, to succeed result for T and E given value as T, named result_ok, giving Result of T and E.
-Let value out be Result of T and E.
-Set value out's is ok to true.
-Set value out's ok val to value.
-Give back value out.
+Let success be Result of T and E.
+Set success's is ok to true.
+Set success's ok val to value.
+Give back success.
 
 Publicly, to fail result for T and E given failure as E, named result_err, giving Result of T and E.
-Let value out be Result of T and E.
-Set value out's is ok to false.
-Set value out's err val to failure.
-Give back value out.
+Let problem be Result of T and E.
+Set problem's is ok to false.
+Set problem's err val to failure.
+Give back problem.
 
 Publicly, to inspect result for T and E given candidate as a pointer to Result of T and E, named result_is_ok, giving a truth value.
 Give back candidate's is ok.
 
 Publicly, to unwrap result for T and E given candidate as a pointer to Result of T and E, fallback as T, named result_unwrap_or, giving T.
-Give back candidate's ok val if candidate's is ok equals true, otherwise give back fallback.
+If candidate's is ok, give back candidate's ok val.
+Give back fallback.
 
 Publicly, to halt msg (a pointer to byte) with length len (an unsigned number), named panic.
 Ask Linux kernel 1 with 2, msg, and len.
@@ -44,13 +49,19 @@ Ask Linux kernel 1 with 2, "\n", and 1.
 Ask Linux kernel 60 with 1.
 
 Publicly, to check stop given cond as a truth value, msg as a pointer to byte, len as an unsigned number, named assert_true.
-If not cond, halt msg with length len.
+If cond is false, halt msg with length len.
 
 Publicly, to zero bytes at dst (a pointer to byte) for len (an unsigned number), named mem_zero.
-Let i be 0 as an unsigned number.
-While i is less than len, set item i of dst to 0, add 1 to i.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than len.
+Set item i of dst to 0.
+Add 1 to i.
+End the loop.
 
 Publicly, to compare bytes at a (a pointer to byte) with bytes at b (a pointer to byte) for len (an unsigned number), named mem_eq, giving a truth value.
-Let i be 0 as an unsigned number.
-While i is less than len, set i to i plus 1, if a[i minus 1] is not equal to b[i minus 1], give back false.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than len.
+If item i of a isn't equal to item i of b, give back false.
+Add 1 to i.
+End the loop.
 Give back true.

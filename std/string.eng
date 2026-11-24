@@ -1,24 +1,27 @@
 A growable sequence of bytes with a final zero byte.
 
+A final zero byte keeps every buffer ready for kernel calls.
+Whitespace means space, tab, line feed, or carriage return.
+
 Use alloc, core, and io.
 
 A public record TcString has a data (a pointer to byte), a len (an unsigned number), and a cap (an unsigned number).
 
 Publicly, to create an empty text, named str_new, giving TcString.
-Let s be TcString.
-Give back s.
+Let empty text be TcString.
+Give back empty text.
 
 Publicly, to create text from p (a pointer to byte) of length n (an unsigned number), named str_from_bytes, giving TcString.
 Let s be TcString.
 Let capacity be n plus 1 as an unsigned number.
 Let allocated be allocate capacity bytes.
 Update s so its len is n, its cap is capacity, and its data is allocated.
-If n is more than 0, copy n bytes from p to s's data.
+If n is positive, copy n bytes from p to s's data.
 Set item n of s's data to 0.
 Give back s.
 
 Publicly, to append to s (a pointer to TcString) text p (a pointer to byte) of length n (an unsigned number), named str_push_bytes.
-If n equals 0, give back.
+If n is zero, give back.
 Let needed be s's len plus n plus 1.
 If needed is more than s's cap.
 Let new cap be s's cap times 2.
@@ -40,9 +43,9 @@ Give back joined.
 Publicly, to compare text a (a pointer to TcString) with text b (a pointer to TcString), named str_eq, giving a truth value.
 Call this as "text <a> matches text <b>".
 If a's len is not equal to b's len, give back false.
-Let i be 0 as an unsigned number.
-While i is less than a's len.
-If item i of a's data is not equal to item i of b's data, give back false.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than a's len.
+If item i of a's data isn't equal to item i of b's data, give back false.
 Add 1 to i.
 End the loop.
 Give back true.
@@ -74,15 +77,15 @@ Publicly, to display s (a pointer to TcString), named display_str.
 Say s.
 
 Publicly, to say s (a pointer to TcString), named print_str.
-If s's len is more than 0, ask Linux kernel 1 with 1, s's data, and s's len.
+If s's len is positive, ask Linux kernel 1 with 1, s's data, and s's len.
 Ask Linux kernel 1 with 1, "\n", and 1.
 
 Publicly, to check whether text s (a pointer to TcString) starts with prefix (a pointer to TcString), named str_starts_with, giving a truth value.
 Call this as "text <s> starts with <prefix>".
 If prefix's len is more than s's len, give back false.
-Let i be 0 as an unsigned number.
-While i is less than prefix's len.
-If item i of s's data is not equal to item i of prefix's data, give back false.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than prefix's len.
+If item i of s's data isn't equal to item i of prefix's data, give back false.
 Add 1 to i.
 End the loop.
 Give back true.
@@ -90,44 +93,44 @@ Give back true.
 Publicly, to check whether text s (a pointer to TcString) ends with suffix (a pointer to TcString), named str_ends_with, giving a truth value.
 Call this as "text <s> ends with <suffix>".
 If suffix's len is more than s's len, give back false.
-Let start be s's len minus suffix's len.
-Let i be 0 as an unsigned number.
-While i is less than suffix's len.
-If item (start plus i) of s's data is not equal to item i of suffix's data, give back false.
+Let offset be s's len minus suffix's len.
+Let i start at 0 as an unsigned number.
+Repeat while i is less than suffix's len.
+If item (offset plus i) of s's data isn't equal to item i of suffix's data, give back false.
 Add 1 to i.
 End the loop.
 Give back true.
 
 Publicly, to check whether text s (a pointer to TcString) contains needle (a pointer to TcString), named str_contains, giving a truth value.
 Call this as "text <s> contains <needle>".
-If needle's len equals 0, give back true.
+If needle's len is zero, give back true.
 If needle's len is more than s's len, give back false.
-Let start be 0 as an unsigned number.
-While start plus needle's len is at most s's len.
-Let i be 0 as an unsigned number.
+Let offset start at 0 as an unsigned number.
+Repeat while offset plus needle's len is at most s's len.
+Let i start at 0 as an unsigned number.
 Let matched be true.
-While i is less than needle's len.
-If item (start plus i) of s's data is not equal to item i of needle's data, set matched to false, break.
+Repeat while i is less than needle's len.
+If item (offset plus i) of s's data isn't equal to item i of needle's data, set matched to false, break.
 Add 1 to i.
 End the loop.
 If matched, give back true.
-Add 1 to start.
+Add 1 to offset.
 End the loop.
 Give back false.
 
 Publicly, to trim text s (a pointer to TcString), named str_trim, giving TcString.
 Call this as "trim text <s>".
-If s's len equals 0, give back create an empty text.
-Let start be 0 as an unsigned number.
-While start is less than s's len.
-If item start of s's data equals 32 or item start of s's data equals 9 or item start of s's data equals 10 or item start of s's data equals 13, add 1 to start, otherwise break.
+If s's len is zero, give back create an empty text.
+Let left start at 0 as an unsigned number.
+Repeat while left is less than s's len.
+If item left of s's data is 32 or item left of s's data is 9 or item left of s's data is 10 or item left of s's data is 13, add 1 to left, otherwise break.
 End the loop.
-If start equals s's len, give back create an empty text.
-Let finish be s's len.
-While finish is more than start.
-If item (finish minus 1) of s's data equals 32 or item (finish minus 1) of s's data equals 9 or item (finish minus 1) of s's data equals 10 or item (finish minus 1) of s's data equals 13, set finish to finish minus 1, otherwise break.
+If left equals s's len, give back create an empty text.
+Let right be s's len.
+Repeat while right is more than left.
+If item (right minus 1) of s's data is 32 or item (right minus 1) of s's data is 9 or item (right minus 1) of s's data is 10 or item (right minus 1) of s's data is 13, subtract 1 from right, otherwise break.
 End the loop.
-Give back create text from (s's data as an unsigned number plus start) as a pointer to byte of length (finish minus start).
+Give back create text from (s's data as an unsigned number plus left) as a pointer to byte of length (right minus left).
 
 Publicly, to trim p (a pointer to byte) of length n (an unsigned number), named str_trim_bytes, giving TcString.
 Let s be create text from p of length n.
@@ -138,28 +141,28 @@ Call this as "parse whole number from <s>".
 Let answer be Result of whole number and whole number.
 Set answer's is_ok to false.
 Set answer's err_val to 1.
-If s's len equals 0, give back answer.
-Let start be 0 as an unsigned number.
-While start is less than s's len.
-If item start of s's data equals 32 or item start of s's data equals 9 or item start of s's data equals 10 or item start of s's data equals 13, add 1 to start, otherwise break.
+If s's len is zero, give back answer.
+Let position start at 0 as an unsigned number.
+Repeat while position is less than s's len.
+If item position of s's data is 32 or item position of s's data is 9 or item position of s's data is 10 or item position of s's data is 13, add 1 to position, otherwise break.
 End the loop.
-If start equals s's len, give back answer.
+If position equals s's len, give back answer.
 Let negative be false.
-If item start of s's data equals 45, set negative to true, add 1 to start.
-If start is less than s's len and item start of s's data equals 43, add 1 to start.
-If start equals s's len, give back answer.
-Let value be 0.
-Let digits be 0 as an unsigned number.
-While start is less than s's len.
-Let b be item start of s's data.
+If item position of s's data is 45, set negative to true, add 1 to position.
+If position is less than s's len and item position of s's data is 43, add 1 to position.
+If position equals s's len, give back answer.
+Let value start at 0.
+Let digits start at 0 as an unsigned number.
+Repeat while position is less than s's len.
+Let b be item position of s's data.
 If b is less than 48 or b is more than 57, break.
 Set value to value times 10 plus (b as a whole number) minus 48.
-Add 1 to start.
+Add 1 to position.
 Add 1 to digits.
 End the loop.
-If digits equals 0, give back answer.
-While start is less than s's len.
-If item start of s's data equals 32 or item start of s's data equals 9 or item start of s's data equals 10 or item start of s's data equals 13, add 1 to start, otherwise give back answer.
+If digits is zero, give back answer.
+Repeat while position is less than s's len.
+If item position of s's data is 32 or item position of s's data is 9 or item position of s's data is 10 or item position of s's data is 13, add 1 to position, otherwise give back answer.
 End the loop.
 If negative, set value to 0 minus value.
 Set answer's is_ok to true.

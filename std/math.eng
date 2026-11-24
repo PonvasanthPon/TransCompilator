@@ -1,44 +1,59 @@
-Basic math operations in plain English.
+A small collection of everyday arithmetic helpers for whole numbers and decimals.
+
+Negative exponents quietly return zero, and square roots reject negative input.
 
 Use core.
 
 Publicly, to find the absolute value of x (a whole number), named abs_i64, giving a whole number.
-Give back 0 minus x if x is less than 0, otherwise give back x.
+If x is negative, give back 0 minus x.
+Give back x.
 
 Publicly, to find the absolute value of x (a decimal), named abs_f64, giving a decimal.
-Give back 0.0 if x equals 0.0.
-Give back 0.0 minus x if x is less than 0.0, otherwise give back x.
+If x equals 0.0, give back 0.0.
+If x is less than 0.0, give back 0.0 minus x.
+Give back x.
 
 Publicly, to find the smaller of a and b (whole numbers), named min_i64, giving a whole number.
-Give back a if a is less than b, otherwise give back b.
+If a is less than b, give back a.
+Give back b.
 
 Publicly, to find the larger of a and b (whole numbers), named max_i64, giving a whole number.
-Give back a if a is more than b, otherwise give back b.
+If a is more than b, give back a.
+Give back b.
 
 Publicly, to find the smaller of a and b (decimals), named min_f64, giving a decimal.
-Give back a if a is less than b, otherwise give back b.
+If a is less than b, give back a.
+Give back b.
 
 Publicly, to find the larger of a and b (decimals), named max_f64, giving a decimal.
-Give back a if a is more than b, otherwise give back b.
+If a is more than b, give back a.
+Give back b.
 
 Publicly, to find the square root of x (a decimal), named sqrt, giving a decimal.
-Stop with error "sqrt of negative number" if x is less than 0.0.
-Give back 0.0 if x equals 0.0.
-Let guess be 1.0.
-Set guess to 0.5 times x if x is at least 1.0.
-Let iteration be 0.
-Until iteration is at least 24, set guess to 0.5 times (guess plus x divided by guess), add 1 to iteration.
+If x is less than 0.0, stop with error "sqrt of negative number".
+If x equals 0.0, give back 0.0.
+Let guess start at 1.0.
+If x is at least 1.0, set guess to 0.5 times x.
+Let iteration start at 0.
+Repeat until iteration is at least 24.
+Set guess to 0.5 times (guess plus x divided by guess).
+Add 1 to iteration.
+End the loop.
 Give back guess.
 
 Publicly, to raise base (a whole number) to exponent (a whole number), named pow_i64, giving a whole number.
-Give back 0 if exponent is less than 0.
-Let result be 1.
-Let factor be base.
-Let power be exponent.
-While power is more than 0, set result to result times factor if power modulo 2 equals 1, set factor to factor times factor, set power to power divided by 2.
+If exponent is negative, give back 0.
+Let result start at 1.
+Let factor start at base.
+Let power start at exponent.
+Repeat while power is positive.
+If power modulo 2 is one, multiply result by factor.
+Square factor.
+Halve power.
+End the loop.
 Give back result.
 
 Publicly, to clamp value (a whole number) between low (a whole number) and high (a whole number), named clamp_i64, giving a whole number.
-Give back low if value is less than low.
-Give back high if value is more than high.
+If value is less than low, give back low.
+If value is more than high, give back high.
 Give back value.
