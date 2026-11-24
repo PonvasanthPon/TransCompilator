@@ -51,7 +51,7 @@ Observed: clean Unsupported diagnostic.
 
 ## LIM-CONV-004 — Editor interpreter budget
 
-The TUI/GUI parity runner uses a 10,000,000-step reference-interpreter budget.
+The editor parity runner uses a 10,000,000-step reference-interpreter budget.
 Programs exceeding it return a structured `INTERPRETER FAILED` result rather
 than a panic. Probe: `crates/tc-editor/src/runner.rs::run_elf_with_parity`.
 

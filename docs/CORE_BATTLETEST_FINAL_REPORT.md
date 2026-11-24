@@ -1,8 +1,11 @@
 # tc_r1 Phase 3.5 — Core Foundation Battle-Test Final Report
 
-**Branch:** `battletest-core`  
-**Base:** `main` @ `92dad36` (untouched)  
-**Status:** COMPLETED  
+**Campaign branch (historical):** `battletest-core`<br>
+**Base at campaign start:** `main` @ `92dad36`<br>
+**Status:** COMPLETED
+
+> **Archive note:** this is a historical phase report. The temporary campaign
+> dashboard and its scaffolding were removed after the 0.1.0 convergence.
 
 ## Executive metrics
 

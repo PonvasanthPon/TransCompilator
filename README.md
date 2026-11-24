@@ -36,6 +36,21 @@ declarations such as `A public record ... has ...`, `Keep a shared ...`,
 `Clear bits ... from ...`, and `Ask Linux kernel ... with ...`. Programs that
 import `std/` still compile to static zero-libc ELF64.
 
+## Quickstart
+
+From a checkout of this repository:
+
+```bash
+CARGO_NET_OFFLINE=true make build
+./target/debug/tc --selftest
+printf 'Let total be 2.\nAdd 3 to total.\nPrint total.\n' > hello.eng
+./target/debug/tc run hello.eng
+```
+
+For a release build and the offline Zed setup, see
+[Build Requirements](#build-requirements) and
+[Language Server (`tc-lsp`) and Zed](#language-server-tc-lsp-and-zed).
+
 ## 0.1.0 convergence status
 
 The 0.1.0 compiler is the fixed point of a five-round zero-bug convergence
@@ -101,8 +116,9 @@ Documentation:
 
 - Linux x86_64
 - Rust 1.85+ with edition 2024 support
-- GNU `as` and `ld` from binutils
+- GNU `make`, `as`, and `ld` from binutils
 - vendored CMU Link Grammar 5.13.2 under `vendor/link-grammar/`
+- Python 3 only for the optional Zed settings helper
 - no network access is required; all builds and tests run with
   `CARGO_NET_OFFLINE=true`
 
@@ -123,9 +139,13 @@ English-language understanding.
 ```text
 tc_r1/
   Cargo.toml
+  Cargo.lock
   Makefile
   README.md
+  LICENSE
+  THIRD_PARTY_NOTICES.md
   .gitignore
+  .github/workflows/ci.yml
   vendor/link-grammar/
   goldmines/
   crates/
@@ -283,6 +303,14 @@ make lsp         # launch the stdio Language Server (tc-lsp)
 make clean       # cargo clean
 ```
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs formatting, clippy with warnings denied, an
+offline workspace build, the full test suite, the zero-dependency audit, the
+compiler audit/selftest, and a reproducible static ELF64 check on every push
+and pull request against `main`. The job sets `CARGO_NET_OFFLINE=true` so a
+network-dependent dependency cannot slip in unnoticed.
+
 ## English standard library (`std/`)
 
 `Use io.`, `Use list.`, `Use alloc, core, and string.`, and the other
@@ -392,3 +420,10 @@ configuration. Then open `tc_r1` in Zed, choose
 `editors/zed/tc-eng-extension`. The five `tc:` tasks (`Run`, `Run + Parity
 Check`, `Paraphrase`, `Trace`, and `Build Static ELF64`) are available from
 the repository `.zed/tasks.json`.
+
+## License
+
+`tc_r1` is released under the MIT License; see `LICENSE`. Vendored and
+generated third-party assets are documented in `THIRD_PARTY_NOTICES.md`, and
+the vendored Link Grammar license text is in
+`vendor/link-grammar/LICENSE`.

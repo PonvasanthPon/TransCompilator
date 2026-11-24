@@ -1,9 +1,14 @@
 # tc_r1 Phase 5 — Full-Stack Battle-Test & Production Hardening Final Report
 
-**Branch:** `battletest-p5` (from `main` @ `27e57cc`; `main` untouched)
+**Campaign branch (historical):** `battletest-p5` (from `main` @ `27e57cc`)
 **Campaign start:** 2026-11-22
 **Status:** COMPLETED
 **Campaign commit:** `e678e79`
+
+> **Archive note:** this is a historical phase report. The temporary campaign
+> dashboard, GUI editor, and associated scaffolding were removed from the
+> repository after the 0.1.0 convergence; the current repository ships the
+> native terminal editor (`r1-editor`).
 
 ## Executive metrics
 
@@ -23,8 +28,8 @@
 | Regression suite | **655 tests passing** (650 baseline preserved) |
 | `make build` / `test` / `lint` / `fmt-check` / `audit` | **PASS / PASS / PASS / PASS / PASS** |
 | Static zero-libc ELF64 | `ldd`: not a dynamic executable; no dynamic section; 0 INTERP |
-| Native GUI smoke | clean launch, 0 stderr, clean timeout |
-| Dashboard | `http://127.0.0.1:8797/` returned HTTP 200 and shows COMPLETED |
+| Native GUI smoke (historical, later removed) | clean launch, 0 stderr, clean timeout |
+| Campaign dashboard (historical, later removed) | local status page returned HTTP 200 and showed COMPLETED |
 
 ## Tier results
 
@@ -39,7 +44,7 @@
 | S7 | `std/map` collisions, growth, tombstones | 55 | 45 | 0 |
 | S8 | Real-world multi-module applications | 65 | 50 | 0 |
 | S9 | Non-native/casual prose and rejection safety | 75 | 60 | 0 |
-| S10 | CLI + TUI + GUI editor checks | 52 | 40 | 0 |
+| S10 | CLI + TUI (+ historical GUI) editor checks | 52 | 40 | 0 |
 | S11 | 5,000-seed fuzz/crash campaign | 5000 | 5000 | 0 |
 | S12 | Production audit, limits, report | 1 | 1 | 0 |
 
