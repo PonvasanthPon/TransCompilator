@@ -243,9 +243,20 @@ pub(crate) fn check_program(
         return Err(errors);
     }
 
+    let entry_span = resolved
+        .modules
+        .get(resolved.entry_module)
+        .and_then(|module| module.ast.functions.get(resolved.entry_fn))
+        .map_or_else(|| Span::new("main", 1, 1), |function| function.span.clone());
     let entry_function = *function_lookup
         .get(&(resolved.entry_module, resolved.entry_fn))
-        .expect("resolved entry function must be checked");
+        .ok_or_else(|| {
+            vec![TypeError::new(
+                entry_span,
+                TypeErrorKind::Internal,
+                "entry function was not type-checked",
+            )]
+        })?;
 
     Ok(CheckedProgram {
         resolved,
@@ -1369,7 +1380,13 @@ impl Checker<'_, '_> {
 
         match viable.len() {
             1 => {
-                let (candidate, type_args, ret, args) = viable.pop().expect("one viable candidate");
+                let Some((candidate, type_args, ret, args)) = viable.pop() else {
+                    return Err(TypeError::new(
+                        span.clone(),
+                        TypeErrorKind::Internal,
+                        format!("overload resolution lost the only candidate for `{name}`"),
+                    ));
+                };
                 Ok((candidate, type_args, args, ret))
             }
             0 if unconstrained => Err(TypeError::new(
@@ -1591,7 +1608,13 @@ impl Checker<'_, '_> {
 
         match viable.len() {
             1 => {
-                let (candidate, type_args, signature) = viable.pop().expect("one viable candidate");
+                let Some((candidate, type_args, signature)) = viable.pop() else {
+                    return Err(TypeError::new(
+                        span.clone(),
+                        TypeErrorKind::Internal,
+                        format!("overload resolution lost the only candidate for `{name}`"),
+                    ));
+                };
                 Ok((candidate, type_args, signature))
             }
             0 if unconstrained => Err(TypeError::new(

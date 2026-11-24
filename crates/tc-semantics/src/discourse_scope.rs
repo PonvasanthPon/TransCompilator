@@ -6,7 +6,7 @@
 //! the existing quantifier, condition, and value machinery.
 
 use crate::quantifier::{GlobalQuantifier, QuantDomainSpec};
-use crate::textutil::find_top_level_word;
+use crate::textutil::{find_top_level_symbol, find_top_level_word, split_top_level};
 use crate::token::{TokenKind, tokenize};
 
 /// Quantifier used by a `check whether` sentence.
@@ -116,7 +116,7 @@ pub(crate) fn parse_state_declaration(text: &str) -> Option<Vec<(String, String)
         return None;
     }
     let rest = text[first.end..].trim();
-    let clauses = split_top_level_list(rest, "and");
+    let clauses = split_top_level(rest, "and");
     if clauses.len() < 2 {
         return None;
     }
@@ -246,32 +246,6 @@ pub(crate) struct SequenceIteration {
     pub var: String,
     /// Inline body action, if present.
     pub body: Option<String>,
-}
-
-fn split_top_level_list(text: &str, separator: &str) -> Vec<String> {
-    let tokens = tokenize(text);
-    let mut depth = 0_i32;
-    let mut parts = Vec::new();
-    let mut start = 0;
-    for token in &tokens {
-        if token.kind == TokenKind::Symbol {
-            match token.text.as_str() {
-                "(" | "[" | "{" => depth += 1,
-                ")" | "]" | "}" => depth -= 1,
-                "," if depth == 0 && separator == "," => {
-                    parts.push(text[start..token.start].trim().to_string());
-                    start = token.end;
-                }
-                _ => {}
-            }
-        } else if depth == 0 && token.is_word() && token.is(separator) {
-            parts.push(text[start..token.start].trim().to_string());
-            start = token.end;
-        }
-    }
-    parts.push(text[start..].trim().to_string());
-    parts.retain(|part| !part.is_empty());
-    parts
 }
 
 /// A list introduced with inline starting values.
@@ -449,7 +423,7 @@ pub(crate) fn parse_sequence_seed(text: &str) -> Option<SequenceSeed> {
         return None;
     }
     let rest = text[second.end..].trim();
-    let values = split_top_level_list(rest, "and");
+    let values = split_top_level(rest, "and");
     if values.len() < 2 {
         return None;
     }
@@ -911,22 +885,6 @@ pub(crate) fn continuation_rest(text: &str, var: &str) -> Option<String> {
     (!rest.is_empty()).then(|| rest.to_string())
 }
 
-fn top_level_comma(text: &str) -> Option<(usize, usize)> {
-    let tokens = tokenize(text);
-    let mut depth = 0_i32;
-    for token in &tokens {
-        if token.kind == TokenKind::Symbol {
-            match token.text.as_str() {
-                "(" | "[" | "{" => depth += 1,
-                ")" | "]" | "}" => depth -= 1,
-                "," if depth == 0 => return Some((token.start, token.end)),
-                _ => {}
-            }
-        }
-    }
-    None
-}
-
 /// Returns the post-loop statement after a discourse closer opener.
 pub(crate) fn post_loop_rest(text: &str) -> Option<String> {
     let lower = trimmed_lower(text);
@@ -957,7 +915,7 @@ pub(crate) fn post_loop_rest(text: &str) -> Option<String> {
             }
         }
     }
-    let (comma_start, comma_end) = top_level_comma(text)?;
+    let (comma_start, comma_end) = find_top_level_symbol(text, ",")?;
     let prefix = trimmed_lower(&text[..comma_start]);
     let words = prefix.split_whitespace().collect::<Vec<_>>();
     let opener = words.first().copied()?;

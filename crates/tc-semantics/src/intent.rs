@@ -12,8 +12,8 @@ use tc_lexicon::{
 
 use crate::phrases::PhraseMatch;
 use crate::textutil::{
-    canonical_assignment_target, find_top_level_symbol, find_top_level_word, first_word,
-    is_lvalue_text, split_where, starts_with_word,
+    canonical_assignment_target, find_top_level_phrase, find_top_level_symbol, find_top_level_word,
+    first_word, is_lvalue_text, split_where, starts_with_word,
 };
 use crate::token::{Token, TokenKind, tokenize};
 use crate::{ClauseTree, Voice};
@@ -294,33 +294,6 @@ fn assignment_shape(text: &str) -> bool {
         }
     }
     false
-}
-
-fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(usize, usize)> {
-    let words = phrase.split_whitespace().collect::<Vec<_>>();
-    let tokens = tokenize(text);
-    let mut depth = 0_i32;
-    for (index, token) in tokens.iter().enumerate() {
-        if token.kind == TokenKind::Symbol {
-            match token.text.as_str() {
-                "(" | "[" | "{" => depth += 1,
-                ")" | "]" | "}" => depth -= 1,
-                _ => {}
-            }
-        }
-        if depth != 0 {
-            continue;
-        }
-        let matched = words.iter().enumerate().all(|(offset, word)| {
-            tokens
-                .get(index + offset)
-                .is_some_and(|candidate| candidate.kind == TokenKind::Word && candidate.is(word))
-        });
-        if matched {
-            return Some((token.start, tokens[index + words.len() - 1].end));
-        }
-    }
-    None
 }
 
 fn prep_roles(text: &str) -> Vec<tc_lexicon::PrepRole> {

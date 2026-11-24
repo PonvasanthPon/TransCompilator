@@ -1,4 +1,7 @@
 //! Zero-ML, provenance-backed WordNet and VerbNet lexicon engine.
+//!
+//! Pipeline position: shared lexical evidence used by syntax, semantics, and
+//! the CLI provenance audit.
 
 pub mod closed_class;
 pub mod generated;

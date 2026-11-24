@@ -1,5 +1,8 @@
 //! Native R1 Editor library: UTF-8 buffer, key decoding, terminal safety,
 //! in-process compiler bridge, ANSI UI, and application state.
+//!
+//! Pipeline position: in-process editor front end over the same compiler and
+//! interpreter/ELF64 parity runner.
 
 pub mod app;
 pub mod buffer;

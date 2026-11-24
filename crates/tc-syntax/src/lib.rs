@@ -1,5 +1,8 @@
 //! Finite English syntax front end for `tc_r1`.
 //!
+//! Pipeline position: segmentation and Link Grammar analysis feeding the
+//! semantic front end.
+//!
 //! The crate wraps the vendored CMU Link Grammar parser, segments paragraphs
 //! and indented blocks, and normalizes dependency links into a small finite set
 //! of clause roles.  It performs no semantic classification.

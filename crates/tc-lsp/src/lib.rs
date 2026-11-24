@@ -1,4 +1,7 @@
 //! Native `std`-only Language Server for TransCompilator English `.eng` files.
+//!
+//! Pipeline position: in-process language server over the same semantic
+//! analysis pipeline used by the compiler.
 
 pub mod analysis;
 pub mod doc;

@@ -1,5 +1,8 @@
 //! Finite English semantic front end for `tc_r1`.
 //!
+//! Pipeline position: intent, discourse, and clause lowering into the typed
+//! AST consumed by `tc-typeck`.
+//!
 //! The crate classifies every sentence through a strict three-way intent gate,
 //! matches declarative `Phrase:` signatures, and lowers executable English into
 //! the Phase 1 typed AST through one unified recursive statement lowerer.
@@ -228,7 +231,12 @@ fn is_std_module(name: &str) -> bool {
     )
 }
 
-fn find_std_dir() -> Option<PathBuf> {
+/// Finds the repository `std/` directory.
+///
+/// Resolution order is `TC_STD_DIR`, the executable's ancestors, then the
+/// compile-time workspace root. Every candidate must contain `core.eng`.
+#[must_use]
+pub fn find_std_dir() -> Option<PathBuf> {
     if let Some(value) = env::var_os("TC_STD_DIR") {
         let path = PathBuf::from(value);
         if path.join("core.eng").is_file() {

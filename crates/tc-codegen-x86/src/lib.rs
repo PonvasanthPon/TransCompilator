@@ -1,4 +1,7 @@
 //! Direct x86_64 static ELF64 backend for the Core-7 IR.
+//!
+//! Pipeline position: final native backend that consumes verified Core-7 and
+//! emits a static zero-libc ELF64 executable.
 
 mod emit;
 mod link;

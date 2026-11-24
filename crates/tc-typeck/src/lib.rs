@@ -1,5 +1,8 @@
 //! High-level typed AST, module resolution, type checking, generics, and
 //! lowering into the Core-7 IR.
+//!
+//! Pipeline position: language-agnostic typed middle-end after semantic
+//! lowering and before Core-7 verification.
 
 pub mod ast;
 mod check;

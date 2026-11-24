@@ -165,9 +165,13 @@ pub(crate) fn monomorphize(checked: &CheckedProgram<'_>) -> Result<MonoProgram, 
         .enumerate()
         .map(|(index, function)| (function.key.clone(), index))
         .collect::<HashMap<_, _>>();
-    let entry = *fn_ids
-        .get(&entry_key)
-        .expect("entry specialization must be instantiated");
+    let entry = *fn_ids.get(&entry_key).ok_or_else(|| {
+        vec![TypeError::new(
+            entry_fn.span.clone(),
+            TypeErrorKind::Internal,
+            "entry specialization was not instantiated",
+        )]
+    })?;
     let module_by_name = checked.resolved.module_by_name.clone();
 
     Ok(MonoProgram {

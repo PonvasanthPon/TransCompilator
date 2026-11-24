@@ -41,6 +41,9 @@ type ParseOptionsPtr = *mut ParseOptionsOpaque;
 type SentencePtr = *mut SentenceOpaque;
 type LinkagePtr = *mut LinkageOpaque;
 
+// SAFETY: these declarations mirror the Link Grammar 5.13.2 C ABI. Every
+// pointer passed across the boundary is created, validated, and released by
+// the matching library constructor or by the guards below.
 unsafe extern "C" {
     fn dictionary_set_data_dir(path: *const c_char);
     fn dictionary_create_lang(lang: *const c_char) -> DictionaryPtr;

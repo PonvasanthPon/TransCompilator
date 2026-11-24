@@ -13,8 +13,8 @@ use std::time::{Duration, Instant};
 
 use tc_ir::{format_module, interpret_in_dir, verify_module};
 use tc_semantics::{
-    CompiledProject, LoweredProject, SourceFile, compile_english_to_ir, format_paraphrase,
-    lower_project,
+    CompiledProject, LoweredProject, SourceFile, compile_english_to_ir, find_std_dir,
+    format_paraphrase, lower_project,
 };
 
 static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -320,32 +320,6 @@ fn module_imports(source: &SourceFile) -> Vec<String> {
     imports
 }
 
-fn find_std_dir() -> Option<PathBuf> {
-    if let Some(value) = std::env::var_os("TC_STD_DIR") {
-        let path = PathBuf::from(value);
-        if path.join("core.eng").is_file() {
-            return Some(path);
-        }
-    }
-    if let Ok(executable) = std::env::current_exe() {
-        let mut directory = executable.parent().map(Path::to_path_buf);
-        for _ in 0..4 {
-            if let Some(current) = &directory {
-                let candidate = current.join("std");
-                if candidate.join("core.eng").is_file() {
-                    return Some(candidate);
-                }
-                directory = current.parent().map(Path::to_path_buf);
-            }
-        }
-    }
-    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../std");
-    manifest
-        .join("core.eng")
-        .is_file()
-        .then(|| manifest.canonicalize().unwrap_or(manifest))
-}
-
 fn find_import(module: &str, directory: Option<&Path>, std_dir: Option<&Path>) -> Option<PathBuf> {
     let mut directories = Vec::new();
     if let Some(directory) = directory {
@@ -462,8 +436,14 @@ fn execute_elf(
         command.current_dir(directory);
     }
     let mut child = command.spawn()?;
-    let mut stdout = child.stdout.take().expect("stdout pipe");
-    let mut stderr = child.stderr.take().expect("stderr pipe");
+    let Some(mut stdout) = child.stdout.take() else {
+        let _ = child.kill();
+        return Err(std::io::Error::other("child stdout pipe was not created"));
+    };
+    let Some(mut stderr) = child.stderr.take() else {
+        let _ = child.kill();
+        return Err(std::io::Error::other("child stderr pipe was not created"));
+    };
     let out_reader = std::thread::spawn(move || {
         let mut buffer = Vec::new();
         let _ = stdout.read_to_end(&mut buffer);
