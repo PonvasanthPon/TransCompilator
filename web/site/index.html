@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Write and run natural-English programs in the browser with The TransCompilator Project, a deterministic English compiler that lowers to Core-7 IR.">
+  <title>The TransCompilator Project — Playground</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-name">The TransCompilator</span>
+      <span class="brand-version" id="version">0.1.0-alpha-preview</span>
+    </div>
+    <div class="controls">
+      <label class="picker">
+        <span class="visually-hidden">Example program</span>
+        <select id="examples" aria-label="Example program"></select>
+      </label>
+      <button id="run" class="button button-primary" type="button">
+        Run
+        <kbd>Ctrl+Enter</kbd>
+      </button>
+      <button id="share" class="button" type="button">Share</button>
+      <a class="github" href="https://github.com/PonvasanthPon/TransCompilator">GitHub</a>
+    </div>
+  </header>
+
+  <main class="workbench">
+    <section class="pane editor-pane" aria-label="English source editor">
+      <div class="pane-head">
+        <span class="file-name">program.eng</span>
+        <button id="clear" class="text-button" type="button">Clear</button>
+      </div>
+      <div class="editor-shell">
+        <div id="gutter" class="gutter" aria-hidden="true"></div>
+        <textarea id="editor" class="editor" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" aria-label="Natural-English program"></textarea>
+      </div>
+    </section>
+
+    <section class="pane inspector-pane" aria-label="Compiler inspector">
+      <div class="tabs" role="tablist" aria-label="Compiler output">
+        <button class="tab" id="tab-output" type="button" role="tab" aria-selected="true" aria-controls="panel-output" data-panel="output">Output</button>
+        <button class="tab" id="tab-trace" type="button" role="tab" aria-selected="false" aria-controls="panel-trace" data-panel="trace" tabindex="-1">Trace</button>
+        <button class="tab" id="tab-paraphrase" type="button" role="tab" aria-selected="false" aria-controls="panel-paraphrase" data-panel="paraphrase" tabindex="-1">Paraphrase</button>
+        <button class="tab" id="tab-ir" type="button" role="tab" aria-selected="false" aria-controls="panel-ir" data-panel="ir" tabindex="-1">Core-7 IR</button>
+      </div>
+
+      <div class="panels">
+        <section class="panel" id="panel-output" role="tabpanel" aria-labelledby="tab-output">
+          <pre id="stdout" class="mono stdout">Run a program to see its output.</pre>
+          <div id="diagnostics" class="diagnostics" aria-live="polite"></div>
+        </section>
+        <section class="panel" id="panel-trace" role="tabpanel" aria-labelledby="tab-trace" hidden>
+          <div id="trace" class="trace">
+            <p class="placeholder">Run a program to inspect sentence classification and discourse resolution.</p>
+          </div>
+        </section>
+        <section class="panel" id="panel-paraphrase" role="tabpanel" aria-labelledby="tab-paraphrase" hidden>
+          <pre id="paraphrase" class="mono">Run a program to see the deterministic compiler paraphrase.</pre>
+        </section>
+        <section class="panel" id="panel-ir" role="tabpanel" aria-labelledby="tab-ir" hidden>
+          <pre id="ir" class="mono">Run a program to see verified Core-7 IR.</pre>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="statusbar">
+    <div class="status-left">
+      <span id="status-dot" class="dot"></span>
+      <span id="status-text">Ready</span>
+    </div>
+    <div class="status-right">In-browser WebAssembly (Core-7 Reference Interpreter) · Native static x86_64 ELF64 via desktop CLI</div>
+  </footer>
+
+  <script src="examples.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

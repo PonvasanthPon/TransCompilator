@@ -18,6 +18,8 @@ shared middle-end, and static x86_64 ELF64 as its first target. The long-term
 architecture is many natural languages in, one Core-7 IR, and many native or
 portable targets out; see [MANIFEST.md](MANIFEST.md).
 
+**Try it in your browser:** [Online Playground (WebAssembly)](https://ponvasanthpon.github.io/TransCompilator/)
+
 ## What is tc_r1?
 
 `tc_r1` is the clean-slate Rust implementation of TransCompilator, currently
@@ -140,7 +142,7 @@ modules, CLI, language server, terminal editor, and Zed integration work end
 to end. The English grammar surface is actively evolving; unsupported
 constructs produce diagnostics rather than guesses.
 
-The current suite is **1054/1054 passing**, including 63 headless `tc-lsp`
+The current suite is **1059/1059 passing**, including 63 headless `tc-lsp`
 protocol tests, 68 compositional parity tests, 89 paraphrase-invariance tests,
 38 casual-English and guard tests, the human-English battle suite, the
 orthogonality matrix, the std purity gates, and the IR runtime-honesty test.
@@ -213,6 +215,7 @@ Language and verification references:
 - Linux x86_64
 - Rust 1.85+ with edition 2024 support
 - GNU `make`, `as`, and `ld` from binutils
+- optional, for the browser playground: the `wasm32-unknown-unknown` target
 - vendored CMU Link Grammar 5.13.2 under `vendor/link-grammar/`
 - Python 3 only for the optional Zed settings helper
 - no network access is required; all builds and tests run with
@@ -260,6 +263,8 @@ tc_r1/
     tc-editor/        # native std-only R1 Editor (`r1-editor`) for .eng programs
     tc-lsp/           # std-only JSON-RPC Language Server (`tc-lsp`)
   editors/zed/        # offline zero-AI Zed settings, tasks, and tc-eng extension
+  web/tc-wasm/        # zero-dependency wasm32 C-ABI bridge for the playground
+  web/site/           # editorial GitHub Pages playground (no external assets)
   std/                # 8 Version 2 pure-English standard-library modules
   tests/              # integration-test placeholder
   docs/               # spec, convergence report, limits, and round history
@@ -401,8 +406,24 @@ make audit       # zero-ML, 9 local tc-* crates only, 0 external crates
 make selftest    # verify + interpret + compile + execute + differential check
 make editor      # launch the terminal editor (r1-editor)
 make lsp         # launch the stdio Language Server (tc-lsp)
-make clean       # cargo clean
+make web         # build wasm32 playground and stage web/site/tc_wasm.wasm
+make clean       # cargo clean (native and wasm workspaces)
 ```
+
+## Browser playground
+
+`web/tc-wasm/` is an isolated, zero-dependency `cdylib` outside the nine-crate
+workspace. It exposes a tiny linear-memory C ABI (`tc_alloc`, `tc_dealloc`,
+`tc_eval`) and runs the same semantics, type checker, Core-7 verifier, and
+reference interpreter as the native CLI. On wasm32 the parser uses the
+deterministic closed-class fallback, and all eight `std/*.eng` modules are
+embedded at compile time because browsers have no host filesystem.
+
+`web/site/` is a self-contained static workbench with no CDN assets, external
+fonts, frameworks, or runtime dependencies. `make web` builds the module and
+prints the local preview command. The GitHub Pages workflow deploys the same
+`web/site` directory, with a five-second wall-clock guard around the worker and
+a 2,000,000-step interpreter budget.
 
 ## Continuous integration
 
@@ -410,7 +431,8 @@ make clean       # cargo clean
 offline workspace build, the full test suite, the zero-dependency audit, the
 compiler audit/selftest, and a reproducible static ELF64 check on every push
 and pull request against `main`. The job sets `CARGO_NET_OFFLINE=true` so a
-network-dependent dependency cannot slip in unnoticed.
+network-dependent dependency cannot slip in unnoticed. `.github/workflows/pages.yml`
+builds the wasm32 playground and deploys `web/site` to GitHub Pages.
 
 ## English standard library (`std/`)
 

@@ -6,7 +6,7 @@ HOME_STEM := /home/ponvasan
 FORBIDDEN_HOME := $(HOME_STEM)th
 FORBIDDEN_REFS := $(FORBIDDEN_REPO)|$(FORBIDDEN_HOME)
 
-.PHONY: build release test lint fmt-check audit selftest editor lsp clean
+.PHONY: build release test lint fmt-check audit selftest editor lsp web clean
 
 build:
 	$(CARGO) build --workspace
@@ -63,5 +63,12 @@ audit:
 	echo "  forbidden path references           : none"
 	@echo "tc_r1 audit: PASS"
 
+web:
+	CARGO_NET_OFFLINE=true $(CARGO) build --manifest-path web/tc-wasm/Cargo.toml --target wasm32-unknown-unknown --release
+	cp web/tc-wasm/target/wasm32-unknown-unknown/release/tc_wasm.wasm web/site/tc_wasm.wasm
+	@ls -lh web/site/tc_wasm.wasm
+	@echo "Preview: python3 -m http.server -d web/site 8080"
+
 clean:
 	$(CARGO) clean
+	$(CARGO) clean --manifest-path web/tc-wasm/Cargo.toml
