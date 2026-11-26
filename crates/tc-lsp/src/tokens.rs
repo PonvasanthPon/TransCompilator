@@ -8,10 +8,11 @@ use std::collections::{HashMap, HashSet};
 
 use tc_lexicon::classify_verb;
 use tc_semantics::{
-    IntentVerdict, Token, TokenKind, is_english_number_word, parse_english_number, tokenize,
+    IntentVerdict, SentenceTrace, Token, TokenKind, is_english_number_word, parse_english_number,
+    tokenize,
 };
 
-use crate::analysis::Analysis;
+use crate::analysis::{Analysis, SymbolIndex};
 
 /// Advertised LSP semantic token types.
 pub(crate) const TOKEN_TYPES: [&str; 6] = [
@@ -76,20 +77,20 @@ struct LanguageIndex {
 }
 
 impl LanguageIndex {
-    fn new(analysis: &Analysis) -> Self {
+    fn new(symbols: &SymbolIndex) -> Self {
         let mut index = Self::default();
-        for variable in &analysis.symbols.variables {
+        for variable in &symbols.variables {
             index.add_variable(&variable.name);
         }
-        for global in &analysis.symbols.globals {
+        for global in &symbols.globals {
             index.add_variable(&global.name);
         }
-        for ty in &analysis.symbols.types {
+        for ty in &symbols.types {
             for field in &ty.fields {
                 index.add_field(&field.name);
             }
         }
-        for phrase in &analysis.symbols.phrases {
+        for phrase in &symbols.phrases {
             if let Some(head) = phrase
                 .split_whitespace()
                 .find(|part| !part.starts_with('<'))
@@ -152,12 +153,22 @@ fn sort_phrases(phrases: &mut Vec<Vec<String>>) {
 
 /// Builds every semantic token for one document in strict delta order.
 pub(crate) fn semantic_tokens(text: &str, analysis: &Analysis) -> Vec<SemanticToken> {
+    semantic_tokens_for(text, &analysis.entry, &analysis.trace, &analysis.symbols)
+}
+
+/// Builds semantic tokens from an explicit trace and symbol index.
+pub(crate) fn semantic_tokens_for(
+    text: &str,
+    entry_module: &str,
+    trace: &[SentenceTrace],
+    symbols: &SymbolIndex,
+) -> Vec<SemanticToken> {
     let lines = text
         .split('\n')
         .map(|line| line.strip_suffix('\r').unwrap_or(line))
         .collect::<Vec<_>>();
-    let index = LanguageIndex::new(analysis);
-    let omitted = omitted_spans(&lines, analysis);
+    let index = LanguageIndex::new(symbols);
+    let omitted = omitted_spans(&lines, entry_module, trace);
     let mut candidates = Vec::new();
     for (line_index, line) in lines.iter().enumerate() {
         let line_number = u32::try_from(line_index).unwrap_or(u32::MAX);
@@ -237,10 +248,14 @@ pub(crate) fn semantic_tokens(text: &str, analysis: &Analysis) -> Vec<SemanticTo
     tokens
 }
 
-fn omitted_spans(lines: &[&str], analysis: &Analysis) -> HashMap<u32, Vec<(usize, usize)>> {
+fn omitted_spans(
+    lines: &[&str],
+    entry_module: &str,
+    trace: &[SentenceTrace],
+) -> HashMap<u32, Vec<(usize, usize)>> {
     let mut spans = HashMap::new();
-    for entry in &analysis.trace {
-        if entry.module != analysis.entry
+    for entry in trace {
+        if entry.module != entry_module
             || !matches!(entry.intent, IntentVerdict::CommentOmitted { .. })
         {
             continue;

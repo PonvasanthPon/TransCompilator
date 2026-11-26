@@ -16,6 +16,7 @@ path = "src/lib.rs"
 [dependencies]
 tc-ir = { path = "../../crates/tc-ir" }
 tc-lexicon = { path = "../../crates/tc-lexicon" }
+tc-lsp = { path = "../../crates/tc-lsp" }
 tc-semantics = { path = "../../crates/tc-semantics" }
 tc-syntax = { path = "../../crates/tc-syntax" }
 tc-typeck = { path = "../../crates/tc-typeck" }

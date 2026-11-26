@@ -15,6 +15,7 @@ use std::alloc::{Layout, alloc, alloc_zeroed, dealloc};
 use std::fmt::Write as _;
 
 use tc_ir::{InterpError, format_module, interpret, verify_module};
+use tc_lsp::highlight::HighlightToken;
 use tc_semantics::{
     IntentVerdict, LowerProjectOutcome, SentenceTrace, SourceFile, format_paraphrase,
     lower_project_outcome,
@@ -42,6 +43,7 @@ struct Evaluation {
     steps: usize,
     diagnostics: Vec<Diagnostic>,
     trace: Vec<SentenceTrace>,
+    tokens: Vec<HighlightToken>,
     paraphrase: String,
     ir: String,
 }
@@ -93,7 +95,9 @@ impl Evaluation {
             }
             push_trace(&mut json, trace);
         }
-        json.push_str("],\"paraphrase\":");
+        json.push_str("],\"tokens\":");
+        push_tokens(&mut json, &self.tokens);
+        json.push_str(",\"paraphrase\":");
         push_string(&mut json, &self.paraphrase);
         json.push_str(",\"ir\":");
         push_string(&mut json, &self.ir);
@@ -147,6 +151,23 @@ fn push_trace(json: &mut String, trace: &SentenceTrace) {
         push_string(json, filler);
     }
     json.push_str("]}");
+}
+
+fn push_tokens(json: &mut String, tokens: &[HighlightToken]) {
+    json.push('[');
+    for (index, token) in tokens.iter().enumerate() {
+        if index > 0 {
+            json.push(',');
+        }
+        let _ = write!(
+            json,
+            "{{\"line\":{},\"start\":{},\"len\":{},\"kind\":",
+            token.line, token.start, token.len
+        );
+        push_string(json, token.kind);
+        json.push('}');
+    }
+    json.push(']');
 }
 
 fn push_optional_string(json: &mut String, value: Option<&str>) {
@@ -278,6 +299,7 @@ fn evaluate(source: &str, max_steps: usize) -> Evaluation {
     if let Some(module) = &module {
         evaluation.ir = format_module(module);
     }
+    evaluation.tokens = tc_lsp::highlight::highlight_text(source);
 
     evaluation
 }
@@ -424,6 +446,39 @@ pub extern "C" fn tc_eval(ptr: *const u8, len: usize, max_steps: u32) -> u64 {
         fatal_json("The compiler could not process this input; no partial result was kept.")
     });
     emit(json)
+}
+
+/// Returns semantic highlight tokens for UTF-8 English source.
+///
+/// This runs analysis and lowering only; the Core-7 interpreter is never
+/// invoked, so live typing cannot execute a program loop.  The low 32 bits of
+/// the result are the JSON buffer length and the high 32 bits are its address.
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+#[unsafe(no_mangle)]
+pub extern "C" fn tc_highlight(ptr: *const u8, len: usize) -> u64 {
+    if len > 0 && ptr.is_null() {
+        return emit(tokens_json(&[]));
+    }
+    // SAFETY: the caller supplies `(ptr, len)` from `tc_alloc` and keeps the
+    // buffer alive for the duration of this call.  `len == 0` never dereferences.
+    let bytes = unsafe {
+        if len == 0 {
+            &[][..]
+        } else {
+            std::slice::from_raw_parts(ptr, len)
+        }
+    };
+    let Ok(source) = std::str::from_utf8(bytes) else {
+        return emit(tokens_json(&[]));
+    };
+    emit(tokens_json(&tc_lsp::highlight::highlight_text(source)))
+}
+
+fn tokens_json(tokens: &[HighlightToken]) -> String {
+    let mut json = String::from("{\"tokens\":");
+    push_tokens(&mut json, tokens);
+    json.push('}');
+    json
 }
 
 fn fatal_json(message: &str) -> String {

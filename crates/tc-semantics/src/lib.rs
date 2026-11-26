@@ -444,6 +444,46 @@ pub fn lower_project_analysis_with_parser(
     entry_module: &str,
     parser: &LinkGrammarParser,
 ) -> LowerProjectOutcome {
+    lower_project_analysis_with_mode(sources, entry_module, parser, true)
+}
+
+/// Lowers only the caller-supplied sources, without loading or injecting the
+/// standard library.
+///
+/// This is the fast path used by editor semantic highlighting.  It preserves
+/// the same parser, intent gate, and lowering rules as a full project, but it
+/// deliberately skips module augmentation so live token generation does not
+/// re-analyze `std/*.eng` on every keystroke.
+#[must_use]
+pub fn lower_project_outcome_bare(
+    sources: &[SourceFile],
+    entry_module: &str,
+) -> LowerProjectOutcome {
+    let parser = match LinkGrammarParser::new() {
+        Ok(parser) => parser,
+        Err(error) => {
+            return LowerProjectOutcome {
+                project: None,
+                trace: Vec::new(),
+                errors: vec![SemanticError {
+                    module: entry_module.to_string(),
+                    line: 1,
+                    col: 1,
+                    kind: SemanticErrorKind::Segmentation,
+                    message: error.message,
+                }],
+            };
+        }
+    };
+    lower_project_analysis_with_mode(sources, entry_module, &parser, false)
+}
+
+fn lower_project_analysis_with_mode(
+    sources: &[SourceFile],
+    entry_module: &str,
+    parser: &LinkGrammarParser,
+    augment_std: bool,
+) -> LowerProjectOutcome {
     if sources.is_empty() {
         return LowerProjectOutcome {
             project: None,
@@ -457,8 +497,12 @@ pub fn lower_project_analysis_with_parser(
             }],
         };
     }
-    let (sources, auto_modules) = augmented_sources(sources, entry_module);
-    let auto_prelude = !is_std_module(entry_module);
+    let (sources, auto_modules) = if augment_std {
+        augmented_sources(sources, entry_module)
+    } else {
+        (sources.to_vec(), HashSet::new())
+    };
+    let auto_prelude = augment_std && !is_std_module(entry_module);
     let mut jobs = Vec::with_capacity(sources.len());
     let mut errors = Vec::new();
     for source in &sources {

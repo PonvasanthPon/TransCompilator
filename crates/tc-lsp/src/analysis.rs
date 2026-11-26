@@ -339,7 +339,11 @@ fn from_semantic_error(error: &SemanticError) -> Diagnostic {
 }
 
 impl SymbolIndex {
-    fn from_program(program: &Program, _paths: &HashMap<String, PathBuf>, text: &str) -> Self {
+    pub(crate) fn from_program(
+        program: &Program,
+        _paths: &HashMap<String, PathBuf>,
+        text: &str,
+    ) -> Self {
         let mut index = Self::default();
         for module in &program.modules {
             add_module(module, &mut index);
@@ -363,7 +367,7 @@ impl SymbolIndex {
         index
     }
 
-    fn from_text(text: &str) -> Self {
+    pub(crate) fn from_text(text: &str) -> Self {
         let mut index = Self::default();
         for (line_index, line) in text.lines().enumerate() {
             let line_number = u32::try_from(line_index + 1).unwrap_or(u32::MAX);

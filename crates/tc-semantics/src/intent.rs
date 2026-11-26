@@ -548,6 +548,9 @@ fn narrative(clause: &ClauseTree) -> bool {
     if clause.voice == Voice::Imperative {
         return false;
     }
+    if !clause.lg_used && clause.voice == Voice::Active && clause.subject.is_some() {
+        return true;
+    }
     if clause.voice == Voice::Active
         && clause.verb.as_ref().is_some_and(|verb| {
             let raw = verb.raw.to_ascii_lowercase();
@@ -906,6 +909,32 @@ mod tests {
         assert!(verdict("i is 1").is_exec());
         assert!(verdict("If x is 1").is_exec());
         assert!(verdict("Start a new thread.").is_unsupported());
+    }
+
+    #[test]
+    fn fallback_active_declaratives_are_narrative_but_link_grammar_is_not_assumed() {
+        use crate::{ClauseTree, VerbHead, Voice};
+
+        use super::narrative;
+        let clause = |lg_used| ClauseTree {
+            raw: "The values hold steady".to_string(),
+            span: Span::new(1, 1),
+            tokens: Vec::new(),
+            voice: Voice::Active,
+            subject: Some(Vec::new()),
+            verb: Some(VerbHead {
+                raw: "hold".to_string(),
+                lemma: "hold".to_string(),
+                is_past: false,
+            }),
+            direct_object: None,
+            prep_phrases: Vec::new(),
+            lg_words: 0,
+            lg_links: 0,
+            lg_used,
+        };
+        assert!(narrative(&clause(false)));
+        assert!(!narrative(&clause(true)));
     }
 
     #[test]

@@ -6,6 +6,7 @@
 pub mod analysis;
 pub mod doc;
 pub mod handlers;
+pub mod highlight;
 pub mod json;
 pub mod rpc;
 mod tokens;

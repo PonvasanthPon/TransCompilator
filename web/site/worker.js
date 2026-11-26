@@ -32,7 +32,7 @@
     }
   }
 
-  function evaluate(code, maxSteps) {
+  function invoke(code, call) {
     var exports = instance.exports;
     var source = encoder.encode(code);
     var sourcePointer = exports.tc_alloc(source.length);
@@ -42,10 +42,9 @@
     if (source.length > 0) {
       new Uint8Array(exports.memory.buffer, sourcePointer, source.length).set(source);
     }
-    var budget = Math.min(Math.max(Math.floor(maxSteps) || 2000000, 1), 50000000);
     var packed;
     try {
-      packed = exports.tc_eval(sourcePointer, source.length, budget);
+      packed = call(exports, sourcePointer, source.length);
     } finally {
       exports.tc_dealloc(sourcePointer, source.length);
     }
@@ -62,9 +61,22 @@
     return JSON.parse(decoder.decode(copy));
   }
 
+  function evaluate(code, maxSteps) {
+    var budget = Math.min(Math.max(Math.floor(maxSteps) || 2000000, 1), 50000000);
+    return invoke(code, function (exports, pointer, length) {
+      return exports.tc_eval(pointer, length, budget);
+    });
+  }
+
+  function highlight(code) {
+    return invoke(code, function (exports, pointer, length) {
+      return exports.tc_highlight(pointer, length);
+    });
+  }
+
   self.onmessage = async function (event) {
     var data = event.data || {};
-    if (data.type !== "run") {
+    if (data.type !== "run" && data.type !== "highlight") {
       return;
     }
     try {
@@ -74,9 +86,22 @@
       if (!instance) {
         throw new Error("The WebAssembly module is not loaded.");
       }
+      if (data.type === "highlight") {
+        var tokens = highlight(String(data.code || ""));
+        post({
+          type: "tokens",
+          id: data.id,
+          tokens: Array.isArray(tokens.tokens) ? tokens.tokens : []
+        });
+        return;
+      }
       var payload = evaluate(String(data.code || ""), data.maxSteps);
       post({ type: "result", payload: payload });
     } catch (error) {
+      if (data.type === "highlight") {
+        post({ type: "tokens", id: data.id, tokens: [] });
+        return;
+      }
       post({
         type: "error",
         message: "The program could not be evaluated: " + String(error)

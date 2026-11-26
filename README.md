@@ -142,7 +142,7 @@ modules, CLI, language server, terminal editor, and Zed integration work end
 to end. The English grammar surface is actively evolving; unsupported
 constructs produce diagnostics rather than guesses.
 
-The current suite is **1059/1059 passing**, including 63 headless `tc-lsp`
+The current suite is **1061/1061 passing**, including 63 headless `tc-lsp`
 protocol tests, 68 compositional parity tests, 89 paraphrase-invariance tests,
 38 casual-English and guard tests, the human-English battle suite, the
 orthogonality matrix, the std purity gates, and the IR runtime-honesty test.
@@ -420,7 +420,9 @@ deterministic closed-class fallback, and all eight `std/*.eng` modules are
 embedded at compile time because browsers have no host filesystem.
 
 `web/site/` is a self-contained static workbench with no CDN assets, external
-fonts, frameworks, or runtime dependencies. `make web` builds the module and
+fonts, frameworks, or runtime dependencies. Its editor uses compiler-emitted
+semantic tokens for novel-style typography, ships fourteen verified multi-line
+presets, and works down to a 375 px viewport. `make web` builds the module and
 prints the local preview command. The GitHub Pages workflow deploys the same
 `web/site` directory, with a five-second wall-clock guard around the worker and
 a 2,000,000-step interpreter budget.
