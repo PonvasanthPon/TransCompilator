@@ -43,3 +43,12 @@ fn inline_naming_becomes_let() {
     );
     assert!(normalized.contains("Let answer be value plus 1."));
 }
+
+#[test]
+fn trailing_loop_header_after_action_opens_a_block() {
+    let (normalized, _) =
+        normalize_natural_source("Let x be 2. Repeat while x is greater than 1:\nAdd 1 to x.\n");
+    assert!(normalized.contains("Let x be 2."));
+    assert!(normalized.contains("While x is greater than 1:"));
+    assert!(normalized.contains("    Add 1 to x."));
+}

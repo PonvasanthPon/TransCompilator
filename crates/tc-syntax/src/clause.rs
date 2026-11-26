@@ -302,9 +302,6 @@ fn link_prep_indices(parse: &LgParse) -> Vec<usize> {
 }
 
 fn fallback_voice(tokens: &[Token]) -> (Voice, Option<usize>) {
-    let first_verb = tokens
-        .iter()
-        .position(|token| token.is_word() && classify_verb(&token.lower, None).is_some());
     for (index, token) in tokens.iter().enumerate() {
         if token.is_word() && auxiliary(&token.lower) {
             if let Some(next) = tokens.get(index + 1) {
@@ -317,13 +314,80 @@ fn fallback_voice(tokens: &[Token]) -> (Voice, Option<usize>) {
             }
         }
     }
-    if let Some(index) = first_verb {
-        if index == 0 {
+    if let Some(index) = fallback_finite_verb(tokens) {
+        if index == 0 && classify_verb(&tokens[index].lower, None).is_some() {
             return (Voice::Imperative, Some(index));
         }
         return (Voice::Active, Some(index));
     }
     (Voice::Active, None)
+}
+
+fn looks_like_adjective(word: &str) -> bool {
+    [
+        "able", "ible", "al", "ary", "ful", "ic", "ive", "less", "ous", "y",
+    ]
+    .iter()
+    .any(|suffix| word.len() > suffix.len() + 2 && word.ends_with(suffix))
+}
+
+fn looks_like_finite_verb(word: &str) -> bool {
+    word.ends_with("ed")
+        || (word.ends_with('s')
+            && !word.ends_with("ss")
+            && !word.ends_with("us")
+            && !word.ends_with("is"))
+}
+
+fn fallback_candidate_blocked(tokens: &[Token], index: usize) -> bool {
+    if index > 0 {
+        if let Some(previous) = tokens[..index]
+            .iter()
+            .rev()
+            .find(|candidate| candidate.kind == TokenKind::Word)
+        {
+            if matches!(
+                lookup_closed_class(&previous.lower),
+                Some(ClosedClass::Determiner | ClosedClass::Preposition)
+            ) || looks_like_adjective(&previous.lower)
+            {
+                return true;
+            }
+        }
+    }
+    if tokens
+        .get(index + 1)
+        .is_some_and(|next| matches!(next.text.as_str(), "," | ";"))
+    {
+        return true;
+    }
+    tokens[index + 1..]
+        .iter()
+        .all(|candidate| candidate.kind == TokenKind::Symbol)
+        && index > 0
+}
+
+fn fallback_finite_verb(tokens: &[Token]) -> Option<usize> {
+    for (index, token) in tokens.iter().enumerate() {
+        if !token.is_word()
+            || auxiliary(&token.lower)
+            || token.lower == "not"
+            || fallback_candidate_blocked(tokens, index)
+        {
+            continue;
+        }
+        let classified = classify_verb(&token.lower, None).is_some();
+        if index == 0 {
+            if classified {
+                return Some(index);
+            }
+            continue;
+        }
+        if classified || looks_like_finite_verb(&token.lower) {
+            return Some(index);
+        }
+    }
+    None
 }
 
 fn fallback_subject(
@@ -508,5 +572,38 @@ pub fn analyze_clause(parser: &LinkGrammarParser, sentence: &RawSentence) -> Cla
         lg_words: parse.words.len().saturating_sub(2),
         lg_links: parse.links.len(),
         lg_used: parse.is_used(),
+    }
+}
+
+#[cfg(test)]
+mod fallback_tests {
+    use super::{Voice, fallback_voice, tokenize};
+
+    #[test]
+    fn noun_phrase_prose_has_no_finite_verb() {
+        let (voice, verb) = fallback_voice(&tokenize(
+            "Everyday console output, decimal formatting, and byte-safe input.",
+        ));
+        assert_eq!(voice, Voice::Active);
+        assert_eq!(verb, None);
+        let (voice, verb) = fallback_voice(&tokenize("A growable sequence of values of one type."));
+        assert_eq!(voice, Voice::Active);
+        assert_eq!(verb, None);
+    }
+
+    #[test]
+    fn unknown_third_person_verb_blocks_a_later_noun() {
+        let (voice, verb) = fallback_voice(&tokenize(
+            "Whitespace means space, tab, line feed, or carriage return.",
+        ));
+        assert_eq!(voice, Voice::Active);
+        assert_eq!(verb, Some(1));
+    }
+
+    #[test]
+    fn leading_computational_verb_remains_imperative() {
+        let (voice, verb) = fallback_voice(&tokenize("Print the final value."));
+        assert_eq!(voice, Voice::Imperative);
+        assert_eq!(verb, Some(0));
     }
 }

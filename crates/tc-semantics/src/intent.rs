@@ -548,6 +548,19 @@ fn narrative(clause: &ClauseTree) -> bool {
     if clause.voice == Voice::Imperative {
         return false;
     }
+    if clause.voice == Voice::Active
+        && clause.verb.as_ref().is_some_and(|verb| {
+            let raw = verb.raw.to_ascii_lowercase();
+            raw.chars().all(|character| character.is_ascii_alphabetic())
+                && raw.ends_with('s')
+                && !raw.ends_with("ss")
+                && !raw.ends_with("us")
+                && !raw.ends_with("is")
+                && !is_auxiliary_word(&raw)
+        })
+    {
+        return true;
+    }
     let Some(subject) = clause.subject.as_ref() else {
         return false;
     };
@@ -853,6 +866,16 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         let reason = unsupported_reason(trimmed);
         return IntentVerdict::Unsupported { reason };
     }
+    if clause.verb.is_none() && !begins_with_determiner(trimmed) {
+        let has_literal = tokenize(trimmed)
+            .iter()
+            .any(|token| matches!(token.kind, TokenKind::String | TokenKind::Number));
+        if has_literal && let Some(hint) = imperative_typo_hint(&first) {
+            return IntentVerdict::Unsupported {
+                reason: format!("unrecognized imperative `{first}` — did you mean '{hint}'?"),
+            };
+        }
+    }
     IntentVerdict::CommentOmitted {
         reason: "no computational directive".to_string(),
     }
@@ -883,5 +906,15 @@ mod tests {
         assert!(verdict("i is 1").is_exec());
         assert!(verdict("If x is 1").is_exec());
         assert!(verdict("Start a new thread.").is_unsupported());
+    }
+
+    #[test]
+    fn misspelled_print_is_an_unsupported_directive() {
+        match verdict("Printt \"hi\".") {
+            IntentVerdict::Unsupported { reason } => {
+                assert!(reason.contains("did you mean 'print'"), "{reason}");
+            }
+            other => panic!("expected an unsupported typo diagnostic, got {other:?}"),
+        }
     }
 }

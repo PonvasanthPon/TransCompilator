@@ -28,6 +28,8 @@ pub struct InterpOutput {
     pub stdout: Vec<u8>,
     /// Bytes written to file descriptor 2.
     pub stderr: Vec<u8>,
+    /// Number of Core-7 expression and statement steps executed.
+    pub steps: usize,
 }
 
 /// Reference interpreter failure.
@@ -1298,6 +1300,20 @@ pub fn interpret_in_dir(
     interpret_with_cwd(module, args, stdin, Some(cwd), max_steps)
 }
 
+#[cfg(target_arch = "wasm32")]
+fn interpret_with_cwd(
+    module: &Module,
+    args: &[String],
+    stdin: &[u8],
+    cwd: Option<&Path>,
+    max_steps: usize,
+) -> Result<InterpOutput, InterpError> {
+    // WebAssembly has no native thread support.  The reference interpreter is
+    // synchronous, so run it directly in the caller's linear-memory stack.
+    interpret_inner(module, args, stdin, cwd, max_steps)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 fn interpret_with_cwd(
     module: &Module,
     args: &[String],
@@ -1348,6 +1364,7 @@ fn interpret_inner(
     };
 
     let result = vm.call_function(module, module.entry.0, &arguments);
+    let steps = vm.steps;
     let (exit_code, stdout, stderr) = match result {
         Ok(value) => {
             let code = value.map_or(0, |value| (value.bits & 0xff) as i32);
@@ -1360,5 +1377,6 @@ fn interpret_inner(
         exit_code,
         stdout,
         stderr,
+        steps,
     })
 }

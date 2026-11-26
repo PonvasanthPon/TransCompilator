@@ -14,3 +14,6 @@ __pycache__/
 editors/zed/tc-eng-extension/target/
 editors/zed/tc-eng-extension/Cargo.lock
 editors/zed/tc-eng-extension/extension.wasm
+web/tc-wasm/target/
+web/tc-wasm/Cargo.lock
+web/site/tc_wasm.wasm

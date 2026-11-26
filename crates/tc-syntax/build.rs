@@ -9,6 +9,14 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
+    // WebAssembly builds have no native Link Grammar library.  The syntax
+    // crate supplies a deterministic closed-class fallback parser for that
+    // target, so the linker arguments must be omitted entirely.
+    if env::var("CARGO_CFG_TARGET_ARCH").as_deref() == Ok("wasm32") {
+        println!("cargo:rerun-if-changed=build.rs");
+        return;
+    }
+
     let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
     let vendor = manifest.join("../../vendor/link-grammar");
     let lib = vendor.join("lib");

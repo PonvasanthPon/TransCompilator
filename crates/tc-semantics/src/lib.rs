@@ -29,6 +29,7 @@ pub mod phrases;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::env;
 use std::fmt;
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -263,6 +264,59 @@ pub fn find_std_dir() -> Option<PathBuf> {
         .then(|| manifest.canonicalize().unwrap_or(manifest))
 }
 
+/// The eight standard-library modules embedded for WebAssembly builds.
+///
+/// Browsers have no host filesystem, so the same sources that `find_std_dir`
+/// reads on native targets are compiled into the wasm module.  Keeping the
+/// table explicit preserves the module DAG and makes the browser build fully
+/// deterministic.
+#[cfg(target_arch = "wasm32")]
+const EMBEDDED_STD: [(&str, &str); 8] = [
+    ("core", include_str!("../../../std/core.eng")),
+    ("alloc", include_str!("../../../std/alloc.eng")),
+    ("io", include_str!("../../../std/io.eng")),
+    ("string", include_str!("../../../std/string.eng")),
+    ("list", include_str!("../../../std/list.eng")),
+    ("fs", include_str!("../../../std/fs.eng")),
+    ("map", include_str!("../../../std/map.eng")),
+    ("math", include_str!("../../../std/math.eng")),
+];
+
+#[cfg(target_arch = "wasm32")]
+fn embedded_std(module: &str) -> Option<&'static str> {
+    EMBEDDED_STD
+        .iter()
+        .find(|(name, _)| *name == module)
+        .map(|(_, text)| *text)
+}
+
+fn std_sources_available() -> bool {
+    #[cfg(target_arch = "wasm32")]
+    {
+        true
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        find_std_dir().is_some()
+    }
+}
+
+fn load_std_module(module: &str) -> Option<String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        embedded_std(module).map(str::to_string)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let std_dir = find_std_dir()?;
+        ["eng", "tc"]
+            .iter()
+            .map(|extension| std_dir.join(format!("{module}.{extension}")))
+            .find(|path| path.is_file())
+            .and_then(|path| fs::read_to_string(path).ok())
+    }
+}
+
 fn module_imports(source: &SourceFile) -> Vec<String> {
     let document = tc_syntax::segment_source(source);
     let mut imports = Vec::new();
@@ -298,9 +352,9 @@ fn augmented_sources(
     if is_std_module(entry_module) {
         return (all, added);
     }
-    let Some(std_dir) = find_std_dir() else {
+    if !std_sources_available() {
         return (all, added);
-    };
+    }
     let source_text = all
         .iter()
         .map(|source| source.text.to_ascii_lowercase())
@@ -353,14 +407,7 @@ fn augmented_sources(
         if !seen.insert(module.clone()) || present.contains(&module) {
             continue;
         }
-        let Some(path) = ["eng", "tc"]
-            .iter()
-            .map(|extension| std_dir.join(format!("{module}.{extension}")))
-            .find(|path| path.is_file())
-        else {
-            continue;
-        };
-        let Ok(text) = fs::read_to_string(&path) else {
+        let Some(text) = load_std_module(&module) else {
             continue;
         };
         let source = SourceFile::new(format!("{module}.tc"), text);

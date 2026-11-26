@@ -4,31 +4,39 @@
 //! raw pointers are confined to this module; callers receive plain Rust data
 //! and every C allocation is released through a `Drop` guard.
 
+#[cfg(not(target_arch = "wasm32"))]
 use std::ffi::{CStr, CString, c_char, c_int, c_void};
 use std::fmt;
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::{Path, PathBuf};
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::OnceLock;
 
+#[cfg(not(target_arch = "wasm32"))]
 #[repr(C)]
 struct DictionaryOpaque {
     _private: [u8; 0],
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[repr(C)]
 struct ParseOptionsOpaque {
     _private: [u8; 0],
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[repr(C)]
 struct SentenceOpaque {
     _private: [u8; 0],
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[repr(C)]
 struct LinkageOpaque {
     _private: [u8; 0],
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[repr(C)]
 struct ErrorInfo {
     severity: c_int,
@@ -36,14 +44,20 @@ struct ErrorInfo {
     text: *const c_char,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 type DictionaryPtr = *mut DictionaryOpaque;
+#[cfg(not(target_arch = "wasm32"))]
 type ParseOptionsPtr = *mut ParseOptionsOpaque;
+#[cfg(not(target_arch = "wasm32"))]
 type SentencePtr = *mut SentenceOpaque;
+#[cfg(not(target_arch = "wasm32"))]
 type LinkagePtr = *mut LinkageOpaque;
 
 // SAFETY: these declarations mirror the Link Grammar 5.13.2 C ABI. Every
 // pointer passed across the boundary is created, validated, and released by
-// the matching library constructor or by the guards below.
+// the matching library constructor or by the guards below.  WebAssembly uses
+// the closed-class fallback parser below, so the bindings are native-only.
+#[cfg(not(target_arch = "wasm32"))]
 unsafe extern "C" {
     fn dictionary_set_data_dir(path: *const c_char);
     fn dictionary_create_lang(lang: *const c_char) -> DictionaryPtr;
@@ -78,6 +92,7 @@ unsafe extern "C" {
     );
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 extern "C" fn ignore_error(_info: *mut ErrorInfo, _data: *mut c_void) {}
 
 /// A syntax-layer failure.
@@ -87,6 +102,7 @@ pub struct SyntaxError {
     pub message: String,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl SyntaxError {
     fn new(message: impl Into<String>) -> Self {
         Self {
@@ -134,6 +150,7 @@ impl LgParse {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn data_dir_candidate() -> Result<PathBuf, SyntaxError> {
     let relative =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../vendor/link-grammar/share/link-grammar");
@@ -153,6 +170,7 @@ fn data_dir_candidate() -> Result<PathBuf, SyntaxError> {
     ))
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn initialize() -> Result<PathBuf, SyntaxError> {
     static DIRECTORY: OnceLock<Result<PathBuf, String>> = OnceLock::new();
     DIRECTORY
@@ -173,8 +191,10 @@ fn initialize() -> Result<PathBuf, SyntaxError> {
         .map_err(SyntaxError::new)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 struct SentenceGuard(SentencePtr);
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Drop for SentenceGuard {
     fn drop(&mut self) {
         // SAFETY: the pointer was produced by `sentence_create` and is freed
@@ -183,8 +203,10 @@ impl Drop for SentenceGuard {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 struct LinkageGuard(LinkagePtr);
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Drop for LinkageGuard {
     fn drop(&mut self) {
         // SAFETY: the pointer was produced by `linkage_create` and is freed
@@ -194,17 +216,24 @@ impl Drop for LinkageGuard {
 }
 
 /// A reusable Link Grammar parser with a private dictionary and parse options.
+///
+/// On `wasm32-unknown-unknown` the native C library is unavailable, so the
+/// parser is a zero-sized value whose `parse` always yields an unused parse.
+/// [`crate::clause`] then takes its deterministic closed-class fallback path.
+#[cfg(not(target_arch = "wasm32"))]
 pub struct LinkGrammarParser {
     dictionary: DictionaryPtr,
     options: ParseOptionsPtr,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl fmt::Debug for LinkGrammarParser {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("LinkGrammarParser")
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl LinkGrammarParser {
     /// Creates a parser for the vendored English dictionary.
     ///
@@ -321,6 +350,7 @@ impl LinkGrammarParser {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Drop for LinkGrammarParser {
     fn drop(&mut self) {
         // SAFETY: both pointers were created by the matching constructors and
@@ -333,5 +363,41 @@ impl Drop for LinkGrammarParser {
                 dictionary_delete(self.dictionary);
             }
         }
+    }
+}
+
+/// A deterministic fallback parser used when the native Link Grammar library
+/// is unavailable.
+///
+/// The tokenizer, closed-class lexicon, and clause fallback in
+/// [`crate::clause`] provide the complete wasm32 syntax path.  Every parse is
+/// intentionally unused so the fallback owns voice, subject, object, and
+/// preposition selection.
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug, Clone, Copy, Default)]
+pub struct LinkGrammarParser;
+
+#[cfg(target_arch = "wasm32")]
+impl LinkGrammarParser {
+    /// Creates the fallback parser.
+    ///
+    /// # Errors
+    ///
+    /// This implementation is infallible; the signature matches the native
+    /// parser so callers stay target-independent.
+    pub fn new() -> Result<Self, SyntaxError> {
+        Ok(Self)
+    }
+
+    /// Reports the parser identity used by diagnostics.
+    #[must_use]
+    pub fn version(&self) -> String {
+        "closed-class fallback".to_string()
+    }
+
+    /// Returns an unused parse so [`crate::clause`] selects its fallback.
+    #[must_use]
+    pub fn parse(&self, _sentence: &str) -> LgParse {
+        LgParse::default()
     }
 }

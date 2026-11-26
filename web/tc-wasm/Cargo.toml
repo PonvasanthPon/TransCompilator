@@ -1,0 +1,27 @@
+[package]
+name = "tc-wasm"
+version = "0.1.0-alpha-preview"
+edition = "2024"
+rust-version = "1.85"
+license-file = "../../LICENSE"
+publish = false
+description = "Zero-dependency WebAssembly playground bridge for The TransCompilator Project"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[workspace]
+
+[dependencies]
+tc-ir = { path = "../../crates/tc-ir" }
+tc-lexicon = { path = "../../crates/tc-lexicon" }
+tc-semantics = { path = "../../crates/tc-semantics" }
+tc-syntax = { path = "../../crates/tc-syntax" }
+tc-typeck = { path = "../../crates/tc-typeck" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

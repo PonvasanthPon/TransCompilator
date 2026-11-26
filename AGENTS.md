@@ -23,6 +23,10 @@ compile-time evaluators.
 - Do not add crates.io, git, or registry dependencies to any workspace crate.
 - The isolated Zed extension (`editors/zed/tc-eng-extension/`) is **not** a
   workspace member and may use `zed_extension_api`; its lockfile is ignored.
+- The isolated browser bridge (`web/tc-wasm/`) is **not** a workspace member.
+  It may depend only on local path crates from this checkout, must remain
+  registry-free, and uses the pure `std` linear-memory C ABI for
+  `wasm32-unknown-unknown`; its `target/` and lockfile are ignored.
 
 ### 1.2 Core-7 IR irreducibility
 

@@ -2461,6 +2461,18 @@ pub(super) fn top_level_declaration(text: &str) -> bool {
         || lower.starts_with("to ")
 }
 
+fn trailing_control_header(text: &str, allow_colon: bool) -> Option<String> {
+    let pieces = tc_syntax::split_sentences(text);
+    if pieces.len() < 2 {
+        return None;
+    }
+    let last = pieces.last().map(|(_, piece)| piece.trim())?;
+    if !last.ends_with(':') {
+        return None;
+    }
+    paragraph_control_header(last, allow_colon)
+}
+
 pub(super) fn paragraph_control_header(text: &str, allow_colon: bool) -> Option<String> {
     let trimmed = text.trim();
     if trimmed.ends_with(':') && !allow_colon {
@@ -2567,6 +2579,34 @@ pub(super) fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
         names.register_declarations(trimmed);
         let rewritten = names.rewrite(trimmed);
         let trimmed = rewritten.as_str();
+        if let Some(header) = trailing_control_header(trimmed, allow_colon) {
+            let base_indent = if let Some(&control_indent) = control_blocks.last() {
+                control_indent + 4
+            } else if let Some(function_indent) = natural_function {
+                function_indent + 4
+            } else {
+                indent
+            };
+            let pieces = tc_syntax::split_sentences(trimmed);
+            let prose_indent = if control_blocks.is_empty() && natural_function.is_none() {
+                base_indent
+            } else {
+                base_indent + indent
+            };
+            for (_, piece) in &pieces[..pieces.len().saturating_sub(1)] {
+                for line in normalize_prose_line(piece, prose_indent) {
+                    push_normalized_line(&mut output, &mut line_map, &line, source_line);
+                }
+            }
+            push_normalized_line(
+                &mut output,
+                &mut line_map,
+                &format!("{}{}:", " ".repeat(base_indent), header),
+                source_line,
+            );
+            control_blocks.push(base_indent);
+            continue;
+        }
         if let Some(&control_indent) = control_blocks.last() {
             if let Some(header) = paragraph_control_header(trimmed, allow_colon) {
                 push_normalized_line(
