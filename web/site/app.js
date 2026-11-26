@@ -994,5 +994,14 @@
     gutter.scrollTop = 0;
   }
 
+  function registerServiceWorker() {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js").catch(function () {});
+      });
+    }
+  }
+
+  registerServiceWorker();
   initialize();
 })();
