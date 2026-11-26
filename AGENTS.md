@@ -220,8 +220,7 @@ The final tree should be roughly 25 MB, with only stripped release binaries in
 - Keep commits focused and atomic.
 - Do not rewrite history or force-push.
 - Do not run `git push` unless the repository owner explicitly asks.
-- Never write to `/home/ponvasanth/TransCompilator/`,
-  `/home/ponvasanth/rbmt-sandbox/`, or `/home/ponvasanth/Project FROZEN/`.
+- Never write to sibling or external repositories outside this checkout.
 - Do not edit generated lexicon tables without updating
   `goldmines/PROVENANCE.md` and the doc-consistency tests.
 - Do not change `LICENSE`, `THIRD_PARTY_NOTICES.md`, or

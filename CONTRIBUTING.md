@@ -42,8 +42,8 @@ See `THIRD_PARTY_NOTICES.md` and `vendor/link-grammar/LICENSE`.
 - No network access required; Cargo runs offline
 
 ```bash
-git clone <repository-url> tc_r1
-cd tc_r1
+git clone https://github.com/PonvasanthPon/TransCompilator.git
+cd TransCompilator
 export PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_NET_OFFLINE=true
 make build

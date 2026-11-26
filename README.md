@@ -45,7 +45,7 @@ LSP nor the editor shells out to the compiler.
 ## What English looks like
 
 These are complete programs, not pseudo-code. They use ordinary prose: no
-braces, no semicolons, no `Print` statements, and no indentation-based control
+braces, no semicolons, no `printf()` calls, and no indentation-based control
 flow. The compiler recovers the algorithm from the English.
 
 ### A running Fibonacci total
