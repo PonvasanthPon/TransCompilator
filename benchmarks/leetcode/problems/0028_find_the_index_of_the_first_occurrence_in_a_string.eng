@@ -1,0 +1,12 @@
+Let word be "sadbutsad".
+Let needle be "sad".
+Let word length be the number of characters in word.
+Let needle length be the number of characters in needle.
+Let final be word length minus needle length.
+Let answer be -1.
+For every position from 0 to final.
+Let finish be position plus needle length.
+Let piece be the slice of word from position to finish.
+If piece is needle, set answer to position, print answer, then stop.
+
+If answer is -1, print -1.

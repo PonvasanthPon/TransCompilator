@@ -1,0 +1,12 @@
+Let target be 5.
+Let size be target plus 1.
+Let ways be a list of size zeros.
+Set item 0 of ways to 1.
+For every count from 1 to target.
+For every split from 0 to one less than count.
+Let before be item split of ways.
+Let after position be count minus 1 minus split.
+Let after be item after position of ways.
+Set item count of ways to item count of ways plus before times after.
+
+Print item target of ways.

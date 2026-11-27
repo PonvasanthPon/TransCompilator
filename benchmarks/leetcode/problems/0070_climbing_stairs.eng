@@ -1,0 +1,9 @@
+Let target be 5.
+Let size be target plus 1.
+Let ways be a list of size zeros.
+Set item 0 of ways to 1.
+For every position from 1 to target.
+If position is 1, set item position of ways to 1.
+If position is more than 1, set item position of ways to item (position minus 1) of ways plus item (position minus 2) of ways.
+
+Print item target of ways.

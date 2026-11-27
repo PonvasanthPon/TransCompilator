@@ -1,0 +1,13 @@
+Let rows be 3.
+Let columns be 7.
+Let size be the product of rows and columns.
+Let table be a list of size zeros.
+For every position from 0 to one less than size.
+Let row be position divided by columns.
+Let column be position modulo columns.
+If row is 0 or column is 0, set item position of table to 1.
+If row is more than 0 and column is more than 0, set item position of table to item (position minus columns) of table plus item (position minus 1) of table.
+
+
+Let last be one less than size.
+Print item last of table.

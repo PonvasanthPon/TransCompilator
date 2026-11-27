@@ -1,0 +1,25 @@
+Let source be "11".
+Let target be "1".
+Let last source be the last position of source.
+Let last target be the last position of target.
+Let position be last source.
+Let mark be last target.
+Let carry be 0.
+Let reversed result be empty text.
+Repeat while position is at least 0 or mark is at least 0 or carry is 1.
+Let sum be carry.
+Let digit be 0.
+If position is at least 0, set digit to character position of source minus 48.
+If position is at least 0, add digit to sum.
+If position is at least 0, set position to one less than position.
+If mark is at least 0, set digit to character mark of target minus 48.
+If mark is at least 0, add digit to sum.
+If mark is at least 0, set mark to one less than mark.
+Let bit be 48 plus sum modulo 2.
+Append bit to reversed result.
+Set carry to sum divided by 2.
+
+Let result be empty text.
+Let reversed last be the last position of reversed result.
+For every step from 0 to reversed last, let number be reversed last minus step, append character number of reversed result to result.
+Print result.

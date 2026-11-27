@@ -1,0 +1,9 @@
+Let nums be a list of 1, 1, 1, 2, 2, and 3.
+Let result be an empty list of whole numbers.
+For each number in nums.
+Let occurrences be 0.
+For every existing in result, if existing is number, add 1 to occurrences.
+If occurrences is less than 2, append number to result.
+
+Print the number of items in result.
+For each number in result, print number.

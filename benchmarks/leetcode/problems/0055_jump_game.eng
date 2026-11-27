@@ -1,0 +1,9 @@
+Let jumps be a list of 2, 3, 1, 1, and 4.
+Let farthest be 0.
+Let possible be 1.
+For every position from 0 to the last position of jumps.
+If position is more than farthest, set possible to 0.
+Let arrival be position plus item position of jumps.
+If position is at most farthest, set farthest to the larger of farthest and arrival.
+
+If possible is 1, print true, otherwise print false.

@@ -1,0 +1,11 @@
+Let word be "abcabcbb".
+Let last be the last position of word.
+Let best be 0.
+For every start from 0 to last.
+For every finish from start to last.
+Let repeated be 0.
+For every earlier from start to one less than finish, if character earlier of word is character finish of word, add 1 to repeated.
+Let span be finish minus start plus 1.
+If repeated is 0 and span is greater than best, set best to span.
+
+Print best.

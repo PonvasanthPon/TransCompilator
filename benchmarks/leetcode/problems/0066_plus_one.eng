@@ -1,0 +1,10 @@
+Let digits be a list of 1, 2, and 3.
+Let position be the last position of digits.
+Let carry be 1.
+Repeat while position is at least 0 and carry is 1.
+Let sum be item position of digits plus carry.
+Set item position of digits to sum modulo 10.
+Set carry to sum divided by 10.
+Set position to one less than position.
+
+For each digit in digits, print digit.

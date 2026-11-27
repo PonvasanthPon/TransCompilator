@@ -1,0 +1,9 @@
+Let target be 8.
+Let low be 0.
+Let high be target.
+Let answer be 0.
+Repeat while low is at most high.
+Let middle be the midpoint of low and high.
+If middle times middle is at most target, set answer to middle, set low to one more than middle, otherwise set high to one less than middle.
+
+Print answer.

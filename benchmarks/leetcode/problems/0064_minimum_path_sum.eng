@@ -1,0 +1,15 @@
+Let grid be a list of 1, 3, 1, 1, 5, 1, 4, 2, and 1.
+Let columns be 3.
+Let size be the number of items in grid.
+Let table be a list of size zeros.
+Set item 0 of table to item 0 of grid.
+For every position from 1 to one less than size.
+Let row be position divided by columns.
+Let column be position modulo columns.
+If row is 0, set item position of table to item (position minus 1) of table plus item position of grid.
+If row is more than 0 and column is 0, set item position of table to item (position minus columns) of table plus item position of grid.
+If row is more than 0 and column is more than 0, let above be item (position minus columns) of table, let previous be item (position minus 1) of table, let best path be the smaller of above and previous, set item position of table to best path plus item position of grid.
+
+
+Let last be one less than size.
+Print item last of table.

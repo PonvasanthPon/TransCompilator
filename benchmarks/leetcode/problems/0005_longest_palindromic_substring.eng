@@ -1,0 +1,13 @@
+Let word be "babad".
+Let last be the last position of word.
+Let best be empty text.
+For every start from 0 to last.
+For every finish from start to last.
+Let piece be the slice of word from start to one more than finish.
+Let reversed be empty text.
+For every step from 0 to finish minus start, let position be finish minus step, append character position of word to reversed.
+Let piece length be the length of piece.
+Let best length be the length of best.
+If piece is reversed, if piece length is greater than best length, set best to piece.
+
+Print best.
