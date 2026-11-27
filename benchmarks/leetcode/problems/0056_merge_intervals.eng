@@ -1,0 +1,23 @@
+Let begins be a list of 1, 2, 8, and 15.
+Let finishes be a list of 3, 6, 10, and 18.
+Let last be the last position of begins.
+For every left from 0 to last.
+For every right from left to last.
+If item right of begins is less than item left of begins, swap item left of begins and item right of begins, swap item left of finishes and item right of finishes.
+
+Let outbegins be an empty list of whole numbers.
+Let outfinishes be an empty list of whole numbers.
+For every position from 0 to last.
+Let start be item position of begins.
+Let finish be item position of finishes.
+Let size be the number of items in outbegins.
+If size is 0, append start to outbegins, append finish to outfinishes.
+If size is more than 0 and start is at most item (size minus 1) of outfinishes and finish is more than item (size minus 1) of outfinishes, set item (size minus 1) of outfinishes to finish.
+If size is more than 0 and start is more than item (size minus 1) of outfinishes, append start to outbegins, append finish to outfinishes.
+
+Let count be the number of items in outbegins.
+Let final be count minus 1.
+For every position from 0 to final.
+Print item position of outbegins.
+Print item position of outfinishes.
+Print "---".

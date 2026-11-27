@@ -1,0 +1,10 @@
+Let nums be a list of 1, 0, -1, and 2.
+Let target be 2.
+Sort nums.
+Let last be the last position of nums.
+For every first from 0 to last.
+For every second from one more than first to last.
+For every third from one more than second to last.
+For every fourth from one more than third to last.
+Let total be item first of nums plus item second of nums plus item third of nums plus item fourth of nums.
+If total is target, print item first of nums, print item second of nums, print item third of nums, print item fourth of nums, print "---".

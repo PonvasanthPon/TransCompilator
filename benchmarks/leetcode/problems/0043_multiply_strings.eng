@@ -1,0 +1,37 @@
+Let first be "123".
+Let second be "456".
+Let last first be the last position of first.
+Let last second be the last position of second.
+Let first digits be an empty list of whole numbers.
+Let second digits be an empty list of whole numbers.
+For every position from 0 to last first.
+Let at be last first minus position.
+Let digit be character at of first minus 48.
+Append digit to first digits.
+
+For every position from 0 to last second.
+Let at be last second minus position.
+Let digit be character at of second minus 48.
+Append digit to second digits.
+
+Let total be last first plus last second plus 2.
+Let result be a list of total zeros.
+For every left from 0 to last first.
+For every right from 0 to last second.
+Let product be item left of first digits times item right of second digits.
+Let index be left plus right.
+Let sum be item index of result plus product.
+Set item index of result to sum modulo 10.
+Set item (index plus 1) of result to item (index plus 1) of result plus sum divided by 10.
+
+Let result last be total minus 1.
+Let output be empty text.
+Let started be 0.
+For every step from 0 to result last.
+Let at be result last minus step.
+Let digit be item at of result.
+If digit is more than 0 or started is 1 or step is result last.
+Append 48 plus digit to output.
+Set started to 1.
+
+Print output.

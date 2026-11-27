@@ -1,0 +1,25 @@
+Let size be 3.
+Let matrix be a list of 9 zeros.
+Let visited be a list of 9 zeros.
+Let row be 0.
+Let column be 0.
+Let down be 0.
+Let right be 1.
+Let counter be 1.
+For every step from 0 to 8.
+Set item (row times size plus column) of matrix to counter.
+Set item (row times size plus column) of visited to 1.
+Add 1 to counter.
+Let next row be row plus down.
+Let next column be column plus right.
+Let blocked be 0.
+Let old down be 0.
+If next row is less than 0 or next row is at least size or next column is less than 0 or next column is at least size, set blocked to 1.
+If blocked is 0 and item (next row times size plus next column) of visited is 1, set blocked to 1.
+If blocked is 1, set old down to down.
+If blocked is 1, set down to right.
+If blocked is 1, set right to 0 minus old down.
+Set row to row plus down.
+Set column to column plus right.
+
+For each value in matrix, print value.

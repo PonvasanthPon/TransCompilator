@@ -1,0 +1,22 @@
+Let nums be a list of 1, 2, and 3.
+Let last be the last position of nums.
+Let pivot be -1.
+Let position be last minus 1.
+Repeat while position is at least 0.
+If item position of nums is less than item (position plus 1) of nums, set pivot to position, break.
+Set position to one less than position.
+
+Let mark be last.
+If pivot is at least 0.
+Repeat while item mark of nums is at most item pivot of nums.
+Set mark to one less than mark.
+
+If pivot is at least 0, swap item pivot of nums and item mark of nums.
+Let left be pivot plus 1.
+Let right be last.
+Repeat while left is less than right.
+Swap item left of nums and item right of nums.
+Add 1 to left.
+Subtract 1 from right.
+
+For each value in nums, print value.

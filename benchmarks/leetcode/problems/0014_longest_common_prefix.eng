@@ -1,0 +1,16 @@
+Let words be a list of "flower", "flow", and "flight".
+Let reference be item 0 of words.
+Let limit be the number of characters in reference.
+For each word in words.
+Let size be the number of characters in word.
+If size is less than limit, set limit to size.
+
+Let count be the number of items in words.
+Let prefix be empty text.
+Let last be limit minus 1.
+For every position from 0 to last.
+Let matches be 0.
+For each word in words, if character position of word is character position of reference, add 1 to matches.
+If matches is count, append character position of reference to prefix, otherwise stop.
+
+Print prefix.

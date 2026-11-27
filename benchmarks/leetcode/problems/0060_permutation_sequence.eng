@@ -1,0 +1,22 @@
+Let size be 3.
+Let rank be 3.
+Set rank to rank minus 1.
+Let available be an empty list of whole numbers.
+For every digit from 1 to size.
+Append digit to available.
+
+Let block be 1.
+For every step from 2 to size minus 1.
+Set block to block times step.
+
+Let result be empty text.
+Let last be size minus 1.
+For every position from 0 to last.
+Let index be rank divided by block.
+Set rank to rank modulo block.
+Let chosen be item index of available.
+Remove item index of available.
+Append 48 plus chosen to result.
+If position is less than last, set block to block divided by (last minus position).
+
+Print result.

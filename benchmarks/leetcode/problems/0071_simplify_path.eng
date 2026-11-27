@@ -1,0 +1,23 @@
+Let path be empty text.
+Append "/home//foo/" to path.
+Let parts be split path by "/".
+Let stack be an empty list of text.
+For each part in parts.
+If part is "", skip to the next one.
+If part is ".", skip to the next one.
+Let size be the number of items in stack.
+Let parent step be 0.
+If part is "..", set parent step to 1.
+If parent step is 1 and size is more than 0, remove the last item from stack.
+If parent step is 1 and size is 0, skip to the next one.
+Let keep be 1.
+If part is "", set keep to 0.
+If part is ".", set keep to 0.
+If parent step is 1, set keep to 0.
+If keep is 1, append part to stack.
+
+Let joined be join stack with "/".
+Let result be empty text.
+Append "/" to result.
+Append joined to result.
+Print result.

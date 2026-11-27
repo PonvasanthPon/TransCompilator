@@ -1,6 +1,6 @@
 //! Fast LeetCode MBT manifest integrity and stratified parity sample.
 //!
-//! The full 42-problem (and growing) three-engine sweep lives in
+//! The full solved-problem three-engine sweep lives in
 //! `scripts/run_leetcode_mbt.py` behind `make mbt`. Default `make test` keeps
 //! a manifest check plus 25 evenly spaced programs so CI stays fast.
 
@@ -45,8 +45,8 @@ fn leetcode_manifest_and_stratified_sample() {
         .collect::<Vec<_>>();
     programs.sort();
     assert!(
-        programs.len() >= 38,
-        "expected at least 38 solved programs, found {}",
+        programs.len() >= 66,
+        "expected at least 66 solved programs, found {}",
         programs.len()
     );
 

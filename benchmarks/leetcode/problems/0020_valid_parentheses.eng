@@ -1,0 +1,17 @@
+Let word be "()[]{}".
+Let last be the last position of word.
+Let stack be an empty list of whole numbers.
+Let invalid be 0.
+For every position from 0 to last.
+Let symbol be character position of word.
+Let size be the number of items in stack.
+If symbol is 40 or symbol is 91 or symbol is 123, append symbol to stack.
+If symbol is 41 and size is 0, add 1 to invalid.
+If symbol is 41 and size is more than 0, let top be item (size minus 1) of stack, remove the last item from stack, if top is not 40, add 1 to invalid.
+If symbol is 93 and size is 0, add 1 to invalid.
+If symbol is 93 and size is more than 0, let top be item (size minus 1) of stack, remove the last item from stack, if top is not 91, add 1 to invalid.
+If symbol is 125 and size is 0, add 1 to invalid.
+If symbol is 125 and size is more than 0, let top be item (size minus 1) of stack, remove the last item from stack, if top is not 123, add 1 to invalid.
+
+Let final size be the number of items in stack.
+If invalid is 0 and final size is 0, print true, otherwise print false.

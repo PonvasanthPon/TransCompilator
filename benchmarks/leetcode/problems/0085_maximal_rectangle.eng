@@ -1,0 +1,22 @@
+Let matrix be a list of 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, and 0.
+Let rows be 4.
+Let columns be 5.
+Let width be columns plus 1.
+Let height be rows plus 1.
+Let size be width times height.
+Let prefix be a list of size zeros.
+For every row from 1 to rows.
+For every column from 1 to columns.
+Let index be row times width plus column.
+Set item index of prefix to item (index minus width) of prefix plus item (index minus 1) of prefix minus item (index minus width minus 1) of prefix plus item (((row minus 1) times columns) plus column minus 1) of matrix.
+
+Let best be 0.
+For every top from 0 to one less than rows.
+For every bottom from top to one less than rows.
+For every left from 0 to one less than columns.
+For every right from left to one less than columns.
+Let area be (bottom minus top plus 1) times (right minus left plus 1).
+Let ones be item ((bottom plus 1) times width plus right plus 1) of prefix minus item (top times width plus right plus 1) of prefix minus item ((bottom plus 1) times width plus left) of prefix plus item (top times width plus left) of prefix.
+If ones is area and area is more than best, set best to area.
+
+Print best.

@@ -1,0 +1,19 @@
+Let nums be a list of -1, 2, 1, and -4.
+Let target be 1.
+Sort nums.
+Let last be the last position of nums.
+Let best be 0.
+Let best distance be 2147483647.
+For every first from 0 to last.
+Let second be one more than first.
+Let third be last.
+Repeat while second is less than third.
+Let total be item first of nums plus item second of nums plus item third of nums.
+Let difference be total minus target.
+If difference is less than 0, set difference to 0 minus difference.
+If difference is less than best distance, set best distance to difference, set best to total.
+If total is less than target, add 1 to second.
+If total is more than target, subtract 1 from third.
+If total is target, add 1 to second, subtract 1 from third.
+
+Print best.

@@ -1,0 +1,21 @@
+Let matrix be a list of 1, 1, 1, 1, 0, 1, 1, 1, and 1.
+Let rows be 3.
+Let columns be 3.
+Let last row be rows minus 1.
+Let last column be columns minus 1.
+Let rowmarks be an empty list of whole numbers.
+Let colmarks be an empty list of whole numbers.
+For every row from 0 to last row.
+For every column from 0 to last column.
+If item (row times columns plus column) of matrix is 0, append row to rowmarks.
+If item (row times columns plus column) of matrix is 0, append column to colmarks.
+
+For each row in rowmarks.
+For every column from 0 to last column.
+Set item (row times columns plus column) of matrix to 0.
+
+For each column in colmarks.
+For every row from 0 to last row.
+Set item (row times columns plus column) of matrix to 0.
+
+For each value in matrix, print value.

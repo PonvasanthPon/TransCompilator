@@ -1,0 +1,30 @@
+Let board be a list of 5, 3, 0, 0, 7, 0, 0, 0, 0, 6, 0, 0, 1, 9, 5, 0, 0, 0, 0, 9, 8, 0, 0, 0, 0, 6, 0, 8, 0, 0, 0, 6, 0, 0, 0, 3, 4, 0, 0, 8, 0, 3, 0, 0, 1, 7, 0, 0, 0, 2, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 4, 1, 9, 0, 0, 5, 0, 0, 0, 0, 8, 0, 0, 7, 9.
+Let invalid be 0.
+For every row from 0 to 8.
+Let seen be an empty map.
+For every column from 0 to 8.
+Let value be item (row times 9 plus column) of board.
+If value is more than 0 and seen has entry value, set invalid to 1.
+If value is more than 0, add 1 to entry value of seen.
+
+For every column from 0 to 8.
+Let seen be an empty map.
+For every row from 0 to 8.
+Let value be item (row times 9 plus column) of board.
+If value is more than 0 and seen has entry value, set invalid to 1.
+If value is more than 0, add 1 to entry value of seen.
+
+For every box from 0 to 8.
+Let start row be (box divided by 3) times 3.
+Let start column be (box modulo 3) times 3.
+Let seen be an empty map.
+For every inner row from 0 to 2.
+For every inner column from 0 to 2.
+Let row be start row plus inner row.
+Let column be start column plus inner column.
+Let value be item (row times 9 plus column) of board.
+If value is more than 0 and seen has entry value, set invalid to 1.
+If value is more than 0, add 1 to entry value of seen.
+
+If invalid is 0, print true.
+Otherwise, print false.

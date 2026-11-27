@@ -1,0 +1,24 @@
+Let text be "adceb".
+Let pattern be "*a*b".
+Let text size be the number of characters in text.
+Let pattern size be the number of characters in pattern.
+Let width be pattern size plus 1.
+Let height be text size plus 1.
+Let size be width times height.
+Let table be a list of size zeros.
+Set item 0 of table to 1.
+For every column from 1 to pattern size.
+If character (column minus 1) of pattern is 42 and item (column minus 1) of table is 1, set item column of table to 1.
+
+For every row from 1 to text size.
+For every column from 1 to pattern size.
+Let index be row times width plus column.
+Let symbol be character (column minus 1) of pattern.
+If symbol is 42 and item (index minus width) of table is 1, set item index of table to 1.
+If symbol is 42 and item (index minus 1) of table is 1, set item index of table to 1.
+If symbol is 63 and item (index minus width minus 1) of table is 1, set item index of table to 1.
+If symbol is character (row minus 1) of text and item (index minus width minus 1) of table is 1, set item index of table to 1.
+
+Let last be one less than size.
+If item last of table is 1, print true.
+Otherwise, print false.
