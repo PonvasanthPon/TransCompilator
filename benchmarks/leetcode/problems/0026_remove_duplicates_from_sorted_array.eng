@@ -1,15 +1,5 @@
-Let nums be a list of 0, 0, 1, 1, 1, 2, 2, 3, 3, and 4.
-Let n be count of nums.
-Let write position start at 1.
-
-For every cursor from 1 to n - 1:
-    Let current be item cursor of nums.
-    Let prior index be write position - 1.
-    Let prior be item prior index of nums.
-    If current is not prior:
-        Set item write position of nums to current.
-        Add 1 to write position.
-
-Print write position.
-For every i from 0 to write position - 1:
-    Print item i of nums.
+Start with the list of numbers 0, 0, 1, 1, 1, 2, 2, 3, 3, and 4.
+Let unique be an empty list of whole numbers.
+For each number in the list, if unique does not contain the number, append number to unique.
+Print the number of items in unique.
+For each number in unique, print number.

@@ -41,6 +41,15 @@ PURE_ENGLISH_PATTERNS = [
     (re.compile(r"\bas\s+a\s+byte\b", re.IGNORECASE), "byte cast"),
     (re.compile(r"(?im)^\s*(?:use|import)\s+"), "manual std import"),
     (re.compile(r"(?im)^\s*return\s+0\s*\.?\s*$"), "manual Return 0"),
+    (re.compile(r"(?m)^[ \t]+\S"), "indented block"),
+    (re.compile(r"(?m)^.*:\s*$"), "colon block header"),
+    (re.compile(r"(?im)^\s*(?:end|end the loop|end if)\.?\s*$"), "explicit block terminator"),
+    (re.compile(r"[+*/%]|<=|>=|==|!=|<|>|\s-\s"), "symbolic operator"),
+    (re.compile(r"(?im)\b(?:let|set)\s+[a-z]\b"), "single-letter variable"),
+    (re.compile(r"(?im)\bfor\s+(?:every|each)\s+[a-z]\b"), "single-letter loop variable"),
+    (re.compile(r"(?im)\bitem\s+[a-z]\s+of\b"), "single-letter index"),
+    (re.compile(r"(?im)\b(?:let|set)\s+found\s+(?:be|to)\s+(?:true|false)\b"), "boolean flag boilerplate"),
+    (re.compile(r"(?im)\bis\s+(?:true|false)\b"), "boolean literal comparison"),
 ]
 
 

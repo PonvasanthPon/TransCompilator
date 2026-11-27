@@ -1,27 +1,7 @@
 Let first be a list of 1, 2, and 4.
 Let second be a list of 1, 3, and 4.
-Let merged be an empty list of whole numbers.
-Let i start at 0.
-Let j start at 0.
-Let first count be count of first.
-Let second count be count of second.
-
-Repeat while i < first count and j < second count:
-    Let a be item i of first.
-    Let b be item j of second.
-    If a is at most b:
-        Append a to merged.
-        Add 1 to i.
-    Otherwise:
-        Append b to merged.
-        Add 1 to j.
-
-Repeat while i < first count:
-    Append item i of first to merged.
-    Add 1 to i.
-
-Repeat while j < second count:
-    Append item j of second to merged.
-    Add 1 to j.
-
-For each value in merged, print value.
+Let combined be an empty list of whole numbers.
+For each number in first, append number to combined.
+For each number in second, append number to combined.
+Sort combined.
+For each number in combined, print number.
