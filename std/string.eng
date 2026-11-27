@@ -191,3 +191,12 @@ If finish is at most start, give back create an empty text.
 Let from be start as an unsigned number.
 Let count be (finish - start) as an unsigned number.
 Give back create text from (source as an unsigned number plus from) as a pointer to byte of length count.
+
+Publicly, to compare bytes primary (a pointer to byte) of length counta (an unsigned number) with bytes secondary (a pointer to byte) of length countb (an unsigned number), named str_equal_bytes, giving a truth value.
+If counta is not countb, give back false.
+Let position start at 0 as an unsigned number.
+Repeat while position is less than counta.
+If item position of primary is not item position of secondary, give back false.
+Add 1 to position.
+End the loop.
+Give back true.

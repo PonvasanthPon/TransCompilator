@@ -535,6 +535,192 @@ impl Lowerer<'_> {
         Ok((data, length))
     }
 
+    pub(super) fn try_repeated_list(
+        &mut self,
+        target: &str,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let trimmed = text.trim();
+        let lower = trimmed.to_ascii_lowercase();
+        let Some(rest) = trimmed
+            .strip_prefix("a list of ")
+            .or_else(|| trimmed.strip_prefix("A list of "))
+        else {
+            return Ok(None);
+        };
+        let lower_rest = lower
+            .strip_prefix("a list of ")
+            .or_else(|| lower.strip_prefix("a list of "))
+            .unwrap_or(&lower);
+        let (count_text, value) = if let Some(count) = lower_rest
+            .strip_suffix(" zeros")
+            .or_else(|| lower_rest.strip_suffix(" zeroes"))
+        {
+            (
+                rest[..count.len()].trim().to_string(),
+                AstExpr::ConstInt(0, None),
+            )
+        } else if let Some((count, value_text)) = lower_rest.split_once(" copies of ") {
+            (
+                rest[..count.len()].trim().to_string(),
+                self.parse_value(rest[rest.len() - value_text.len()..].trim(), span)?,
+            )
+        } else {
+            return Ok(None);
+        };
+        if !is_simple_name(target) {
+            return Ok(None);
+        }
+        let name = lower_name(target);
+        let element = self.shallow_type(&value);
+        let ty = list_type(element.clone());
+        let mut statements = self.assign_text(&name, AstExpr::Zero(ty), span, true)?;
+        let pointer = if self.globals.contains_key(&name) && !self.current_scope_contains(&name) {
+            AstExpr::GlobalAddr {
+                module: None,
+                name: name.clone(),
+            }
+        } else {
+            AstExpr::AddrOfVar(name.clone())
+        };
+        let count = self.parse_value(&count_text, span)?;
+        let count = AstExpr::Cast {
+            val: Box::new(count),
+            to: AstType::I64,
+        };
+        let index = self.next_temp("repeat_index");
+        self.declare_temp(&index, AstType::I64);
+        statements.push(AstStmt::Let {
+            name: index.clone(),
+            ty: Some(AstType::I64),
+            init: AstExpr::ConstInt(0, None),
+            span: self.span(span),
+        });
+        let push = AstStmt::Expr(
+            AstExpr::Call {
+                module: None,
+                name: "list_push".to_string(),
+                type_args: Vec::new(),
+                args: vec![value, pointer],
+            },
+            self.span(span),
+        );
+        statements.push(AstStmt::Loop {
+            body: vec![
+                AstStmt::If {
+                    cond: AstExpr::Binary {
+                        op: tc_ir::BinOp::Ge,
+                        lhs: Box::new(AstExpr::Var(index.clone())),
+                        rhs: Box::new(count),
+                    },
+                    then_body: vec![AstStmt::Break(self.span(span))],
+                    else_body: Vec::new(),
+                    span: self.span(span),
+                },
+                push,
+                AstStmt::Assign {
+                    name: index.clone(),
+                    val: AstExpr::Binary {
+                        op: tc_ir::BinOp::Add,
+                        lhs: Box::new(AstExpr::Var(index)),
+                        rhs: Box::new(AstExpr::ConstInt(1, None)),
+                    },
+                    span: self.span(span),
+                },
+            ],
+            span: self.span(span),
+        });
+        Ok(Some(statements))
+    }
+
+    pub(super) fn try_swap_items(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+        if !lower.starts_with("swap item ") {
+            return Ok(None);
+        }
+        let rest = &trimmed["swap item ".len()..];
+        let Some((of_start, of_end)) = find_top_level_word(rest, "of") else {
+            return Ok(None);
+        };
+        let first_text = rest[..of_start].trim();
+        let after = rest[of_end..].trim();
+        let Some((and_start, and_end)) = find_top_level_word(after, "and") else {
+            return Ok(None);
+        };
+        let list_text = after[..and_start].trim();
+        let Some(second_part) = after[and_end..].trim().strip_prefix("item ") else {
+            return Ok(None);
+        };
+        let second_part = second_part.trim();
+        let Some((second_of_start, second_of_end)) = find_top_level_word(second_part, "of") else {
+            return Ok(None);
+        };
+        let second_text = second_part[..second_of_start].trim();
+        let second_list = second_part[second_of_end..].trim();
+        let Some(list) = self.resolve_list_name(list_text) else {
+            return Ok(None);
+        };
+        if self.resolve_list_name(second_list) != Some(list.clone()) {
+            return Ok(None);
+        }
+        let element = self
+            .list_element_type(&list)
+            .ok_or_else(|| self.error(span, SemanticErrorKind::Lowering, "swap needs a list"))?;
+        let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+        let first = self.parse_value(first_text, span)?;
+        let second = self.parse_value(second_text, span)?;
+        let first = self.natural_list_index(first);
+        let second = self.natural_list_index(second);
+        let temporary = self.next_temp("swap_item");
+        self.declare_temp(&temporary, element);
+        Ok(Some(vec![
+            AstStmt::Let {
+                name: temporary.clone(),
+                ty: None,
+                init: AstExpr::Call {
+                    module: None,
+                    name: "list_get".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![pointer.clone(), first.clone()],
+                },
+                span: self.span(span),
+            },
+            AstStmt::Expr(
+                AstExpr::Call {
+                    module: None,
+                    name: "list_set".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![
+                        pointer.clone(),
+                        first,
+                        AstExpr::Call {
+                            module: None,
+                            name: "list_get".to_string(),
+                            type_args: Vec::new(),
+                            args: vec![pointer.clone(), second.clone()],
+                        },
+                    ],
+                },
+                self.span(span),
+            ),
+            AstStmt::Expr(
+                AstExpr::Call {
+                    module: None,
+                    name: "list_set".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![pointer, second, AstExpr::Var(temporary)],
+                },
+                self.span(span),
+            ),
+        ]))
+    }
+
     pub(super) fn try_string_operation(
         &mut self,
         text: &str,

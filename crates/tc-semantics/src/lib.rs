@@ -395,7 +395,8 @@ fn augmented_sources(
         || source_text.contains("empty text")
         || source_text.contains("empty string")
         || source_text.contains("append ")
-        || source_text.contains("slice of ");
+        || source_text.contains("slice of ")
+        || source_text.contains("character ");
     let needs_math = source_text.contains("square root of");
     let needs_map = source_text.contains("int map")
         || source_text.contains("text map")

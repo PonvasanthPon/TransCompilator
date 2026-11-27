@@ -943,6 +943,9 @@ impl Lowerer<'_> {
                 return Ok(statements);
             }
         }
+        if let Some(statements) = self.try_swap_items(trimmed, span)? {
+            return Ok(statements);
+        }
         if let Some(statements) = self.try_swap_adjacent(trimmed, span)? {
             return Ok(statements);
         }
@@ -1944,6 +1947,9 @@ impl Lowerer<'_> {
             if let Some((target, value_text)) = binding {
                 let target = target.trim();
                 let value_text = value_text.as_str();
+                if let Some(statements) = self.try_repeated_list(target, value_text, span)? {
+                    return Ok(Some(statements));
+                }
                 if let Some((ty, elements)) = self.parse_inline_list(value_text, span)? {
                     return Ok(Some(self.lower_inline_list(target, ty, elements, span)?));
                 }

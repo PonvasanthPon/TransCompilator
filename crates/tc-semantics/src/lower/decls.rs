@@ -161,10 +161,7 @@ pub(super) fn split_condition_comparison(text: &str) -> Option<(String, tc_ir::B
             (None, 0)
         };
         if let Some(operator) = operator {
-            let mut right_start = index + words + 1;
-            if token.is("is") && words == 3 && following(2) == Some("equal") {
-                right_start += 1;
-            }
+            let right_start = index + words + 1;
             let end = tokens
                 .get(right_start.saturating_sub(1))
                 .map_or(token.end, |token| token.end);

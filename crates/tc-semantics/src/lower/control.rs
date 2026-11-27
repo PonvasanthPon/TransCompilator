@@ -1008,6 +1008,80 @@ impl Lowerer<'_> {
         }
     }
 
+    fn is_text_type(ty: &AstType) -> bool {
+        match ty {
+            AstType::Named { name, .. } => name.eq_ignore_ascii_case("tcstring"),
+            AstType::Ptr(inner) => match inner.as_ref() {
+                AstType::Named { name, .. } => name.eq_ignore_ascii_case("tcstring"),
+                AstType::U8 => true,
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
+    fn is_integer_expr_type(ty: &AstType) -> bool {
+        matches!(
+            ty,
+            AstType::I8
+                | AstType::I16
+                | AstType::I32
+                | AstType::I64
+                | AstType::U8
+                | AstType::U16
+                | AstType::U32
+                | AstType::U64
+        )
+    }
+
+    fn promote_char_literal(&self, left: AstExpr, right: AstExpr) -> (AstExpr, AstExpr, bool) {
+        let left_ty = self.shallow_type_opt(&left);
+        let right_ty = self.shallow_type_opt(&right);
+        if let (Some(left_ty), AstExpr::BytesLit(bytes)) = (&left_ty, &right) {
+            if Self::is_integer_expr_type(left_ty) && bytes.len() == 1 {
+                return (left, AstExpr::ConstInt(i64::from(bytes[0]), None), true);
+            }
+        }
+        if let (AstExpr::BytesLit(bytes), Some(right_ty)) = (&left, &right_ty) {
+            if Self::is_integer_expr_type(right_ty) && bytes.len() == 1 {
+                return (AstExpr::ConstInt(i64::from(bytes[0]), None), right, true);
+            }
+        }
+        (left, right, false)
+    }
+
+    fn lower_text_comparison(
+        &mut self,
+        left: AstExpr,
+        right: AstExpr,
+        operator: tc_ir::BinOp,
+        span: Span,
+    ) -> Result<Option<AstExpr>, SemanticError> {
+        let left_ty = self.shallow_type_opt(&left);
+        let right_ty = self.shallow_type_opt(&right);
+        let text_operands = left_ty.as_ref().is_some_and(Self::is_text_type)
+            && right_ty.as_ref().is_some_and(Self::is_text_type);
+        if !text_operands || !matches!(operator, tc_ir::BinOp::Eq | tc_ir::BinOp::Ne) {
+            return Ok(None);
+        }
+        let (left_pointer, left_length) = self.text_parts(left, span)?;
+        let (right_pointer, right_length) = self.text_parts(right, span)?;
+        let equal = AstExpr::Call {
+            module: None,
+            name: "str_equal_bytes".to_string(),
+            type_args: Vec::new(),
+            args: vec![left_pointer, left_length, right_pointer, right_length],
+        };
+        Ok(Some(if operator == tc_ir::BinOp::Ne {
+            AstExpr::Unary {
+                op: tc_ir::UnOp::LogNot,
+                val: Box::new(equal),
+            }
+        } else {
+            equal
+        }))
+    }
+
     pub(super) fn lower_condition(
         &mut self,
         text: &str,
@@ -1030,22 +1104,30 @@ impl Lowerer<'_> {
         let condition = condition
             .strip_prefix(',')
             .map_or(condition.as_str(), str::trim);
-        if let Some((left, operator, right)) = split_condition_comparison(condition)
-            && crate::value::is_np_expression(&left)
-        {
-            let lhs = self.parse_value(&left, span)?;
-            let rhs = self.parse_value(&right, span)?;
-            let expr = AstExpr::Binary {
-                op: operator,
-                lhs: Box::new(lhs),
-                rhs: Box::new(rhs),
-            };
-            let paraphrase = strip_outer_parentheses(&render_expr(&expr));
-            return Ok(LoweredCond {
-                prelude: Vec::new(),
-                expr,
-                paraphrase,
-            });
+        if let Some((left, operator, right)) = split_condition_comparison(condition) {
+            let lhs = self.parse_value(&left, span);
+            let rhs = self.parse_value(&right, span);
+            if let (Ok(lhs), Ok(rhs)) = (lhs, rhs) {
+                let (lhs, rhs, promoted_char) = self.promote_char_literal(lhs, rhs);
+                let text_comparison =
+                    self.lower_text_comparison(lhs.clone(), rhs.clone(), operator, span)?;
+                if text_comparison.is_some()
+                    || promoted_char
+                    || crate::value::is_np_expression(&left)
+                {
+                    let expr = text_comparison.unwrap_or_else(|| AstExpr::Binary {
+                        op: operator,
+                        lhs: Box::new(lhs),
+                        rhs: Box::new(rhs),
+                    });
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
+            }
         }
         let parsed = parse_condition(condition)
             .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
