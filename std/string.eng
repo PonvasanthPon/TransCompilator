@@ -3,7 +3,7 @@ A growable sequence of bytes with a final zero byte.
 A final zero byte keeps every buffer ready for kernel calls.
 Whitespace means space, tab, line feed, or carriage return.
 
-Use alloc, core, and io.
+Use alloc, core, io, and list.
 
 A public record TcString has a data (a pointer to byte), a len (an unsigned number), and a cap (an unsigned number).
 
@@ -200,3 +200,45 @@ If item position of primary is not item position of secondary, give back false.
 Add 1 to position.
 End the loop.
 Give back true.
+
+
+Publicly, to split given text as TcString, delimiter as TcString, named str_split, giving List of TcString.
+Let pieces be List of TcString.
+If delimiter's len is zero.
+let single be create text from text's data of length text's len.
+push single to address of pieces.
+Give back pieces.
+End the condition.
+Let start start at 0 as an unsigned number.
+Let position start at 0 as an unsigned number.
+Repeat while position plus delimiter's len is at most text's len.
+Let matches be true.
+Let offset start at 0 as an unsigned number.
+Repeat while offset is less than delimiter's len.
+If item (position plus offset) of text's data is not item offset of delimiter's data, set matches to false, break.
+Add 1 to offset.
+End the loop.
+If matches.
+Let piece be create text from (text's data as an unsigned number plus start) as a pointer to byte of length (position minus start).
+push piece to address of pieces.
+Add delimiter's len to position.
+Set start to position.
+End the condition.
+If matches is false.
+Add 1 to position.
+End the condition.
+End the loop.
+Let final piece be create text from (text's data as an unsigned number plus start) as a pointer to byte of length (text's len minus start).
+push final piece to address of pieces.
+Give back pieces.
+
+Publicly, to join given pieces as List of TcString, delimiter as TcString, named str_join, giving TcString.
+Let result be create an empty text.
+Let position start at 0 as an unsigned number.
+Repeat while position is less than pieces's len.
+If position is more than 0, append to address of result text delimiter's data of length delimiter's len.
+Let piece be item position of pieces's data.
+append to address of result text piece's data of length piece's len.
+Add 1 to position.
+End the loop.
+Give back result.

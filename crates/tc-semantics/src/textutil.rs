@@ -16,10 +16,19 @@ pub(crate) fn first_word(text: &str) -> String {
 /// Returns true when the text starts with `word` (case-insensitive).
 #[must_use]
 pub(crate) fn starts_with_word(text: &str, word: &str) -> bool {
-    text.trim_start()
-        .to_ascii_lowercase()
-        .starts_with(&format!("{word} "))
-        || text.trim().eq_ignore_ascii_case(word)
+    let trimmed = text.trim_start();
+    let Some(prefix) = trimmed.get(..word.len()) else {
+        return false;
+    };
+    if !prefix.eq_ignore_ascii_case(word) {
+        return false;
+    }
+    let Some(rest) = trimmed.get(word.len()..) else {
+        return false;
+    };
+    rest.chars()
+        .next()
+        .is_none_or(|character| !character.is_alphanumeric() && character != '_')
 }
 
 /// Finds a top-level word token, ignoring strings and bracketed expressions.

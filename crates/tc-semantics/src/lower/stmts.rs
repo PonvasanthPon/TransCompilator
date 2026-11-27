@@ -155,6 +155,50 @@ impl Lowerer<'_> {
         })
     }
 
+    pub(super) fn as_text_value(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+    ) -> Result<AstExpr, SemanticError> {
+        match self.shallow_type_opt(&value) {
+            Some(AstType::Named { ref name, .. }) if name.eq_ignore_ascii_case("tcstring") => {
+                Ok(value)
+            }
+            Some(AstType::Ptr(inner)) => match inner.as_ref() {
+                AstType::U8 => {
+                    if let AstExpr::BytesLit(bytes) = &value {
+                        let length = AstExpr::BytesLen(bytes.clone());
+                        return Ok(AstExpr::Call {
+                            module: None,
+                            name: "str_from_bytes".to_string(),
+                            type_args: Vec::new(),
+                            args: vec![value, length],
+                        });
+                    }
+                    if let AstExpr::Var(name) = &value
+                        && let Some(length) = self.bytes_lengths.get(name).copied()
+                    {
+                        return Ok(AstExpr::Call {
+                            module: None,
+                            name: "str_from_bytes".to_string(),
+                            type_args: Vec::new(),
+                            args: vec![
+                                value,
+                                AstExpr::ConstInt(i64::try_from(length).unwrap_or(i64::MAX), None),
+                            ],
+                        });
+                    }
+                    Err(self.error(span, SemanticErrorKind::Lowering, "text value required"))
+                }
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring") => {
+                    Ok(AstExpr::Load(Box::new(value)))
+                }
+                _ => Err(self.error(span, SemanticErrorKind::Lowering, "text value required")),
+            },
+            _ => Err(self.error(span, SemanticErrorKind::Lowering, "text value required")),
+        }
+    }
+
     pub(crate) fn parse_value(&mut self, text: &str, span: Span) -> Result<AstExpr, SemanticError> {
         let normalized = crate::number_words::normalize_hyphens(text);
         let trimmed = normalized.trim();
@@ -179,6 +223,81 @@ impl Lowerer<'_> {
                         name: "str_slice".to_string(),
                         type_args: Vec::new(),
                         args: vec![pointer, length, start, finish],
+                    });
+                }
+            }
+        }
+        if let Some(rest) = lower.strip_prefix("split ") {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((by_start, by_end)) = find_top_level_word(rest, "by") {
+                let text_expr = self.parse_value(rest[..by_start].trim(), span)?;
+                let delimiter_expr = self.parse_value(rest[by_end..].trim(), span)?;
+                let text_expr = self.as_text_value(text_expr, span)?;
+                let delimiter_expr = self.as_text_value(delimiter_expr, span)?;
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_split".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![text_expr, delimiter_expr],
+                });
+            }
+        }
+        if let Some(rest) = lower.strip_prefix("join ") {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((with_start, with_end)) = find_top_level_word(rest, "with") {
+                let pieces = self.parse_value(rest[..with_start].trim(), span)?;
+                let delimiter_expr = self.parse_value(rest[with_end..].trim(), span)?;
+                let delimiter_expr = self.as_text_value(delimiter_expr, span)?;
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_join".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![pieces, delimiter_expr],
+                });
+            }
+        }
+        if matches!(
+            lower.as_str(),
+            "an empty map" | "empty map" | "an empty number map" | "empty number map"
+        ) {
+            let ty = parse_type_text("IntMap of whole number")
+                .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
+            return Ok(AstExpr::Zero(ty));
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the number of entries in ")
+            .or_else(|| lower.strip_prefix("number of entries in "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some(map) = self.resolve_intmap_name(rest) {
+                let pointer = self.intmap_pointer(AstExpr::Var(map), span)?;
+                return Ok(AstExpr::Cast {
+                    val: Box::new(AstExpr::Call {
+                        module: None,
+                        name: "intmap_len".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![pointer],
+                    }),
+                    to: AstType::I64,
+                });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("entry ")
+            .or_else(|| lower.strip_prefix("the entry "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((of_start, of_end)) = find_top_level_word(rest, "of") {
+                let key_text = rest[..of_start].trim();
+                let map_text = rest[of_end..].trim();
+                if let Some(map) = self.resolve_intmap_name(map_text) {
+                    let pointer = self.intmap_pointer(AstExpr::Var(map), span)?;
+                    let key = self.parse_value(key_text, span)?;
+                    return Ok(AstExpr::Call {
+                        module: None,
+                        name: "intmap_value".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![pointer, key],
                     });
                 }
             }
@@ -295,6 +414,32 @@ impl Lowerer<'_> {
                         to: AstType::I64,
                     }),
                     rhs: Box::new(AstExpr::ConstInt(1, None)),
+                });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the last item of ")
+            .or_else(|| lower.strip_prefix("last item of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let list = self.parse_value(rest, span)?;
+            let pointer = self.list_pointer(list.clone(), span)?;
+            if let Some(length) = self.length_expression(list, span)? {
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "list_get".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![
+                        pointer,
+                        AstExpr::Cast {
+                            val: Box::new(AstExpr::Binary {
+                                op: tc_ir::BinOp::Sub,
+                                lhs: Box::new(length),
+                                rhs: Box::new(AstExpr::ConstInt(1, None)),
+                            }),
+                            to: AstType::U64,
+                        },
+                    ],
                 });
             }
         }
@@ -614,7 +759,19 @@ impl Lowerer<'_> {
     }
 
     pub(crate) fn shallow_type_opt(&self, expr: &AstExpr) -> Option<AstType> {
-        if let AstExpr::Call { name, .. } = expr {
+        if let AstExpr::Call { name, args, .. } = expr {
+            if matches!(name.as_str(), "list_get" | "list_first" | "list_last")
+                && let Some(AstType::Ptr(inner)) =
+                    args.first().and_then(|arg| self.shallow_type_opt(arg))
+                && let AstType::Named {
+                    name: type_name,
+                    type_args,
+                    ..
+                } = inner.as_ref()
+                && type_name.eq_ignore_ascii_case("list")
+            {
+                return type_args.first().cloned();
+            }
             if let Some(return_type) = self.function_returns.get(name) {
                 return return_type.clone();
             }
@@ -958,6 +1115,9 @@ impl Lowerer<'_> {
                     statements.extend(self.lower_emit_value(&part, span)?);
                 }
             }
+            return Ok(statements);
+        }
+        if let Some(statements) = self.try_map_operation(trimmed, span)? {
             return Ok(statements);
         }
         if let Some(statements) = self.try_string_operation(trimmed, span)? {

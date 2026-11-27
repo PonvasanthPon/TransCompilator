@@ -401,7 +401,11 @@ fn augmented_sources(
     let needs_map = source_text.contains("int map")
         || source_text.contains("text map")
         || source_text.contains("integer map")
-        || source_text.contains("string map");
+        || source_text.contains("string map")
+        || source_text.contains("empty map")
+        || source_text.contains("empty number map")
+        || source_text.contains("entry ")
+        || source_text.contains("number of entries");
     let mut present = all
         .iter()
         .map(SourceFile::module_name)

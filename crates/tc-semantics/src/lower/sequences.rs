@@ -302,6 +302,7 @@ impl Lowerer<'_> {
             || lower.starts_with("remove the last ")
             || lower.starts_with("remove item ")
             || lower.starts_with("remove every ")
+            || lower.starts_with("reverse ")
             || lower.starts_with("sort ")
     }
 
@@ -350,13 +351,71 @@ impl Lowerer<'_> {
                 let value_text = rest[..to_start].trim();
                 let list_text = rest[to_end..].trim();
                 if let Some(list) = self.resolve_list_name(list_text) {
-                    let value = self.parse_expr(value_text, span)?;
+                    let mut value = self.parse_expr(value_text, span)?;
+                    if matches!(
+                        self.list_element_type(&list),
+                        Some(AstType::Named { ref name, .. })
+                            if name.eq_ignore_ascii_case("tcstring")
+                    ) {
+                        value = self.as_text_value(value, span)?;
+                    }
                     let pointer = self.list_pointer(AstExpr::Var(list), span)?;
                     return Ok(Some(self.list_call(
                         "list_push",
                         vec![value, pointer],
                         span,
                     )));
+                }
+                if let Some(item_text) = list_text.strip_prefix("item ")
+                    && let Some((of_start, of_end)) = find_top_level_word(item_text, "of")
+                {
+                    let index_text = item_text[..of_start].trim();
+                    let list_name_text = item_text[of_end..].trim();
+                    if let Some(list) = self.resolve_list_name(list_name_text) {
+                        let Some(element) = self.list_element_type(&list) else {
+                            return Ok(None);
+                        };
+                        if !matches!(
+                            element,
+                            AstType::Named { ref name, .. }
+                                if name.eq_ignore_ascii_case("tcstring")
+                        ) {
+                            return Ok(None);
+                        }
+                        let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                        let index = self.parse_expr(index_text, span)?;
+                        let index = self.natural_list_index(index);
+                        let temporary = self.next_temp("append_item");
+                        self.declare_temp(&temporary, element);
+                        let mut statements = vec![AstStmt::Let {
+                            name: temporary.clone(),
+                            ty: None,
+                            init: AstExpr::Call {
+                                module: None,
+                                name: "list_get".to_string(),
+                                type_args: Vec::new(),
+                                args: vec![pointer.clone(), index.clone()],
+                            },
+                            span: self.span(span),
+                        }];
+                        let append_text = format!("append {value_text} to {temporary}");
+                        if let Some(append) = self.try_string_operation(&append_text, span)? {
+                            statements.extend(append);
+                        } else {
+                            return Ok(None);
+                        }
+                        statements.push(AstStmt::Expr(
+                            AstExpr::Call {
+                                module: None,
+                                name: "list_set".to_string(),
+                                type_args: Vec::new(),
+                                args: vec![pointer, index, AstExpr::Var(temporary)],
+                            },
+                            self.span(span),
+                        ));
+                        let block_span = self.span(span);
+                        return Ok(Some(AstStmt::Block(statements, block_span)));
+                    }
                 }
             }
         }
@@ -397,7 +456,9 @@ impl Lowerer<'_> {
 
         if lower.starts_with("remove item ") {
             let rest = &trimmed["remove item ".len()..];
-            if let Some((from_start, from_end)) = find_top_level_word(rest, "from") {
+            if let Some((from_start, from_end)) =
+                find_top_level_word(rest, "from").or_else(|| find_top_level_word(rest, "of"))
+            {
                 let index_text = rest[..from_start].trim();
                 let list_text = rest[from_end..].trim();
                 if let Some(list) = self.resolve_list_name(list_text) {
@@ -428,6 +489,15 @@ impl Lowerer<'_> {
                         )));
                     }
                 }
+            }
+        }
+
+        if lower.starts_with("reverse ") {
+            let list_text = &trimmed["reverse ".len()..];
+            let name = lower_name(list_text.trim());
+            if self.list_element_type(&name).is_some() {
+                let pointer = self.list_pointer(AstExpr::Var(name), span)?;
+                return Ok(Some(self.list_call("list_reverse", vec![pointer], span)));
             }
         }
 
@@ -533,6 +603,127 @@ impl Lowerer<'_> {
             field: "len".to_string(),
         }));
         Ok((data, length))
+    }
+
+    fn is_intmap_variable(&self, name: &str) -> bool {
+        match self.lookup(name) {
+            Some(AstType::Named { name, .. }) => name.eq_ignore_ascii_case("intmap"),
+            Some(AstType::Ptr(inner)) => matches!(
+                inner.as_ref(),
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("intmap")
+            ),
+            _ => false,
+        }
+    }
+
+    pub(super) fn resolve_intmap_name(&self, text: &str) -> Option<String> {
+        let name = lower_name(text.trim().trim_end_matches('.').trim());
+        self.is_intmap_variable(&name).then_some(name)
+    }
+
+    pub(super) fn intmap_pointer(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+    ) -> Result<AstExpr, SemanticError> {
+        self.text_pointer(value, span).map_err(|_| {
+            self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "map operation requires a map variable",
+            )
+        })
+    }
+
+    pub(super) fn is_natural_map_operation(&self, text: &str) -> bool {
+        let lower = text
+            .trim()
+            .trim_end_matches('.')
+            .trim()
+            .to_ascii_lowercase();
+        lower.starts_with("set entry ")
+            || lower.starts_with("add ") && lower.contains(" to entry ")
+            || lower.starts_with("subtract ") && lower.contains(" from entry ")
+    }
+
+    pub(super) fn try_map_operation(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+
+        if lower.starts_with("set entry ") {
+            let rest = &trimmed["set entry ".len()..];
+            let Some((of_start, of_end)) = find_top_level_word(rest, "of") else {
+                return Ok(None);
+            };
+            let key_text = rest[..of_start].trim();
+            let after = rest[of_end..].trim();
+            let Some((to_start, to_end)) = find_top_level_word(after, "to") else {
+                return Ok(None);
+            };
+            let map_text = after[..to_start].trim();
+            let value_text = after[to_end..].trim();
+            let Some(map) = self.resolve_intmap_name(map_text) else {
+                return Ok(None);
+            };
+            let pointer = self.intmap_pointer(AstExpr::Var(map), span)?;
+            let key = self.parse_value(key_text, span)?;
+            let value = self.parse_value(value_text, span)?;
+            return Ok(Some(vec![AstStmt::Expr(
+                AstExpr::Call {
+                    module: None,
+                    name: "intmap_put".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![pointer, key, value],
+                },
+                self.span(span),
+            )]));
+        }
+
+        for (prefix, subtract) in [("add ", false), ("subtract ", true)] {
+            if lower.starts_with(prefix) {
+                let rest = &trimmed[prefix.len()..];
+                let separator = if subtract { "from" } else { "to" };
+                let Some((to_start, to_end)) = find_top_level_word(rest, separator) else {
+                    continue;
+                };
+                let amount_text = rest[..to_start].trim();
+                let after = rest[to_end..].trim();
+                let Some(entry_rest) = after.strip_prefix("entry ") else {
+                    continue;
+                };
+                let Some((of_start, of_end)) = find_top_level_word(entry_rest, "of") else {
+                    continue;
+                };
+                let key_text = entry_rest[..of_start].trim();
+                let map_text = entry_rest[of_end..].trim();
+                let Some(map) = self.resolve_intmap_name(map_text) else {
+                    continue;
+                };
+                let pointer = self.intmap_pointer(AstExpr::Var(map), span)?;
+                let key = self.parse_value(key_text, span)?;
+                let mut amount = self.parse_value(amount_text, span)?;
+                if subtract {
+                    amount = AstExpr::Unary {
+                        op: tc_ir::UnOp::Neg,
+                        val: Box::new(amount),
+                    };
+                }
+                return Ok(Some(vec![AstStmt::Expr(
+                    AstExpr::Call {
+                        module: None,
+                        name: "intmap_add".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![amount, key, pointer],
+                    },
+                    self.span(span),
+                )]));
+            }
+        }
+        Ok(None)
     }
 
     pub(super) fn try_repeated_list(

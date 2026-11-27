@@ -17,6 +17,17 @@ use super::{
     starts_control, starts_with_word, strip_leading_word, strip_outer_parentheses, tokenize,
 };
 
+fn deepest_else_tail(statement: &mut AstStmt) -> Option<&mut Vec<AstStmt>> {
+    let AstStmt::If { else_body, .. } = statement else {
+        return None;
+    };
+    if else_body.len() == 1 && matches!(else_body.last(), Some(AstStmt::If { .. })) {
+        deepest_else_tail(else_body.last_mut()?)
+    } else {
+        Some(else_body)
+    }
+}
+
 impl Lowerer<'_> {
     pub(super) fn lower_items(
         &mut self,
@@ -34,6 +45,104 @@ impl Lowerer<'_> {
         let mut statements = Vec::new();
         let mut index = 0;
         while index < items.len() {
+            if let RawItem::Sentence(sentence) = &items[index] {
+                let source_owned = if sentence.fillers.is_empty() {
+                    sentence.text.clone()
+                } else {
+                    format!("{}, {}", sentence.fillers.join(" "), sentence.text)
+                };
+                let source = source_owned.as_str();
+                let lower = source.to_ascii_lowercase();
+                if starts_with_word(&lower, "otherwise") {
+                    let after = strip_leading_word(source, "otherwise")
+                        .trim()
+                        .trim_start_matches(',')
+                        .trim();
+                    let after_lower = after.to_ascii_lowercase();
+                    let Some(tail) = statements.last_mut().and_then(deepest_else_tail) else {
+                        return Err(self.error(
+                            sentence.span,
+                            SemanticErrorKind::Lowering,
+                            "`Otherwise` must follow an `If`",
+                        ));
+                    };
+                    if starts_with_word(&after_lower, "if") {
+                        let (condition_text, body_text) =
+                            split_header_condition(strip_leading_word(after, "if"));
+                        self.push_scope(ScopeKind::IfCondition);
+                        let condition = self.lower_condition(&condition_text, sentence.span);
+                        self.pop_scope();
+                        let condition = condition?;
+                        self.push_scope(ScopeKind::IfThen);
+                        let (then_body, _) =
+                            self.lower_actions_capturing(&body_text, sentence.span, depth + 1)?;
+                        self.pop_scope();
+                        tail.push(AstStmt::If {
+                            cond: condition.expr,
+                            then_body,
+                            else_body: Vec::new(),
+                            span: self.span(sentence.span),
+                        });
+                    } else {
+                        self.push_scope(ScopeKind::IfElse);
+                        let (else_body, _) =
+                            self.lower_actions_capturing(after, sentence.span, depth + 1)?;
+                        self.pop_scope();
+                        *tail = else_body;
+                    }
+                    index += 1;
+                    continue;
+                }
+            }
+            if let RawItem::Block(block) = &items[index]
+                && let Some(header) = &block.header
+            {
+                let header_source = if header.fillers.is_empty() {
+                    header.text.clone()
+                } else {
+                    format!("{}, {}", header.fillers.join(" "), header.text)
+                };
+                let lower_header = header_source.to_ascii_lowercase();
+                if starts_with_word(&lower_header, "otherwise") {
+                    let after = strip_leading_word(&header_source, "otherwise")
+                        .trim()
+                        .trim_start_matches(',')
+                        .trim();
+                    let after_lower = after.to_ascii_lowercase();
+                    let Some(tail) = statements.last_mut().and_then(deepest_else_tail) else {
+                        return Err(self.error(
+                            header.span,
+                            SemanticErrorKind::Lowering,
+                            "`Otherwise` must follow an `If`",
+                        ));
+                    };
+                    if starts_with_word(&after_lower, "if") {
+                        let (condition_text, _) =
+                            split_header_condition(strip_leading_word(after, "if"));
+                        self.push_scope(ScopeKind::IfCondition);
+                        let condition = self.lower_condition(&condition_text, header.span);
+                        self.pop_scope();
+                        let condition = condition?;
+                        self.push_scope(ScopeKind::IfThen);
+                        let then_body = self.lower_items(&block.items, depth + 1);
+                        self.pop_scope();
+                        let then_body = then_body?;
+                        tail.push(AstStmt::If {
+                            cond: condition.expr,
+                            then_body,
+                            else_body: Vec::new(),
+                            span: self.span(header.span),
+                        });
+                    } else {
+                        self.push_scope(ScopeKind::IfElse);
+                        let else_body = self.lower_items(&block.items, depth + 1);
+                        self.pop_scope();
+                        *tail = else_body?;
+                    }
+                    index += 1;
+                    continue;
+                }
+            }
             if let RawItem::Block(block) = &items[index] {
                 let is_loop_header = block.header.as_ref().is_some_and(|header| {
                     let lower = header.text.to_ascii_lowercase();
@@ -82,6 +191,108 @@ impl Lowerer<'_> {
                     statements.extend(lowered);
                     index += 1;
                     continue;
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index] {
+                let first_lower = sentence.text.to_ascii_lowercase();
+                if starts_with_word(&first_lower, "if") {
+                    let rest = strip_leading_word(&sentence.text, "if");
+                    let (first_condition, first_body) = split_header_condition(rest);
+                    let has_otherwise = items.get(index + 1).is_some_and(|item| {
+                        matches!(item, RawItem::Sentence(next)
+                            if starts_with_word(&next.text.to_ascii_lowercase(), "otherwise"))
+                    });
+                    if !first_body.is_empty() && has_otherwise {
+                        let mut branches = Vec::new();
+                        branches.push((first_condition, first_body, sentence.span));
+                        let mut cursor = index + 1;
+                        let mut final_else: Option<(String, Span)> = None;
+                        while cursor < items.len() {
+                            let RawItem::Sentence(next) = &items[cursor] else {
+                                break;
+                            };
+                            let source_owned = if next.fillers.is_empty() {
+                                next.text.clone()
+                            } else {
+                                format!("{}, {}", next.fillers.join(" "), next.text)
+                            };
+                            let source_text = source_owned.as_str();
+                            let next_lower = source_text.to_ascii_lowercase();
+                            if !starts_with_word(&next_lower, "otherwise") {
+                                break;
+                            }
+                            let after = strip_leading_word(source_text, "otherwise")
+                                .trim()
+                                .trim_start_matches(',')
+                                .trim();
+                            let after_lower = after.to_ascii_lowercase();
+                            if starts_with_word(&after_lower, "if") {
+                                let (condition, body) =
+                                    split_header_condition(strip_leading_word(after, "if"));
+                                branches.push((condition, body, next.span));
+                                cursor += 1;
+                            } else {
+                                final_else = Some((after.to_string(), next.span));
+                                cursor += 1;
+                                break;
+                            }
+                        }
+                        let mut lowered_branches = Vec::new();
+                        for (condition_text, body_text, branch_span) in branches {
+                            self.push_scope(ScopeKind::IfCondition);
+                            let condition = self.lower_condition(&condition_text, branch_span);
+                            self.pop_scope();
+                            let condition = condition?;
+                            self.push_scope(ScopeKind::IfThen);
+                            let body =
+                                self.lower_actions_capturing(&body_text, branch_span, depth + 1);
+                            self.pop_scope();
+                            let body = body?;
+                            lowered_branches.push((condition, body));
+                        }
+                        let mut else_body = if let Some((actions, else_span)) = final_else {
+                            self.push_scope(ScopeKind::IfElse);
+                            let lowered =
+                                self.lower_actions_capturing(&actions, else_span, depth + 1);
+                            self.pop_scope();
+                            lowered?.0
+                        } else {
+                            Vec::new()
+                        };
+                        for (condition, (then_body, _)) in lowered_branches.into_iter().rev() {
+                            let mut branch = condition.prelude;
+                            branch.push(AstStmt::If {
+                                cond: condition.expr,
+                                then_body,
+                                else_body,
+                                span: self.span(sentence.span),
+                            });
+                            else_body = branch;
+                        }
+                        statements.extend(else_body);
+                        index = cursor;
+                        continue;
+                    }
+                }
+            }
+            if let RawItem::Sentence(sentence) = &items[index] {
+                let lower = sentence.text.trim().to_ascii_lowercase();
+                if let Some(rest) = lower.strip_prefix("reverse ") {
+                    let name = lower_name(rest.trim());
+                    if self.list_element_type(&name).is_some() {
+                        let pointer = self.list_pointer(AstExpr::Var(name), sentence.span)?;
+                        statements.push(AstStmt::Expr(
+                            AstExpr::Call {
+                                module: None,
+                                name: "list_reverse".to_string(),
+                                type_args: Vec::new(),
+                                args: vec![pointer],
+                            },
+                            self.span(sentence.span),
+                        ));
+                        index += 1;
+                        continue;
+                    }
                 }
             }
             if let RawItem::Sentence(sentence) = &items[index]
@@ -810,7 +1021,9 @@ impl Lowerer<'_> {
             .filter(|token| token.is_word())
             .map(|token| token.lower.clone())
             .unwrap_or_default();
-        if !base.is_exec() && self.is_natural_list_operation(text) {
+        if !base.is_exec()
+            && (self.is_natural_list_operation(text) || self.is_natural_map_operation(text))
+        {
             return Ok(IntentVerdict::Exec);
         }
         if base.is_exec() {
@@ -1080,6 +1293,49 @@ impl Lowerer<'_> {
         } else {
             equal
         }))
+    }
+
+    fn parse_map_contains(
+        &mut self,
+        condition: &str,
+        span: Span,
+    ) -> Result<Option<LoweredCond>, SemanticError> {
+        let condition_lower = condition.to_ascii_lowercase();
+        for (separator, negated) in [(" does not have entry ", true), (" has entry ", false)] {
+            if let Some(position) = condition_lower.find(separator) {
+                let map_text = condition[..position].trim();
+                let key_text = condition[position + separator.len()..].trim();
+                if find_top_level_word(key_text, "and").is_some()
+                    || find_top_level_word(key_text, "or").is_some()
+                {
+                    return Ok(None);
+                }
+                if let Some(map) = self.resolve_intmap_name(map_text) {
+                    let pointer = self.intmap_pointer(AstExpr::Var(map), span)?;
+                    let key = self.parse_value(key_text, span)?;
+                    let contains = AstExpr::Call {
+                        module: None,
+                        name: "intmap_contains".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![pointer, key],
+                    };
+                    let expr = if negated {
+                        AstExpr::Unary {
+                            op: tc_ir::UnOp::LogNot,
+                            val: Box::new(contains),
+                        }
+                    } else {
+                        contains
+                    };
+                    return Ok(Some(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase: condition.to_string(),
+                    }));
+                }
+            }
+        }
+        Ok(None)
     }
 
     pub(super) fn lower_condition(
@@ -1516,6 +1772,29 @@ impl Lowerer<'_> {
         match node {
             CondAst::Atom(text) => {
                 if let Some(expr) = self.check_ellipsis(text, span)? {
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
+                if let Some(condition) = self.parse_map_contains(text, span)? {
+                    return Ok(condition);
+                }
+                if let Some((left, operator, right)) = split_condition_comparison(text)
+                    && (left.to_ascii_lowercase().starts_with("entry ")
+                        || left.to_ascii_lowercase().starts_with("the entry ")
+                        || right.to_ascii_lowercase().starts_with("entry ")
+                        || right.to_ascii_lowercase().starts_with("the entry "))
+                {
+                    let lhs = self.parse_value(&left, span)?;
+                    let rhs = self.parse_value(&right, span)?;
+                    let expr = AstExpr::Binary {
+                        op: operator,
+                        lhs: Box::new(lhs),
+                        rhs: Box::new(rhs),
+                    };
                     let paraphrase = strip_outer_parentheses(&render_expr(&expr));
                     return Ok(LoweredCond {
                         prelude: Vec::new(),

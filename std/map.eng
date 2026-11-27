@@ -211,3 +211,14 @@ Publicly, to free text for V given table as a pointer to StrMap of V, named strm
 Call this as "free text map <table>".
 If table's cap is more than 0, release memory at table's keys as a pointer to byte, release memory at table's values as a pointer to byte.
 Update table so its keys is no address as a pointer to pointer to TcString, its values is no address as a pointer to V, its cap is 0 as an unsigned number, and its len is 0 as an unsigned number.
+
+Publicly, to get an entry value given table as a pointer to IntMap of whole number, key as a whole number, named intmap_value, giving a whole number.
+Let got be look up key in int map table.
+If got's has_value, give back got's value.
+Give back 0.
+
+Publicly, to add delta (a whole number) to entry key (a whole number) of table (a pointer to IntMap of whole number), named intmap_add.
+Let current be look up key in int map table.
+Let old value be 0.
+If current's has_value, set old value to current's value.
+Put old value plus delta into int map table for key key.
