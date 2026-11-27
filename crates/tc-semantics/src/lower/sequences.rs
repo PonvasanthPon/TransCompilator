@@ -450,6 +450,185 @@ impl Lowerer<'_> {
         Ok(None)
     }
 
+    fn is_text_variable(&self, name: &str) -> bool {
+        match self.lookup(name) {
+            Some(AstType::Named { name, .. }) => name.eq_ignore_ascii_case("tcstring"),
+            Some(AstType::Ptr(inner)) => matches!(
+                inner.as_ref(),
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring")
+            ),
+            _ => false,
+        }
+    }
+
+    fn text_pointer(&mut self, value: AstExpr, span: Span) -> Result<AstExpr, SemanticError> {
+        match value {
+            AstExpr::Var(name) => {
+                if self.globals.contains_key(&name) && !self.current_scope_contains(&name) {
+                    Ok(AstExpr::GlobalAddr { module: None, name })
+                } else {
+                    Ok(AstExpr::AddrOfVar(name))
+                }
+            }
+            other if matches!(self.shallow_type_opt(&other), Some(AstType::Ptr(_))) => Ok(other),
+            _ => Err(self.error(
+                span,
+                SemanticErrorKind::Lowering,
+                "text operation requires a text variable",
+            )),
+        }
+    }
+
+    pub(super) fn text_parts(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+    ) -> Result<(AstExpr, AstExpr), SemanticError> {
+        let ty = self.shallow_type_opt(&value);
+        let literal_bytes = if let AstExpr::BytesLit(bytes) = &value {
+            Some(bytes.clone())
+        } else {
+            None
+        };
+        if let Some(bytes) = literal_bytes {
+            return Ok((value, AstExpr::BytesLen(bytes)));
+        }
+        let base = match ty {
+            Some(AstType::Named { ref name, .. }) if name.eq_ignore_ascii_case("tcstring") => {
+                self.text_pointer(value, span)?
+            }
+            Some(AstType::Ptr(inner)) => match inner.as_ref() {
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring") => value,
+                AstType::U8 => {
+                    let length = if let AstExpr::Var(name) = &value {
+                        self.bytes_lengths.get(name).map(|length| {
+                            AstExpr::ConstInt(i64::try_from(*length).unwrap_or(i64::MAX), None)
+                        })
+                    } else {
+                        None
+                    };
+                    let Some(length) = length else {
+                        return Err(self.error(
+                            span,
+                            SemanticErrorKind::Lowering,
+                            "text slice needs a known byte length",
+                        ));
+                    };
+                    return Ok((value, length));
+                }
+                _ => {
+                    return Err(self.error(span, SemanticErrorKind::Lowering, "slice needs text"));
+                }
+            },
+            _ => {
+                return Err(self.error(span, SemanticErrorKind::Lowering, "slice needs text"));
+            }
+        };
+        let data = AstExpr::Load(Box::new(AstExpr::FieldAddr {
+            base_ptr: Box::new(base.clone()),
+            field: "data".to_string(),
+        }));
+        let length = AstExpr::Load(Box::new(AstExpr::FieldAddr {
+            base_ptr: Box::new(base),
+            field: "len".to_string(),
+        }));
+        Ok((data, length))
+    }
+
+    pub(super) fn try_string_operation(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+        if !lower.starts_with("append ") {
+            return Ok(None);
+        }
+        let rest = &trimmed["append ".len()..];
+        let Some((to_start, to_end)) = find_top_level_word(rest, "to") else {
+            return Ok(None);
+        };
+        let value_text = rest[..to_start].trim();
+        let target_text = rest[to_end..].trim();
+        if !is_simple_name(target_text) {
+            return Ok(None);
+        }
+        let target = lower_name(target_text);
+        if !self.is_text_variable(&target) {
+            return Ok(None);
+        }
+        let target_ptr = self.text_pointer(AstExpr::Var(target), span)?;
+        let value = self.parse_value(value_text, span)?;
+        let ty = self.shallow_type_opt(&value);
+        let mut statements = Vec::new();
+        if let AstExpr::BytesLit(bytes) = &value {
+            statements.push(AstStmt::Expr(
+                AstExpr::Call {
+                    module: None,
+                    name: "str_push_bytes".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![target_ptr, value.clone(), AstExpr::BytesLen(bytes.clone())],
+                },
+                self.span(span),
+            ));
+            return Ok(Some(statements));
+        }
+        let name = match ty {
+            Some(AstType::Named { ref name, .. }) if name.eq_ignore_ascii_case("tcstring") => {
+                let source = self.string_pointer(value, span, &mut statements)?;
+                statements.push(AstStmt::Expr(
+                    AstExpr::Call {
+                        module: None,
+                        name: "str_append_text".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![target_ptr, source],
+                    },
+                    self.span(span),
+                ));
+                return Ok(Some(statements));
+            }
+            Some(AstType::Ptr(inner)) if matches!(inner.as_ref(), AstType::U8) => {
+                let source = value;
+                let source_name = value_text.trim().to_ascii_lowercase();
+                let length = self
+                    .bytes_lengths
+                    .get(&lower_name(&source_name))
+                    .map(|len| AstExpr::ConstInt(i64::try_from(*len).unwrap_or(i64::MAX), None));
+                if let Some(length) = length {
+                    statements.push(AstStmt::Expr(
+                        AstExpr::Call {
+                            module: None,
+                            name: "str_push_bytes".to_string(),
+                            type_args: Vec::new(),
+                            args: vec![target_ptr, source, length],
+                        },
+                        self.span(span),
+                    ));
+                    return Ok(Some(statements));
+                }
+                return Ok(None);
+            }
+            _ => "str_append_byte",
+        };
+        statements.push(AstStmt::Expr(
+            AstExpr::Call {
+                module: None,
+                name: name.to_string(),
+                type_args: Vec::new(),
+                args: vec![
+                    target_ptr,
+                    AstExpr::Cast {
+                        val: Box::new(value),
+                        to: AstType::U8,
+                    },
+                ],
+            },
+            self.span(span),
+        ));
+        Ok(Some(statements))
+    }
+
     pub(super) fn emit_list_elements(
         &mut self,
         list: &str,

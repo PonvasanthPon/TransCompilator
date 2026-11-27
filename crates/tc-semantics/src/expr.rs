@@ -574,10 +574,10 @@ impl<'a> Parser<'a> {
         };
         let data = match self.env.expr_type(&pointer) {
             Some(AstType::Ptr(inner)) if matches!(inner.as_ref(), AstType::U8) => pointer,
-            _ => AstExpr::FieldAddr {
+            _ => AstExpr::Load(Box::new(AstExpr::FieldAddr {
                 base_ptr: Box::new(pointer),
                 field: "data".to_string(),
-            },
+            })),
         };
         Some(AstExpr::Cast {
             val: Box::new(AstExpr::Load(Box::new(AstExpr::IndexAddr {

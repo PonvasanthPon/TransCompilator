@@ -13,6 +13,8 @@ use super::{
     transform_operator, zero_like,
 };
 
+use crate::value::ValueContext;
+
 impl Lowerer<'_> {
     pub(super) fn rewrite_number_words(&self, text: &str) -> String {
         let tokens = tokenize(text);
@@ -157,6 +159,41 @@ impl Lowerer<'_> {
         let normalized = crate::number_words::normalize_hyphens(text);
         let trimmed = normalized.trim();
         let lower = trimmed.to_ascii_lowercase();
+        if let Some(rest) = lower
+            .strip_prefix("the slice of ")
+            .or_else(|| lower.strip_prefix("slice of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((from_start, from_end)) = find_top_level_word(rest, "from") {
+                let text_part = rest[..from_start].trim();
+                let after = rest[from_end..].trim();
+                if let Some((to_start, to_end)) = find_top_level_word(after, "to") {
+                    let start_text = after[..to_start].trim();
+                    let finish_text = after[to_end..].trim();
+                    let text_value = self.parse_value(text_part, span)?;
+                    let (pointer, length) = self.text_parts(text_value, span)?;
+                    let start = self.parse_value(start_text, span)?;
+                    let finish = self.parse_value(finish_text, span)?;
+                    return Ok(AstExpr::Call {
+                        module: None,
+                        name: "str_slice".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![pointer, length, start, finish],
+                    });
+                }
+            }
+        }
+        if matches!(
+            lower.as_str(),
+            "empty text" | "an empty text" | "empty string"
+        ) {
+            return Ok(AstExpr::Call {
+                module: None,
+                name: "str_new".to_string(),
+                type_args: Vec::new(),
+                args: Vec::new(),
+            });
+        }
         if let Some(value) = self.count_query(trimmed, span)? {
             return Ok(value);
         }
@@ -182,6 +219,98 @@ impl Lowerer<'_> {
                 let rest = trimmed[prefix.len()..].trim();
                 return self.lower_trim_value(rest, span);
             }
+        }
+        for (prefix, operator) in [
+            ("one less than ", tc_ir::BinOp::Sub),
+            ("one more than ", tc_ir::BinOp::Add),
+        ] {
+            if lower.starts_with(prefix) {
+                let value = self.parse_value(trimmed[prefix.len()..].trim(), span)?;
+                return Ok(AstExpr::Binary {
+                    op: operator,
+                    lhs: Box::new(value),
+                    rhs: Box::new(AstExpr::ConstInt(1, None)),
+                });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the midpoint of ")
+            .or_else(|| lower.strip_prefix("midpoint of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((and_start, and_end)) = find_top_level_word(rest, "and") {
+                let first = self.parse_value(rest[..and_start].trim(), span)?;
+                let second = self.parse_value(rest[and_end..].trim(), span)?;
+                let difference = AstExpr::Binary {
+                    op: tc_ir::BinOp::Sub,
+                    lhs: Box::new(second.clone()),
+                    rhs: Box::new(first.clone()),
+                };
+                let half = AstExpr::Binary {
+                    op: tc_ir::BinOp::Div,
+                    lhs: Box::new(difference),
+                    rhs: Box::new(AstExpr::ConstInt(2, None)),
+                };
+                return Ok(AstExpr::Binary {
+                    op: tc_ir::BinOp::Add,
+                    lhs: Box::new(first),
+                    rhs: Box::new(half),
+                });
+            }
+        }
+        for (prefix, maximum) in [
+            ("the larger of ", true),
+            ("larger of ", true),
+            ("the greater of ", true),
+            ("greater of ", true),
+            ("the smaller of ", false),
+            ("smaller of ", false),
+            ("the lesser of ", false),
+            ("lesser of ", false),
+        ] {
+            if let Some(rest) = lower.strip_prefix(prefix) {
+                let rest = trimmed[trimmed.len() - rest.len()..].trim();
+                if let Some((and_start, and_end)) = find_top_level_word(rest, "and") {
+                    let first = self.parse_value(rest[..and_start].trim(), span)?;
+                    let second = self.parse_value(rest[and_end..].trim(), span)?;
+                    return Ok(if maximum {
+                        crate::value::numeric_max(first, second)
+                    } else {
+                        crate::value::numeric_min(first, second)
+                    });
+                }
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the last position of ")
+            .or_else(|| lower.strip_prefix("last position of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let list = self.parse_value(rest, span)?;
+            if let Some(length) = self.length_expression(list, span)? {
+                return Ok(AstExpr::Binary {
+                    op: tc_ir::BinOp::Sub,
+                    lhs: Box::new(AstExpr::Cast {
+                        val: Box::new(length),
+                        to: AstType::I64,
+                    }),
+                    rhs: Box::new(AstExpr::ConstInt(1, None)),
+                });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the first item of ")
+            .or_else(|| lower.strip_prefix("first item of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let list = self.parse_value(rest, span)?;
+            let pointer = self.list_pointer(list, span)?;
+            return Ok(AstExpr::Call {
+                module: None,
+                name: "list_get".to_string(),
+                type_args: Vec::new(),
+                args: vec![pointer, AstExpr::ConstInt(0, None)],
+            });
         }
         crate::value::parse_value(self, text, span)
     }
@@ -802,6 +931,18 @@ impl Lowerer<'_> {
         if lower == "end" {
             return Ok(Vec::new());
         }
+        for marker in [", then stop", ", and stop", " then stop"] {
+            if let Some(index) = lower.rfind(marker) {
+                let before = trimmed[..index].trim().trim_end_matches(',').trim();
+                let mut statements = if before.is_empty() {
+                    Vec::new()
+                } else {
+                    self.lower_core(before, span, None, None, depth + 1)?
+                };
+                statements.push(AstStmt::Break(self.span(span)));
+                return Ok(statements);
+            }
+        }
         if let Some(statements) = self.try_swap_adjacent(trimmed, span)? {
             return Ok(statements);
         }
@@ -814,6 +955,9 @@ impl Lowerer<'_> {
                     statements.extend(self.lower_emit_value(&part, span)?);
                 }
             }
+            return Ok(statements);
+        }
+        if let Some(statements) = self.try_string_operation(trimmed, span)? {
             return Ok(statements);
         }
         if let Some(statement) = self.try_list_operation(trimmed, span)? {
@@ -844,6 +988,18 @@ impl Lowerer<'_> {
             return Ok(vec![AstStmt::Break(self.span(span))]);
         }
         if starts_with_word(&lower, "continue") {
+            return Ok(vec![AstStmt::Continue(self.span(span))]);
+        }
+        if matches!(
+            lower.trim_end_matches('.').trim(),
+            "stop immediately" | "stop the loop" | "stop now"
+        ) {
+            return Ok(vec![AstStmt::Break(self.span(span))]);
+        }
+        if matches!(
+            lower.trim_end_matches('.').trim(),
+            "skip to the next one" | "skip this one" | "skip to the next item"
+        ) {
             return Ok(vec![AstStmt::Continue(self.span(span))]);
         }
         if starts_with_word(&lower, "trap") {

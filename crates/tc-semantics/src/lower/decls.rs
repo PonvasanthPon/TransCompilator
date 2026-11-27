@@ -63,6 +63,13 @@ pub(super) fn rewrite_bound_names(text: &str, renames: &[(String, String)]) -> S
     output
 }
 
+fn normalize_action_phrases(text: &str) -> String {
+    text.replace(", then stop the loop", ", break")
+        .replace(", and then stop", ", break")
+        .replace(", then stop", ", break")
+        .replace(", and stop", ", break")
+}
+
 pub(super) fn find_top_level_phrase(text: &str, phrase: &str) -> Option<(String, usize)> {
     let words = phrase.split_whitespace().collect::<Vec<_>>();
     let tokens = tokenize(text);
@@ -2585,7 +2592,8 @@ pub(super) fn normalize_natural_source(text: &str) -> (String, Vec<u32>) {
         }
         names.register_declarations(trimmed);
         let rewritten = names.rewrite(trimmed);
-        let trimmed = rewritten.as_str();
+        let action_normalized = normalize_action_phrases(&rewritten);
+        let trimmed = action_normalized.as_str();
         if let Some(header) = trailing_control_header(trimmed, allow_colon) {
             let base_indent = if let Some(&control_indent) = control_blocks.last() {
                 control_indent + 4

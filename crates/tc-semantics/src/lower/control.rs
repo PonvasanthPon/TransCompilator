@@ -34,6 +34,56 @@ impl Lowerer<'_> {
         let mut statements = Vec::new();
         let mut index = 0;
         while index < items.len() {
+            if let RawItem::Block(block) = &items[index] {
+                let is_loop_header = block.header.as_ref().is_some_and(|header| {
+                    let lower = header.text.to_ascii_lowercase();
+                    starts_with_word(&lower, "for")
+                        || starts_with_word(&lower, "while")
+                        || starts_with_word(&lower, "repeat")
+                        || starts_with_word(&lower, "until")
+                });
+                if is_loop_header {
+                    let header = block.header.as_ref().expect("checked header");
+                    let mut body_end = block.items.len();
+                    for (position, item) in block.items.iter().enumerate() {
+                        if let RawItem::Sentence(next) = item {
+                            let closer_text = if next.raw.trim().is_empty() {
+                                next.text.clone()
+                            } else {
+                                next.raw.trim().to_string()
+                            };
+                            if post_loop_rest(&closer_text).is_some() {
+                                body_end = position;
+                                break;
+                            }
+                        }
+                    }
+                    let body = &block.items[..body_end];
+                    let rest = &block.items[body_end..];
+                    if body.is_empty() {
+                        return Err(self.error(
+                            header.span,
+                            SemanticErrorKind::Lowering,
+                            "empty loop body",
+                        ));
+                    }
+                    let lower_header = header.text.to_ascii_lowercase();
+                    let header_text = if starts_with_word(&lower_header, "until") {
+                        let condition = strip_leading_word(&header.text, "until").trim();
+                        format!("While not {condition}")
+                    } else {
+                        header.text.clone()
+                    };
+                    let mut lowered =
+                        self.lower_core(&header_text, header.span, Some(body), None, depth + 1)?;
+                    if !rest.is_empty() {
+                        lowered.extend(self.lower_items(rest, depth + 1)?);
+                    }
+                    statements.extend(lowered);
+                    index += 1;
+                    continue;
+                }
+            }
             if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(start) = parse_named_list_start(&sentence.text)
             {
@@ -109,7 +159,7 @@ impl Lowerer<'_> {
                 && let Some(declarations) = parse_state_declaration(&sentence.text)
             {
                 for (name, value_text) in declarations {
-                    let value = self.parse_expr(&value_text, sentence.span)?;
+                    let value = self.parse_value(&value_text, sentence.span)?;
                     let ty = self.shallow_type(&value);
                     if self.lookup(&name).is_some() || self.globals.contains_key(&name) {
                         statements.extend(self.assign_text(&name, value, sentence.span, false)?);
@@ -171,6 +221,80 @@ impl Lowerer<'_> {
                 statements.extend(lowered);
                 index = cursor;
                 continue;
+            }
+            if let RawItem::Sentence(sentence) = &items[index] {
+                let header = sentence.text.trim().trim_end_matches('.').trim();
+                let lower_header = header.to_ascii_lowercase();
+                let paragraph_header: Option<String> = if starts_with_word(&lower_header, "for") {
+                    crate::quantifier::parse_global(header)
+                        .ok()
+                        .flatten()
+                        .filter(|global| global.body.is_none())
+                        .map(|_| header.to_string())
+                } else if starts_with_word(&lower_header, "until") {
+                    let rest = strip_leading_word(header, "until").trim();
+                    let (condition, body) = split_header_condition(rest);
+                    (body.is_empty() && !condition.is_empty())
+                        .then(|| format!("While not {condition}"))
+                } else if starts_with_word(&lower_header, "while")
+                    || starts_with_word(&lower_header, "repeat")
+                {
+                    let rest = if starts_with_word(&lower_header, "repeat") {
+                        strip_leading_word(header, "repeat").trim()
+                    } else {
+                        strip_leading_word(header, "while").trim()
+                    };
+                    let (condition, body) = split_header_condition(rest);
+                    (body.is_empty() && !condition.is_empty()).then(|| header.to_string())
+                } else {
+                    None
+                };
+                if let Some(header) = paragraph_header {
+                    let mut body = Vec::new();
+                    let mut cursor = index + 1;
+                    let mut last_line = raw_item_end_line(&items[index]);
+                    let mut saw_closer = false;
+                    while cursor < items.len() {
+                        let start_line = raw_item_start_line(&items[cursor]);
+                        if start_line > last_line.saturating_add(1) {
+                            break;
+                        }
+                        if let RawItem::Sentence(next) = &items[cursor] {
+                            let closer_text = if next.raw.trim().is_empty() {
+                                next.text.clone()
+                            } else {
+                                next.raw.trim().to_string()
+                            };
+                            if post_loop_rest(&closer_text).is_some() {
+                                saw_closer = true;
+                                break;
+                            }
+                        }
+                        body.push(items[cursor].clone());
+                        last_line = raw_item_end_line(&items[cursor]);
+                        cursor += 1;
+                    }
+                    if body.is_empty() && !saw_closer {
+                        return Err(self.error(
+                            sentence.span,
+                            SemanticErrorKind::Lowering,
+                            "empty loop body",
+                        ));
+                    }
+                    if !body.is_empty() {
+                        let body_ref = body.as_slice();
+                        let lowered = self.lower_core(
+                            &header,
+                            sentence.span,
+                            Some(body_ref),
+                            None,
+                            depth + 1,
+                        )?;
+                        statements.extend(lowered);
+                    }
+                    index = cursor;
+                    continue;
+                }
             }
             if let RawItem::Sentence(sentence) = &items[index]
                 && let Some(intro) = parse_loop_introduction(&sentence.text)
@@ -2072,10 +2196,10 @@ impl Lowerer<'_> {
         }
         let domain = match &global.domain {
             QuantDomainSpec::Range { start, end, step } => {
-                let mut start = self.parse_expr(start, span)?;
-                let mut end = self.parse_expr(end, span)?;
+                let mut start = self.parse_value(start, span)?;
+                let mut end = self.parse_value(end, span)?;
                 let mut step = if let Some(text) = step {
-                    self.parse_expr(text, span)?
+                    self.parse_value(text, span)?
                 } else {
                     AstExpr::ConstInt(1, None)
                 };
@@ -2408,10 +2532,26 @@ impl Lowerer<'_> {
     ) -> Result<(Vec<AstStmt>, Vec<String>), SemanticError> {
         self.synthetic_depth += 1;
         self.push_scope(ScopeKind::Block);
+        let normalized = text
+            .replace(", then stop the loop", ", break")
+            .replace(", and then stop", ", break")
+            .replace(", then stop", ", break")
+            .replace(", and stop", ", break")
+            .replace(" then stop the loop", " break")
+            .replace(" then stop", " break")
+            .replace(" and stop", " break");
         let mut statements = Vec::new();
         let mut canonical = Vec::new();
         let mut error = None;
-        for action in split_actions(text) {
+        for action in split_actions(&normalized) {
+            let trimmed_action = action.trim_start_matches("then ").trim();
+            let action = match trimmed_action.to_ascii_lowercase().as_str() {
+                "stop" | "stop immediately" | "stop the loop" | "stop now" => "break".to_string(),
+                "skip to the next one" | "skip this one" | "skip to the next item" => {
+                    "continue".to_string()
+                }
+                _ => trimmed_action.to_string(),
+            };
             let control = starts_control(&action);
             let resolved = if control {
                 action

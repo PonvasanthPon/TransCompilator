@@ -339,13 +339,13 @@ fn binary(operator: BinOp, lhs: AstExpr, rhs: AstExpr) -> AstExpr {
     }
 }
 
-fn numeric_min(left: AstExpr, right: AstExpr) -> AstExpr {
+pub(crate) fn numeric_min(left: AstExpr, right: AstExpr) -> AstExpr {
     let difference = binary(BinOp::Sub, left, right.clone());
     let sign = binary(BinOp::Shr, difference.clone(), AstExpr::ConstInt(63, None));
     binary(BinOp::Add, right, binary(BinOp::BitAnd, difference, sign))
 }
 
-fn numeric_max(left: AstExpr, right: AstExpr) -> AstExpr {
+pub(crate) fn numeric_max(left: AstExpr, right: AstExpr) -> AstExpr {
     let difference = binary(BinOp::Sub, left.clone(), right);
     let sign = binary(BinOp::Shr, difference.clone(), AstExpr::ConstInt(63, None));
     binary(BinOp::Sub, left, binary(BinOp::BitAnd, difference, sign))

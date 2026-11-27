@@ -174,3 +174,20 @@ Call this as "format whole number <n> as text".
 Let buffer be block of 32 byte.
 Let text length be format n into address of item 0 of buffer.
 Give back create text from address of item 0 of buffer of length text length.
+
+Publicly, to append text given target as a pointer to TcString, source as a pointer to TcString, named str_append_text.
+If source's len is zero, give back.
+Append to target text source's data of length source's len.
+
+Publicly, to append a byte given target as a pointer to TcString, value as a byte, named str_append_byte.
+Let buffer be block of 1 byte.
+Set item 0 of buffer to value.
+Append to target text address of item 0 of buffer of length 1.
+
+Publicly, to slice given source as a pointer to byte, len as an unsigned number, start as a whole number, finish as a whole number, named str_slice, giving TcString.
+If start is less than 0, make start 0 as a whole number.
+If finish is more than len as a whole number, make finish len as a whole number.
+If finish is at most start, give back create an empty text.
+Let from be start as an unsigned number.
+Let count be (finish - start) as an unsigned number.
+Give back create text from (source as an unsigned number plus from) as a pointer to byte of length count.

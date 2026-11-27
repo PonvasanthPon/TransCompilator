@@ -223,6 +223,11 @@ pub(super) fn contains_nary_operator(text: &str) -> bool {
         "absolute value of",
         "magnitude of",
         "opposite of",
+        "midpoint of",
+        "larger of",
+        "greater of",
+        "smaller of",
+        "lesser of",
     ]
     .iter()
     .any(|phrase| crate::textutil::find_top_level_phrase(text, phrase).is_some())
