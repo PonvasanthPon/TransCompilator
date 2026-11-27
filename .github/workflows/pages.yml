@@ -27,6 +27,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+      - name: Build solved-problem index
+        run: python3 scripts/build_leetcode_web_index.py
       - name: Build WebAssembly playground
         run: cargo build --manifest-path web/tc-wasm/Cargo.toml --target wasm32-unknown-unknown --release
       - name: Stage site

@@ -3,7 +3,7 @@
    under GitHub Pages (/TransCompilator/) and a local server (/). */
 "use strict";
 
-const CACHE_NAME = "tc-playground-v1";
+const CACHE_NAME = "tc-playground-v2";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const CORE_ASSETS = [
   "./app.js",
   "./worker.js",
   "./examples.js",
+  "./leetcode_problems.json",
   "./favicon.svg",
   "./manifest.webmanifest",
   "./icon-192.png",

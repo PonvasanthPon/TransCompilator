@@ -24,6 +24,19 @@
   var statusDot = document.getElementById("status-dot");
   var statusText = document.getElementById("status-text");
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var problemsButton = document.getElementById("problems");
+  var problemCount = document.getElementById("problem-count");
+  var problemDrawer = document.getElementById("problem-drawer");
+  var drawerBackdrop = document.getElementById("drawer-backdrop");
+  var drawerClose = document.getElementById("drawer-close");
+  var problemSearch = document.getElementById("problem-search");
+  var problemCategory = document.getElementById("problem-category");
+  var problemList = document.getElementById("problem-list");
+  var problemEmpty = document.getElementById("problem-empty");
+  var drawerMeta = document.getElementById("drawer-meta");
+  var difficultyPills = Array.prototype.slice.call(
+    document.querySelectorAll(".pill[data-difficulty]")
+  );
 
   var examples = window.TC_EXAMPLES || [];
   var currentTokens = [];
@@ -31,6 +44,7 @@
   var lastResult = null;
   var activeTab = "output";
   var activeExampleId = null;
+  var activeStepBudget = MAX_STEPS;
   var runCode = "";
   var worker = null;
   var workerReady = false;
@@ -47,6 +61,17 @@
   var shareResetTimer = null;
   var copyResetTimer = null;
   var resizeTimer = null;
+  var problemData = [];
+  var filteredProblems = [];
+  var problemsLoaded = false;
+  var problemsLoading = false;
+  var problemsError = "";
+  var problemsPromise = null;
+  var activeDifficulty = "all";
+  var drawerOpen = false;
+  var drawerHideTimer = null;
+  var problemListFrame = null;
+  var PROBLEM_ROW_HEIGHT = 54;
 
   function formatNumber(value) {
     return Number(value || 0).toLocaleString("en-US");
@@ -658,7 +683,7 @@
     worker.postMessage({
       type: "run",
       code: runCode,
-      maxSteps: MAX_STEPS
+      maxSteps: activeStepBudget
     });
   }
 
@@ -727,6 +752,7 @@
       return;
     }
     activeExampleId = example.id;
+    activeStepBudget = MAX_STEPS;
     editorInput.value = example.code;
     examplesSelect.value = example.id;
     setCaption(example.summary);
@@ -742,6 +768,7 @@
 
   function markCustom() {
     examplesSelect.value = "custom";
+    activeStepBudget = MAX_STEPS;
     setCaption("Custom program");
   }
 
@@ -865,10 +892,268 @@
     }
   }
 
+  function updateProblemCount() {
+    problemCount.textContent = problemsLoaded ? "(" + problemData.length + ")" : "";
+  }
+
+  function populateProblemCategories() {
+    var seen = {};
+    var categories = [];
+    problemData.forEach(function (problem) {
+      if (problem.category && !seen[problem.category]) {
+        seen[problem.category] = true;
+        categories.push(problem.category);
+      }
+    });
+    categories.sort(function (left, right) {
+      return left.localeCompare(right);
+    });
+    while (problemCategory.options.length > 1) {
+      problemCategory.remove(1);
+    }
+    categories.forEach(function (category) {
+      var option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      problemCategory.appendChild(option);
+    });
+  }
+
+  function applyProblemFilters() {
+    var query = problemSearch.value.trim().toLowerCase();
+    if (query.charAt(0) === "#") {
+      query = query.slice(1);
+    }
+    var category = problemCategory.value;
+    filteredProblems = problemData.filter(function (problem) {
+      if (activeDifficulty !== "all" && problem.difficulty !== activeDifficulty) {
+        return false;
+      }
+      if (category && problem.category !== category) {
+        return false;
+      }
+      if (!query) {
+        return true;
+      }
+      var number = String(problem.id);
+      var padded = String(problem.id).padStart(4, "0");
+      var haystack = (
+        number + " " + padded + " " + problem.title + " " + problem.slug + " " +
+        problem.category
+      ).toLowerCase();
+      return haystack.indexOf(query) >= 0;
+    });
+    problemList.scrollTop = 0;
+    if (problemsLoaded) {
+      drawerMeta.textContent = filteredProblems.length + " of " + problemData.length +
+        " solved programs · original English source";
+    }
+    renderProblemList();
+  }
+
+  function renderProblemList() {
+    problemList.textContent = "";
+    if (problemsLoading && !problemsLoaded) {
+      var loading = document.createElement("p");
+      loading.className = "problem-placeholder";
+      loading.textContent = "Loading solved problems...";
+      problemList.appendChild(loading);
+      problemEmpty.hidden = true;
+      return;
+    }
+    if (problemsError) {
+      var failed = document.createElement("p");
+      failed.className = "problem-placeholder";
+      failed.textContent = problemsError;
+      problemList.appendChild(failed);
+      problemEmpty.hidden = true;
+      return;
+    }
+    if (!filteredProblems.length) {
+      problemEmpty.hidden = false;
+      return;
+    }
+    problemEmpty.hidden = true;
+    var totalHeight = filteredProblems.length * PROBLEM_ROW_HEIGHT;
+    var spacer = document.createElement("div");
+    spacer.className = "problem-spacer";
+    spacer.style.height = totalHeight + "px";
+    problemList.appendChild(spacer);
+
+    var first = Math.max(0, Math.floor(problemList.scrollTop / PROBLEM_ROW_HEIGHT) - 2);
+    var visible = Math.ceil(problemList.clientHeight / PROBLEM_ROW_HEIGHT) + 5;
+    var last = Math.min(filteredProblems.length, first + visible);
+    for (var index = first; index < last; index += 1) {
+      var problem = filteredProblems[index];
+      var row = document.createElement("button");
+      row.type = "button";
+      row.className = "problem-row";
+      row.style.top = (index * PROBLEM_ROW_HEIGHT) + "px";
+      row.dataset.problemIndex = String(index);
+      row.setAttribute("aria-label", "Load problem " + problem.id + ": " + problem.title);
+
+      var number = document.createElement("span");
+      number.className = "problem-number";
+      number.textContent = "#" + String(problem.id).padStart(4, "0");
+      var title = document.createElement("span");
+      title.className = "problem-title";
+      title.textContent = problem.title;
+      var meta = document.createElement("span");
+      meta.className = "problem-meta";
+      meta.textContent = problem.category + " · " + problem.difficulty;
+      row.appendChild(number);
+      row.appendChild(title);
+      row.appendChild(meta);
+      problemList.appendChild(row);
+    }
+  }
+
+  function onProblemScroll() {
+    if (problemListFrame !== null) {
+      return;
+    }
+    problemListFrame = window.requestAnimationFrame(function () {
+      problemListFrame = null;
+      renderProblemList();
+    });
+  }
+
+  function loadProblemData() {
+    if (problemsLoaded) {
+      return Promise.resolve(problemData);
+    }
+    if (problemsPromise) {
+      return problemsPromise;
+    }
+    problemsLoading = true;
+    problemsError = "";
+    renderProblemList();
+    problemsPromise = fetch("./leetcode_problems.json", { cache: "no-cache" })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+        return response.json();
+      })
+      .then(function (data) {
+        problemData = Array.isArray(data) ? data : [];
+        problemsLoaded = true;
+        updateProblemCount();
+        populateProblemCategories();
+        applyProblemFilters();
+      })
+      .catch(function (error) {
+        problemsError = "The problem index could not be loaded. " + String(error.message || error);
+        problemData = [];
+        filteredProblems = [];
+        renderProblemList();
+      })
+      .then(function () {
+        problemsLoading = false;
+        problemsPromise = null;
+      });
+    return problemsPromise;
+  }
+
+  function setDrawer(open) {
+    drawerOpen = open;
+    if (drawerHideTimer !== null) {
+      window.clearTimeout(drawerHideTimer);
+      drawerHideTimer = null;
+    }
+    problemsButton.setAttribute("aria-expanded", open ? "true" : "false");
+    problemDrawer.setAttribute("aria-hidden", open ? "false" : "true");
+    if (open) {
+      problemDrawer.removeAttribute("inert");
+      drawerBackdrop.hidden = false;
+      window.requestAnimationFrame(function () {
+        problemDrawer.classList.add("is-open");
+        drawerBackdrop.classList.add("is-open");
+      });
+      renderProblemList();
+      loadProblemData();
+      window.setTimeout(function () {
+        if (drawerOpen) {
+          renderProblemList();
+          problemSearch.focus();
+        }
+      }, 190);
+    } else {
+      problemDrawer.classList.remove("is-open");
+      drawerBackdrop.classList.remove("is-open");
+      problemDrawer.setAttribute("inert", "");
+      drawerHideTimer = window.setTimeout(function () {
+        drawerHideTimer = null;
+        if (!drawerOpen) {
+          drawerBackdrop.hidden = true;
+        }
+      }, 190);
+      problemsButton.focus();
+    }
+  }
+
+  function loadProblem(problem) {
+    if (!problem) {
+      return;
+    }
+    activeExampleId = null;
+    activeStepBudget = Number(problem.step_budget) || MAX_STEPS;
+    editorInput.value = problem.code;
+    examplesSelect.value = "custom";
+    resetButton.disabled = true;
+    setCaption(
+      "#" + String(problem.id).padStart(4, "0") + " · " + problem.title +
+        " — " + problem.category + " · " + problem.difficulty
+    );
+    currentTokens = [];
+    renderEditor();
+    clearResult("Problem loaded. Press Run to execute it.");
+    editorInput.scrollTop = 0;
+    highlight.scrollTop = 0;
+    gutter.scrollTop = 0;
+    setTab("output");
+    setDrawer(false);
+    scheduleHighlight(true);
+  }
+
   function bindEvents() {
     runButton.addEventListener("click", run);
     shareButton.addEventListener("click", share);
     copyTabButton.addEventListener("click", copyActiveTab);
+
+    problemsButton.addEventListener("click", function () {
+      setDrawer(!drawerOpen);
+    });
+    drawerClose.addEventListener("click", function () {
+      setDrawer(false);
+    });
+    drawerBackdrop.addEventListener("click", function () {
+      setDrawer(false);
+    });
+    problemSearch.addEventListener("input", applyProblemFilters);
+    problemCategory.addEventListener("change", applyProblemFilters);
+    difficultyPills.forEach(function (pill) {
+      pill.addEventListener("click", function () {
+        activeDifficulty = pill.dataset.difficulty;
+        difficultyPills.forEach(function (candidate) {
+          var active = candidate === pill;
+          candidate.classList.toggle("is-active", active);
+          candidate.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+        applyProblemFilters();
+      });
+    });
+    problemList.addEventListener("click", function (event) {
+      var row = event.target.closest(".problem-row");
+      if (!row) {
+        return;
+      }
+      var index = Number(row.dataset.problemIndex);
+      if (Number.isInteger(index)) {
+        loadProblem(filteredProblems[index]);
+      }
+    });
+    problemList.addEventListener("scroll", onProblemScroll, { passive: true });
 
     resetButton.addEventListener("click", function () {
       if (activeExampleId) {
@@ -911,6 +1196,11 @@
     });
 
     document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && drawerOpen) {
+        event.preventDefault();
+        setDrawer(false);
+        return;
+      }
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         event.preventDefault();
         run();
@@ -949,6 +1239,9 @@
         resizeTimer = null;
         renderGutter();
         syncScroll();
+        if (drawerOpen) {
+          renderProblemList();
+        }
       }, 80);
     });
 

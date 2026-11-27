@@ -28,6 +28,9 @@
         <span class="visually-hidden">Example program</span>
         <select id="examples" aria-label="Example program"></select>
       </label>
+      <button id="problems" class="button" type="button" aria-expanded="false" aria-controls="problem-drawer">
+        Problems <span id="problem-count" class="button-count"></span>
+      </button>
       <button id="run" class="button button-primary" type="button">
         Run
         <kbd>Ctrl+Enter</kbd>
@@ -114,6 +117,41 @@
       <span>WebAssembly Core-7 Interpreter</span>
     </div>
   </footer>
+
+  <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+  <aside id="problem-drawer" class="problem-drawer" aria-labelledby="drawer-title" aria-hidden="true" inert>
+    <div class="drawer-head">
+      <div class="drawer-heading">
+        <h2 id="drawer-title">Problems</h2>
+        <p id="drawer-meta">Solved natural-English programs from the LeetCode battle test.</p>
+      </div>
+      <button id="drawer-close" class="drawer-close" type="button" aria-label="Close problems drawer">&times;</button>
+    </div>
+    <div class="drawer-tools">
+      <label class="drawer-search">
+        <span class="visually-hidden">Search problems</span>
+        <input id="problem-search" type="search" placeholder="Search by #number or title..." autocomplete="off" spellcheck="false">
+      </label>
+      <div class="drawer-filters">
+        <label class="drawer-category">
+          <span class="visually-hidden">Category</span>
+          <select id="problem-category" aria-label="Problem category">
+            <option value="">All categories</option>
+          </select>
+        </label>
+        <div class="difficulty-pills" role="group" aria-label="Difficulty">
+          <button class="pill is-active" type="button" data-difficulty="all" aria-pressed="true">All</button>
+          <button class="pill" type="button" data-difficulty="Easy" aria-pressed="false">Easy</button>
+          <button class="pill" type="button" data-difficulty="Medium" aria-pressed="false">Medium</button>
+          <button class="pill" type="button" data-difficulty="Hard" aria-pressed="false">Hard</button>
+        </div>
+      </div>
+    </div>
+    <div id="problem-list" class="problem-list" tabindex="0" aria-label="Solved problems">
+      <p class="problem-placeholder">Loading problems...</p>
+    </div>
+    <p id="problem-empty" class="problem-empty" hidden>No problems match.</p>
+  </aside>
 
   <script src="./examples.js" defer></script>
   <script src="./app.js" defer></script>
