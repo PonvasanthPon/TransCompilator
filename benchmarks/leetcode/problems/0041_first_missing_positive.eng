@@ -1,0 +1,31 @@
+Use io and list.
+
+Define function first_missing taking nums as a pointer to List of whole number returning a whole number:
+    Let n be count of nums.
+    For every i from 0 as an unsigned number to n - 1:
+        Let value be list_get(nums, i).
+        Repeat while value is at least 1 and value is at most n as a whole number:
+            Let slot be value as an unsigned number - 1.
+            If list_get(nums, slot) equals value:
+                Break.
+            Let temporary be list_get(nums, slot).
+            list_set(nums, slot, value).
+            list_set(nums, i, temporary).
+            Set value to temporary.
+    For every i from 0 as an unsigned number to n - 1:
+        Let expected be i as a whole number + 1.
+        If list_get(nums, i) isn't equal to expected:
+            Give back expected.
+    Give back n as a whole number + 1.
+Done.
+
+Let first list be a list of 3, 4, -1, and 1.
+Let second list be a list of 1, 2, and 0.
+Let third list be a list of 7, 8, 9, 11, and 12.
+Say first_missing(address of first list).
+Say first_missing(address of second list).
+Say first_missing(address of third list).
+list_free(address of third list).
+list_free(address of second list).
+list_free(address of first list).
+Return 0.

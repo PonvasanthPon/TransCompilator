@@ -1,0 +1,39 @@
+Use io and string.
+
+Define function roman_value taking c as a byte returning a whole number:
+    If c equals 73, give back 1.
+    If c equals 86, give back 5.
+    If c equals 88, give back 10.
+    If c equals 76, give back 50.
+    If c equals 67, give back 100.
+    If c equals 68, give back 500.
+    If c equals 77, give back 1000.
+    Give back 0.
+Done.
+
+Define function roman_total taking text as a pointer to TcString returning a whole number:
+    Let n be length of text.
+    Let total start at 0.
+    For every i from 0 as an unsigned number to n - 1:
+        Let value be roman_value(text.data[i]).
+        If i + 1 is less than n:
+            Let next value be roman_value(text.data[i + 1]).
+            If value is less than next value:
+                Subtract value from total.
+            Otherwise:
+                Add value to total.
+        Otherwise:
+            Add value to total.
+    Give back total.
+Done.
+
+Let first be str_from_bytes(bytes_ptr("MCMXCIV"), bytes_len("MCMXCIV")).
+Let second be str_from_bytes(bytes_ptr("LVIII"), bytes_len("LVIII")).
+Let third be str_from_bytes(bytes_ptr("IX"), bytes_len("IX")).
+Say roman_total(address of first).
+Say roman_total(address of second).
+Say roman_total(address of third).
+str_free(address of first).
+str_free(address of second).
+str_free(address of third).
+Return 0.

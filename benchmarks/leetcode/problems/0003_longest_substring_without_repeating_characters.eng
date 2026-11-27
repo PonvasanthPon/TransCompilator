@@ -1,0 +1,25 @@
+Use io, list, and string.
+
+Let text be str_from_bytes(bytes_ptr("abcabcbb"), bytes_len("abcabcbb")).
+Let n be length of address of text.
+Let best_low start at 0 as an unsigned number.
+Let best_span start at 0 as an unsigned number.
+
+For every i from 0 as an unsigned number to n - 1:
+    For every j from i to n - 1:
+        Let repeated be false.
+        If j is more than i:
+            For every k from i to j - 1:
+                If text.data[k] equals text.data[j]:
+                    Set repeated to true.
+        If repeated is false:
+            Let span be j - i + 1.
+            If span is more than best_span:
+                Set best_span to span.
+                Set best_low to i.
+
+Let answer be create text from (text.data as an unsigned number plus best_low) as a pointer to byte of length best_span.
+Say answer.
+str_free(address of answer).
+str_free(address of text).
+Return 0.

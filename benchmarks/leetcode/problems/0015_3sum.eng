@@ -1,0 +1,50 @@
+Use io, list, and math.
+
+Define function cmp_i64 taking a as a pointer to whole number and b as a pointer to whole number returning a whole number:
+    If value at a is less than value at b, give back -1.
+    If value at a is more than value at b, give back 1.
+    Give back 0.
+Done.
+
+Let nums be a list of -1, 0, 1, 2, -1, and -4.
+sort address of nums using function cmp_i64.
+Let n be count of nums.
+
+For every i from 0 as an unsigned number to n - 1:
+    If i is more than 0:
+        Let prior be list_get(address of nums, i - 1).
+        Let current be list_get(address of nums, i).
+        If current equals prior:
+            Continue.
+    Let lo start at i + 1.
+    Let hi be n - 1.
+    Repeat while lo is less than hi:
+        Let a be list_get(address of nums, i).
+        Let b be list_get(address of nums, lo).
+        Let c be list_get(address of nums, hi).
+        Let total be a + b + c.
+        If total is less than 0:
+            Add 1 to lo.
+        Otherwise:
+            If total is more than 0:
+                Subtract 1 from hi.
+            Otherwise:
+                Say a.
+                Say b.
+                Say c.
+                Say "---".
+                Repeat while lo is less than hi:
+                    Let next lo be list_get(address of nums, lo + 1).
+                    If next lo isn't equal to b:
+                        Break.
+                    Add 1 to lo.
+                Repeat while lo is less than hi:
+                    Let next hi be list_get(address of nums, hi - 1).
+                    If next hi isn't equal to c:
+                        Break.
+                    Subtract 1 from hi.
+                Add 1 to lo.
+                Subtract 1 from hi.
+
+list_free(address of nums).
+Return 0.

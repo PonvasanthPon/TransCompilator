@@ -1,0 +1,26 @@
+Use io and list.
+
+Let matrix be a list of 1, 2, 3, 4, 5, 6, 7, 8, and 9.
+
+For every r from 0 as an unsigned number to 2:
+    For every c from r + 1 as an unsigned number to 2:
+        Let first index be r * 3 + c.
+        Let second index be c * 3 + r.
+        Let temporary be list_get(address of matrix, first index).
+        list_set(address of matrix, first index, list_get(address of matrix, second index)).
+        list_set(address of matrix, second index, temporary).
+
+For every r from 0 as an unsigned number to 2:
+    Let first index be r * 3.
+    Let third index be r * 3 + 2.
+    Let temporary be list_get(address of matrix, first index).
+    list_set(address of matrix, first index, list_get(address of matrix, third index)).
+    list_set(address of matrix, third index, temporary).
+
+For every r from 0 as an unsigned number to 2:
+    For every c from 0 as an unsigned number to 2:
+        Say list_get(address of matrix, r * 3 + c).
+    Say "---".
+
+list_free(address of matrix).
+Return 0.

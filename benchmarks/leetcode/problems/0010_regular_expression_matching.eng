@@ -1,0 +1,64 @@
+Use io, list, and string.
+
+Define function regex_matches taking text as a pointer to TcString, pattern as a pointer to TcString returning a truth value:
+    Let n be length of text.
+    Let m be length of pattern.
+    Let width be m + 1.
+    Let table be an empty list of bytes.
+    For every index from 0 as an unsigned number to (n + 1) * width - 1:
+        push 0 to address of table.
+    list_set(address of table, 0, 1).
+    For every j from 1 as an unsigned number to m:
+        If pattern.data[j - 1] equals 42 and j is at least 2:
+            Let prior be list_get(address of table, j - 2).
+            If prior is 1:
+                list_set(address of table, j, 1).
+    For every i from 1 as an unsigned number to n:
+        For every j from 1 as an unsigned number to m:
+            Let slot be i * width + j.
+            Let character be pattern.data[j - 1].
+            If character equals 46 or character equals text.data[i - 1]:
+                Let diagonal slot be (i - 1) * width + j - 1.
+                Let diagonal be list_get(address of table, diagonal slot).
+                If diagonal is 1:
+                    list_set(address of table, slot, 1).
+            Otherwise:
+                If character equals 42 and j is at least 2:
+                    Let zero slot be i * width + j - 2.
+                    Let zero match be list_get(address of table, zero slot).
+                    Let prior character be pattern.data[j - 2].
+                    Let repeat match be false.
+                    If prior character equals 46 or prior character equals text.data[i - 1]:
+                        Let above slot be (i - 1) * width + j.
+                        If list_get(address of table, above slot) is 1:
+                            Set repeat match to true.
+                    If zero match is 1 or repeat match is true:
+                        list_set(address of table, slot, 1).
+    Let answer slot be n * width + m.
+    Let answer be list_get(address of table, answer slot).
+    list_free(address of table).
+    Give back answer is 1.
+Done.
+
+Let first text be str_from_bytes(bytes_ptr("aa"), bytes_len("aa")).
+Let first pattern be str_from_bytes(bytes_ptr("a"), bytes_len("a")).
+Let second pattern be str_from_bytes(bytes_ptr("a*"), bytes_len("a*")).
+Let third pattern be str_from_bytes(bytes_ptr(".*"), bytes_len(".*")).
+Let fourth text be str_from_bytes(bytes_ptr("aab"), bytes_len("aab")).
+Let fourth pattern be str_from_bytes(bytes_ptr("c*a*b"), bytes_len("c*a*b")).
+Let fifth text be str_from_bytes(bytes_ptr("mississippi"), bytes_len("mississippi")).
+Let fifth pattern be str_from_bytes(bytes_ptr("mis*is*p*."), bytes_len("mis*is*p*.")).
+Say regex_matches(address of first text, address of first pattern).
+Say regex_matches(address of first text, address of second pattern).
+Say regex_matches(address of first text, address of third pattern).
+Say regex_matches(address of fourth text, address of fourth pattern).
+Say regex_matches(address of fifth text, address of fifth pattern).
+str_free(address of first text).
+str_free(address of first pattern).
+str_free(address of second pattern).
+str_free(address of third pattern).
+str_free(address of fourth text).
+str_free(address of fourth pattern).
+str_free(address of fifth text).
+str_free(address of fifth pattern).
+Return 0.

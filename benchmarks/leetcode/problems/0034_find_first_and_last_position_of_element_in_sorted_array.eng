@@ -1,0 +1,41 @@
+Use io and list.
+
+Define function lower_bound taking nums as a pointer to List of whole number, target as a whole number returning a whole number:
+    Let low start at 0 as an unsigned number.
+    Let high be count of nums.
+    Repeat while low is less than high:
+        Let middle be (low + high) divided by 2.
+        If list_get(nums, middle) is less than target:
+            Set low to middle + 1.
+        Otherwise:
+            Set high to middle.
+    Give back low as a whole number.
+Done.
+
+Define function upper_bound taking nums as a pointer to List of whole number, target as a whole number returning a whole number:
+    Let low start at 0 as an unsigned number.
+    Let high be count of nums.
+    Repeat while low is less than high:
+        Let middle be (low + high) divided by 2.
+        If list_get(nums, middle) is at most target:
+            Set low to middle + 1.
+        Otherwise:
+            Set high to middle.
+    Give back low as a whole number.
+Done.
+
+Let nums be a list of 5, 7, 7, 8, 8, and 10.
+Let first be lower_bound(address of nums, 8).
+Let after be upper_bound(address of nums, 8).
+Say first.
+Say after - 1.
+Let missing first be lower_bound(address of nums, 6).
+Let missing after be upper_bound(address of nums, 6).
+If missing first equals missing after:
+    Say -1.
+    Say -1.
+Otherwise:
+    Say missing first.
+    Say missing after - 1.
+list_free(address of nums).
+Return 0.

@@ -1,0 +1,81 @@
+Use io, alloc, core, and list.
+
+A record ListNode has a value as a whole number and a next as a pointer to ListNode.
+
+Define function make_node taking value as a whole number returning a pointer to ListNode:
+    Let size be 16 as an unsigned number.
+    Let raw be allocate size bytes.
+    Let node be raw as a pointer to ListNode.
+    Set node's value to value.
+    Set node's next to no address as a pointer to ListNode.
+    Give back node.
+Done.
+
+Define function build_list taking digits as a pointer to List of whole number, n as an unsigned number returning a pointer to ListNode:
+    Let head be no address as a pointer to ListNode.
+    Let tail be head.
+    For every i from 0 as an unsigned number to n - 1:
+        Let node be make_node(list_get(digits, i)).
+        If head as an unsigned number is 0:
+            Set head to node.
+            Set tail to node.
+        Otherwise:
+            Set tail's next to node.
+            Set tail to node.
+    Give back head.
+Done.
+
+Define function add_lists taking first as a pointer to ListNode, second as a pointer to ListNode returning a pointer to ListNode:
+    Let head be no address as a pointer to ListNode.
+    Let tail be head.
+    Let carry start at 0.
+    Let a be first.
+    Let b be second.
+    Repeat while a as an unsigned number isn't 0 or b as an unsigned number isn't 0 or carry is more than 0:
+        Let total be carry.
+        If a as an unsigned number isn't 0:
+            Add a's value to total.
+            Set a to a's next.
+        If b as an unsigned number isn't 0:
+            Add b's value to total.
+            Set b to b's next.
+        Let node be make_node(total modulo 10).
+        Set carry to total divided by 10.
+        If head as an unsigned number is 0:
+            Set head to node.
+            Set tail to node.
+        Otherwise:
+            Set tail's next to node.
+            Set tail to node.
+    Give back head.
+Done.
+
+Define function print_list taking head as a pointer to ListNode:
+    Let cursor be head.
+    Repeat while cursor as an unsigned number isn't 0:
+        Say cursor's value.
+        Set cursor to cursor's next.
+Done.
+
+Define function release_list taking head as a pointer to ListNode:
+    Let cursor be head.
+    Repeat while cursor as an unsigned number isn't 0:
+        Let following be cursor's next.
+        release memory at cursor as a pointer to byte.
+        Set cursor to following.
+Done.
+
+Let first digits be a list of 2, 4, and 3.
+Let second digits be a list of 5, 6, and 4.
+Let first count be count of first digits.
+Let second count be count of second digits.
+Let first list be build_list(address of first digits, first count).
+Let second list be build_list(address of second digits, second count).
+Let answer be add_lists(first list, second list).
+print_list(answer).
+release_list(answer).
+release_list(second list).
+release_list(first list).
+list_free(address of second digits).
+list_free(address of first digits).
+Return 0.

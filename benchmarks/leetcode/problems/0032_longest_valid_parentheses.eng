@@ -1,0 +1,37 @@
+Use io and string.
+
+Define function valid_range taking text as a pointer to TcString, start as an unsigned number, span as an unsigned number returning a truth value:
+    Let balance start at 0.
+    For every i from start to start + span - 1:
+        If text.data[i] equals 40:
+            Add 1 to balance.
+        Otherwise:
+            Subtract 1 from balance.
+            If balance is less than 0:
+                Give back false.
+    Give back balance equals 0.
+Done.
+
+Define function longest_valid taking text as a pointer to TcString returning a whole number:
+    Let n be length of text.
+    If n is 0:
+        Give back 0.
+    Let best start at 0 as an unsigned number.
+    For every i from 0 as an unsigned number to n - 1:
+        For every j from i to n - 1:
+            Let span be j - i + 1.
+            If span is more than best and valid_range(text, i, span):
+                Set best to span.
+    Give back best as a whole number.
+Done.
+
+Let first be str_from_bytes(bytes_ptr("(()"), bytes_len("(()")).
+Let second be str_from_bytes(bytes_ptr(")()())"), bytes_len(")()())")).
+Let third be str_from_bytes(bytes_ptr(""), bytes_len("")).
+Say longest_valid(address of first).
+Say longest_valid(address of second).
+Say longest_valid(address of third).
+str_free(address of first).
+str_free(address of second).
+str_free(address of third).
+Return 0.

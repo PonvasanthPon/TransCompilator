@@ -1,0 +1,24 @@
+Use io and list.
+
+Define function combine taking candidates as a pointer to List of whole number, start as an unsigned number, remaining as a whole number, chosen as a pointer to List of whole number:
+    If remaining is 0:
+        Let chosen_count be count of chosen.
+        For every i from 0 as an unsigned number to chosen_count - 1:
+            Say list_get(chosen, i).
+        Say "---".
+        Give back.
+    Let n be count of candidates.
+    For every i from start to n - 1:
+        Let value be list_get(candidates, i).
+        If value is at most remaining:
+            push value to chosen.
+            combine(candidates, i, remaining - value, chosen).
+            Let ignored be pop from chosen.
+Done.
+
+Let candidates be a list of 2, 3, 6, and 7.
+Let chosen be an empty list of whole numbers.
+combine(address of candidates, 0, 7, address of chosen).
+list_free(address of chosen).
+list_free(address of candidates).
+Return 0.

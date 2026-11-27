@@ -1,0 +1,18 @@
+Use io.
+
+Define function is_palindrome taking value as a whole number returning a truth value:
+    If value is negative:
+        Give back false.
+    Let original be value.
+    Let reversed start at 0.
+    Repeat while value > 0:
+        Let digit be value modulo 10.
+        Set reversed to reversed * 10 + digit.
+        Divide value by 10.
+    Give back reversed equals original.
+Done.
+
+Say is_palindrome(121).
+Say is_palindrome(-121).
+Say is_palindrome(10).
+Return 0.

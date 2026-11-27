@@ -1,0 +1,65 @@
+Use io, list, and string.
+
+Define function matches_at taking s as a pointer to TcString, p as a pointer to TcString, i as an unsigned number, j as an unsigned number returning a truth value:
+    Let character be p.data[j - 1].
+    If character equals 42:
+        Give back true.
+    If character equals 63:
+        Give back true.
+    Give back character equals s.data[i - 1].
+Done.
+
+Define function wildcard taking s as a pointer to TcString, p as a pointer to TcString returning a truth value:
+    Let n be length of s.
+    Let m be length of p.
+    Let width be m + 1.
+    Let table be an empty list of bytes.
+    For every index from 0 as an unsigned number to (n + 1) * width - 1:
+        push 0 to address of table.
+    list_set(address of table, 0, 1).
+    For every j from 1 as an unsigned number to m:
+        If p.data[j - 1] equals 42:
+            Let prior be list_get(address of table, j - 1).
+            If prior is 1:
+                list_set(address of table, j, 1).
+    For every i from 1 as an unsigned number to n:
+        For every j from 1 as an unsigned number to m:
+            Let slot be i * width + j.
+            If p.data[j - 1] equals 42:
+                Let above slot be (i - 1) * width + j.
+                Let left slot be i * width + j - 1.
+                Let above be list_get(address of table, above slot).
+                Let left be list_get(address of table, left slot).
+                If above is 1 or left is 1:
+                    list_set(address of table, slot, 1).
+            Otherwise:
+                If matches_at(s, p, i, j):
+                    Let diagonal slot be (i - 1) * width + j - 1.
+                    Let diagonal be list_get(address of table, diagonal slot).
+                    If diagonal is 1:
+                        list_set(address of table, slot, 1).
+    Let answer slot be n * width + m.
+    Let answer be list_get(address of table, answer slot).
+    list_free(address of table).
+    Give back answer is 1.
+Done.
+
+Let first be str_from_bytes(bytes_ptr("aa"), bytes_len("aa")).
+Let first pattern be str_from_bytes(bytes_ptr("a"), bytes_len("a")).
+Let second pattern be str_from_bytes(bytes_ptr("*"), bytes_len("*")).
+Let third be str_from_bytes(bytes_ptr("cb"), bytes_len("cb")).
+Let third pattern be str_from_bytes(bytes_ptr("?a"), bytes_len("?a")).
+Let fourth be str_from_bytes(bytes_ptr("adceb"), bytes_len("adceb")).
+Let fourth pattern be str_from_bytes(bytes_ptr("*a*b"), bytes_len("*a*b")).
+Say wildcard(address of first, address of first pattern).
+Say wildcard(address of first, address of second pattern).
+Say wildcard(address of third, address of third pattern).
+Say wildcard(address of fourth, address of fourth pattern).
+str_free(address of first).
+str_free(address of first pattern).
+str_free(address of second pattern).
+str_free(address of third).
+str_free(address of third pattern).
+str_free(address of fourth).
+str_free(address of fourth pattern).
+Return 0.

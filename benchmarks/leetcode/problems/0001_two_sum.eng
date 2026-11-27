@@ -1,0 +1,21 @@
+Use io, list, and string.
+
+The input is a short list of prices and a target sum.
+Let nums be a list of 2, 7, 11, and 15.
+Let target be 9.
+Let n be count of nums.
+Let answer left be -1.
+Let answer right be -1.
+Let found be false.
+
+For every i from 0 as an unsigned number to n - 1:
+    For every j from i + 1 to n - 1:
+        If found is false and list_get(address of nums, i) + list_get(address of nums, j) equals target:
+            Set answer left to i as a whole number.
+            Set answer right to j as a whole number.
+            Set found to true.
+
+Say answer left.
+Say answer right.
+list_free(address of nums).
+Return 0.

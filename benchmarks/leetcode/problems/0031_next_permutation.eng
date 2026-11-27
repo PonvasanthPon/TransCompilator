@@ -1,0 +1,59 @@
+Use io and list.
+
+Define function next_permutation taking nums as a pointer to List of whole number:
+    Let n be count of nums.
+    If n is less than 2, give back.
+    Let pivot start at n as a whole number - 2.
+    Repeat while pivot is at least 0:
+        Let current be list_get(nums, pivot as an unsigned number).
+        Let following be list_get(nums, pivot as an unsigned number + 1).
+        If current is less than following:
+            Break.
+        Subtract 1 from pivot.
+    If pivot is less than 0:
+        Let lo start at 0 as an unsigned number.
+        Let hi be n - 1.
+        Repeat while lo is less than hi:
+            Let temporary be list_get(nums, lo).
+            list_set(nums, lo, list_get(nums, hi)).
+            list_set(nums, hi, temporary).
+            Add 1 to lo.
+            Subtract 1 from hi.
+        Give back.
+    Let successor start at n as a whole number - 1.
+    Let pivot value be list_get(nums, pivot as an unsigned number).
+    Repeat while list_get(nums, successor as an unsigned number) is at most pivot value:
+        Subtract 1 from successor.
+    Let temporary be list_get(nums, pivot as an unsigned number).
+    list_set(nums, pivot as an unsigned number, list_get(nums, successor as an unsigned number)).
+    list_set(nums, successor as an unsigned number, temporary).
+    Let lo start at pivot as an unsigned number + 1.
+    Let hi be n - 1.
+    Repeat while lo is less than hi:
+        Let swap value be list_get(nums, lo).
+        list_set(nums, lo, list_get(nums, hi)).
+        list_set(nums, hi, swap value).
+        Add 1 to lo.
+        Subtract 1 from hi.
+Done.
+
+Let first be a list of 1, 2, and 3.
+Let second be a list of 3, 2, and 1.
+Let third be a list of 1, 1, and 5.
+next_permutation(address of first).
+next_permutation(address of second).
+next_permutation(address of third).
+
+For every i from 0 as an unsigned number to 2:
+    Say list_get(address of first, i).
+Say "---".
+For every i from 0 as an unsigned number to 2:
+    Say list_get(address of second, i).
+Say "---".
+For every i from 0 as an unsigned number to 2:
+    Say list_get(address of third, i).
+
+list_free(address of third).
+list_free(address of second).
+list_free(address of first).
+Return 0.

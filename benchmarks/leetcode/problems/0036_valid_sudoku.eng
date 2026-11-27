@@ -1,0 +1,38 @@
+Use io and list.
+
+Define function valid_sudoku taking cells as a pointer to List of whole number returning a truth value:
+    For every r from 0 as an unsigned number to 8:
+        For every c1 from 0 as an unsigned number to 8:
+            Let left be list_get(cells, r * 9 + c1).
+            If left isn't 0:
+                For every c2 from c1 + 1 as an unsigned number to 8:
+                    If list_get(cells, r * 9 + c2) equals left:
+                        Give back false.
+    For every c from 0 as an unsigned number to 8:
+        For every r1 from 0 as an unsigned number to 8:
+            Let top be list_get(cells, r1 * 9 + c).
+            If top isn't 0:
+                For every r2 from r1 + 1 as an unsigned number to 8:
+                    If list_get(cells, r2 * 9 + c) equals top:
+                        Give back false.
+    For every block_row from 0 as an unsigned number to 2:
+        For every block_col from 0 as an unsigned number to 2:
+            For every p from 0 as an unsigned number to 8:
+                Let pr be p divided by 3.
+                Let pc be p modulo 3.
+                Let left be list_get(cells, (block_row * 3 + pr) * 9 + block_col * 3 + pc).
+                If left isn't 0:
+                    For every q from p + 1 as an unsigned number to 8:
+                        Let qr be q divided by 3.
+                        Let qc be q modulo 3.
+                        If list_get(cells, (block_row * 3 + qr) * 9 + block_col * 3 + qc) equals left:
+                            Give back false.
+    Give back true.
+Done.
+
+Let board be a list of 5, 3, 0, 0, 7, 0, 0, 0, 0, 6, 0, 0, 1, 9, 5, 0, 0, 0, 0, 9, 8, 0, 0, 0, 0, 6, 0, 8, 0, 0, 0, 6, 0, 0, 0, 3, 4, 0, 0, 8, 0, 3, 0, 0, 1, 7, 0, 0, 0, 2, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 4, 1, 9, 0, 0, 5, 0, 0, 0, 0, 8, 0, 0, 7, 9.
+Say valid_sudoku(address of board).
+list_set(address of board, 2, 8).
+Say valid_sudoku(address of board).
+list_free(address of board).
+Return 0.

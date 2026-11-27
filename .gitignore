@@ -17,3 +17,6 @@ editors/zed/tc-eng-extension/extension.wasm
 web/tc-wasm/target/
 web/tc-wasm/Cargo.lock
 web/site/tc_wasm.wasm
+
+# LeetCode MBT expected-output files are checked-in fixtures.
+!benchmarks/leetcode/expected/*.out

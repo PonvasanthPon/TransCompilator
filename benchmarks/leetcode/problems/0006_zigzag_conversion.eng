@@ -1,0 +1,40 @@
+Use io, list, and string.
+
+Define function append_char taking target as a pointer to TcString, c as a byte:
+    Append to target text (address of c) as a pointer to byte of length 1.
+Done.
+
+Let text be str_from_bytes(bytes_ptr("PAYPALISHIRING"), bytes_len("PAYPALISHIRING")).
+Let n be length of text.
+Let row_count be 3.
+Let rows be an empty list of text.
+For every r from 0 to row_count - 1:
+    Let blank be create an empty text.
+    push blank to address of rows.
+
+Let row start at 0.
+Let direction start at 1.
+For every i from 0 as an unsigned number to n - 1:
+    Let cell be list_get(address of rows, row as an unsigned number).
+    append_char(address of cell, text.data[i]).
+    list_set(address of rows, row as an unsigned number, cell).
+    If row is 0:
+        Set direction to 1.
+    If row is row_count - 1:
+        Set direction to -1.
+    Set row to row + direction.
+
+Let answer be create an empty text.
+For every r from 0 to row_count - 1:
+    Let cell be list_get(address of rows, r as an unsigned number).
+    Let cell length be length of address of cell.
+    Append to address of answer text cell.data of length cell length.
+Say answer.
+
+For every r from 0 to row_count - 1:
+    Let cell be list_get(address of rows, r as an unsigned number).
+    str_free(address of cell).
+str_free(address of answer).
+list_free(address of rows).
+str_free(address of text).
+Return 0.

@@ -1,0 +1,27 @@
+Use io.
+
+Define function divide_integers taking dividend as a whole number, divisor as a whole number returning a whole number:
+    If dividend equals -2147483648 and divisor equals -1:
+        Give back 2147483647.
+    Let negative be false.
+    Let top be dividend.
+    Let bottom be divisor.
+    If top is negative:
+        Set negative to true.
+        Set top to 0 - top.
+    If bottom is negative:
+        Set negative to true.
+        Set bottom to 0 - bottom.
+    Let quotient start at 0.
+    Repeat while top is at least bottom:
+        Subtract bottom from top.
+        Add 1 to quotient.
+    If negative:
+        Give back 0 - quotient.
+    Give back quotient.
+Done.
+
+Say divide_integers(10, 3).
+Say divide_integers(7, -3).
+Say divide_integers(-2147483648, -1).
+Return 0.

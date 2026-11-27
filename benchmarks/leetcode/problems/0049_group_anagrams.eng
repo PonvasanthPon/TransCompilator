@@ -1,0 +1,69 @@
+Use io, list, and string.
+
+Define function count_byte taking text as a pointer to TcString, target as a byte returning a whole number:
+    Let total start at 0.
+    Let n be length of text.
+    For every i from 0 as an unsigned number to n - 1:
+        If text.data[i] equals target:
+            Add 1 to total.
+    Give back total.
+Done.
+
+Define function same_letters taking first as a pointer to TcString, second as a pointer to TcString returning a truth value:
+    Let first length be length of first.
+    Let second length be length of second.
+    If first length isn't equal to second length:
+        Give back false.
+    For every i from 0 as an unsigned number to first length - 1:
+        Let c be first.data[i].
+        Let left count be count_byte(first, c).
+        Let right count be count_byte(second, c).
+        If left count isn't equal to right count:
+            Give back false.
+    Give back true.
+Done.
+
+Let first be str_from_bytes(bytes_ptr("eat"), bytes_len("eat")).
+Let second be str_from_bytes(bytes_ptr("tea"), bytes_len("tea")).
+Let third be str_from_bytes(bytes_ptr("tan"), bytes_len("tan")).
+Let fourth be str_from_bytes(bytes_ptr("ate"), bytes_len("ate")).
+Let fifth be str_from_bytes(bytes_ptr("nat"), bytes_len("nat")).
+Let sixth be str_from_bytes(bytes_ptr("bat"), bytes_len("bat")).
+Let words be an empty list of text.
+push first to address of words.
+push second to address of words.
+push third to address of words.
+push fourth to address of words.
+push fifth to address of words.
+push sixth to address of words.
+Let n be count of words.
+Let used be an empty list of whole numbers.
+For every i from 0 as an unsigned number to n - 1:
+    push 0 to address of used.
+
+For every i from 0 as an unsigned number to n - 1:
+    Let used_flag be list_get(address of used, i).
+    If used_flag is 0:
+        Define local word as TcString.
+        word = list_get(address of words, i).
+        Say address of word.
+        list_set(address of used, i, 1).
+        For every j from i + 1 as an unsigned number to n - 1:
+            Let other_flag be list_get(address of used, j).
+            If other_flag is 0:
+                Define local other as TcString.
+                other = list_get(address of words, j).
+                If same_letters(address of word, address of other):
+                    Say address of other.
+                    list_set(address of used, j, 1).
+        Say "---".
+
+list_free(address of used).
+list_free(address of words).
+str_free(address of sixth).
+str_free(address of fifth).
+str_free(address of fourth).
+str_free(address of third).
+str_free(address of second).
+str_free(address of first).
+Return 0.

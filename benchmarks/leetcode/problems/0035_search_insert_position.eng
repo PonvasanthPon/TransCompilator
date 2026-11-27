@@ -1,0 +1,21 @@
+Use io and list.
+
+Define function insert_position taking nums as a pointer to List of whole number, target as a whole number returning a whole number:
+    Let low start at 0 as an unsigned number.
+    Let high be count of nums.
+    Repeat while low is less than high:
+        Let middle be (low + high) divided by 2.
+        If list_get(nums, middle) is less than target:
+            Set low to middle + 1.
+        Otherwise:
+            Set high to middle.
+    Give back low as a whole number.
+Done.
+
+Let nums be a list of 1, 3, 5, and 6.
+Say insert_position(address of nums, 5).
+Say insert_position(address of nums, 2).
+Say insert_position(address of nums, 7).
+Say insert_position(address of nums, 0).
+list_free(address of nums).
+Return 0.

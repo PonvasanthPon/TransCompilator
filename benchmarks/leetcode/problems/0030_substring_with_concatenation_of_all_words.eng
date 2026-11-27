@@ -1,0 +1,51 @@
+Use io, list, and string.
+
+Define function matches_at taking text as a pointer to TcString, word as a pointer to TcString, start as an unsigned number returning a truth value:
+    Let word length be length of word.
+    For every i from 0 as an unsigned number to word length - 1:
+        If text.data[start + i] isn't equal to word.data[i]:
+            Give back false.
+    Give back true.
+Done.
+
+Let text be str_from_bytes(bytes_ptr("barfoothefoobarman"), bytes_len("barfoothefoobarman")).
+Let first word be str_from_bytes(bytes_ptr("foo"), bytes_len("foo")).
+Let second word be str_from_bytes(bytes_ptr("bar"), bytes_len("bar")).
+Let words be an empty list of text.
+push first word to address of words.
+push second word to address of words.
+Let word count be count of words.
+Let word length be length of address of first word.
+Let text length be length of address of text.
+Let total length be word count * word length.
+Let last start be text length - total length.
+
+For every offset from 0 as an unsigned number to last start:
+    Let used be an empty list of whole numbers.
+    For every j from 0 as an unsigned number to word count - 1:
+        push 0 to address of used.
+    Let all matched be true.
+    For every k from 0 as an unsigned number to word count - 1:
+        Let start be offset + k * word length.
+        Let found be false.
+        For every j from 0 as an unsigned number to word count - 1:
+            Let used flag be list_get(address of used, j).
+            If used flag is 0:
+                Define local word as TcString.
+                word = list_get(address of words, j).
+                If matches_at(address of text, address of word, start):
+                    list_set(address of used, j, 1).
+                    Set found to true.
+                    Break.
+        If found is false:
+            Set all matched to false.
+            Break.
+    If all matched is true:
+        Say offset.
+    list_free(address of used).
+
+str_free(address of second word).
+str_free(address of first word).
+list_free(address of words).
+str_free(address of text).
+Return 0.

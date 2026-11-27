@@ -1,0 +1,37 @@
+Use io, list, and math.
+
+Define function cmp_i64 taking a as a pointer to whole number and b as a pointer to whole number returning a whole number:
+    If value at a is less than value at b, give back -1.
+    If value at a is more than value at b, give back 1.
+    Give back 0.
+Done.
+
+Let nums be a list of -1, 2, 1, and -4.
+Let target be 1.
+sort address of nums using function cmp_i64.
+Let n be count of nums.
+Let best start at 0.
+Let best distance start at 2147483647.
+
+For every i from 0 as an unsigned number to n - 1:
+    Let lo start at i + 1.
+    Let hi be n - 1.
+    Repeat while lo is less than hi:
+        Let a be list_get(address of nums, i).
+        Let b be list_get(address of nums, lo).
+        Let c be list_get(address of nums, hi).
+        Let total be a + b + c.
+        Let difference be total - target.
+        If difference is negative:
+            Set difference to 0 - difference.
+        If difference is less than best distance:
+            Set best distance to difference.
+            Set best to total.
+        If total is less than target:
+            Add 1 to lo.
+        Otherwise:
+            Subtract 1 from hi.
+
+Say best.
+list_free(address of nums).
+Return 0.

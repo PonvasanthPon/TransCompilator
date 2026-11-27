@@ -1,0 +1,20 @@
+Use io and string.
+
+Define function generate taking open_count as an unsigned number, close_count as an unsigned number, n as an unsigned number, buffer as a pointer to byte, depth as an unsigned number:
+    If depth equals n * 2:
+        Let answer be create text from buffer of length depth.
+        Say answer.
+        str_free(address of answer).
+        Give back.
+    If open_count is less than n:
+        Set item depth of buffer to 40.
+        generate(open_count + 1, close_count, n, buffer, depth + 1).
+    If close_count is less than open_count:
+        Set item depth of buffer to 41.
+        generate(open_count, close_count + 1, n, buffer, depth + 1).
+Done.
+
+Let n be 3.
+Let buffer be block of 16 byte.
+generate(0 as an unsigned number, 0 as an unsigned number, n as an unsigned number, address of item 0 of buffer, 0 as an unsigned number).
+Return 0.
