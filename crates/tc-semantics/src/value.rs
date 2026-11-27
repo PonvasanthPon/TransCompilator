@@ -177,6 +177,9 @@ pub(crate) fn parse_value<C: ValueContext>(
             }
         }
     }
+    if lower.starts_with("character ") || lower.starts_with("byte ") {
+        return context.value_expression(trimmed, span);
+    }
     for prefix in ["the value of ", "value of "] {
         if let Some(rest) = lower.strip_prefix(prefix) {
             let rest = trimmed[trimmed.len() - rest.len()..].trim();

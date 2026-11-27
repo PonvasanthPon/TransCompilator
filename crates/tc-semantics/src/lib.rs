@@ -366,6 +366,12 @@ fn augmented_sources(
         || source_text.contains("the size of ")
         || source_text.contains("the list ")
         || source_text.contains("the list,")
+        || source_text.contains("item ") && source_text.contains(" of ")
+        || source_text.contains("append ") && source_text.contains(" to ")
+        || source_text.contains("remove every ")
+        || source_text.contains("remove the last ")
+        || source_text.contains("remove item ")
+        || source_text.contains("sort ")
         || source_text.contains("list of numbers ")
         || source_text.contains("start with the numbers ")
         || source_text.contains("begin with the numbers ")
@@ -387,6 +393,10 @@ fn augmented_sources(
         || source_text.contains("length of ")
         || source_text.contains(" matches text ");
     let needs_math = source_text.contains("square root of");
+    let needs_map = source_text.contains("int map")
+        || source_text.contains("text map")
+        || source_text.contains("integer map")
+        || source_text.contains("string map");
     let mut present = all
         .iter()
         .map(SourceFile::module_name)
@@ -410,6 +420,9 @@ fn augmented_sources(
     }
     if needs_math {
         wanted.push("math".to_string());
+    }
+    if needs_map {
+        wanted.push("map".to_string());
     }
     let mut queue = VecDeque::from(wanted);
     let mut seen = HashSet::new();
@@ -538,6 +551,9 @@ fn lower_project_analysis_with_mode(
         }
         if auto_modules.contains("math") {
             auto_imports.push("math");
+        }
+        if auto_modules.contains("map") {
+            auto_imports.push("map");
         }
         for job in &mut jobs {
             if is_std_module(&job.module.name) {

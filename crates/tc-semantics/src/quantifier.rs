@@ -184,20 +184,34 @@ pub(crate) fn parse_global(text: &str) -> Result<Option<GlobalQuantifier>, Strin
     if var_token.kind != TokenKind::Word {
         return Err("global quantifier requires a bound variable".to_string());
     }
-    let var = var_token.lower.clone();
-    let Some(domain_keyword) = tokens.get(3) else {
+    let Some(domain_index) = tokens
+        .iter()
+        .enumerate()
+        .skip(2)
+        .find(|(_, token)| token.is("from") || token.is("in"))
+        .map(|(index, _)| index)
+    else {
+        let var = var_token.lower.clone();
         return Err(format!(
             "global quantifier `{var}` needs `from <start> to <end>` or `in <array>`"
         ));
     };
+    let var = text_between(text, var_token.start, tokens[domain_index].start)
+        .trim()
+        .to_ascii_lowercase()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join("_");
+    let domain_keyword = &tokens[domain_index];
     if domain_keyword.is("from") {
-        let up_index = top_level_word(&tokens, "up", 4)
+        let search = domain_index + 1;
+        let up_index = top_level_word(&tokens, "up", search)
             .filter(|index| tokens.get(index + 1).is_some_and(|token| token.is("to")));
         let (separator_index, start_boundary) = if let Some(up_index) = up_index {
             (up_index + 1, tokens[up_index].start)
-        } else if let Some(to_index) = top_level_word(&tokens, "to", 4) {
+        } else if let Some(to_index) = top_level_word(&tokens, "to", search) {
             (to_index, tokens[to_index].start)
-        } else if let Some(through_index) = top_level_word(&tokens, "through", 4) {
+        } else if let Some(through_index) = top_level_word(&tokens, "through", search) {
             (through_index, tokens[through_index].start)
         } else {
             return Err(format!("range quantifier `{var}` is missing `to`"));
@@ -249,7 +263,7 @@ pub(crate) fn parse_global(text: &str) -> Result<Option<GlobalQuantifier>, Strin
         }));
     }
     if domain_keyword.is("in") {
-        let Some(arr_token) = tokens.get(4) else {
+        let Some(arr_token) = tokens.get(domain_index + 1) else {
             return Err(format!("array quantifier `{var}` is missing an array name"));
         };
         if arr_token.kind != TokenKind::Word {
@@ -258,7 +272,7 @@ pub(crate) fn parse_global(text: &str) -> Result<Option<GlobalQuantifier>, Strin
             ));
         }
         let arr = arr_token.lower.clone();
-        let comma = top_level_comma(&tokens, 5);
+        let comma = top_level_comma(&tokens, domain_index + 2);
         let body = comma.map(|index| text_between(text, tokens[index].end, text.len()));
         let body = body.filter(|value| !value.is_empty());
         let display = format!("For every {var} in {arr}");

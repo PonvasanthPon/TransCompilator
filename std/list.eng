@@ -170,3 +170,34 @@ Set item right of items's data to temporary.
 Add 1 to left.
 Subtract 1 from right.
 End the loop.
+
+Publicly, to remove the item at index (an unsigned number) from items (a pointer to List of T), named list_remove_at.
+If index is at least items's len, stop with error "list index out of bounds".
+Let i start at index.
+Repeat while i plus 1 is less than items's len.
+Set item i of items's data to item (i plus 1) of items's data.
+Add 1 to i.
+End the loop.
+Subtract 1 from items's len.
+
+Publicly, to remove target (a whole number) from items (a pointer to List of whole number), named list_remove_value_i64.
+Let read start at 0 as an unsigned number.
+Let write start at 0 as an unsigned number.
+Repeat while read is less than items's len.
+Let current be item read of items's data.
+If current isn't equal to target.
+Set item write of items's data to current.
+Add 1 to write.
+End the condition.
+Add 1 to read.
+End the loop.
+Set items's len to write.
+
+To compare whole numbers given a (a pointer to whole number) and b (a pointer to whole number), named comparator, giving a whole number.
+If value at a is less than value at b, give back -1.
+If value at a is more than value at b, give back 1.
+Give back 0.
+
+Publicly, to sort the numbers in items (a pointer to List of whole number), named list_sort_i64.
+Call this as "sort the numbers in <items>".
+sort items using function comparator.

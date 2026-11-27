@@ -4,9 +4,9 @@ use super::{
     ActiveTracker, AdjacentContext, AstExpr, AstStmt, AstType, GlobalQuantifier, LargestTracker,
     LoweredCond, Lowerer, QuantDomainSpec, RawItem, RawSentence, ScopeKind, SemanticError,
     SemanticErrorKind, SequenceGeneration, SequenceIteration, SequenceRecurrence, SequenceSeed,
-    Span, canonical_assignment_target, find_top_level_phrase, is_simple_name, list_type,
-    lower_name, named_counter_noun, named_counter_query_noun, render_expr, split_list_elements,
-    starts_with_word, strip_leading_word, strip_outer_parentheses, tokenize,
+    Span, canonical_assignment_target, find_top_level_phrase, find_top_level_word, is_simple_name,
+    list_type, lower_name, named_counter_noun, named_counter_query_noun, render_expr,
+    split_list_elements, starts_with_word, strip_leading_word, strip_outer_parentheses, tokenize,
 };
 
 impl Lowerer<'_> {
@@ -233,6 +233,221 @@ impl Lowerer<'_> {
                 span: self.span(span),
             },
         ]))
+    }
+
+    fn is_named_list_variable(&self, name: &str) -> bool {
+        match self.lookup(name) {
+            Some(AstType::Named { name, .. }) => name.eq_ignore_ascii_case("list"),
+            Some(AstType::Ptr(inner)) => {
+                matches!(inner.as_ref(), AstType::Named { name, .. } if name.eq_ignore_ascii_case("list"))
+            }
+            _ => false,
+        }
+    }
+
+    fn resolve_list_name(&self, text: &str) -> Option<String> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+        if matches!(
+            lower.as_str(),
+            "the list"
+                | "the list of numbers"
+                | "the list of values"
+                | "the list of items"
+                | "the numbers"
+                | "the values"
+                | "the items"
+        ) {
+            return self
+                .last_list
+                .clone()
+                .filter(|name| self.is_named_list_variable(name));
+        }
+        let name = lower_name(trimmed);
+        self.is_named_list_variable(&name).then_some(name)
+    }
+
+    fn natural_list_index(&self, index: AstExpr) -> AstExpr {
+        if matches!(self.shallow_type_opt(&index), Some(AstType::U64)) {
+            return index;
+        }
+        AstExpr::Cast {
+            val: Box::new(index),
+            to: AstType::U64,
+        }
+    }
+
+    fn list_call(&self, name: &str, args: Vec<AstExpr>, span: Span) -> AstStmt {
+        AstStmt::Expr(
+            AstExpr::Call {
+                module: None,
+                name: name.to_string(),
+                type_args: Vec::new(),
+                args,
+            },
+            self.span(span),
+        )
+    }
+
+    pub(super) fn is_natural_list_operation(&self, text: &str) -> bool {
+        let lower = text
+            .trim()
+            .trim_end_matches('.')
+            .trim()
+            .to_ascii_lowercase();
+        lower.starts_with("set item ")
+            || lower.starts_with("replace item ")
+            || lower.starts_with("append ")
+            || lower.starts_with("add ") && lower.contains(" to the end of ")
+            || lower.starts_with("remove the last ")
+            || lower.starts_with("remove item ")
+            || lower.starts_with("remove every ")
+            || lower.starts_with("sort ")
+    }
+
+    pub(super) fn try_list_operation(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<AstStmt>, SemanticError> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+
+        let assignment = if lower.starts_with("set item ") {
+            Some((&trimmed["set item ".len()..], "to"))
+        } else if lower.starts_with("replace item ") {
+            Some((&trimmed["replace item ".len()..], "with"))
+        } else {
+            None
+        };
+        if let Some((rest, separator)) = assignment {
+            let Some((of_start, of_end)) = find_top_level_word(rest, "of") else {
+                return Ok(None);
+            };
+            let index_text = rest[..of_start].trim();
+            let after = rest[of_end..].trim();
+            let Some((list_end, list_end_end)) = find_top_level_word(after, separator) else {
+                return Ok(None);
+            };
+            let list_text = after[..list_end].trim();
+            let value_text = after[list_end_end..].trim();
+            let Some(list) = self.resolve_list_name(list_text) else {
+                return Ok(None);
+            };
+            let index = self.parse_expr(index_text, span)?;
+            let value = self.parse_expr(value_text, span)?;
+            let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+            return Ok(Some(self.list_call(
+                "list_set",
+                vec![pointer, self.natural_list_index(index), value],
+                span,
+            )));
+        }
+
+        if lower.starts_with("append ") {
+            let rest = &trimmed["append ".len()..];
+            if let Some((to_start, to_end)) = find_top_level_word(rest, "to") {
+                let value_text = rest[..to_start].trim();
+                let list_text = rest[to_end..].trim();
+                if let Some(list) = self.resolve_list_name(list_text) {
+                    let value = self.parse_expr(value_text, span)?;
+                    let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                    return Ok(Some(self.list_call(
+                        "list_push",
+                        vec![value, pointer],
+                        span,
+                    )));
+                }
+            }
+        }
+
+        if lower.starts_with("add ") {
+            if let Some((to_start, to_end)) = find_top_level_word(trimmed, "to") {
+                let value_text = trimmed[3..to_start].trim();
+                let after = trimmed[to_end..].trim();
+                if let Some(list_text) = after
+                    .strip_prefix("the end of ")
+                    .or_else(|| after.strip_prefix("The end of "))
+                {
+                    if let Some(list) = self.resolve_list_name(list_text) {
+                        let value = self.parse_expr(value_text, span)?;
+                        let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                        return Ok(Some(self.list_call(
+                            "list_push",
+                            vec![value, pointer],
+                            span,
+                        )));
+                    }
+                }
+            }
+        }
+
+        if lower.starts_with("remove the last ") {
+            let rest = trimmed["remove the last ".len()..].trim();
+            for noun in ["item from ", "number from ", "element from ", "value from "] {
+                if rest.to_ascii_lowercase().starts_with(noun) {
+                    let list_text = rest[noun.len()..].trim();
+                    if let Some(list) = self.resolve_list_name(list_text) {
+                        let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                        return Ok(Some(self.list_call("list_pop", vec![pointer], span)));
+                    }
+                }
+            }
+        }
+
+        if lower.starts_with("remove item ") {
+            let rest = &trimmed["remove item ".len()..];
+            if let Some((from_start, from_end)) = find_top_level_word(rest, "from") {
+                let index_text = rest[..from_start].trim();
+                let list_text = rest[from_end..].trim();
+                if let Some(list) = self.resolve_list_name(list_text) {
+                    let index = self.parse_expr(index_text, span)?;
+                    let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                    return Ok(Some(self.list_call(
+                        "list_remove_at",
+                        vec![self.natural_list_index(index), pointer],
+                        span,
+                    )));
+                }
+            }
+        }
+
+        if lower.starts_with("remove every ") {
+            let rest = &trimmed["remove every ".len()..];
+            if let Some((from_start, from_end)) = find_top_level_word(rest, "from") {
+                let value_text = rest[..from_start].trim();
+                let list_text = rest[from_end..].trim();
+                if let Some(list) = self.resolve_list_name(list_text) {
+                    if matches!(self.list_element_type(&list), Some(AstType::I64)) {
+                        let value = self.parse_expr(value_text, span)?;
+                        let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                        return Ok(Some(self.list_call(
+                            "list_remove_value_i64",
+                            vec![value, pointer],
+                            span,
+                        )));
+                    }
+                }
+            }
+        }
+
+        if lower.starts_with("sort ") && !lower.contains(" using ") {
+            let rest = &trimmed["sort ".len()..];
+            let list_text = rest
+                .strip_prefix("the numbers in ")
+                .or_else(|| rest.strip_prefix("The numbers in "))
+                .or_else(|| rest.strip_prefix("the list "))
+                .unwrap_or(rest)
+                .trim();
+            if let Some(list) = self.resolve_list_name(list_text) {
+                if matches!(self.list_element_type(&list), Some(AstType::I64)) {
+                    let pointer = self.list_pointer(AstExpr::Var(list), span)?;
+                    return Ok(Some(self.list_call("list_sort_i64", vec![pointer], span)));
+                }
+            }
+        }
+
+        Ok(None)
     }
 
     pub(super) fn emit_list_elements(

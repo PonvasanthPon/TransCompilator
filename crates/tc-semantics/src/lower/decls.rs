@@ -2375,10 +2375,17 @@ impl NamePhrases {
             return;
         }
         let rest = &trimmed[4..];
-        let Some((be_start, _)) = find_top_level_word(rest, "be") else {
+        let mut binding = None;
+        for operator in ["be", "starts", "start", "begins", "begin"] {
+            if let Some((name_end, _)) = find_top_level_word(rest, operator) {
+                binding = Some(name_end);
+                break;
+            }
+        }
+        let Some(name_end) = binding else {
             return;
         };
-        let name = rest[..be_start].trim();
+        let name = rest[..name_end].trim();
         if !name.is_empty() {
             self.register(name, false);
         }

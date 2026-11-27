@@ -686,6 +686,9 @@ impl Lowerer<'_> {
             .filter(|token| token.is_word())
             .map(|token| token.lower.clone())
             .unwrap_or_default();
+        if !base.is_exec() && self.is_natural_list_operation(text) {
+            return Ok(IntentVerdict::Exec);
+        }
         if base.is_exec() {
             if matches!(first.as_str(), "that" | "this" | "there") {
                 let second = tokens
@@ -2069,14 +2072,45 @@ impl Lowerer<'_> {
         }
         let domain = match &global.domain {
             QuantDomainSpec::Range { start, end, step } => {
-                let start = self.parse_expr(start, span)?;
-                let end = self.parse_expr(end, span)?;
-                let step = if let Some(text) = step {
+                let mut start = self.parse_expr(start, span)?;
+                let mut end = self.parse_expr(end, span)?;
+                let mut step = if let Some(text) = step {
                     self.parse_expr(text, span)?
                 } else {
                     AstExpr::ConstInt(1, None)
                 };
+                let start_ty = self.shallow_type_opt(&start);
+                let end_ty = self.shallow_type_opt(&end);
+                let signed = |ty: &Option<AstType>| {
+                    matches!(
+                        ty,
+                        Some(AstType::I8 | AstType::I16 | AstType::I32 | AstType::I64)
+                    )
+                };
+                let unsigned = |ty: &Option<AstType>| {
+                    matches!(
+                        ty,
+                        Some(AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64)
+                    )
+                };
+                if signed(&start_ty) && unsigned(&end_ty) {
+                    end = AstExpr::Cast {
+                        val: Box::new(end),
+                        to: AstType::I64,
+                    };
+                } else if unsigned(&start_ty) && signed(&end_ty) {
+                    start = AstExpr::Cast {
+                        val: Box::new(start),
+                        to: AstType::I64,
+                    };
+                }
                 let var_ty = self.shallow_type(&start);
+                if signed(&Some(var_ty.clone())) && unsigned(&self.shallow_type_opt(&step)) {
+                    step = AstExpr::Cast {
+                        val: Box::new(step),
+                        to: var_ty.clone(),
+                    };
+                }
                 if !Self::is_integer_type(&var_ty) {
                     return Err(self.error(
                         span,

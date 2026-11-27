@@ -548,6 +548,10 @@ impl<'a> Lowerer<'a> {
                     "the remaining values",
                     "the numbers that remain",
                     "the items that remain",
+                    "the list",
+                    "the numbers",
+                    "the items",
+                    "the values",
                 ] {
                     if let Some((start, end)) =
                         crate::textutil::find_top_level_phrase(&current, phrase)

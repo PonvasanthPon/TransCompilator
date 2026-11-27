@@ -636,6 +636,9 @@ impl Lowerer<'_> {
                 "statement nesting exceeded the 32-level guard",
             ));
         }
+        if let Some(statement) = self.try_list_operation(&sentence.text, sentence.span)? {
+            return Ok(vec![statement]);
+        }
         if let Some(graph) = clause_graph::decompose(&sentence.text) {
             return self.lower_clause_graph(graph, sentence.span, depth, then_items, else_items);
         }
@@ -728,7 +731,14 @@ impl Lowerer<'_> {
             return Ok(Vec::new());
         }
         if starts_with_word(&original_lower, "for") {
-            let global = parse_global_quantifier(original)
+            let global_text = if let Some(list) = self.last_list.clone() {
+                original
+                    .replace("the list", &list)
+                    .replace("The list", &list)
+            } else {
+                original.to_string()
+            };
+            let global = parse_global_quantifier(&global_text)
                 .map_err(|message| self.error(span, SemanticErrorKind::Lowering, message))?;
             if let Some(global) = global {
                 return self.lower_global_quantifier(global, then_items, span, depth);
@@ -805,6 +815,9 @@ impl Lowerer<'_> {
                 }
             }
             return Ok(statements);
+        }
+        if let Some(statement) = self.try_list_operation(trimmed, span)? {
+            return Ok(vec![statement]);
         }
         if let Some(phrase) = self
             .match_phrase_typed(trimmed, span)?

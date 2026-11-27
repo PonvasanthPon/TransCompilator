@@ -306,6 +306,32 @@ impl<'a> Parser<'a> {
         Ok(binary(BinOp::LogAnd, lower, upper))
     }
 
+    fn comparison_binary(&self, operator: BinOp, left: AstExpr, right: AstExpr) -> AstExpr {
+        let signedness = |ty: Option<AstType>| match ty {
+            Some(AstType::I8 | AstType::I16 | AstType::I32 | AstType::I64) => Some(true),
+            Some(AstType::U8 | AstType::U16 | AstType::U32 | AstType::U64) => Some(false),
+            _ => None,
+        };
+        let left_signed = signedness(self.env.expr_type(&left));
+        let right_signed = signedness(self.env.expr_type(&right));
+        match (left_signed, right_signed) {
+            (Some(left_is_signed), Some(right_is_signed)) if left_is_signed != right_is_signed => {
+                binary(
+                    operator,
+                    AstExpr::Cast {
+                        val: Box::new(left),
+                        to: AstType::I64,
+                    },
+                    AstExpr::Cast {
+                        val: Box::new(right),
+                        to: AstType::I64,
+                    },
+                )
+            }
+            _ => binary(operator, left, right),
+        }
+    }
+
     fn parse_comparison(&mut self) -> Result<AstExpr> {
         let mut left = self.parse_bitwise()?;
         loop {
@@ -356,11 +382,11 @@ impl<'a> Parser<'a> {
                 }
                 if let Some(operator) = self.comparison_operator() {
                     let right = self.parse_bitwise()?;
-                    left = binary(operator, left, right);
+                    left = self.comparison_binary(operator, left, right);
                     continue;
                 }
                 let right = self.parse_bitwise()?;
-                left = binary(BinOp::Eq, left, right);
+                left = self.comparison_binary(BinOp::Eq, left, right);
                 continue;
             }
             if self.eat_word("between") {
@@ -370,7 +396,7 @@ impl<'a> Parser<'a> {
             }
             if let Some(operator) = self.comparison_operator() {
                 let right = self.parse_bitwise()?;
-                left = binary(operator, left, right);
+                left = self.comparison_binary(operator, left, right);
                 continue;
             }
             break;
@@ -503,6 +529,65 @@ impl<'a> Parser<'a> {
         Ok(left)
     }
 
+    fn index_as_u64(&self, index: AstExpr) -> AstExpr {
+        if matches!(self.env.expr_type(&index), Some(AstType::U64)) {
+            return index;
+        }
+        AstExpr::Cast {
+            val: Box::new(index),
+            to: AstType::U64,
+        }
+    }
+
+    fn list_item_expression(&self, base: AstExpr, index: AstExpr) -> Option<AstExpr> {
+        let ty = self.env.expr_type(&base)?.clone();
+        let pointer = match ty {
+            AstType::Named { name, .. } if name.eq_ignore_ascii_case("list") => {
+                place_address(&base, self.env)?
+            }
+            AstType::Ptr(inner) => match inner.as_ref() {
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("list") => base,
+                _ => return None,
+            },
+            _ => return None,
+        };
+        Some(AstExpr::Call {
+            module: None,
+            name: "list_get".to_string(),
+            type_args: Vec::new(),
+            args: vec![pointer, self.index_as_u64(index)],
+        })
+    }
+
+    fn string_byte_expression(&self, text: AstExpr, index: AstExpr) -> Option<AstExpr> {
+        let ty = self.env.expr_type(&text)?.clone();
+        let pointer = match ty {
+            AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring") => {
+                place_address(&text, self.env)?
+            }
+            AstType::Ptr(inner) => match inner.as_ref() {
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring") => text,
+                AstType::U8 => text,
+                _ => return None,
+            },
+            _ => return None,
+        };
+        let data = match self.env.expr_type(&pointer) {
+            Some(AstType::Ptr(inner)) if matches!(inner.as_ref(), AstType::U8) => pointer,
+            _ => AstExpr::FieldAddr {
+                base_ptr: Box::new(pointer),
+                field: "data".to_string(),
+            },
+        };
+        Some(AstExpr::Cast {
+            val: Box::new(AstExpr::Load(Box::new(AstExpr::IndexAddr {
+                base_ptr: Box::new(data),
+                index: Box::new(self.index_as_u64(index)),
+            }))),
+            to: AstType::I64,
+        })
+    }
+
     fn parse_unary(&mut self) -> Result<AstExpr> {
         self.charge()?;
         if self.eat_word("apply") {
@@ -561,27 +646,57 @@ impl<'a> Parser<'a> {
                 .peek()
                 .is_some_and(|token| token.kind == TokenKind::Number)
             {
-                self.parse_unary()?
+                self.parse_unary().ok()
             } else if self.peek_lower(0).is_some() && self.peek_lower(1) == Some("of") {
                 let name = self.peek_lower(0).unwrap_or_default().to_string();
                 self.position += 1;
-                AstExpr::Var(name)
+                Some(AstExpr::Var(name))
             } else {
-                let result = self.parse_unary();
-                if result.is_err() {
-                    self.position = saved;
-                    return Err("item index is invalid".to_string());
-                }
-                result?
+                self.parse_unary().ok()
             };
-            if self.eat_word("of") {
+            if let Some(index) = index
+                && self.eat_word("of")
+            {
                 let pointer = self.parse_unary()?;
+                if let Some(value) = self.list_item_expression(pointer.clone(), index.clone()) {
+                    return Ok(value);
+                }
                 let base = deref_address(&pointer, self.env)
                     .ok_or_else(|| "item access requires a pointer".to_string())?;
                 return Ok(AstExpr::Load(Box::new(AstExpr::IndexAddr {
                     base_ptr: Box::new(base),
                     index: Box::new(index),
                 })));
+            }
+            self.position = saved;
+        }
+        if matches!(self.peek_lower(0), Some("character" | "byte")) {
+            let saved = self.position;
+            self.position += 1;
+            let index = if self.peek_lower(1) == Some("of") {
+                let token = self.peek().cloned();
+                match token {
+                    Some(token) if token.kind == TokenKind::Number => {
+                        self.parse_primary().map(|(value, _)| value)
+                    }
+                    Some(token) if token.is_word() => {
+                        self.position += 1;
+                        Ok(AstExpr::Var(token.lower.clone()))
+                    }
+                    _ => self.parse_unary(),
+                }
+            } else {
+                self.parse_unary()
+            };
+            let Ok(index) = index else {
+                self.position = saved;
+                return Err("character index is invalid".to_string());
+            };
+            if self.eat_word("of") {
+                let text = self.parse_unary()?;
+                if let Some(value) = self.string_byte_expression(text, index) {
+                    return Ok(value);
+                }
             }
             self.position = saved;
         }
