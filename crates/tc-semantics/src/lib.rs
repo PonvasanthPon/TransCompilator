@@ -392,6 +392,16 @@ fn augmented_sources(
         .map(SourceFile::module_name)
         .collect::<HashSet<_>>();
     let mut wanted = vec!["io".to_string()];
+    // Explicit `Use`/`Import` declarations are authoritative. The browser
+    // build has no filesystem, so these names must enter the embedded-module
+    // queue even when the prose heuristics below do not recognize a phrase.
+    for source in &all {
+        for module in module_imports(source) {
+            if is_std_module(&module) {
+                wanted.push(module);
+            }
+        }
+    }
     if needs_list {
         wanted.push("list".to_string());
     }
