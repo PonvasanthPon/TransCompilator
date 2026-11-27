@@ -1,0 +1,15 @@
+Let first be a list of 1, 4, and 5.
+Let second be a list of 1, 3, and 4.
+Let third be a list of 2 and 6.
+Let merged be an empty list of whole numbers.
+For each value in first.
+Append value to merged.
+
+For each value in second.
+Append value to merged.
+
+For each value in third.
+Append value to merged.
+
+Sort merged.
+For each value in merged, print value.

@@ -1,0 +1,12 @@
+Let values be a list of 1, 4, 3, 2, 5, and 2.
+Let pivot be 3.
+Let lower be an empty list of whole numbers.
+Let upper be an empty list of whole numbers.
+For each value in values.
+If value is less than pivot, append value to lower.
+If value is at least pivot, append value to upper.
+
+For each value in upper.
+Append value to lower.
+
+For each value in lower, print value.

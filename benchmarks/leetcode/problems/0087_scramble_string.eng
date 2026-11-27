@@ -1,0 +1,21 @@
+Let first text be "great".
+Let second text be "rgeat".
+Let size be 5.
+Let width be 6.
+Let table be a list of 150 zeros.
+For every first from 0 to 4.
+For every second from 0 to 4.
+If character first of first text is character second of second text, set item ((first times 5 plus second) times 6 plus 1) of table to 1.
+
+For every length from 2 to 5.
+For every first from 0 to (5 minus length).
+For every second from 0 to (5 minus length).
+For every split from 1 to length minus 1.
+Let no swap be 0.
+If item ((first times 5 plus second) times 6 plus split) of table is 1 and item (((first plus split) times 5 plus second plus split) times 6 plus length minus split) of table is 1, set no swap to 1.
+Let with swap be 0.
+If item ((first times 5 plus second plus length minus split) times 6 plus split) of table is 1 and item (((first plus split) times 5 plus second) times 6 plus length minus split) of table is 1, set with swap to 1.
+If no swap is 1 or with swap is 1, set item ((first times 5 plus second) times 6 plus length) of table to 1.
+
+If item 5 of table is 1, print true.
+Otherwise, print false.

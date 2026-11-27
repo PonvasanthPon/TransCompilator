@@ -1,0 +1,16 @@
+Let first be a list of 2, 4, and 3.
+Let second be a list of 5, 6, and 4.
+Let result be an empty list of whole numbers.
+Let position be 0.
+Let carry be 0.
+Let first last be the last position of first.
+Let second last be the last position of second.
+Repeat while position is at most first last or position is at most second last or carry is 1.
+Let sum be carry.
+If position is at most first last, set sum to sum plus item position of first.
+If position is at most second last, set sum to sum plus item position of second.
+Append sum modulo 10 to result.
+Set carry to sum divided by 10.
+Add 1 to position.
+
+For each value in result, print value.

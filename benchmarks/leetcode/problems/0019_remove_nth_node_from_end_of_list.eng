@@ -1,0 +1,5 @@
+Let values be a list of 1, 2, 3, 4, and 5.
+Let last be the last position of values.
+Let position be last plus 1 minus 2.
+Remove item position of values.
+For each value in values, print value.

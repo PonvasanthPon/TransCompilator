@@ -1,0 +1,11 @@
+Let values be a list of 1, 2, 3, 4, and 5.
+Let group size be 2.
+Let last be the last position of values.
+Let start be 0.
+Repeat while start plus group size minus 1 is at most last.
+Let left be start.
+Let right be start plus group size minus 1.
+Repeat while left is less than right, swap item left of values and item right of values, add 1 to left, subtract 1 from right.
+Set start to start plus group size.
+
+For each value in values, print value.

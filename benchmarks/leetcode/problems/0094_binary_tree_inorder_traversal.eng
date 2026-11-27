@@ -1,0 +1,21 @@
+Keep a shared values as an empty list of whole numbers.
+Append 1 to values.
+Append 2 to values.
+Append 3 to values.
+Keep a shared lefts as an empty list of whole numbers.
+Append -1 to lefts.
+Append 2 to lefts.
+Append -1 to lefts.
+Keep a shared rights as an empty list of whole numbers.
+Append 1 to rights.
+Append -1 to rights.
+Append -1 to rights.
+Keep a shared order as an empty list of whole numbers.
+To gather from node (a whole number).
+If node is less than 0, return.
+Gather from item node of lefts.
+Append node to order.
+Gather from item node of rights.
+
+Gather from 0.
+For each node in order, print item node of values.

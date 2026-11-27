@@ -1,0 +1,51 @@
+Let source be "This,is,an,example,of,text,justification.".
+Let pieces be split source by ",".
+Keep a shared words as an empty list of text.
+For each piece in pieces.
+Append piece to words.
+
+Keep a shared count as 0.
+Set count to 7.
+Keep a shared width as 0.
+Set width to 16.
+Keep a shared finish as 0.
+Keep a shared usedwidth as 0.
+Keep a shared padding as empty text.
+Append "                                                                " to padding.
+
+To search from position (a whole number) with occupied (a whole number).
+If position is count, set finish to position, return.
+Let word be item position of words.
+Let word last be the last position of word.
+Let next usedwidth be occupied plus 2 plus word last.
+Let previous used be occupied.
+Set usedwidth to next usedwidth.
+If next usedwidth is at most width, search from position plus 1 with next usedwidth, return.
+Set usedwidth to previous used.
+Set finish to position.
+
+To build line from start (a whole number).
+Set finish to 0.
+Let first word be item start of words.
+Let first last be the last position of first word.
+Set usedwidth to first last plus 1.
+Search from start plus 1 with usedwidth.
+Let line words be finish minus start.
+Let gaps be line words minus 1.
+Let base be 0.
+Let extra be 0.
+If finish is less than count and gaps is more than 0, set base to (width minus usedwidth plus gaps) divided by gaps, set extra to (width minus usedwidth plus gaps) modulo gaps.
+Let line be empty text.
+For every index from start to finish minus 1.
+Let word be item index of words.
+Append word to line.
+Let gap be index minus start.
+Let amount be base.
+If gap is less than extra, add 1 to amount.
+Let piece be the slice of padding from 0 to amount.
+If index is less than finish minus 1 and finish is count, append " " to line.
+If index is less than finish minus 1 and finish is less than count, append piece to line.
+If index is finish minus 1 and finish is count, let pad piece be the slice of padding from 0 to width minus usedwidth plus gaps, append pad piece to line, print line.
+If index is finish minus 1 and finish is less than count, print line, build line from finish.
+
+Build line from 0.

@@ -1,0 +1,6 @@
+Let values be a list of 1, 1, 2.
+Let result be an empty list of whole numbers.
+For each value in values.
+If result's len is 0 or item (result's len minus 1) of result is not value, append value to result.
+
+For each value in result, print value.
