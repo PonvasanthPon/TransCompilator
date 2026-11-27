@@ -1351,6 +1351,28 @@ Print x.
 "#,
         expect: Expect::Failure("empty loop body"),
     },
+    Case {
+        band: 3,
+        held_out: false,
+        name: "b3-repeat-while-indented",
+        source: r#"Let x be 5.
+Repeat while x is greater than 0:
+    Subtract 1 from x.
+Print x.
+"#,
+        expect: Expect::Output(&["0"]),
+    },
+    Case {
+        band: 3,
+        held_out: false,
+        name: "b3-repeat-until-indented",
+        source: r#"Let x be 0.
+Repeat until x is greater than 2:
+    Add 1 to x.
+Print x.
+"#,
+        expect: Expect::Output(&["3"]),
+    },
 ];
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);

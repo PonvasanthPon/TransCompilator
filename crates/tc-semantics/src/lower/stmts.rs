@@ -749,7 +749,26 @@ impl Lowerer<'_> {
         } else {
             self.resolve_anaphors(original, span)?
         };
-        let trimmed = resolved_text.as_str();
+        // A colon-headed `Repeat while`/`Repeat until` block reaches this
+        // point as a structural header, bypassing the flat-prose normalizer.
+        // Canonicalize it to the equivalent `While` form so indented bodies
+        // lower through the same condition/body path as `While`.
+        let repeat_condition = if original_lower.starts_with("repeat while ") {
+            Some(format!(
+                "While {}",
+                original["repeat while ".len()..].trim()
+            ))
+        } else if original_lower.starts_with("repeat until ") {
+            Some(format!(
+                "While not {}",
+                original["repeat until ".len()..].trim()
+            ))
+        } else {
+            None
+        };
+        let trimmed = repeat_condition
+            .as_deref()
+            .unwrap_or(resolved_text.as_str());
         let lower = trimmed.to_ascii_lowercase();
         for prefix in [
             "check whether ",
