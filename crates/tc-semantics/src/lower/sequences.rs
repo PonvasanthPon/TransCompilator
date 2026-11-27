@@ -531,7 +531,11 @@ impl Lowerer<'_> {
         }
     }
 
-    fn text_pointer(&mut self, value: AstExpr, span: Span) -> Result<AstExpr, SemanticError> {
+    pub(super) fn text_pointer(
+        &mut self,
+        value: AstExpr,
+        span: Span,
+    ) -> Result<AstExpr, SemanticError> {
         match value {
             AstExpr::Var(name) => {
                 if self.globals.contains_key(&name) && !self.current_scope_contains(&name) {
@@ -539,6 +543,10 @@ impl Lowerer<'_> {
                 } else {
                     Ok(AstExpr::AddrOfVar(name))
                 }
+            }
+            AstExpr::GlobalAddr { .. } => Ok(value),
+            AstExpr::Load(inner) if matches!(inner.as_ref(), AstExpr::GlobalAddr { .. }) => {
+                Ok(*inner)
             }
             other if matches!(self.shallow_type_opt(&other), Some(AstType::Ptr(_))) => Ok(other),
             _ => Err(self.error(
@@ -919,6 +927,29 @@ impl Lowerer<'_> {
     ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
         let trimmed = text.trim().trim_end_matches('.').trim();
         let lower = trimmed.to_ascii_lowercase();
+        if let Some(rest) = lower
+            .strip_prefix("remove the last character from ")
+            .or_else(|| lower.strip_prefix("remove last character from "))
+            .or_else(|| lower.strip_prefix("remove the last byte from "))
+            .or_else(|| lower.strip_prefix("remove last byte from "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if is_simple_name(rest) {
+                let target = lower_name(rest);
+                if self.is_text_variable(&target) {
+                    let pointer = self.text_pointer(AstExpr::Var(target), span)?;
+                    return Ok(Some(vec![AstStmt::Expr(
+                        AstExpr::Call {
+                            module: None,
+                            name: "str_pop_byte".to_string(),
+                            type_args: Vec::new(),
+                            args: vec![pointer],
+                        },
+                        self.span(span),
+                    )]));
+                }
+            }
+        }
         if !lower.starts_with("append ") {
             return Ok(None);
         }
@@ -1763,7 +1794,17 @@ impl Lowerer<'_> {
         span: Span,
     ) -> Result<AstExpr, SemanticError> {
         match value {
-            AstExpr::Var(name) => Ok(AstExpr::AddrOfVar(name)),
+            AstExpr::Var(name) => {
+                if self.globals.contains_key(&name) && !self.current_scope_contains(&name) {
+                    Ok(AstExpr::GlobalAddr { module: None, name })
+                } else {
+                    Ok(AstExpr::AddrOfVar(name))
+                }
+            }
+            AstExpr::GlobalAddr { .. } => Ok(value),
+            AstExpr::Load(inner) if matches!(inner.as_ref(), AstExpr::GlobalAddr { .. }) => {
+                Ok(*inner)
+            }
             other if matches!(self.shallow_type_opt(&other), Some(AstType::Ptr(_))) => Ok(other),
             _ => Err(self.error(
                 span,

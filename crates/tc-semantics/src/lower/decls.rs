@@ -1501,11 +1501,36 @@ pub(super) fn normalize_natural_declaration(trimmed: &str) -> Option<String> {
         let start = tokens
             .get(as_index + 1)
             .map_or(trimmed.len(), |token| token.start);
+        let declared = trimmed[start..].trim().trim_end_matches('.');
+        let declared_lower = declared.to_ascii_lowercase();
+        let ty = if declared == "0" {
+            "whole number".to_string()
+        } else if matches!(
+            declared_lower.as_str(),
+            "empty text" | "an empty text" | "empty string"
+        ) {
+            "TcString".to_string()
+        } else if let Some(element) = declared_lower
+            .strip_prefix("an empty list of ")
+            .or_else(|| declared_lower.strip_prefix("empty list of "))
+            .or_else(|| declared_lower.strip_prefix("a list of "))
+            .or_else(|| declared_lower.strip_prefix("list of "))
+        {
+            let element = if element.contains("text") || element.contains("string") {
+                "TcString"
+            } else if element.contains("decimal") || element.contains("real") {
+                "decimal"
+            } else {
+                "whole number"
+            };
+            format!("List of {element}")
+        } else {
+            declared.to_string()
+        };
         return Some(format!(
-            "{} global {} as {}",
+            "{} global {} as {ty}",
             if public { "Public" } else { "Private" },
-            lower_name(&name),
-            trimmed[start..].trim()
+            lower_name(&name)
         ));
     }
     None

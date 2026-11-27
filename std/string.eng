@@ -242,3 +242,37 @@ append to address of result text piece's data of length piece's len.
 Add 1 to position.
 End the loop.
 Give back result.
+
+Publicly, to sort characters given text as TcString, named str_sort_characters, giving TcString.
+Let result be create text from text's data of length text's len.
+Let position start at 1 as an unsigned number.
+Repeat while position is less than result's len.
+Let current be item position of result's data.
+Let scan be position.
+Repeat while scan is more than 0 and item (scan minus 1) of result's data is more than current.
+Set item scan of result's data to item (scan minus 1) of result's data.
+Subtract 1 from scan.
+End the loop.
+Set item scan of result's data to current.
+Add 1 to position.
+End the loop.
+Give back result.
+
+Publicly, to remove the last character from text s (a pointer to TcString), named str_pop_byte.
+If s's len is zero, give back.
+Subtract 1 from s's len.
+Set item s's len of s's data to 0.
+
+Publicly, to compare text first (a TcString) with text second (a TcString), named str_compare, giving a whole number.
+Let limit be the smaller of first's len and second's len.
+Let position start at 0 as an unsigned number.
+Repeat while position is less than limit.
+Let left be item position of first's data.
+Let right be item position of second's data.
+If left is less than right, give back -1.
+If left is more than right, give back 1.
+Add 1 to position.
+End the loop.
+If first's len is less than second's len, give back -1.
+If first's len is more than second's len, give back 1.
+Give back 0.

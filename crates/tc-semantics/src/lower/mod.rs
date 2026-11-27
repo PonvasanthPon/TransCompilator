@@ -1107,6 +1107,16 @@ impl ValueContext for Lowerer<'_> {
         }
         match &value {
             AstExpr::Var(name) => {
+                if self.globals.contains_key(name) && !self.current_scope_contains(name) {
+                    let base_ptr = AstExpr::GlobalAddr {
+                        module: None,
+                        name: name.clone(),
+                    };
+                    return Ok(Some(AstExpr::Load(Box::new(AstExpr::FieldAddr {
+                        base_ptr: Box::new(base_ptr),
+                        field: "len".to_string(),
+                    }))));
+                }
                 let field = format!("{name}'s len");
                 let expression = self.parse_expr(&field, span)?;
                 Ok(Some(expression))

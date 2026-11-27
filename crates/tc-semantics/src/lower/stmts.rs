@@ -256,6 +256,63 @@ impl Lowerer<'_> {
                 });
             }
         }
+        if let Some(rest) = lower
+            .strip_prefix("compare text ")
+            .or_else(|| lower.strip_prefix("compare "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((with_start, with_end)) = find_top_level_word(rest, "with") {
+                let left_text = rest[..with_start]
+                    .trim()
+                    .strip_prefix("text ")
+                    .unwrap_or(rest[..with_start].trim());
+                let right_text = rest[with_end..]
+                    .trim()
+                    .strip_prefix("text ")
+                    .unwrap_or(rest[with_end..].trim());
+                let left = self.parse_value(left_text, span)?;
+                let right = self.parse_value(right_text, span)?;
+                let left = self.as_text_value(left, span)?;
+                let right = self.as_text_value(right, span)?;
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_compare".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![left, right],
+                });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("format whole number ")
+            .or_else(|| lower.strip_prefix("format the whole number "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((as_start, _)) = find_top_level_word(rest, "as") {
+                let value_text = rest[..as_start].trim();
+                let value = self.parse_value(value_text, span)?;
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_from_i64".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![value],
+                });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("sort characters of ")
+            .or_else(|| lower.strip_prefix("the sorted characters of "))
+            .or_else(|| lower.strip_prefix("sorted characters of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let text_expr = self.parse_value(rest, span)?;
+            let text_expr = self.as_text_value(text_expr, span)?;
+            return Ok(AstExpr::Call {
+                module: None,
+                name: "str_sort_characters".to_string(),
+                type_args: Vec::new(),
+                args: vec![text_expr],
+            });
+        }
         if matches!(
             lower.as_str(),
             "an empty map" | "empty map" | "an empty number map" | "empty number map"
