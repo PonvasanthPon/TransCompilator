@@ -19,6 +19,11 @@
 <body>
   <header class="topbar">
     <div class="brand">
+      <button id="problems" class="menu-button" type="button" aria-label="Open solved problems" aria-expanded="false" aria-controls="problem-drawer">
+        <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true" focusable="false">
+          <path d="M3 5h12M3 9h12M3 13h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
       <a class="brand-name" href="https://github.com/PonvasanthPon/TransCompilator">The TransCompilator</a>
       <span class="brand-version" id="version">v0.1.0-alpha-preview</span>
       <span class="brand-by">by <a href="https://github.com/PonvasanthPon">Ponvasanth</a></span>
@@ -28,9 +33,6 @@
         <span class="visually-hidden">Example program</span>
         <select id="examples" aria-label="Example program"></select>
       </label>
-      <button id="problems" class="button" type="button" aria-expanded="false" aria-controls="problem-drawer">
-        Problems <span id="problem-count" class="button-count"></span>
-      </button>
       <button id="run" class="button button-primary" type="button">
         Run
         <kbd>Ctrl+Enter</kbd>
@@ -122,8 +124,8 @@
   <aside id="problem-drawer" class="problem-drawer" aria-labelledby="drawer-title" aria-hidden="true" inert>
     <div class="drawer-head">
       <div class="drawer-heading">
-        <h2 id="drawer-title">Problems</h2>
-        <p id="drawer-meta">Solved natural-English programs from the LeetCode battle test.</p>
+        <h2 id="drawer-title">Solved Problems <span id="problem-count"></span></h2>
+        <p id="drawer-meta">Original natural-English programs from the LeetCode battle test.</p>
       </div>
       <button id="drawer-close" class="drawer-close" type="button" aria-label="Close problems drawer">&times;</button>
     </div>

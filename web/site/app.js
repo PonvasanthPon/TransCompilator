@@ -1062,6 +1062,10 @@
       drawerHideTimer = null;
     }
     problemsButton.setAttribute("aria-expanded", open ? "true" : "false");
+    problemsButton.setAttribute(
+      "aria-label",
+      open ? "Close solved problems" : "Open solved problems"
+    );
     problemDrawer.setAttribute("aria-hidden", open ? "false" : "true");
     if (open) {
       problemDrawer.removeAttribute("inert");

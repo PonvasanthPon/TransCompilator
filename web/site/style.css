@@ -96,11 +96,35 @@ a:focus-visible {
 
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 9px;
   min-width: 0;
   margin-right: auto;
   white-space: nowrap;
+}
+
+.menu-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+}
+
+.menu-button:hover {
+  background: #eeede8;
+}
+
+.menu-button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .brand-name {
@@ -848,13 +872,6 @@ a:focus-visible {
 
 /* Responsive -------------------------------------------------------------- */
 
-.button-count {
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 400;
-}
-
 /* Problem drawer ---------------------------------------------------------- */
 
 .drawer-backdrop {
@@ -917,6 +934,13 @@ a:focus-visible {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.005em;
+}
+
+.drawer-heading h2 #problem-count {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .drawer-heading p {
@@ -1175,7 +1199,7 @@ a:focus-visible {
   .controls {
     grid-area: controls;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     width: 100%;
     gap: 8px;
   }
@@ -1192,6 +1216,11 @@ a:focus-visible {
     height: 36px;
     padding: 0 10px;
     font-size: 12px;
+  }
+
+  .menu-button {
+    width: 36px;
+    height: 36px;
   }
 
   .problem-drawer {
@@ -1319,10 +1348,6 @@ a:focus-visible {
   .button {
     padding: 0 9px;
     font-size: 12px;
-  }
-
-  .button-count {
-    display: none;
   }
 
   .tablist {
