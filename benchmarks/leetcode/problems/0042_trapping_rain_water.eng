@@ -1,39 +1,33 @@
-Use io and list.
-
 Let heights be a list of 0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, and 1.
-Let n be count of heights.
+Let n be 12.
+Let left max be an empty list of whole numbers.
+Let right max be an empty list of whole numbers.
 Let highest start at 0.
-Let left_max be an empty list of whole numbers.
-For every i from 0 as an unsigned number to n - 1:
-    Let value be list_get(address of heights, i).
-    If value is more than highest:
-        Set highest to value.
-    push highest to address of left_max.
 
-Let right_max be an empty list of whole numbers.
-For every i from 0 as an unsigned number to n - 1:
-    push 0 to address of right_max.
-Set highest to 0.
-For every step from 0 as an unsigned number to n - 1:
-    Let i be n - 1 - step.
-    Let value be list_get(address of heights, i).
-    If value is more than highest:
+For every i from 0 to n - 1:
+    Let value be item i of heights.
+    If value > highest:
         Set highest to value.
-    list_set(address of right_max, i, highest).
+    Append highest to left max.
+
+For every i from 0 to n - 1:
+    Append 0 to right max.
+Set highest to 0.
+For every step from 0 to n - 1:
+    Let i be n - step.
+    Subtract 1 from i.
+    Let value be item i of heights.
+    If value > highest:
+        Set highest to value.
+    Set item i of right max to highest.
 
 Let water start at 0.
-For every i from 0 as an unsigned number to n - 1:
-    Let left be list_get(address of left_max, i).
-    Let right be list_get(address of right_max, i).
-    Let boundary be left.
-    If right is less than boundary:
-        Set boundary to right.
-    Let depth be boundary - list_get(address of heights, i).
-    If depth is more than 0:
+For every i from 0 to n - 1:
+    Let boundary be item i of left max.
+    If item i of right max < boundary:
+        Set boundary to item i of right max.
+    Let depth be boundary - item i of heights.
+    If depth > 0:
         Add depth to water.
 
-Say water.
-list_free(address of right_max).
-list_free(address of left_max).
-list_free(address of heights).
-Return 0.
+Print water.

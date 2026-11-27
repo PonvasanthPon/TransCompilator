@@ -1,45 +1,22 @@
-Use io and string.
-
-Define function atoi taking text as a pointer to TcString returning a whole number:
-    Let n be length of text.
-    Let i start at 0 as an unsigned number.
-    While i < n and text.data[i] equals 32:
-        Add 1 to i.
-    Let negative be false.
-    If i < n and text.data[i] equals 45:
-        Set negative to true.
-        Add 1 to i.
-    Otherwise:
-        If i < n and text.data[i] equals 43:
-            Add 1 to i.
-    Let value start at 0.
-    Let digits start at 0.
-    While i < n and text.data[i] is at least 48 and text.data[i] is at most 57:
-        Let digit be text.data[i] as a whole number - 48.
-        Set value to value * 10 + digit.
-        Add 1 to i.
-        Add 1 to digits.
-    If digits is 0:
-        Give back 0.
-    If negative:
-        Set value to 0 - value.
-    If value is more than 2147483647:
-        Give back 2147483647.
-    If value is less than -2147483648:
-        Give back -2147483648.
-    Give back value.
-Done.
-
-Let first be str_from_bytes(bytes_ptr("   -42"), bytes_len("   -42")).
-Let second be str_from_bytes(bytes_ptr("4193 with words"), bytes_len("4193 with words")).
-Let third be str_from_bytes(bytes_ptr("words and 987"), bytes_len("words and 987")).
-Let fourth be str_from_bytes(bytes_ptr("-91283472332"), bytes_len("-91283472332")).
-Say atoi(address of first).
-Say atoi(address of second).
-Say atoi(address of third).
-Say atoi(address of fourth).
-str_free(address of first).
-str_free(address of second).
-str_free(address of third).
-str_free(address of fourth).
-Return 0.
+Let word be "   -42".
+Let n be the number of characters in word.
+Let i start at 0.
+While i < n and character i of word is 32:
+    Add 1 to i.
+Let negative be false.
+If i < n and character i of word is 45:
+    Set negative to true.
+    Add 1 to i.
+If i < n and character i of word is 43:
+    Add 1 to i.
+Let value start at 0.
+While i < n and character i of word is at least 48 and character i of word is at most 57:
+    Set value to value * 10 + character i of word - 48.
+    Add 1 to i.
+If negative:
+    Set value to 0 - value.
+If value > 2147483647:
+    Set value to 2147483647.
+If value < -2147483648:
+    Set value to -2147483648.
+Print value.

@@ -1,47 +1,24 @@
-Use io, list, and math.
-
-Define function cmp_i64 taking a as a pointer to whole number and b as a pointer to whole number returning a whole number:
-    If value at a is less than value at b, give back -1.
-    If value at a is more than value at b, give back 1.
-    Give back 0.
-Done.
-
 Let nums be a list of 1, 0, -1, 0, -2, and 2.
 Let target be 0.
-sort address of nums using function cmp_i64.
+Sort nums.
 Let n be count of nums.
 
-For every i from 0 as an unsigned number to n - 1:
-    If i is more than 0:
-        Let prior i be list_get(address of nums, i - 1).
-        Let current i be list_get(address of nums, i).
-        If current i equals prior i:
+For every i from 0 to n - 1:
+    If i > 0 and item i of nums is item (i - 1) of nums:
+        Continue.
+    For every j from i + 1 to n - 1:
+        If j > i + 1 and item j of nums is item (j - 1) of nums:
             Continue.
-    For every j from i + 1 as an unsigned number to n - 1:
-        If j is more than i + 1:
-            Let prior j be list_get(address of nums, j - 1).
-            Let current j be list_get(address of nums, j).
-            If current j equals prior j:
+        For every k from j + 1 to n - 1:
+            If k > j + 1 and item k of nums is item (k - 1) of nums:
                 Continue.
-        For every k from j + 1 as an unsigned number to n - 1:
-            If k is more than j + 1:
-                Let prior k be list_get(address of nums, k - 1).
-                Let current k be list_get(address of nums, k).
-                If current k equals prior k:
+            For every l from k + 1 to n - 1:
+                If l > k + 1 and item l of nums is item (l - 1) of nums:
                     Continue.
-            For every l from k + 1 as an unsigned number to n - 1:
-                If l is more than k + 1:
-                    Let prior l be list_get(address of nums, l - 1).
-                    Let current l be list_get(address of nums, l).
-                    If current l equals prior l:
-                        Continue.
-                Let total be list_get(address of nums, i) + list_get(address of nums, j) + list_get(address of nums, k) + list_get(address of nums, l).
-                If total equals target:
-                    Say list_get(address of nums, i).
-                    Say list_get(address of nums, j).
-                    Say list_get(address of nums, k).
-                    Say list_get(address of nums, l).
-                    Say "---".
-
-list_free(address of nums).
-Return 0.
+                Let total be item i of nums + item j of nums + item k of nums + item l of nums.
+                If total is target:
+                    Print item i of nums.
+                    Print item j of nums.
+                    Print item k of nums.
+                    Print item l of nums.
+                    Print "---".

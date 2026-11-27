@@ -1,31 +1,28 @@
-Use io and list.
+Let nums be a list of 4, 5, 6, 7, 0, 1, and 2.
+Let target be 0.
+Let n be 7.
+Let low start at 0.
+Let high be n - 1.
+Let answer start at -1.
 
-Define function search_rotated taking nums as a pointer to List of whole number, target as a whole number returning a whole number:
-    Let n be count of nums.
-    Let low start at 0 as a whole number.
-    Let high be n as a whole number - 1.
-    Repeat while low is at most high:
-        Let middle be low + (high - low) divided by 2.
-        Let value be list_get(nums, middle as an unsigned number).
-        If value equals target:
-            Give back middle.
-        Let low value be list_get(nums, low as an unsigned number).
-        If low value is at most value:
-            If target is at least low value and target is less than value:
+Repeat while low <= high:
+    Let middle be low + (high - low) / 2.
+    Let value be item middle of nums.
+    If value is target:
+        Set answer to middle.
+        Set low to high + 1.
+    Otherwise:
+        Let low value be item low of nums.
+        If low value <= value:
+            If target >= low value and target < value:
                 Set high to middle - 1.
             Otherwise:
                 Set low to middle + 1.
         Otherwise:
-            Let high value be list_get(nums, high as an unsigned number).
-            If target is more than value and target is at most high value:
+            Let high value be item high of nums.
+            If target > value and target <= high value:
                 Set low to middle + 1.
             Otherwise:
                 Set high to middle - 1.
-    Give back -1.
-Done.
 
-Let nums be a list of 4, 5, 6, 7, 0, 1, and 2.
-Say search_rotated(address of nums, 0).
-Say search_rotated(address of nums, 3).
-list_free(address of nums).
-Return 0.
+Print answer.

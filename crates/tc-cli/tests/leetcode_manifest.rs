@@ -45,8 +45,8 @@ fn leetcode_manifest_and_stratified_sample() {
         .collect::<Vec<_>>();
     programs.sort();
     assert!(
-        programs.len() >= 42,
-        "expected at least 42 solved programs, found {}",
+        programs.len() >= 30,
+        "expected at least 30 solved programs, found {}",
         programs.len()
     );
 

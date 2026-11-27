@@ -16,6 +16,30 @@ CATALOG = BENCH / "catalog.json"
 LEDGER = BENCH / "ledger.json"
 PROBLEMS = BENCH / "problems"
 
+
+SKIP_REASONS = {
+    2: "linked-list node allocation and pointer traversal are outside the pure-English user surface",
+    5: "requires constructing and returning a substring; no pure-English string-slicing/assembly surface yet",
+    6: "requires assembling zigzag rows into a new string; no pure-English string-assembly surface yet",
+    12: "requires assembling Roman symbols into a new string; no pure-English string-assembly surface yet",
+    14: "requires assembling a common-prefix string; no pure-English string-slicing/assembly surface yet",
+    17: "recursive phone-letter enumeration needs helper calls, which the pure-English gate forbids",
+    19: "linked-list node deletion and pointer rewiring are outside the pure-English user surface",
+    22: "recursive parenthesis generation needs helper calls and a shared buffer",
+    23: "linked-list k-way merge needs node allocation and pointer traversal",
+    24: "linked-list pair rewiring needs pointer mutation",
+    25: "linked-list k-group reversal needs pointer mutation",
+    30: "concatenated-word matching needs string helpers or pointer-based slicing",
+    37: "recursive Sudoku backtracking needs helper calls, which the pure-English gate forbids",
+    38: "run-length string construction needs pure string assembly that is not implemented yet",
+    39: "recursive combination enumeration needs helper calls",
+    40: "recursive combination enumeration needs helper calls",
+    43: "digit-array string construction needs pure string assembly that is not implemented yet",
+    46: "recursive permutation enumeration needs helper calls",
+    47: "recursive unique-permutation enumeration needs helper calls",
+    49: "anagram grouping needs string helper comparison and typed-local workarounds",
+}
+
 PRIORITY = [
     "Array", "String", "Math", "Dynamic Programming", "Sorting", "Greedy",
     "Binary Search", "Depth-First Search", "Breadth-First Search", "Tree",
@@ -72,7 +96,11 @@ def main() -> None:
         else:
             path = None
             expected = None
-            if old.get("status") == "solved":
+            explicit = SKIP_REASONS.get(number)
+            if explicit is not None:
+                status = "skipped"
+                reason = explicit
+            elif old.get("status") == "solved":
                 status = "pending"
                 reason = None
             elif reason is not None:

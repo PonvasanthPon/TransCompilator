@@ -1,30 +1,19 @@
-Use io and string.
+Let word be "sadbutsad".
+Let needle be "sad".
+Let n be the number of characters in word.
+Let m be the number of characters in needle.
+Let found be false.
 
-Define function find_text taking haystack as a pointer to TcString, needle as a pointer to TcString returning a whole number:
-    Let hay length be length of haystack.
-    Let needle length be length of needle.
-    If needle length is 0, give back 0.
-    If needle length is more than hay length, give back -1.
-    Let offset start at 0 as an unsigned number.
-    Repeat while offset + needle length is at most hay length:
-        Let matched be true.
-        For every i from 0 as an unsigned number to needle length - 1:
-            If haystack.data[offset + i] isn't equal to needle.data[i]:
-                Set matched to false.
-        If matched is true:
-            Give back offset as a whole number.
-        Add 1 to offset.
-    Give back -1.
-Done.
+For every offset from 0 to n - m:
+    If found is false:
+        Let matches be true.
+        For every j from 0 to m - 1:
+            Let position be offset + j.
+            If character position of word is not character j of needle:
+                Set matches to false.
+        If matches is true:
+            Set found to true.
+            Print offset.
 
-Let first haystack be str_from_bytes(bytes_ptr("sadbutsad"), bytes_len("sadbutsad")).
-Let first needle be str_from_bytes(bytes_ptr("sad"), bytes_len("sad")).
-Let second haystack be str_from_bytes(bytes_ptr("leetcode"), bytes_len("leetcode")).
-Let second needle be str_from_bytes(bytes_ptr("leeto"), bytes_len("leeto")).
-Say find_text(address of first haystack, address of first needle).
-Say find_text(address of second haystack, address of second needle).
-str_free(address of first haystack).
-str_free(address of first needle).
-str_free(address of second haystack).
-str_free(address of second needle).
-Return 0.
+If found is false:
+    Print -1.

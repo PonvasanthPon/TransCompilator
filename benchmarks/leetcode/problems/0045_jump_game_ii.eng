@@ -1,19 +1,15 @@
-Use io and list.
-
 Let jumps be a list of 2, 3, 1, 1, and 4.
 Let n be count of jumps.
 Let steps start at 0.
-Let end_of_step start at 0 as an unsigned number.
-Let farthest start at 0 as an unsigned number.
+Let end of step start at 0.
+Let farthest start at 0.
 
-For every i from 0 as an unsigned number to n - 2:
-    Let reach be i + list_get(address of jumps, i) as an unsigned number.
-    If reach is more than farthest:
+For every i from 0 to n - 2:
+    Let reach be i + item i of jumps.
+    If reach > farthest:
         Set farthest to reach.
-    If i equals end_of_step:
+    If i is end of step:
         Add 1 to steps.
-        Set end_of_step to farthest.
+        Set end of step to farthest.
 
-Say steps.
-list_free(address of jumps).
-Return 0.
+Print steps.

@@ -1,42 +1,24 @@
-Use io, list, and string.
+Let word be "()[]{}".
+Let n be the number of characters in word.
+Let stack be an empty list of whole numbers.
+Let valid be true.
 
-Define function valid_parentheses taking text as a pointer to TcString returning a truth value:
-    Let stack be List of byte.
-    Let n be length of text.
-    Let valid be true.
-    For every i from 0 as an unsigned number to n - 1:
-        Let c be text.data[i].
-        If c equals 40 or c equals 91 or c equals 123:
-            push c to address of stack.
+For every i from 0 to n - 1:
+    Let c be character i of word.
+    If c is 40 or c is 91 or c is 123:
+        Append c to stack.
+    Otherwise:
+        Let size be count of stack.
+        If size is 0:
+            Set valid to false.
         Otherwise:
-            Let stack_size be count of stack.
-            If stack_size is 0:
-                Set valid to false.
-                Break.
-            Let top be pop from address of stack.
-            If c equals 41 and top isn't 40:
-                Set valid to false.
-                Break.
-            If c equals 93 and top isn't 91:
-                Set valid to false.
-                Break.
-            If c equals 125 and top isn't 123:
-                Set valid to false.
-                Break.
-    Let final_size be count of stack.
-    If final_size isn't 0:
-        Set valid to false.
-    list_free(address of stack).
-    Give back valid.
-Done.
+            Let top be item (size - 1) of stack.
+            Remove the last item from stack.
+            If c is 41 and top is not 40, set valid to false.
+            If c is 93 and top is not 91, set valid to false.
+            If c is 125 and top is not 123, set valid to false.
 
-Let first be str_from_bytes(bytes_ptr("()[]{}"), bytes_len("()[]{}")).
-Let second be str_from_bytes(bytes_ptr("([{}])"), bytes_len("([{}])")).
-Let third be str_from_bytes(bytes_ptr("(]"), bytes_len("(]")).
-Say valid_parentheses(address of first).
-Say valid_parentheses(address of second).
-Say valid_parentheses(address of third).
-str_free(address of first).
-str_free(address of second).
-str_free(address of third).
-Return 0.
+Let final size be count of stack.
+If final size is not 0:
+    Set valid to false.
+Print valid.

@@ -1,39 +1,31 @@
-Use io and string.
+Let word be "MCMXCIV".
+Let n be the number of characters in word.
+Let total start at 0.
 
-Define function roman_value taking c as a byte returning a whole number:
-    If c equals 73, give back 1.
-    If c equals 86, give back 5.
-    If c equals 88, give back 10.
-    If c equals 76, give back 50.
-    If c equals 67, give back 100.
-    If c equals 68, give back 500.
-    If c equals 77, give back 1000.
-    Give back 0.
-Done.
-
-Define function roman_total taking text as a pointer to TcString returning a whole number:
-    Let n be length of text.
-    Let total start at 0.
-    For every i from 0 as an unsigned number to n - 1:
-        Let value be roman_value(text.data[i]).
-        If i + 1 is less than n:
-            Let next value be roman_value(text.data[i + 1]).
-            If value is less than next value:
-                Subtract value from total.
-            Otherwise:
-                Add value to total.
+For every i from 0 to n - 1:
+    Let value start at 0.
+    Let c be character i of word.
+    If c is 73, set value to 1.
+    If c is 86, set value to 5.
+    If c is 88, set value to 10.
+    If c is 76, set value to 50.
+    If c is 67, set value to 100.
+    If c is 68, set value to 500.
+    If c is 77, set value to 1000.
+    If i + 1 < n:
+        Let next value start at 0.
+        Let next c be character (i + 1) of word.
+        If next c is 86, set next value to 5.
+        If next c is 88, set next value to 10.
+        If next c is 76, set next value to 50.
+        If next c is 67, set next value to 100.
+        If next c is 68, set next value to 500.
+        If next c is 77, set next value to 1000.
+        If value < next value:
+            Set total to total - value.
         Otherwise:
-            Add value to total.
-    Give back total.
-Done.
+            Set total to total + value.
+    Otherwise:
+        Set total to total + value.
 
-Let first be str_from_bytes(bytes_ptr("MCMXCIV"), bytes_len("MCMXCIV")).
-Let second be str_from_bytes(bytes_ptr("LVIII"), bytes_len("LVIII")).
-Let third be str_from_bytes(bytes_ptr("IX"), bytes_len("IX")).
-Say roman_total(address of first).
-Say roman_total(address of second).
-Say roman_total(address of third).
-str_free(address of first).
-str_free(address of second).
-str_free(address of third).
-Return 0.
+Print total.

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -27,6 +28,58 @@ TC = ROOT / "target" / "release" / "tc"
 TC_LSP = ROOT / "target" / "release" / "tc-lsp"
 WASM = ROOT / "web" / "site" / "tc_wasm.wasm"
 WASM_EVAL = ROOT / "scripts" / "wasm_eval.mjs"
+
+
+
+PURE_ENGLISH_PATTERNS = [
+    (re.compile(r"\b[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+\b"), "snake_case identifier"),
+    (re.compile(r"\b[A-Za-z][A-Za-z0-9_]*\("), "C-style function call"),
+    (re.compile(r"\baddress\s+of\b", re.IGNORECASE), "raw address syntax"),
+    (re.compile(r"\bas\s+an\s+unsigned\s+number\b", re.IGNORECASE), "unsigned cast"),
+    (re.compile(r"\bas\s+a\s+whole\s+number\b", re.IGNORECASE), "whole-number cast"),
+    (re.compile(r"\bas\s+a\s+pointer\b", re.IGNORECASE), "pointer cast"),
+    (re.compile(r"\bas\s+a\s+byte\b", re.IGNORECASE), "byte cast"),
+    (re.compile(r"(?im)^\s*(?:use|import)\s+"), "manual std import"),
+    (re.compile(r"(?im)^\s*return\s+0\s*\.?\s*$"), "manual Return 0"),
+]
+
+
+def strip_quoted(text: str) -> str:
+    """Blank quoted literals while preserving byte offsets and line numbers."""
+    output = []
+    index = 0
+    quote = None
+    while index < len(text):
+        character = text[index]
+        if quote is not None:
+            if character == "\\" and index + 1 < len(text):
+                output.extend("  ")
+                index += 2
+                continue
+            if character == quote:
+                quote = None
+            output.append("\n" if character == "\n" else " ")
+            index += 1
+            continue
+        if character in {'"', "'"}:
+            quote = character
+            output.append(" ")
+            index += 1
+            continue
+        output.append(character)
+        index += 1
+    return "".join(output)
+
+
+def check_pure_english(path: Path, text: str) -> list[str]:
+    """Hard-fail disguised C, pointer plumbing, casts, and boilerplate."""
+    visible = strip_quoted(text)
+    violations = []
+    for pattern, label in PURE_ENGLISH_PATTERNS:
+        for match in pattern.finditer(visible):
+            line = visible.count("\n", 0, match.start()) + 1
+            violations.append(f"{path.name}:{line}: {label} `{match.group(0).strip()}`")
+    return violations
 
 
 def run(command: list[str], timeout: int = 120) -> subprocess.CompletedProcess[bytes]:
@@ -246,6 +299,9 @@ def main() -> int:
         expected = expected_path.read_bytes() if expected_path.exists() else b""
         if not expected_path.exists():
             issues.append(f"missing expected output {entry['expected']}")
+
+        pure_violations = check_pure_english(source, source.read_text())
+        issues.extend(pure_violations)
 
         interpreted = run([str(TC), "interp", str(source)])
         if interpreted.returncode != 0:

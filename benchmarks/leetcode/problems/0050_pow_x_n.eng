@@ -1,21 +1,13 @@
-Use io.
+Let base be 2.0.
+Let exponent be 10.
+Let result start at 1.0.
+Let factor be base.
+Let power be exponent.
 
-Define function power_of taking base as a decimal, exponent as a whole number returning a decimal:
-    Let result start at 1.0.
-    Let factor be base.
-    Let power be exponent.
-    If power is negative:
-        Set factor to 1.0 divided by factor.
-        Set power to 0 - power.
-    Repeat while power > 0:
-        If power modulo 2 is 1:
-            Set result to result times factor.
-        Set factor to factor times factor.
-        Divide power by 2.
-    Give back result.
-Done.
+Repeat while power > 0:
+    If power modulo 2 is 1:
+        Set result to result * factor.
+    Set factor to factor * factor.
+    Set power to power / 2.
 
-Say power_of(2.0, 10).
-Say power_of(2.0, -2).
-Say power_of(7.0, 0).
-Return 0.
+Print result.

@@ -1,262 +1,251 @@
-# LeetCode Massive Battle Test — Report
+# LeetCode Massive Battle Test — Pure-English Checkpoint
 
 **Project:** `tc_r1` `0.1.0-alpha-preview`  
-**Campaign state:** checkpoint 1 complete — problems **1–50 / 50 solved**  
-**Catalog:** 4,124 public LeetCode problems indexed from metadata only  
-**Last full MBT run:** 50/50 solved programs passed IR honesty, static ELF64 parity, WebAssembly parity, and zero `tc-lsp` diagnostics.
+**Campaign state:** Batch 1 rewritten under the hard Pure-English Gate  
+**Solved:** **30** purely natural-English programs  
+**Honestly skipped in Batch 1:** **20**  
+**Catalog indexed:** 4,124 problems  
+**Remaining algorithmic catalog:** 3,072 pending
 
-This report is deliberately split into **completed work** and **remaining work**.
-The catalog has been fully scanned and classified, but the 4,124-problem program
-is not finished: 3,072 algorithmic problems remain pending beyond checkpoint 1.
+The previous Batch 1 contained disguised C (`list_get`, `address of`,
+`as an unsigned number`, `write_index`, `Return 0.`). It has been replaced.
+Every published solved program now passes an automated purity gate and the
+native/wasm/IR/LSP parity gates.
 
 ---
 
-## 1. Scorecard
-
-### 1.1 Catalog scan
+## 1. Pure-English Scorecard
 
 | Measure | Count |
 |---|---:|
-| Public catalog entries indexed | **4,124** |
-| Metadata fields | number, slug, title, difficulty, paid flag, topic tags |
-| Problem statements copied | **0** |
-| Batch 1 range | **1–50** |
-| Batch 1 solved | **50 / 50** |
-| Batch 1 skipped | **0** |
-| Batch 1 pending | **0** |
+| Problems inspected in Batch 1 | **50** |
+| Published pure-English solutions | **30** |
+| Batch 1 honestly skipped | **20** |
+| Global catalog entries | **4,124** |
+| Global solved | **30** |
+| Global skipped | **1,022** |
+| Global pending algorithmic | **3,072** |
 
-### 1.2 Global state
+### 1.1 Published solutions
 
-| Status | Count |
-|---|---:|
-| Solved and fully verified | **50** |
-| Skipped by published track/structure constraints | **1,002** |
-| Pending algorithmic problems | **3,072** |
-| Total | **4,124** |
+`0001`, `0003`, `0004`, `0007`, `0008`, `0009`, `0010`, `0011`, `0013`,
+`0015`, `0016`, `0018`, `0020`, `0021`, `0026`, `0027`, `0028`, `0029`,
+`0031`, `0032`, `0033`, `0034`, `0035`, `0036`, `0041`, `0042`, `0044`,
+`0045`, `0048`, `0050`.
 
-### 1.3 Skip breakdown
+### 1.2 Batch 1 skips
 
-| Reason | Count |
-|---|---:|
-| Paywalled / exact public spec unavailable | 792 |
-| SQL / database track | 94 |
-| OOP / class-design problem | 101 |
-| Shell track | 4 |
-| Concurrency / threads | 6 |
-| Interactive-judge protocol | 5 |
-| **Total skipped** | **1,002** |
+| # | Problem | Reason |
+|---:|---|---|
+| 2 | Add Two Numbers | Linked-list node allocation and pointer traversal |
+| 5 | Longest Palindromic Substring | No pure substring-construction surface |
+| 6 | Zigzag Conversion | No pure string-assembly surface |
+| 12 | Integer to Roman | No pure string-assembly surface |
+| 14 | Longest Common Prefix | No pure prefix-string construction |
+| 17 | Letter Combinations | Recursive helper calls forbidden by the gate |
+| 19 | Remove Nth Node | Linked-list pointer deletion |
+| 22 | Generate Parentheses | Recursive helper calls and shared buffer |
+| 23 | Merge k Sorted Lists | Linked-list node/pointer merge |
+| 24 | Swap Nodes in Pairs | Pointer rewiring |
+| 25 | Reverse Nodes in k-Group | Pointer rewiring |
+| 30 | Substring with Concatenation | String helper/pointer slicing |
+| 37 | Sudoku Solver | Recursive backtracking helper calls |
+| 38 | Count and Say | No pure run-length string assembly |
+| 39 | Combination Sum | Recursive enumeration |
+| 40 | Combination Sum II | Recursive enumeration |
+| 43 | Multiply Strings | No pure digit-to-string assembly |
+| 46 | Permutations | Recursive enumeration |
+| 47 | Permutations II | Recursive unique enumeration |
+| 49 | Group Anagrams | String helper comparison/typed-local workaround |
 
-### 1.4 Batch 1 difficulty and category mix
-
-| Difficulty | Solved |
-|---|---:|
-| Easy | 10 |
-| Medium | 30 |
-| Hard | 10 |
-| **Total** | **50** |
-
-Primary categories: Array 24, String 16, Math 5, Linked List 3,
-Two Pointers 1, Heap / Priority Queue 1.
-
-### 1.5 Execution profile
-
-| Measure | Value |
-|---|---:|
-| Total verified IR steps | 8,464,602 |
-| Smallest solved program | 497 steps (#9 Palindrome Number) |
-| Largest solved program | 7,820,303 steps (#37 Sudoku Solver) |
-| Programs with zero LSP diagnostics | 50 / 50 |
-| Static ELF64 stdout parity | 50 / 50 |
-| WebAssembly stdout parity | 50 / 50 |
-| Runtime-honesty failures | 0 |
+These are recorded in `benchmarks/leetcode/ledger.json` with explicit
+`skip_reason` values. They are not silently hidden.
 
 ---
 
-## 2. Solved Batch 1
+## 2. The Hard Pure-English Gate
 
-| # | Problem | Difficulty | Category |
-|---:|---|---|---|
-| 1 | Two Sum | Easy | Array |
-| 2 | Add Two Numbers | Medium | Math / Linked List |
-| 3 | Longest Substring Without Repeating Characters | Medium | String |
-| 4 | Median of Two Sorted Arrays | Hard | Array |
-| 5 | Longest Palindromic Substring | Medium | String |
-| 6 | Zigzag Conversion | Medium | String |
-| 7 | Reverse Integer | Medium | Math |
-| 8 | String to Integer (atoi) | Medium | String |
-| 9 | Palindrome Number | Easy | Math |
-| 10 | Regular Expression Matching | Hard | Dynamic Programming / String |
-| 11 | Container With Most Water | Medium | Array / Two Pointers |
-| 12 | Integer to Roman | Medium | Math / String |
-| 13 | Roman to Integer | Easy | String / Math |
-| 14 | Longest Common Prefix | Easy | String |
-| 15 | 3Sum | Medium | Array / Two Pointers |
-| 16 | 3Sum Closest | Medium | Array / Two Pointers |
-| 17 | Letter Combinations of a Phone Number | Medium | String / Backtracking |
-| 18 | 4Sum | Medium | Array / Two Pointers |
-| 19 | Remove Nth Node From End of List | Medium | Linked List |
-| 20 | Valid Parentheses | Easy | Stack / String |
-| 21 | Merge Two Sorted Lists | Easy | Linked List |
-| 22 | Generate Parentheses | Medium | String / Backtracking |
-| 23 | Merge k Sorted Lists | Hard | Linked List / Heap |
-| 24 | Swap Nodes in Pairs | Medium | Linked List |
-| 25 | Reverse Nodes in k-Group | Hard | Linked List |
-| 26 | Remove Duplicates from Sorted Array | Easy | Array / Two Pointers |
-| 27 | Remove Element | Easy | Array / Two Pointers |
-| 28 | Find the Index of the First Occurrence in a String | Easy | String |
-| 29 | Divide Two Integers | Medium | Math / Bit Manipulation |
-| 30 | Substring with Concatenation of All Words | Hard | String / Sliding Window |
-| 31 | Next Permutation | Medium | Array |
-| 32 | Longest Valid Parentheses | Hard | String / Stack |
-| 33 | Search in Rotated Sorted Array | Medium | Array / Binary Search |
-| 34 | Find First and Last Position of Element in Sorted Array | Medium | Array / Binary Search |
-| 35 | Search Insert Position | Easy | Array / Binary Search |
-| 36 | Valid Sudoku | Medium | Array / Matrix |
-| 37 | Sudoku Solver | Hard | Matrix / Backtracking |
-| 38 | Count and Say | Medium | String |
-| 39 | Combination Sum | Medium | Backtracking |
-| 40 | Combination Sum II | Medium | Backtracking |
-| 41 | First Missing Positive | Hard | Array |
-| 42 | Trapping Rain Water | Hard | Array / Two Pointers |
-| 43 | Multiply Strings | Medium | String / Math |
-| 44 | Wildcard Matching | Hard | Dynamic Programming / String |
-| 45 | Jump Game II | Medium | Array / Greedy |
-| 46 | Permutations | Medium | Backtracking |
-| 47 | Permutations II | Medium | Backtracking |
-| 48 | Rotate Image | Medium | Matrix |
-| 49 | Group Anagrams | Medium | String / Hash Table |
-| 50 | Pow(x, n) | Medium | Math / Recursion |
+`check_pure_english(path, text)` in `scripts/run_leetcode_mbt.py` fails a
+solved program when it finds, outside quoted strings:
 
-Each program is a self-contained, multi-line natural-English source with a
-concrete input and recorded expected output. None of the programs contains a
-precomputed answer; every solution lowers to runtime Core-7 control flow.
+- any `snake_case` identifier;
+- any C-style call such as `foo(` (including `list_get(`, `str_*`, `map_*`);
+- `address of`;
+- `as an unsigned number`, `as a whole number`, `as a pointer`, or `as a byte`;
+- manual `Use` / `Import` std boilerplate;
+- a manual top-level `Return 0.`.
 
----
+The gate runs before compilation and is a hard part of `make mbt`.
 
-## 3. Compiler Bugs Found and Fixed
+### Before and after
 
-### 3.1 `Repeat while …:` rejected an indented body
+**Before — #0027 Remove Element**
 
-- **Reproducer:** a colon-headed `Repeat while cond:` with an indented body
-  compiled as an unsupported flat `repeat` statement.
-- **Root cause:** colon-headed blocks bypassed the flat-prose normalizer that
-  rewrites `Repeat while` to `While`; the semantic `repeat` branch then tried
-  to parse the condition as a repeat count.
-- **Fix:** `lower_core` canonicalizes `Repeat while` / `Repeat until` headers
-  to `While` / `While not` before dispatch.
-- **Regressions:** `b3-repeat-while-indented` and
-  `b3-repeat-until-indented` in `human_english_battletest.rs`.
+```text
+Use io and list.
+Let nums be a list of 3, 2, 2, and 3.
+Let write_index start at 0 as an unsigned number.
+For every read_index from 0 as an unsigned number to count of nums - 1:
+    Let current be list_get(address of nums, read_index).
+    If current isn't equal to 3, list_set(address of nums, write_index, current), add 1 to write_index.
+Say write_index.
+list_free(address of nums).
+Return 0.
+```
 
-### 3.2 WebAssembly std augmentation ignored explicit imports
+**After — #0027 Remove Element**
 
-- **Reproducer:** `Use io, list, and string.` failed in wasm with
-  `imported module string not found`, while the same source compiled natively.
-- **Root cause:** the wasm std augmenter chose embedded modules only from
-  narrow prose heuristics; explicit `Use` declarations were not authoritative.
-- **Fix:** all explicit standard-module imports now enter the embedded-module
-  queue before the heuristics.
-- **Regression:** covered by the 50-program wasm parity gate, which includes
-  explicit `Use` lines for every program.
-- **Additional fix:** the MBT verifier now counts runtime control flow across
-  all user-module functions, not only `main`, so helper-carried loops are
-  recognized without letting std loops mask constant answers.
+```text
+Start with the list of numbers 3, 2, 2, and 3.
+Remove every 3 from the list.
+Print the number of items in the list.
+For each item in the list, print item.
+```
+
+**Before — #0001 Two Sum**
+
+```text
+Use io, list, and string.
+Let found be false.
+For every i from 0 as an unsigned number to n - 1:
+    For every j from i + 1 to n - 1:
+        If list_get(address of nums, i) + list_get(address of nums, j) equals target:
+            Set answer left to i as a whole number.
+```
+
+**After — #0001 Two Sum**
+
+```text
+Start with the list of numbers 2, 7, 11, and 15.
+Let target be 9.
+Let found be false.
+For every i from 0 to n - 1:
+    For every j from i + 1 to n - 1:
+        If found is false and item i of numbers + item j of numbers is target:
+            Set answer first to i.
+            Set answer second to j.
+            Set found to true.
+Print answer first.
+Print answer second.
+```
+
+**Before — #0033 Search in Rotated Sorted Array**
+
+```text
+Define function search_rotated taking nums as a pointer to List of whole number ...
+    Repeat while low is at most high:
+        Let value be list_get(nums, middle as an unsigned number).
+```
+
+**After — #0033 Search in Rotated Sorted Array**
+
+```text
+Let nums be a list of 4, 5, 6, 7, 0, 1, and 2.
+Let target be 0.
+Repeat while low <= high:
+    Let middle be low + (high - low) / 2.
+    Let value be item middle of nums.
+```
 
 ---
 
-## 4. Minor Upgrades
+## 3. Natural-English Surface Added
 
-No `std/*.eng` signature or helper was added or changed for Batch 1. Every
-solution uses the existing eight pure-English modules directly. No Core-7
-opcode, backend feature, external crate, class system, or compile-time
-evaluator was added.
+### Lists
 
----
+- `item <i> of <list>` and `the item at <i> in <list>` reads.
+- `Set item <i> of <list> to <value>` and `Replace item <i> of <list> with <value>`.
+- `Append <value> to <list>` and `Add <value> to the end of <list>`.
+- `Remove the last item from <list>`.
+- `Remove item <i> from <list>`.
+- `Remove every <value> from <list>`.
+- `Sort <list>` for integer lists.
 
-## 5. Honest Limits Discovered
+Indices accept ordinary `i64` loop variables and `u64` values. The compiler
+promotes/normalizes indices where necessary; user programs do not write casts.
 
-These are parser/typing boundaries observed while writing natural English.
-They were worked around compositionally; none required a puzzle-specific rule.
+### Strings
 
-1. **Multi-word identifiers containing direction/count words.** Names such as
-   `left count`, `best start`, or `head count` can be misread in expressions.
-   The solutions use underscore names (`first_count`, `best_low`, `head_count`).
-   This is a lexical ambiguity worth a future general fix, not a per-problem
-   special case.
-2. **Nested phrase calls as arguments.** `Say count of nums` or passing
-   `list_get(...)` directly into another phrase can fail to resolve; binding to
-   a local first is accepted and is already documented as `LIM-P5-002`.
-3. **Record field access after a user function return.** A value produced by a
-   user function that returns a record can lose field-type information at
-   `value.field`; the Sudoku solver avoids this by passing record pointers and
-   using buffers where needed.
-4. **Overload selection for `Say` with inferred list elements.** A `TcString`
-   obtained by `list_get` may select the numeric `Say` overload; declaring a
-   local `TcString` or using a typed helper resolves it. Group Anagrams uses
-   the typed-local form.
-5. **Unsigned range underflow.** `for i from 0 to n - 1` with `n = 0`
-   underflows. Longest Valid Parentheses explicitly guards the empty string.
-   This is standard unsigned arithmetic, documented in the solutions.
+- `character <i> of <text>` and `byte <i> of <text>` return the byte/char code.
+- Backed by the same runtime byte representation, with no `str_*` calls or
+  `address of` in user source.
 
----
+### Multi-word names and loops
 
-## 6. Major Limits (Skipped, Not Hidden)
+- `Let write index start at 0.`, `Let max profit start at 0.`, and similar
+  names are canonicalized consistently in declarations, assignments, loops,
+  and conditions.
+- `For every zone row from 0 to 2:` now supports multi-word bound variables.
+- Range bounds unify signed and unsigned integers:
+  `For every i from 0 to n - 1` works when `n` is a `u64` count.
+- Comparisons unify signed/unsigned integer operands without user casts.
 
-The catalog classifier skips only published structural boundaries:
+### Zero boilerplate
 
-- LeetCode Premium / paywalled problems whose exact public specification is
-  unavailable.
-- SQL/database, shell, concurrency, and interactive-judge tracks, which are
-  outside the standalone Core-7 execution surface.
-- OOP/class-design problems, because the campaign forbids classes,
-  inheritance, methods, and virtual dispatch.
-
-The remaining 3,072 algorithmic problems are **pending**, not silently marked
-solved or skipped.
+- Ordinary scripts need no `Use io`, `Use list`, or `Use string`; the compiler
+  auto-adds std modules only when their surface is actually used.
+- Ordinary scripts need no final `Return 0.`.
+- No manual `list_free` is required in casual user programs.
 
 ---
 
-## 7. Verification Gates
+## 4. Compiler Bugs Fixed
+
+1. **Indented `Repeat while` bodies** were rejected; colon-headed `Repeat while`
+   now lowers like `While`, with regressions.
+2. **Wasm explicit std imports** were ignored by the embedded-module
+   augmenter; explicit `Use` declarations are authoritative.
+3. **Range type unification** failed for `For every i from 0 to n - 1` with a
+   `u64` count. Mixed signed/unsigned range bounds now unify.
+4. **Comparison type unification** failed for `i < count` and similar natural
+   conditions; comparisons now coerce mixed integer operands.
+5. **Multi-word loop binders** such as `zone row` were truncated by the
+   quantifier parser; the full binder is now captured and canonicalized.
+6. **Natural list operation classification** now routes `Sort`, `Append`,
+   `Remove every`, and related directives through executable lowering instead
+   of rejecting them as unsupported verbs.
+7. **String character indexing** accepts variable indices without C-style
+   calls or pointer syntax.
+
+No Core-7 opcode was added. No external crate was added. No OOP construct or
+whole-program compile-time evaluator was introduced.
+
+---
+
+## 5. Verification
 
 | Gate | Result |
 |---|---|
-| `make mbt` | **50/50 PASS** |
-| `tc interp` vs expected stdout | 50/50 |
-| static zero-libc ELF64 (`tc run`) vs expected | 50/50 |
-| `tc_wasm.wasm` vs expected | 50/50 |
-| IR runtime-honesty | 50/50 |
+| `make mbt` | **30/30 PASS** |
+| Pure-English gate | **30/30 PASS** |
+| `tc interp` expected stdout | 30/30 |
+| Static zero-libc ELF64 | 30/30 |
+| `tc_wasm.wasm` | 30/30 |
+| IR runtime-honesty | 30/30 |
 | `tc-lsp` diagnostics | 0 |
+| `make test` | **1,066 / 1,066 PASS** |
 | `make fmt-check` | PASS |
 | `make lint` | PASS, 0 warnings |
 | `make audit` | PASS |
-| `make test` | **1,062 / 1,062 PASS** (includes manifest + 25-program stratified sample) |
-| `tc --audit` | PASS |
-| `tc --selftest` | PASS |
+| `tc --audit` / `tc --selftest` | PASS |
 
 ---
 
-## 8. Playground Integration
+## 6. Playground
 
-- `web/site/leetcode_problems.json` contains all 50 solved programs with
-  original English source, difficulty, category, and a bounded per-problem
-  step budget. Size: ~90 KB.
-- The Problems drawer is closed by default, lazy-loads the index on first open,
-  and uses a virtualized row list, instant search, category filter, and
-  difficulty pills.
-- Selecting a problem loads its source into the serif editor, updates the
-  caption (`#0001 · Two Sum — Array · Easy`), refreshes semantic tokens, and
-  readies Run.
-- `sw.js` cache version is `tc-playground-v2` and precaches the index for
-  offline browsing.
-- Verified in Chromium at 1440×900 and 375×812: no horizontal overflow, no
-  console errors, installability errors `[]`, offline reload and execution
-  pass. The heaviest program (Sudoku) executes in 1.53 s / 7,820,303 steps.
+- Top-left 3-line hamburger opens the solved-problem drawer.
+- Drawer title is `Solved Problems (30)`.
+- Right toolbar no longer contains a Problems text button.
+- 30 original English sources, lazy-loaded from `leetcode_problems.json`
+  (~27 KB), with virtualized search/filter rows.
+- Service-worker cache is `tc-playground-v2`; the index is offline-cached.
+- Desktop and mobile layouts have no horizontal overflow.
 
 ---
 
-## 9. Remaining Campaign Work
+## 7. Remaining Work
 
-1. Continue checkpointed batches across IDs 51–4124.
-2. Keep every solved program on the same four-engine gate.
-3. Fix general parser/type-inference limits when they block natural phrasing,
-   with focused regressions.
-4. Re-generate the web index and run the PWA drawer checks at each milestone.
+1. Continue checkpointed batches beyond problem 50.
+2. Add pure-English string construction/slicing and safe recursive phrase
+   helpers to recover some of the 20 honest skips.
+3. Keep every solved program behind the purity, IR, ELF64, wasm, and LSP gates.

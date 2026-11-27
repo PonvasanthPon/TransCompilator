@@ -1,19 +1,15 @@
-Use io and list.
-
 Let nums be a list of 0, 0, 1, 1, 1, 2, 2, 3, 3, and 4.
 Let n be count of nums.
-Let write_index start at 1 as an unsigned number.
+Let write position start at 1.
 
-For every read_index from 1 as an unsigned number to n - 1:
-    Let current be list_get(address of nums, read_index).
-    Let previous be list_get(address of nums, write_index - 1).
-    If current isn't equal to previous:
-        list_set(address of nums, write_index, current).
-        Add 1 to write_index.
+For every cursor from 1 to n - 1:
+    Let current be item cursor of nums.
+    Let prior index be write position - 1.
+    Let prior be item prior index of nums.
+    If current is not prior:
+        Set item write position of nums to current.
+        Add 1 to write position.
 
-Say write_index.
-For every i from 0 as an unsigned number to write_index - 1:
-    Say list_get(address of nums, i).
-
-list_free(address of nums).
-Return 0.
+Print write position.
+For every i from 0 to write position - 1:
+    Print item i of nums.

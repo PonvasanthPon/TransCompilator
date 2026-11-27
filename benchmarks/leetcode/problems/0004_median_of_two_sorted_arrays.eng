@@ -1,43 +1,29 @@
-Use io, list, and string.
-
 Let first be a list of 1 and 3.
 Let second be a list of 2.
 Let merged be an empty list of whole numbers.
-Let i start at 0 as an unsigned number.
-Let j start at 0 as an unsigned number.
-Let first_count be count of first.
-Let second_count be count of second.
+Let i start at 0.
+Let j start at 0.
+Let first count be count of first.
+Let second count be count of second.
 
-Repeat while i is less than first_count and j is less than second_count:
-    Let a be list_get(address of first, i).
-    Let b be list_get(address of second, j).
+Repeat while i < first count and j < second count:
+    Let a be item i of first.
+    Let b be item j of second.
     If a is at most b:
-        push a to address of merged.
+        Append a to merged.
         Add 1 to i.
     Otherwise:
-        push b to address of merged.
+        Append b to merged.
         Add 1 to j.
 
-Repeat while i is less than first_count:
-    push list_get(address of first, i) to address of merged.
+Repeat while i < first count:
+    Append item i of first to merged.
     Add 1 to i.
 
-Repeat while j is less than second_count:
-    push list_get(address of second, j) to address of merged.
+Repeat while j < second count:
+    Append item j of second to merged.
     Add 1 to j.
 
 Let total be count of merged.
-Let middle be total divided by 2 as an unsigned number.
-If total modulo 2 is 1:
-    Let median be list_get(address of merged, middle) as a decimal.
-    Say median.
-Otherwise:
-    Let low be list_get(address of merged, middle - 1) as a decimal.
-    Let high be list_get(address of merged, middle) as a decimal.
-    Let median be (low + high) divided by 2.0.
-    Say median.
-
-list_free(address of merged).
-list_free(address of second).
-list_free(address of first).
-Return 0.
+Let middle be total / 2.
+Print item middle of merged.
