@@ -522,7 +522,7 @@ pub fn run_elf_with_parity(source: &str, file_path: Option<&Path>, stdin_text: &
         &arguments,
         stdin_text.as_bytes(),
         &interp_dir,
-        10_000_000,
+        50_000_000,
     ) {
         Ok(value) => value,
         Err(error) => {
