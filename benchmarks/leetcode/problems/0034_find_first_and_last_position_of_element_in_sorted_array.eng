@@ -1,0 +1,10 @@
+Start with the list of numbers 5, 7, 7, 8, 8, and 10.
+Let target be 8.
+Let first be -1.
+Let last be -1.
+For every position from 0 to the last position of numbers.
+If item position of numbers is target and first is -1, set first to position.
+If item position of numbers is target, set last to position.
+
+Print first.
+Print last.

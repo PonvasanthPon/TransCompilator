@@ -1,0 +1,8 @@
+Let first be a list of 1 and 3.
+Let second be a list of 2.
+Let combined be an empty list of whole numbers.
+For each number in first, append number to combined.
+For each number in second, append number to combined.
+Sort combined.
+Let middle be the midpoint of 0 and the last position of combined.
+Print item middle of combined.

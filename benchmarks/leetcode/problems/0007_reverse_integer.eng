@@ -1,0 +1,8 @@
+Start with the numbers 123, -123, 120, and 1534236469.
+For each value in numbers.
+Let sign be 1.
+Let magnitude be value.
+If magnitude is less than 0, set sign to -1, set magnitude to 0 minus magnitude.
+Let reversed be 0.
+Repeat while magnitude is more than 0, set digit to magnitude modulo 10, set reversed to reversed times 10 plus digit, set magnitude to magnitude divided by 10.
+If reversed is more than 2147483647, print 0, otherwise print reversed times sign.

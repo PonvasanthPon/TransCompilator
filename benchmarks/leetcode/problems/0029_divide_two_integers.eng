@@ -1,0 +1,8 @@
+Let top be 10.
+Let bottom be 3.
+Let quotient be 0.
+Repeat while top is at least bottom.
+Set top to top minus bottom.
+Add 1 to quotient.
+
+Print quotient.

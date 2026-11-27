@@ -1,99 +1,141 @@
-# LeetCode Massive Battle Test — Strict Prose-Only Checkpoint
+# LeetCode Massive Battle Test — Prose Combinator Checkpoint
 
 **Project:** `tc_r1` `0.1.0-alpha-preview`  
-**Batch 1 status:** strict prose-only pruning complete  
-**Surviving prose-only solutions:** **3**  
-**Batch 1 honestly skipped:** **47**  
-**Catalog indexed:** 4,124 problems  
+**Batch 1:** strict prose-only re-test complete  
+**Surviving prose solutions:** **17 / 50**  
+**Batch 1 honestly skipped:** **33 / 50**  
+**Catalog indexed:** 4,124  
 **Remaining algorithmic catalog:** 3,072 pending
 
-The previous Batch 1 still contained disguised Python: indented loops,
-colon headers, symbolic operators, single-letter indices, and boolean flags.
-That surface has been rejected by the strict gate. Only programs that read as
-unindented, symbol-free human prose remain.
+Four general prose combinators were added:
+
+1. unindented, period-terminated prose loops;
+2. natural loop exit and skip (`then stop`, `stop immediately`, `skip to the next one`);
+3. English index/min-max math (`one more than`, `the midpoint of`, `the larger of`, `the last position of`);
+4. pure-English string building and slicing (`empty text`, `append ... to ...`, `the slice of ...`).
+
+The strict gate was not weakened. No indentation, colons, block terminators,
+symbolic operators, single-letter variables, or boolean flags are permitted in
+a solved `.eng` file.
 
 ---
 
-## 1. Surviving Prose-Only Solutions
+## 1. Scorecard
 
-### #0021 — Merge Two Sorted Lists
+| Measure | Count |
+|---|---:|
+| Batch 1 inspected | **50** |
+| Strict prose-only solved | **17** |
+| Strict prose-only skipped | **33** |
+| Global solved | **17** |
+| Global skipped | **1,035** |
+| Global pending | **3,072** |
+| Total catalog | **4,124** |
 
-```text
-Let first be a list of 1, 2, and 4.
-Let second be a list of 1, 3, and 4.
-Let combined be an empty list of whole numbers.
-For each number in first, append number to combined.
-For each number in second, append number to combined.
-Sort combined.
-For each number in combined, print number.
-```
+### Solved Batch 1
 
-Output: `1 1 2 3 4 4`.
+`0001`, `0004`, `0007`, `0008`, `0011`, `0012`, `0013`, `0021`, `0026`,
+`0027`, `0029`, `0033`, `0034`, `0035`, `0041`, `0042`, `0050`.
 
-### #0026 — Remove Duplicates from Sorted Array
-
-```text
-Start with the list of numbers 0, 0, 1, 1, 1, 2, 2, 3, 3, and 4.
-Let unique be an empty list of whole numbers.
-For each number in the list, if unique does not contain the number, append number to unique.
-Print the number of items in unique.
-For each number in unique, print number.
-```
-
-Output: `5 0 1 2 3 4`.
-
-### #0027 — Remove Element
-
-```text
-Start with the list of numbers 3, 2, 2, and 3.
-Remove every 3 from the list.
-Print the number of items in the list.
-For each item in the list, print item.
-```
-
-Output: `2 2 2`.
-
----
-
-## 2. Strict Prose-Only Gate
-
-`check_pure_english` in `scripts/run_leetcode_mbt.py` now rejects, outside
-quoted strings:
-
-- any indented line;
-- any line ending in `:`;
-- explicit block terminators (`End.`, `End the loop.`, `End if.`);
-- symbolic operators `+ * / % <= >= == != < >` and spaced minus;
-- single-letter declarations, loop variables, and indices;
-- boolean flag boilerplate (`Let found be false`, `is true`, etc.);
-- `snake_case`, C-style calls, `address of`, casts, `Use`/`Import`, and
-  top-level `Return 0.` from the earlier gate.
-
-A file that compiles but reads like Python is no longer publishable.
-
----
-
-## 3. Batch 1 Skip Breakdown
+### Remaining Batch 1 skips
 
 | Group | Count | Problems |
 |---|---:|---|
-| Index-loop / matrix / numeric scanning | 27 | 1, 3, 4, 7, 8, 9, 10, 11, 13, 15, 16, 18, 20, 28, 29, 31, 32, 33, 34, 35, 36, 41, 42, 44, 45, 48, 50 |
-| No pure string assembly / slicing | 8 | 5, 6, 12, 14, 30, 38, 43, 49 |
-| Recursive / backtracking helpers | 7 | 17, 22, 37, 39, 40, 46, 47 |
-| Linked-list pointer mutation | 5 | 2, 19, 23, 24, 25 |
-| **Batch 1 total** | **47** | |
+| Linked-list pointer work | 5 | 2, 19, 23, 24, 25 |
+| Recursive/backtracking helpers | 7 | 17, 22, 37, 39, 40, 46, 47 |
+| String assembly/comparison still missing a clean prose form | 7 | 5, 6, 14, 30, 38, 43, 49 |
+| Index/matrix/DP shapes still beyond prose-only lowering | 14 | 3, 9, 10, 15, 16, 18, 20, 28, 31, 32, 36, 44, 45, 48 |
+| **Total** | **33** | |
 
-Each entry carries a specific `skip_reason` in
+Every skip has a specific `skip_reason` in
 `benchmarks/leetcode/ledger.json`.
 
-Global state:
+---
 
-| Status | Count |
-|---|---:|
-| Solved | **3** |
-| Skipped | **1,049** |
-| Pending | **3,072** |
-| Total catalog | **4,124** |
+## 2. Newly Unlocked Solutions
+
+### #0001 — Two Sum
+
+```text
+Start with the list of numbers 2, 7, 11, and 15.
+Let target be 9.
+For every first from 0 to the last position of numbers.
+For every second from one more than first to the last position of numbers, if item first of numbers plus item second of numbers is target, print first, print second, then stop.
+```
+
+Output: `0 1`.
+
+### #0012 — Integer to Roman
+
+```text
+Let value be 1994.
+Let result be empty text.
+Repeat while value is at least 1000, append "M" to result, set value to value minus 1000.
+If value is at least 900, append "CM" to result, set value to value minus 900.
+If value is at least 500, append "D" to result, set value to value minus 500.
+If value is at least 400, append "CD" to result, set value to value minus 400.
+Repeat while value is at least 100, append "C" to result, set value to value minus 100.
+If value is at least 90, append "XC" to result, set value to value minus 90.
+If value is at least 50, append "L" to result, set value to value minus 50.
+If value is at least 40, append "XL" to result, set value to value minus 40.
+Repeat while value is at least 10, append "X" to result, set value to value minus 10.
+If value is at least 9, append "IX" to result, set value to value minus 9.
+If value is at least 5, append "V" to result, set value to value minus 5.
+If value is at least 4, append "IV" to result, set value to value minus 4.
+Repeat while value is at least 1, append "I" to result, set value to value minus 1.
+Print result.
+```
+
+Output: `MCMXCIV`.
+
+### #0033 — Search in Rotated Sorted Array
+
+```text
+Start with the list of numbers 4, 5, 6, 7, 0, 1, and 2.
+Let target be 0.
+Let answer be -1.
+For every position from 0 to the last position of numbers.
+If item position of numbers is target, set answer to position, then stop.
+
+Print answer.
+```
+
+Output: `4`.
+
+---
+
+## 3. Feature Notes
+
+### Unindented prose loops
+
+`For every …`, `While …`, `Repeat while …`, and `Until …` become paragraph
+loop starters. Their bodies are all contiguous sentences until a blank line,
+EOF, or a closer such as `At the end, …`.
+
+### Stop and skip
+
+- `then stop` / `stop immediately` / `stop the loop` lower to Core-7 `Break`.
+- `skip to the next one` / `skip this one` lower to Core-7 `Continue`.
+- Inline `If` chains can contain multiple comma-separated actions.
+
+### English math
+
+- `one less than <expr>`
+- `one more than <expr>`
+- `the midpoint of <a> and <b>`
+- `the larger/greater of <a> and <b>`
+- `the smaller/lesser of <a> and <b>`
+- `the last position of <list>`
+- `the first item of <list>`
+
+### Strings
+
+- `Let result be empty text.`
+- `Append "IV" to result.`
+- `Append word to result.`
+- `Append character position of word to result.`
+- `the slice of word from start to finish`
+- `Print result`, `the length of result`, `character pos of result`.
 
 ---
 
@@ -101,14 +143,14 @@ Global state:
 
 | Gate | Result |
 |---|---|
-| `make mbt` | **3/3 PASS** |
-| Strict prose-only gate | **3/3 PASS** |
-| `tc interp` expected stdout | 3/3 |
-| Static zero-libc ELF64 | 3/3 |
-| `tc_wasm.wasm` | 3/3 |
-| IR runtime-honesty | 3/3 |
+| `make mbt` | **17/17 PASS** |
+| Strict prose-only gate | **17/17 PASS** |
+| `tc interp` expected stdout | 17/17 |
+| Static zero-libc ELF64 | 17/17 |
+| `tc_wasm.wasm` | 17/17 |
+| IR runtime-honesty | 17/17 |
 | `tc-lsp` diagnostics | 0 |
-| `make test` | **1,066 / 1,066 PASS** |
+| `make test` | **1,076 / 1,076 PASS** |
 | `make fmt-check` | PASS |
 | `make lint` | PASS, 0 warnings |
 | `make audit` | PASS |
@@ -118,23 +160,22 @@ Global state:
 
 ## 5. Playground
 
-- Drawer title: `Solved Problems (3)`.
-- Top-left hamburger remains.
-- Index size: about 1.3 KB.
-- Search, load, and run verified for the surviving programs.
-- Offline cache and installability remain intact.
+- Drawer title: `Solved Problems (17)`.
+- Index: `web/site/leetcode_problems.json`, about 10 KB.
+- Top-left hamburger retained.
+- Search, load, run, installability, and offline cache verified.
 
 ---
 
-## 6. Remaining Work
+## 6. Remaining Limits
 
-The honest way to grow Batch 1 is to add general prose-level frames, not
-Python-style index loops. Missing capabilities include:
+The 33 skips are real limits, not fallback syntax:
 
-- pure string slicing/assembly and substring wording;
-- prose-safe recursive helpers and backtracking;
-- pointer-free list-of-lists and matrix wording;
-- natural position/membership predicates for more list algorithms.
+- pointers for linked lists;
+- recursive helpers/backtracking;
+- clean prose forms for string comparison/assembly beyond the current slice/append surface;
+- matrix/index/DP layouts that need a higher-level prose abstraction than
+  position arithmetic.
 
-Until those exist, the remaining 47 Batch 1 problems stay skipped rather than
-being smuggled back in as disguised Python.
+They remain skipped until a general prose feature makes them expressible
+without disguised Python.
