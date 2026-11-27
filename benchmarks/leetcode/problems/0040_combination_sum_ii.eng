@@ -1,0 +1,28 @@
+Keep a shared nums as an empty list of whole numbers.
+Append 10 to nums.
+Append 1 to nums.
+Append 2 to nums.
+Append 7 to nums.
+Append 6 to nums.
+Append 1 to nums.
+Append 5 to nums.
+Sort nums.
+Keep a shared target as 0.
+Set target to 8.
+Keep a shared parts as an empty list of text.
+Keep a shared answers as an empty list of text.
+To combine from index (a whole number) with total (a whole number).
+If total is target, let built be join parts with ",", append built to answers, then return.
+If total is more than target, return.
+If index is at least 7, return.
+For every position from index to 6.
+If position is more than index and item position of nums is item (position minus 1) of nums, skip to the next one.
+Let value be item position of nums.
+If total plus value is at most target.
+Let piece be format whole number value as text.
+Append piece to parts.
+Combine from position plus 1 with total plus value.
+Remove the last item from parts.
+
+Combine from 0 with 0.
+For each answer in answers, print answer.

@@ -1,0 +1,17 @@
+Keep a shared digits as empty text.
+Append "23" to digits.
+Keep a shared alphabet as empty text.
+Append "abcdefghijklmnopqrstuvwxyz" to alphabet.
+Keep a shared current as empty text.
+Keep a shared answers as an empty list of text.
+To build from position (a whole number).
+If position is digits's len, let copy be create text from current's data of length current's len, append copy to answers, then return.
+Let digit be character position of digits minus 48.
+Let start be (digit minus 2) times 3.
+For every offset from 0 to 2.
+Append character (start plus offset) of alphabet to current.
+Build from position plus 1.
+Remove last character from current.
+
+Build from 0.
+For each answer in answers, print answer.

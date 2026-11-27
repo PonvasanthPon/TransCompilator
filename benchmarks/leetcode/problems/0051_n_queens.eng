@@ -1,0 +1,22 @@
+Keep a shared queens as an empty list of whole numbers.
+Keep a shared parts as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared safe as 0.
+To check square at column (a whole number) for row (a whole number).
+Set safe to 1.
+For every prior from 0 to row minus 1.
+Let other be item prior of queens.
+If other is column, set safe to 0.
+Let difference be column minus other.
+If difference is less than 0, set difference to 0 minus difference.
+Let distance be row minus prior.
+If difference is distance, set safe to 0.
+
+To place from level (a whole number).
+If level is 4, let built be join parts with ",", append built to answers, then return.
+For every candidate from 0 to 3.
+Check square at candidate for level.
+If safe is 1, append candidate to queens, let piece be format whole number candidate as text, append piece to parts, place from level plus 1, remove the last item from queens, remove the last item from parts.
+
+Place from 0.
+For each answer in answers, print answer.

@@ -1,0 +1,38 @@
+Let text be "2e10".
+Let last be the last position of text.
+Let position be 0.
+Let digits be 0.
+Let expcount be 0.
+Let exponent seen be 0.
+Let valid be 1.
+Repeat while position is at most last.
+If character position of text is not 32, break.
+Add 1 to position.
+
+If position is at most last and (character position of text is 43 or character position of text is 45), add 1 to position.
+Repeat while position is at most last and character position of text is at least 48 and character position of text is at most 57.
+Add 1 to digits.
+Add 1 to position.
+
+If position is at most last and character position of text is 46.
+Add 1 to position.
+Repeat while position is at most last and character position of text is at least 48 and character position of text is at most 57.
+Add 1 to digits.
+Add 1 to position.
+
+If position is at most last and (character position of text is 101 or character position of text is 69).
+Set exponent seen to 1.
+Add 1 to position.
+If position is at most last and (character position of text is 43 or character position of text is 45), add 1 to position.
+Repeat while position is at most last and character position of text is at least 48 and character position of text is at most 57.
+Add 1 to expcount.
+Add 1 to position.
+
+If exponent seen is 1 and expcount is 0, set valid to 0.
+Repeat while position is at most last.
+If character position of text is not 32, set valid to 0, break.
+Add 1 to position.
+
+If digits is 0, set valid to 0.
+If valid is 1, print true.
+Otherwise, print false.

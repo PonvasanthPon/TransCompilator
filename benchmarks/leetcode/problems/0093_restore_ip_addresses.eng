@@ -1,0 +1,22 @@
+Keep a shared text as empty text.
+Append "25525511135" to text.
+Keep a shared parts as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared text length as 0.
+Set text length to 11.
+To restore from position (a whole number).
+Let part count be parts's len.
+If part count is 4 and position is text length, let built be join parts with ".", append built to answers, then return.
+If part count is 4, return.
+If position is text length, return.
+Let first be character position of text minus 48.
+Let second be 0.
+If position plus 1 is at most text length, set second to character (position plus 1) of text minus 48.
+Let third be 0.
+If position plus 2 is at most text length, set third to character (position plus 2) of text minus 48.
+If position is less than text length, let piece be the slice of text from position to position plus 1, append piece to parts, restore from position plus 1, remove the last item from parts.
+If position plus 1 is at most text length and first is not 0, let piece be the slice of text from position to position plus 2, append piece to parts, restore from position plus 2, remove the last item from parts.
+If position plus 2 is at most text length and first is not 0 and first times 100 plus second times 10 plus third is at most 255, let piece be the slice of text from position to position plus 3, append piece to parts, restore from position plus 3, remove the last item from parts.
+
+Restore from 0.
+For each answer in answers, print answer.

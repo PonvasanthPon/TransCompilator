@@ -1,0 +1,36 @@
+Keep a shared board as an empty list of whole numbers.
+Append 65 to board.
+Append 66 to board.
+Append 67 to board.
+Append 69 to board.
+Append 83 to board.
+Append 70 to board.
+Append 67 to board.
+Append 83 to board.
+Append 65 to board.
+Append 68 to board.
+Append 69 to board.
+Append 69 to board.
+Keep a shared word as empty text.
+Append "ABCCED" to word.
+Keep a shared visited as an empty list of whole numbers.
+For every cell from 0 to 11.
+Append 0 to visited.
+
+Keep a shared found as 0.
+To search from row (a whole number) at column (a whole number) with index (a whole number).
+If found is 1, return.
+If row is less than 0 or row is more than 2 or column is less than 0 or column is more than 3, return.
+If item (row times 4 plus column) of visited is 1, return.
+If item (row times 4 plus column) of board is not character index of word, return.
+If index is 3, set found to 1, return.
+Set item (row times 4 plus column) of visited to 1.
+If found is 0, search from row plus 1 at column with index plus 1.
+If found is 0, search from row minus 1 at column with index plus 1.
+If found is 0, search from row at column plus 1 with index plus 1.
+If found is 0, search from row at column minus 1 with index plus 1.
+Set item (row times 4 plus column) of visited to 0.
+
+Search from 0 at 0 with 0.
+If found is 1, print true.
+Otherwise, print false.

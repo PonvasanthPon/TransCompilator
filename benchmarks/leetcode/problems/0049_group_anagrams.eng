@@ -1,0 +1,25 @@
+Let text be "eat,tea,tan,ate,nat,bat".
+Let words be split text by ",".
+Let last be the last position of words.
+Let signatures be an empty list of text.
+For each word in words.
+Let signature be sort characters of word.
+Append signature to signatures.
+
+For every left from 0 to last.
+For every right from left to last.
+If compare text item right of signatures with text item left of signatures is less than 0, swap item left of signatures and item right of signatures, swap item left of words and item right of words.
+
+Let group be empty text.
+Let current be empty text.
+Let answers be an empty list of text.
+For every position from 0 to last.
+Let signature be item position of signatures.
+Let word be item position of words.
+If position is 0, set current to signature, append word to group.
+Let same be compare text signature with text current.
+If position is more than 0 and same is 0 and group's len is more than 0, append "," to group, append word to group.
+If position is more than 0 and same is not 0, append group to answers, set group to empty text, set current to signature, append word to group.
+
+Append group to answers.
+For each answer in answers, print answer.

@@ -1,0 +1,9 @@
+Keep a shared current as empty text.
+Keep a shared answers as an empty list of text.
+To build from opened (a whole number) with closed (a whole number).
+If current's len is 6, let copy be create text from current's data of length current's len, append copy to answers, then return.
+If opened is less than 3, append "(" to current, build from opened plus 1 with closed, remove last character from current.
+If closed is less than opened, append ")" to current, build from opened with closed plus 1, remove last character from current.
+
+Build from 0 with 0.
+For each answer in answers, print answer.
