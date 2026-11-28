@@ -1,0 +1,34 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 1 into values.
+Place 1 into values.
+Place 1 into values.
+Place 1 into values.
+Place 1 into values.
+Place 1 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 6 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared answer as 0.
+Set answer to 1.
+To walk from node (a whole number).
+If node is less than 0, return.
+If item node of values is not item 0 of values, set answer to 0, return.
+Walk from item node of lefts.
+Walk from item node of rights.
+
+Walk from 0.
+If answer is 1, show true, otherwise show false.

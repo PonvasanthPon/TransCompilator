@@ -1,0 +1,83 @@
+Keep a shared strings as an empty list of text.
+Place "0.1(6)" into strings.
+Place "0.1666(6)" into strings.
+Keep a shared text as empty text.
+Keep a shared digits as 0.
+Keep a shared power as 0.
+Keep a shared foundpos as 0.
+Keep a shared upper as 0.
+Keep a shared lower as 0.
+Keep a shared firsttop as 0.
+Keep a shared firstbottom as 0.
+Keep a shared secondtop as 0.
+Keep a shared secondbottom as 0.
+To finddot.
+Set foundpos to -1.
+For every spot from 0 to the last position of text.
+If character spot of text is ".", set foundpos to spot, return.
+
+To findopen.
+Set foundpos to -1.
+For every spot from 0 to the last position of text.
+If character spot of text is "(", set foundpos to spot, return.
+
+To findclose.
+Set foundpos to -1.
+For every spot from 0 to the last position of text.
+If character spot of text is ")", set foundpos to spot, return.
+
+To valueof from start (a whole number) with finish (a whole number).
+Set digits to 0.
+For every spot from start to finish minus 1.
+The digit is the digit value of character spot of text.
+Set digits to digits times 10 plus digit.
+
+To raiseten with count (a whole number).
+Set power to 1.
+Repeat while count is more than 0.
+Set power to power times 10.
+Subtract 1 from count.
+
+To parse.
+Finddot.
+The dot is foundpos.
+Findopen.
+The open is foundpos.
+The last is the last position of text.
+The length is last plus 1.
+The whole is 0.
+Valueof from 0 with dot.
+Set whole to digits.
+The fractionend is open.
+If open is less than 0, set fractionend to length.
+The fractionstart is dot plus 1.
+Valueof from fractionstart with fractionend.
+The fractionpart is digits.
+The fractionlength is fractionend minus fractionstart.
+The repeating is 0.
+The repeatinglength is 0.
+If open is at least 0.
+Findclose.
+The close is foundpos.
+Valueof from open plus 1 with close.
+Set repeating to digits.
+Set repeatinglength to close minus open minus 1.
+Raiseten with repeatinglength.
+The repeatingscale is power.
+The unit is repeatingscale minus 1.
+Raiseten with fractionlength.
+The fractionscale is power.
+The denominator is fractionscale times unit.
+The numerator is fractionpart times unit plus repeating.
+Set upper to whole times denominator plus numerator.
+Set lower to denominator.
+
+For every spot from 0 to 1.
+Set text to item spot of strings.
+Parse.
+If spot is 0, set firsttop to upper, set firstbottom to lower.
+If spot is 1, set secondtop to upper, set secondbottom to lower.
+
+The left is firsttop times secondbottom.
+The right is secondtop times firstbottom.
+If left is right, show true, otherwise show false.

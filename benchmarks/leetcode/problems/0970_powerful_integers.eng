@@ -1,0 +1,38 @@
+Keep a shared xpowers as an empty list of whole numbers.
+Keep a shared ypowers as an empty list of whole numbers.
+Keep a shared totals as an empty list of whole numbers.
+Keep a shared power as 0.
+Keep a shared base as 0.
+Keep a shared bound as 0.
+To growx.
+If power is more than bound, return.
+Place power into xpowers.
+If base is 1, return.
+Set power to power times base.
+Growx.
+
+To growy.
+If power is more than bound, return.
+Place power into ypowers.
+If base is 1, return.
+Set power to power times base.
+Growy.
+
+Set power to 1.
+Set base to 2.
+Set bound to 10.
+Growx.
+Set power to 1.
+Set base to 3.
+Growy.
+For each left in xpowers.
+For each right in ypowers.
+The sum is left plus right.
+If sum is at most 10, Place sum into totals.
+
+Sort totals.
+The previous is 0.
+For every spot from 0 to the last position of totals.
+If spot is 0, show item spot of totals.
+If spot is more than 0 and item spot of totals is not previous, show item spot of totals.
+Set previous to item spot of totals.

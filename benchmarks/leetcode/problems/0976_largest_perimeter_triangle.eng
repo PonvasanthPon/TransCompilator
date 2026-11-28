@@ -1,0 +1,12 @@
+The numbers is a list of 2, 1, 2.
+Sort numbers.
+The spot is the last position of numbers.
+The best is 0.
+Repeat while spot is at least 2.
+The first is item (spot minus 2) of numbers.
+The second is item (spot minus 1) of numbers.
+The third is item spot of numbers.
+If first plus second is more than third, set best to first plus second plus third, stop.
+Subtract 1 from spot.
+
+Show best.

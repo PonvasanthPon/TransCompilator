@@ -1,0 +1,51 @@
+Keep a shared values as an empty list of whole numbers.
+Place 10 into values.
+Place 13 into values.
+Place 12 into values.
+Place 14 into values.
+Place 15 into values.
+Keep a shared end as 0.
+Set end to the last position of values.
+Keep a shared oddlandings as an empty list of whole numbers.
+For every spot from 0 to end.
+Place 0 into oddlandings.
+
+Keep a shared evenlandings as an empty list of whole numbers.
+For every spot from 0 to end.
+Place 0 into evenlandings.
+
+Set item end of oddlandings to 1.
+Set item end of evenlandings to 1.
+Keep a shared higher as 0.
+Keep a shared highervalue as 0.
+Keep a shared lower as 0.
+Keep a shared lowervalue as 0.
+To pickodd with origin (a whole number).
+Set higher to -1.
+For every spot from origin plus 1 to end.
+If item spot of values is at least item origin of values.
+If higher is less than 0 or item spot of values is less than highervalue or item spot of values is highervalue and spot is less than higher, set higher to spot, set highervalue to item spot of values.
+
+To pickeven with origin (a whole number).
+Set lower to -1.
+For every spot from origin plus 1 to end.
+If item spot of values is at most item origin of values.
+If lower is less than 0 or item spot of values is more than lowervalue or item spot of values is lowervalue and spot is less than lower, set lower to spot, set lowervalue to item spot of values.
+
+The place is end minus 1.
+Repeat while place is at least 0.
+Pickodd with place.
+Pickeven with place.
+If higher is end, set item place of oddlandings to 1.
+The highstep is higher.
+The lowstep is lower.
+If higher is less than end and higher is at least 0, set item place of oddlandings to item highstep of evenlandings.
+If lower is end, set item place of evenlandings to 1.
+If lower is less than end and lower is at least 0, set item place of evenlandings to item lowstep of oddlandings.
+Subtract 1 from place.
+
+The good is 0.
+For each flag in oddlandings.
+If flag is 1, add 1 to good.
+
+Show good.

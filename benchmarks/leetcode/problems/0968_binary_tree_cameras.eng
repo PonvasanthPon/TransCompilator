@@ -1,0 +1,32 @@
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place -1 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared marks as an empty list of whole numbers.
+For every spot from 0 to 4.
+Place 0 into marks.
+
+The cameras is 0.
+The node is 4.
+Repeat while node is at least 0.
+The left is item node of lefts.
+The right is item node of rights.
+The state is 0.
+If left is at least 0 and item left of marks is 0, set state to 2.
+If right is at least 0 and item right of marks is 0, set state to 2.
+If state is 0 and left is at least 0 and item left of marks is 2, set state to 1.
+If state is 0 and right is at least 0 and item right of marks is 2, set state to 1.
+If state is 2, add 1 to cameras.
+Set item node of marks to state.
+Subtract 1 from node.
+
+If item 0 of marks is 0, add 1 to cameras.
+Show cameras.

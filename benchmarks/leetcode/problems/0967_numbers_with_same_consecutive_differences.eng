@@ -1,0 +1,16 @@
+Keep a shared answers as an empty list of whole numbers.
+Keep a shared gap as 0.
+Set gap to 7.
+To extend from value (a whole number) with depth (a whole number).
+If depth is 0, Place value into answers, return.
+The lastdigit is value modulo 10.
+The down is lastdigit minus gap.
+The up is lastdigit plus gap.
+If down is at least 0, Extend from value times 10 plus down with depth minus 1.
+If up is at most 9 and up is not down, Extend from value times 10 plus up with depth minus 1.
+
+For every first from 1 to 9.
+Extend from first with 2.
+
+Sort answers.
+For each answer in answers, show answer.

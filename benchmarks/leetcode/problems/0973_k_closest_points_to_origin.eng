@@ -1,0 +1,34 @@
+Keep a shared across as an empty list of whole numbers.
+Place 1 into across.
+Place -2 into across.
+Keep a shared down as an empty list of whole numbers.
+Place 3 into down.
+Place 2 into down.
+Keep a shared distances as an empty list of whole numbers.
+Place 10 into distances.
+Place 8 into distances.
+Keep a shared used as an empty list of whole numbers.
+Place 0 into used.
+Place 0 into used.
+Keep a shared chosen as 0.
+Keep a shared count as 0.
+Keep a shared wanted as 0.
+Set wanted to 1.
+To find.
+Set chosen to -1.
+The best is 1000000.
+For every spot from 0 to the last position of across.
+If item spot of used is 0 and item spot of distances is less than best, set best to item spot of distances, set chosen to spot.
+
+Repeat while count is less than wanted.
+Find.
+The target is chosen.
+Set item target of used to 1.
+The east is item target of across.
+The north is item target of down.
+The point is format whole number east as text.
+Place "," into point.
+The northtext is format whole number north as text.
+Place northtext into point.
+Show point.
+Add 1 to count.

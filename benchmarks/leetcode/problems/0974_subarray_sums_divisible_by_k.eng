@@ -1,0 +1,14 @@
+The numbers is a list of 4, 5, 0, -2, -3, 1.
+The divisor is 5.
+The counts is a list of 5 zeros.
+Set item 0 of counts to 1.
+The total is 0.
+The ways is 0.
+For each value in numbers.
+Add value to total.
+The rem is total modulo divisor.
+If rem is less than 0, add divisor to rem.
+Set ways to ways plus item rem of counts.
+Set item rem of counts to item rem of counts plus 1.
+
+Show ways.

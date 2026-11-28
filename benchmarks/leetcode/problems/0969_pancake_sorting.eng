@@ -1,0 +1,41 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 3 into numbers.
+Place 2 into numbers.
+Place 4 into numbers.
+Place 1 into numbers.
+Keep a shared flips as an empty list of whole numbers.
+Keep a shared picked as 0.
+Keep a shared best as 0.
+To flip at depth (a whole number).
+Place depth plus 1 into flips.
+The low is 0.
+The high is depth.
+Repeat while low is less than high.
+swap item low of numbers and item high of numbers.
+Add 1 to low.
+Subtract 1 from high.
+
+To locate with limit (a whole number).
+Set best to item 0 of numbers.
+Set picked to 0.
+For every spot from 1 to limit.
+If item spot of numbers is more than best, set best to item spot of numbers, set picked to spot.
+
+To arrange with limit (a whole number).
+Locate with limit.
+If picked is more than 0, flip at picked.
+If picked is less than limit and picked is more than 0, flip at limit.
+If picked is 0, flip at limit.
+
+The size is the last position of numbers.
+Repeat while size is more than 0.
+Arrange with size.
+Subtract 1 from size.
+
+The parts is an empty list of text.
+For each value in flips.
+The piece is format whole number value as text.
+Place piece into parts.
+
+The answer is join parts with ",".
+Show answer.

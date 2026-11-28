@@ -1,0 +1,44 @@
+Keep a shared costs as an empty list of whole numbers.
+For every slot from 0 to 200.
+Place -1 into costs.
+
+Keep a shared base as 0.
+Keep a shared degree as 0.
+Keep a shared reachpower as 0.
+Keep a shared downcost as 0.
+Set base to 3.
+To grow with value (a whole number).
+Set degree to 2.
+Set reachpower to base times base.
+Repeat while reachpower is less than value.
+Set reachpower to reachpower times base.
+Add 1 to degree.
+
+To settle with value (a whole number).
+The plusway is value times 2 minus 1.
+The minusway is 2 times (base minus value).
+Set item value of costs to plusway.
+If minusway is less than plusway, set item value of costs to minusway.
+
+To reach with value (a whole number).
+If item value of costs is at least 0, return.
+If value is 0, set item 0 of costs to 0, return.
+If value is 1, set item 1 of costs to 2, return.
+If base is at least value, Settle with value, return.
+Grow with value.
+The savedpower is reachpower.
+The saveddegree is degree.
+The spread is savedpower minus value.
+The lower is savedpower divided by base.
+Set downcost to 1000000.
+If spread is less than value, Reach with spread.
+If spread is less than value, set downcost to saveddegree plus item spread of costs.
+The firstcost is downcost.
+Reach with value minus lower.
+The upcost is saveddegree minus 1 plus item (value minus lower) of costs.
+Set item value of costs to upcost.
+If firstcost is less than upcost, set item value of costs to firstcost.
+
+Reach with 19.
+The answer is item 19 of costs minus 1.
+Show answer.

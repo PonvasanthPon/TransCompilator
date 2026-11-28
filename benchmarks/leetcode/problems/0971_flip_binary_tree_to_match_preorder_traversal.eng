@@ -1,0 +1,50 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared voyage as an empty list of whole numbers.
+Place 1 into voyage.
+Place 3 into voyage.
+Place 2 into voyage.
+Keep a shared flips as an empty list of whole numbers.
+Keep a shared pending as an empty list of whole numbers.
+For every slot from 0 to 99.
+Place -1 into pending.
+
+Set item 0 of pending to 0.
+The top is 1.
+The index is 0.
+The failed is 0.
+Repeat while top is more than 0 and failed is 0.
+Subtract 1 from top.
+The node is item top of pending.
+The start is index.
+The reach is the last position of voyage.
+If start is more than reach, set start to 0.
+If item node of values is not item start of voyage, set failed to 1.
+If failed is 0, add 1 to index.
+The position is index.
+If position is more than reach, set position to 0.
+The left is item node of lefts.
+The right is item node of rights.
+The probeleft is left.
+If probeleft is less than 0, set probeleft to node.
+The flip is 0.
+If left is at least 0 and item probeleft of values is not item position of voyage, set flip to 1.
+If flip is 1, Place item node of values into flips.
+If flip is 1 and left is at least 0, Set item top of pending to left, add 1 to top.
+If flip is 1 and right is at least 0, Set item top of pending to right, add 1 to top.
+If flip is 0 and right is at least 0, Set item top of pending to right, add 1 to top.
+If flip is 0 and left is at least 0, Set item top of pending to left, add 1 to top.
+
+If failed is 1, show -1.
+If failed is 0 and the last position of flips is at least 0, For each value in flips, show value.
+If failed is 0 and the last position of flips is less than 0, show 0.
