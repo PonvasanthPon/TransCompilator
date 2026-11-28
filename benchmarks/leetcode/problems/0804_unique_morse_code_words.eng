@@ -1,0 +1,71 @@
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared codes as an empty list of text.
+Place ".-" into codes.
+Place "-..." into codes.
+Place "-.-." into codes.
+Place "-.." into codes.
+Place "." into codes.
+Place "..-." into codes.
+Place "--." into codes.
+Place "...." into codes.
+Place ".." into codes.
+Place ".---" into codes.
+Place "-.-" into codes.
+Place ".-.." into codes.
+Place "--" into codes.
+Place "-." into codes.
+Place "---" into codes.
+Place ".--." into codes.
+Place "--.-" into codes.
+Place ".-." into codes.
+Place "..." into codes.
+Place "-" into codes.
+Place "..-" into codes.
+Place "...-" into codes.
+Place ".--" into codes.
+Place "-..-" into codes.
+Place "-.--" into codes.
+Place "--.." into codes.
+Keep a shared words as an empty list of text.
+Place "gin" into words.
+Place "zen" into words.
+Place "gig" into words.
+Place "msg" into words.
+Keep a shared word as empty text.
+Keep a shared target as empty text.
+Keep a shared rendered as empty text.
+Keep a shared seen as an empty list of text.
+Keep a shared found as 0.
+Keep a shared duplicate as 0.
+To search from spot (a whole number).
+If spot is more than 25, return.
+The piece is the slice of alphabet from spot to spot plus 1.
+If piece matches target, set found to spot, return.
+Search from spot plus 1.
+
+To scan from spot (a whole number).
+If spot is more than the last position of seen, return.
+If item spot of seen matches rendered, set duplicate to 1, return.
+Scan from spot plus 1.
+
+To finish.
+Set duplicate to 0.
+Scan from 0.
+If duplicate is 0, The copy is a copy of rendered, Place copy into seen.
+
+To glue from spot (a whole number).
+If spot is more than the last position of word, finish, return.
+Set target to the slice of word from spot to spot plus 1.
+Set found to -1.
+Search from 0.
+The letter is found.
+Place item letter of codes into rendered.
+Glue from spot plus 1.
+
+For each entry in words.
+Set word to entry.
+Set rendered to empty text.
+Glue from 0.
+
+Report the number of items in seen.

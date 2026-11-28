@@ -1,0 +1,16 @@
+The points is a list of 0, 0, 0, 1, 1, 0, 0, 2, and 2, 0.
+The count is 5.
+The best is 0.
+For every first from 0 to count minus 1.
+For every second from first plus 1 to count minus 1.
+For every third from second plus 1 to count minus 1.
+The left is item (second times 2) of points minus item (first times 2) of points.
+The upper is item (second times 2 plus 1) of points minus item (first times 2 plus 1) of points.
+The right is item (third times 2) of points minus item (first times 2) of points.
+The lower is item (third times 2 plus 1) of points minus item (first times 2 plus 1) of points.
+The cross is left times lower minus upper times right.
+If cross is less than 0, set cross to 0 minus cross.
+If cross is more than best, set best to cross.
+
+The area is best as a decimal divided by 2.0.
+Report area.

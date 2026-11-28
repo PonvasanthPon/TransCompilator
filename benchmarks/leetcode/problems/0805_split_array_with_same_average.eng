@@ -1,0 +1,25 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 4 into numbers.
+Place 5 into numbers.
+Place 6 into numbers.
+Place 7 into numbers.
+Place 8 into numbers.
+Keep a shared count as 0.
+Keep a shared whole as 0.
+Set count to 8.
+Set whole to 36.
+Keep a shared possible as 0.
+Keep a shared last as 0.
+Set last to the last position of numbers.
+To pick from spot (a whole number) with chosen (a whole number) and total (a whole number).
+If possible is 1, return.
+If spot is more than last, If chosen is more than 0 and chosen is less than count and total times count is whole times chosen, set possible to 1.
+If spot is more than last, return.
+Pick from spot plus 1 with chosen plus 1 and total plus item spot of numbers.
+Pick from spot plus 1 with chosen and total.
+
+Pick from 0 with 0 and 0.
+If possible is 1, show true, otherwise show false.

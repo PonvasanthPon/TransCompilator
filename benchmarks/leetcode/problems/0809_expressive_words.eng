@@ -1,0 +1,55 @@
+Keep a shared source as empty text.
+Place "heeellooo" into source.
+Keep a shared words as an empty list of text.
+Place "hello" into words.
+Place "hi" into words.
+Place "helo" into words.
+Keep a shared word as empty text.
+Keep a shared targetchar as empty text.
+Keep a shared sourcecount as 0.
+Keep a shared wordcount as 0.
+Keep a shared good as 0.
+Keep a shared lastsource as 0.
+Keep a shared lastword as 0.
+Set lastsource to the last position of source.
+To measure source from spot (a whole number).
+If spot is more than lastsource, return.
+The symbol is the slice of source from spot to spot plus 1.
+If symbol does not match targetchar, return.
+Add 1 to sourcecount.
+Measure source from spot plus 1.
+
+To measure word from spot (a whole number).
+If spot is more than lastword, return.
+The symbol is the slice of word from spot to spot plus 1.
+If symbol does not match targetchar, return.
+Add 1 to wordcount.
+Measure word from spot plus 1.
+
+To check from first (a whole number) with second (a whole number).
+If good is 0, return.
+If first is more than lastsource and second is more than lastword, return.
+If first is more than lastsource, set good to 0, return.
+If second is more than lastword, set good to 0, return.
+The sourcechar is the slice of source from first to first plus 1.
+The wordchar is the slice of word from second to second plus 1.
+If sourcechar does not match wordchar, set good to 0, return.
+Set targetchar to sourcechar.
+Set sourcecount to 0.
+Measure source from first.
+Set targetchar to wordchar.
+Set wordcount to 0.
+Measure word from second.
+If sourcecount is not wordcount and sourcecount is less than 3, set good to 0, return.
+If sourcecount is not wordcount and wordcount is more than sourcecount, set good to 0, return.
+Check from first plus sourcecount with second plus wordcount.
+
+The total is 0.
+For each entry in words.
+Set word to entry.
+Set lastword to the last position of word.
+Set good to 1.
+Check from 0 with 0.
+If good is 1, add 1 to total.
+
+Show total.

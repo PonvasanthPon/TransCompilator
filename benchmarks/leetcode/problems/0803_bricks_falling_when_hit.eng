@@ -1,0 +1,79 @@
+Keep a shared bricks as an empty list of whole numbers.
+Place 1 into bricks.
+Place 0 into bricks.
+Place 0 into bricks.
+Place 0 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Place 0 into bricks.
+Place 1 into bricks.
+Place 0 into bricks.
+Place 1 into bricks.
+Place 0 into bricks.
+Place 1 into bricks.
+Place 0 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Place 1 into bricks.
+Keep a shared hits as an empty list of whole numbers.
+Place 0 into hits.
+Place 0 into hits.
+Place 0 into hits.
+Place 2 into hits.
+Place 0 into hits.
+Place 1 into hits.
+Place 1 into hits.
+Place 1 into hits.
+Place 2 into hits.
+Place 0 into hits.
+Keep a shared reach as an empty list of whole numbers.
+For every spot from 0 to 19.
+Place 0 into reach.
+
+Keep a shared results as an empty list of whole numbers.
+Keep a shared fallen as 0.
+Keep a shared columns as 0.
+Keep a shared final as 0.
+Set columns to 4.
+Set final to 19.
+To spread from node (a whole number).
+If item node of reach is 1, return.
+If item node of bricks is 0, return.
+Set item node of reach to 1.
+The row is node divided by columns.
+The column is node modulo columns.
+If row is more than 0, spread from node minus columns.
+If row is less than 4, spread from node plus columns.
+If column is more than 0, spread from node minus 1.
+If column is less than 3, spread from node plus 1.
+
+To seed from column (a whole number).
+If column is at least columns, return.
+If item column of bricks is 1, spread from column.
+Seed from column plus 1.
+
+To wipe from spot (a whole number).
+If spot is more than final, return.
+Set item spot of reach to 0.
+Wipe from spot plus 1.
+
+To sweep from spot (a whole number).
+If spot is more than final, Place fallen into results, return.
+If item spot of bricks is 1 and item spot of reach is 0, set item spot of bricks to 0, add 1 to fallen.
+Sweep from spot plus 1.
+
+For every turn from 0 to 4.
+The row is item (turn times 2) of hits.
+The column is item (turn times 2 plus 1) of hits.
+The place is row times columns plus column.
+Set item place of bricks to 0.
+Wipe from 0.
+Seed from 0.
+Set fallen to 0.
+Sweep from 0.
+
+For each amount in results, show amount.

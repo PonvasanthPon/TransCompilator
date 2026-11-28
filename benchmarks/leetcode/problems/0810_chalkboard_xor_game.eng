@@ -1,0 +1,10 @@
+The numbers is a list of 1, 1, and 2.
+The last is the last position of numbers.
+The count is the number of items in numbers.
+The mixed is 0.
+For every spot from 0 to last.
+The mixed is exclusive or of mixed and item spot of numbers.
+
+If mixed is 0, show true.
+If mixed is not 0 and count modulo 2 is 0, show true.
+If mixed is not 0 and count modulo 2 is 1, show false.

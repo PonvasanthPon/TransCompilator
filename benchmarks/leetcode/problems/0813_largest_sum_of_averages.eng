@@ -1,0 +1,46 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 9 into numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 9 into numbers.
+Keep a shared count as 0.
+Keep a shared groups as 0.
+Set count to 5.
+Set groups to 3.
+Keep a shared prefix as an empty list of whole numbers.
+Place 0 into prefix.
+For every spot from 0 to count minus 1.
+The running is item spot of prefix plus item spot of numbers.
+Place running into prefix.
+
+Keep a shared table as an empty list of decimals.
+The size is (groups plus 1) times (count plus 1).
+For every spot from 0 to size minus 1.
+Place 0.0 into table.
+
+Keep a shared choice as a decimal.
+To search from start (a whole number) with group (a whole number).
+Set choice to -1.0.
+For every cut from start plus 1 to count minus group plus 1.
+The leftsum is item cut of prefix minus item start of prefix.
+The span is (cut minus start) as a decimal.
+The leftavg is leftsum as a decimal divided by span.
+The right is item ((group minus 1) times (count plus 1) plus cut) of table.
+The candidate is leftavg plus right.
+If candidate is more than choice, set choice to candidate.
+
+For every start from 0 to count minus 1.
+The end is count.
+The total is item end of prefix minus item start of prefix.
+The leftlength is (count minus start) as a decimal.
+The average is total as a decimal divided by leftlength.
+Set item ((count plus 1) plus start) of table to average.
+
+For every group from 2 to groups.
+For every start from 0 to count minus group.
+Search from start with group.
+Set item (group times (count plus 1) plus start) of table to choice.
+
+The answer is item (groups times (count plus 1)) of table.
+Report answer.

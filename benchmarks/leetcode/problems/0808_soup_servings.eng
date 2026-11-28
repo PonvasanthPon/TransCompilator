@@ -1,0 +1,13 @@
+The portions is 2.
+Keep a shared chance as a decimal.
+To serve from first (a whole number) at second (a whole number) with weight (a decimal).
+If first is at most 0 and second is at most 0, add weight times 0.5 to chance, return.
+If first is at most 0, add weight to chance, return.
+If second is at most 0, return.
+Serve from first minus 4 at second with weight times 0.25.
+Serve from first minus 3 at second minus 1 with weight times 0.25.
+Serve from first minus 2 at second minus 2 with weight times 0.25.
+Serve from first minus 1 at second minus 3 with weight times 0.25.
+
+Serve from portions at portions with 1.0.
+Report chance.

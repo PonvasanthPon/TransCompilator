@@ -1,0 +1,52 @@
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared widths as an empty list of whole numbers.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Place 10 into widths.
+Keep a shared sentence as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into sentence.
+Keep a shared target as empty text.
+Keep a shared found as 0.
+Keep a shared used as 0.
+Keep a shared sheets as 0.
+Set sheets to 1.
+To search from spot (a whole number).
+If spot is more than 25, return.
+The piece is the slice of alphabet from spot to spot plus 1.
+If piece matches target, set found to spot, return.
+Search from spot plus 1.
+
+For every spot from 0 to the last position of sentence.
+Set target to the slice of sentence from spot to spot plus 1.
+Set found to -1.
+Search from 0.
+The letter is found.
+The room is item letter of widths.
+If used plus room is more than 100, add 1 to sheets, set used to room, otherwise add room to used.
+
+Show sheets.
+Show used.

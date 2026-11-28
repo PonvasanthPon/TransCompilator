@@ -1,0 +1,20 @@
+The grid is a list of 3, 0, 8, 4, 2, 4, 5, 7, 9, 2, 6, 3, 0, 3, 1, and 0.
+The size is 4.
+The rowtops is a list of 4 zeros.
+The columntops is a list of 4 zeros.
+For every row from 0 to size minus 1.
+For every column from 0 to size minus 1.
+The value is item (row times size plus column) of grid.
+If value is more than item row of rowtops, set item row of rowtops to value.
+If value is more than item column of columntops, set item column of columntops to value.
+
+The total is 0.
+For every row from 0 to size minus 1.
+For every column from 0 to size minus 1.
+The spot is row times size plus column.
+The value is item spot of grid.
+The ceiling is item row of rowtops.
+If item column of columntops is less than ceiling, set ceiling to item column of columntops.
+Add ceiling minus value to total.
+
+Show total.

@@ -1,0 +1,45 @@
+Keep a shared offsets as an empty list of whole numbers.
+Place 0 into offsets.
+Place 2 into offsets.
+Place 4 into offsets.
+Place 5 into offsets.
+Place 6 into offsets.
+Place 7 into offsets.
+Place 7 into offsets.
+Place 7 into offsets.
+Keep a shared neighbors as an empty list of whole numbers.
+Place 1 into neighbors.
+Place 2 into neighbors.
+Place 2 into neighbors.
+Place 3 into neighbors.
+Place 5 into neighbors.
+Place 0 into neighbors.
+Place 5 into neighbors.
+Keep a shared colors as an empty list of whole numbers.
+For every node from 0 to 6.
+Place 0 into colors.
+
+Keep a shared cycle as 0.
+To explore from node (a whole number).
+If item node of colors is 2, return.
+If item node of colors is 3, return.
+If item node of colors is 1, set cycle to 1, return.
+Set item node of colors to 1.
+The begin is item node of offsets.
+The finish is item (node plus 1) of offsets.
+Explore each from begin with finish.
+If cycle is 0, set item node of colors to 2.
+If cycle is 1, set item node of colors to 3.
+
+To explore each from place (a whole number) with finish (a whole number).
+If place is at least finish, return.
+If cycle is 1, return.
+Explore from item place of neighbors.
+Explore each from place plus 1 with finish.
+
+For every node from 0 to 6.
+Set cycle to 0.
+If item node of colors is 0, explore from node.
+
+For every node from 0 to 6.
+If item node of colors is 2, show node.

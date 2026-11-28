@@ -1,0 +1,49 @@
+The visits is an empty list of text.
+Place "9001 discuss.leetcode.com" into visits.
+Keep a shared domain as empty text.
+Keep a shared amount as 0.
+Keep a shared names as an empty list of text.
+Keep a shared totals as an empty list of whole numbers.
+Keep a shared suffix as empty text.
+Keep a shared found as 0.
+Keep a shared counttext as empty text.
+To seek from spot (a whole number).
+If spot is more than the last position of names, return.
+If item spot of names matches suffix, set found to spot, return.
+Seek from spot plus 1.
+
+To gather from start (a whole number).
+The finish is the last position of domain.
+Set finish to finish plus 1.
+Set suffix to the slice of domain from start to finish.
+Set found to -1.
+Seek from 0.
+If found is at least 0, The slot is found, Set item slot of totals to item slot of totals plus amount.
+If found is less than 0, The copy is a copy of suffix, Place copy into names, Place amount into totals.
+
+To close.
+Gather from 0.
+For every spot from 0 to the last position of domain.
+If spot is more than 0 and character spot of domain is ".", gather from spot plus 1.
+
+To walk from spot (a whole number).
+If spot is more than the last position of counttext, close, return.
+The digit is the digit value of character spot of counttext.
+Set amount to amount times 10 plus digit.
+Walk from spot plus 1.
+
+For each entry in visits.
+The parts is split entry by " ".
+Set counttext to empty text.
+Place item 0 of parts into counttext.
+Set domain to empty text.
+Place item 1 of parts into domain.
+Set amount to 0.
+Walk from 0.
+
+For every spot from 0 to the last position of names.
+The line is format whole number item spot of totals as text.
+Place " " into line.
+Place item spot of names into line.
+The shown is a copy of line.
+Show shown.
