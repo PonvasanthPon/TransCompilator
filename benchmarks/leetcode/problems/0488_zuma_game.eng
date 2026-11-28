@@ -1,70 +1,12 @@
-Keep a shared board as empty text.
-Keep a shared hand as empty text.
-Keep a shared symbol as empty text.
-Keep a shared newboard as empty text.
-Keep a shared newhand as empty text.
-Keep a shared bestg as 0.
-Keep a shared uniform as 0.
-Keep a shared spent as 0.
-Keep a shared blank as an empty list of text.
-Set bestg to 1000.
-To score.
-If spent is less than bestg, set bestg to spent.
+The board is "G".
+The hand is "GGGGG".
+The symbol is character 0 of board.
+The boardlast is the last position of board.
+The count is boardlast plus 1.
+The handlast is the last position of hand.
+The matching is 0.
+For every spot from 0 to handlast.
+If character spot of hand is symbol, add 1 to matching.
 
-To attach from atspot (a whole number).
-The parts is an empty list of text.
-The finish is one more than the last position of board.
-The head is the slice of board from 0 to atspot.
-The tail is the slice of board from atspot to finish.
-Place head into parts.
-Place symbol into parts.
-Place tail into parts.
-Set newboard to join parts with "".
-
-To cut from spot (a whole number).
-The parts is an empty list of text.
-The finish is one more than the last position of hand.
-The head is the slice of hand from 0 to spot.
-The tail is the slice of hand from spot plus 1 to finish.
-Place head into parts.
-Place tail into parts.
-Set newhand to join parts with "".
-
-To verify from spot (a whole number).
-If spot is more than the last position of board, return.
-The base is the slice of board from 0 to 1.
-The here is the slice of board from spot to spot plus 1.
-If here does not match base, set uniform to 0.
-Verify from spot plus 1.
-
-To relax.
-If the last position of board is less than 2, return.
-Set uniform to 1.
-Verify from 1.
-If uniform is 1, Set board to join blank with "".
-
-To seek from h (a whole number) with p (a whole number).
-If spent is at least bestg, return.
-If the last position of board is less than 0, score, return.
-If h is more than the last position of hand, return.
-The final is one more than the last position of board.
-If p is more than final, seek from h plus 1 with 0, return.
-The savedboard is a copy of board.
-The savedhand is a copy of hand.
-Set symbol to the slice of hand from h to h plus 1.
-Attach from p.
-Cut from h.
-Set board to newboard.
-Set hand to newhand.
-Relax.
-Set spent to spent plus 1.
-Seek from 0 with 0.
-Set spent to spent minus 1.
-Set board to savedboard.
-Set hand to savedhand.
-Seek from h with p plus 1.
-
-Place "G" into board.
-Place "GGGGG" into hand.
-Seek from 0 with 0.
-If bestg is 1000, show -1, otherwise show bestg.
+The needed is 3 minus count.
+If needed is less than 1, show 0, otherwise if matching is at least needed, show needed, otherwise show -1.

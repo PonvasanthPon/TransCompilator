@@ -3,7 +3,7 @@ The first is 1000000000.
 The second is 1000000000.
 The found is 0.
 For each value in numbers.
-If found is 1, stop.
+If found is 1, break.
 If value is at most first, set first to value.
 If value is more than first and value is at most second, set second to value.
 If value is more than second, set found to 1.
