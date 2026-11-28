@@ -1,0 +1,16 @@
+The image is a list of 1, 1, 0, 1, 0, 1, 0, 0, and 0.
+The answers is an empty list of text.
+For every row from 0 to 2.
+The line is empty text.
+Place "[" into line.
+For every column from 0 to 2.
+The mirror is 2 minus column.
+The value is item (row times 3 plus mirror) of image.
+The flipped is 1 minus value.
+The piece is format whole number flipped as text.
+If column is more than 0, Place "," into line.
+Place piece into line.
+If column is 2, Place "]" into line.
+If column is 2, The copy is a copy of line, Place copy into answers.
+
+For each answer in answers, show answer.

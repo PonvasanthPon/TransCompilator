@@ -1,0 +1,57 @@
+Keep a shared chart as an empty list of whole numbers.
+Place 1 into chart.
+Place 0 into chart.
+Place 0 into chart.
+Place 1 into chart.
+Keep a shared rows as 0.
+Keep a shared columns as 0.
+Set rows to 2.
+Set columns to 2.
+Keep a shared labels as an empty list of whole numbers.
+Keep a shared sizes as an empty list of whole numbers.
+Keep a shared tint as 0.
+Keep a shared count as 0.
+For every spot from 0 to 3.
+Place -1 into labels.
+
+To paint from node (a whole number).
+If item node of chart is 0, return.
+If item node of labels is not -1, return.
+Set item node of labels to tint.
+Add 1 to count.
+The row is node divided by columns.
+The column is node modulo columns.
+If row is more than 0, paint from node minus columns.
+If row is less than rows minus 1, paint from node plus columns.
+If column is more than 0, paint from node minus 1.
+If column is less than columns minus 1, paint from node plus 1.
+
+For every node from 0 to 3.
+If item node of chart is 1 and item node of labels is -1.
+Set count to 0.
+Paint from node.
+Place count into sizes.
+Set tint to tint plus 1.
+
+The best is 0.
+For every node from 0 to 3.
+If item node of chart is 0.
+The near is an empty list of whole numbers.
+The row is node divided by columns.
+The column is node modulo columns.
+If row is more than 0 and item (node minus columns) of chart is 1, Place item (node minus columns) of labels into near.
+If row is less than rows minus 1 and item (node plus columns) of chart is 1, Place item (node plus columns) of labels into near.
+If column is more than 0 and item (node minus 1) of chart is 1, Place item (node minus 1) of labels into near.
+If column is less than columns minus 1 and item (node plus 1) of chart is 1, Place item (node plus 1) of labels into near.
+The candidate is 1.
+If candidate is more than best, set best to candidate.
+The seen is an empty list of whole numbers.
+For each label in near.
+If seen contains label, skip to the next one.
+Place label into seen.
+The gain is item label of sizes.
+Add gain to candidate.
+If candidate is more than best, set best to candidate.
+
+If best is 0, set best to rows times columns.
+Show best.

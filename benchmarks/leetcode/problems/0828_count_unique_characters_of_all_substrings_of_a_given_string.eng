@@ -1,0 +1,29 @@
+Keep a shared word as empty text.
+Place "ABA" into word.
+Keep a shared symbol as empty text.
+Keep a shared fresh as 0.
+Keep a shared unique as 0.
+
+To check up to high (a whole number) with spot (a whole number).
+If spot is more than high, return.
+The other is the slice of word from spot to spot plus 1.
+If other matches symbol, set fresh to 0, return.
+Check up to high with spot plus 1.
+
+To judge from start (a whole number) with finish (a whole number) and spot (a whole number).
+If spot is more than finish, return.
+Set symbol to the slice of word from spot to spot plus 1.
+Set fresh to 1.
+Check up to spot minus 1 with start.
+Check up to finish with spot plus 1.
+If fresh is 1, add 1 to unique.
+Judge from start with finish and spot plus 1.
+
+The total is 0.
+For every start from 0 to 2.
+For every finish from start to 2.
+Set unique to 0.
+Judge from start with finish and start.
+Add unique to total.
+
+Show total.

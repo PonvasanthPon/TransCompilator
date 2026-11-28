@@ -1,0 +1,10 @@
+The target is 15.
+The ways is 0.
+The length is 1.
+Repeat while length times (length plus 1) divided by 2 is at most target.
+The rest is length times (length minus 1) divided by 2.
+The start is target minus rest.
+If start modulo length is 0 and start divided by length is more than 0, add 1 to ways.
+Add 1 to length.
+
+Show ways.

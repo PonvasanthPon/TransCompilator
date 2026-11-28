@@ -1,0 +1,66 @@
+Keep a shared words as an empty list of text.
+Place "tars" into words.
+Place "rats" into words.
+Place "arts" into words.
+Place "star" into words.
+Keep a shared graph as an empty list of whole numbers.
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared firstword as empty text.
+Keep a shared secondword as empty text.
+Keep a shared differences as 0.
+Keep a shared leftspot as 0.
+Keep a shared rightspot as 0.
+Keep a shared alike as 0.
+For every place from 0 to 15.
+Place 0 into graph.
+For every place from 0 to 3.
+Place 0 into seen.
+
+To finish.
+Set alike to 0.
+If differences is 0, set alike to 1, return.
+If differences is not 2, return.
+The firstleft is the slice of firstword from leftspot to leftspot plus 1.
+The firstright is the slice of firstword from rightspot to rightspot plus 1.
+The secondleft is the slice of secondword from leftspot to leftspot plus 1.
+The secondright is the slice of secondword from rightspot to rightspot plus 1.
+If firstleft matches secondright.
+If firstright matches secondleft, set alike to 1.
+
+To scan from spot (a whole number).
+If spot is more than the last position of firstword, Finish, return.
+The one is the slice of firstword from spot to spot plus 1.
+The two is the slice of secondword from spot to spot plus 1.
+If one does not match two, add 1 to differences, set rightspot to leftspot, set leftspot to spot.
+Scan from spot plus 1.
+
+To check from first (a whole number) with second (a whole number).
+Set alike to 0.
+Set firstword to item first of words.
+Set secondword to item second of words.
+Set differences to 0.
+Set leftspot to -1.
+Set rightspot to -1.
+If firstword matches secondword, set alike to 1, return.
+Scan from 0.
+
+To visit from node (a whole number).
+If item node of seen is 1, return.
+Set item node of seen to 1.
+For every other from 0 to 3.
+If item (node times 4 plus other) of graph is 1 and item other of seen is 0, Visit from other.
+
+For every pair from 0 to 15.
+The first is pair divided by 4.
+The second is pair modulo 4.
+If first is less than second.
+Check from first with second.
+If alike is 1, set item (first times 4 plus second) of graph to 1.
+If alike is 1, set item (second times 4 plus first) of graph to 1.
+
+The groups is 0.
+For every start from 0 to 3.
+If item start of seen is 0, add 1 to groups.
+If item start of seen is 0, Visit from start.
+
+Show groups.

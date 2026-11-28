@@ -1,0 +1,41 @@
+Keep a shared first as an empty list of whole numbers.
+Place 1 into first.
+Place 1 into first.
+Place 0 into first.
+Place 0 into first.
+Place 1 into first.
+Place 0 into first.
+Place 0 into first.
+Place 1 into first.
+Place 0 into first.
+Keep a shared second as an empty list of whole numbers.
+Place 0 into second.
+Place 0 into second.
+Place 0 into second.
+Place 0 into second.
+Place 1 into second.
+Place 1 into second.
+Place 0 into second.
+Place 0 into second.
+Place 1 into second.
+Keep a shared best as 0.
+
+To score from down (a whole number) with across (a whole number).
+The overlap is 0.
+For every sourcerow from 0 to 2.
+For every sourcecolumn from 0 to 2.
+The sourcevalue is item (sourcerow times 3 plus sourcecolumn) of first.
+The targetrow is sourcerow plus down.
+The targetcolumn is sourcecolumn plus across.
+If sourcevalue is 1 and targetrow is at least 0 and targetrow is less than 3 and targetcolumn is at least 0 and targetcolumn is less than 3.
+The targetvalue is item (targetrow times 3 plus targetcolumn) of second.
+If targetvalue is 1, add 1 to overlap.
+If overlap is more than best, set best to overlap.
+
+For every rowshift from 0 to 4.
+The down is rowshift minus 2.
+For every columnshift from 0 to 4.
+The across is columnshift minus 2.
+Score from down with across.
+
+Show best.

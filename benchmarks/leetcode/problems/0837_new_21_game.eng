@@ -1,0 +1,27 @@
+Keep a shared chances as an empty list of decimals.
+Keep a shared maxpoints as 0.
+Keep a shared faces as a decimal.
+Keep a shared stopping as 0.
+Set maxpoints to 10.
+Set faces to 10.0.
+Set stopping to 1.
+For every place from 0 to 6.
+Place 0.0 into chances.
+
+To imagine from score (a whole number).
+The total is 0.0.
+For every step from 1 to maxpoints.
+The prior is score minus step.
+If prior is at least 0 and prior is less than stopping, The value is item prior of chances, Set total to total plus value.
+If step is maxpoints, Set item score of chances to total divided by faces.
+
+Set item 0 of chances to 1.0.
+For every score from 1 to 6.
+Imagine from score.
+
+The answer is 0.0.
+For every score from 1 to 6.
+The part is item score of chances.
+Add part to answer.
+
+Show answer.

@@ -1,0 +1,61 @@
+Keep a shared lefts as an empty list of whole numbers.
+Place 0 into lefts.
+Place 0 into lefts.
+Place 2 into lefts.
+Place 2 into lefts.
+Place 2 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 1 into rights.
+Place 2 into rights.
+Place 3 into rights.
+Place 4 into rights.
+Place 5 into rights.
+Keep a shared sizes as an empty list of whole numbers.
+Keep a shared answers as an empty list of whole numbers.
+Keep a shared travel as 0.
+Keep a shared gain as 0.
+For every place from 0 to 5.
+Place 0 into sizes.
+Place 0 into answers.
+
+To measure from node (a whole number) with parent (a whole number).
+Set item node of sizes to 1.
+For every edge from 0 to 4.
+The first is item edge of lefts.
+The second is item edge of rights.
+If first is node and second is not parent, Measure from second with node.
+If first is node and second is not parent, Set item node of sizes to item node of sizes plus item second of sizes.
+If second is node and first is not parent, Measure from first with node.
+If second is node and first is not parent, Set item node of sizes to item node of sizes plus item first of sizes.
+
+To gather from node (a whole number) with parent (a whole number) and depth (a whole number).
+Set travel to travel plus depth.
+For every edge from 0 to 4.
+The first is item edge of lefts.
+The second is item edge of rights.
+If first is node and second is not parent, Gather from second with node and depth plus 1.
+If second is node and first is not parent, Gather from first with node and depth plus 1.
+
+To spread from node (a whole number) with parent (a whole number).
+For every edge from 0 to 4.
+The first is item edge of lefts.
+The second is item edge of rights.
+If first is node and second is not parent, Set gain to 6 minus 2 times item second of sizes.
+If first is node and second is not parent, Set item second of answers to item node of answers plus gain.
+If first is node and second is not parent, Spread from second with node.
+If second is node and first is not parent, Set gain to 6 minus 2 times item first of sizes.
+If second is node and first is not parent, Set item first of answers to item node of answers plus gain.
+If second is node and first is not parent, Spread from first with node.
+
+Measure from 0 with -1.
+Set travel to 0.
+Gather from 0 with -1 and 0.
+Set item 0 of answers to travel.
+Spread from 0 with -1.
+The line is empty text.
+For every node from 0 to 5.
+If node is more than 0, Place "," into line.
+The piece is format whole number item node of answers as text.
+Place piece into line.
+
+Show line.

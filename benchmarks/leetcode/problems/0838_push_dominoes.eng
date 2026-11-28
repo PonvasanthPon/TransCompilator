@@ -1,0 +1,41 @@
+The source is ".L.R...LR..L..".
+The last is the last position of source.
+The extent is 14.
+The rightforce is a list of 14 zeros.
+The leftforce is a list of 14 zeros.
+The verdict is a list of 14 zeros.
+The lastright is -1.
+For every spot from 0 to last.
+The symbol is the slice of source from spot to spot plus 1.
+If symbol matches "R", set lastright to spot.
+If symbol matches "L", set lastright to -1.
+If lastright is at least 0, set item spot of rightforce to spot minus lastright.
+If lastright is less than 0, set item spot of rightforce to extent.
+
+The lastleft is -1.
+The spot is last.
+Repeat while spot is at least 0.
+The symbol is the slice of source from spot to spot plus 1.
+If symbol matches "L", set lastleft to spot.
+If symbol matches "R", set lastleft to -1.
+If lastleft is at least 0, set item spot of leftforce to lastleft minus spot.
+If lastleft is less than 0, set item spot of leftforce to extent.
+Set spot to spot minus 1.
+
+For every spot from 0 to last.
+The symbol is the slice of source from spot to spot plus 1.
+If symbol matches "R", set item spot of verdict to 1.
+If symbol matches "L", set item spot of verdict to 2.
+If symbol matches ".".
+The fromright is item spot of rightforce.
+The fromleft is item spot of leftforce.
+If fromright is less than fromleft, set item spot of verdict to 1.
+If fromleft is less than fromright, set item spot of verdict to 2.
+
+The result is empty text.
+For each state in verdict.
+If state is 0, Place "." into result.
+If state is 1, Place "R" into result.
+If state is 2, Place "L" into result.
+
+Show result.

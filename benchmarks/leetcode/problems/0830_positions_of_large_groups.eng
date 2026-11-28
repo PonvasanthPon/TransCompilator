@@ -1,0 +1,35 @@
+Keep a shared source as empty text.
+Place "abbxxxxzzy" into source.
+Keep a shared last as 0.
+Set last to the last position of source.
+Keep a shared answers as an empty list of text.
+Keep a shared closing as 0.
+
+To store from openat (a whole number) with closeat (a whole number).
+The line is empty text.
+Place "[" into line.
+The firsttext is format whole number openat as text.
+Place firsttext into line.
+Place "," into line.
+The secondtext is format whole number closeat as text.
+Place secondtext into line.
+Place "]" into line.
+The copy is a copy of line.
+Place copy into answers.
+
+To check from spot (a whole number).
+The next is spot plus 1.
+If next is more than last, set closing to 1, return.
+The current is the slice of source from spot to spot plus 1.
+The following is the slice of source from next to next plus 1.
+If current does not match following, set closing to 1.
+
+The start is 0.
+For every spot from 0 to last.
+Set closing to 0.
+Check from spot.
+The span is spot minus start plus 1.
+If closing is 1 and span is at least 3, Store from start with spot.
+If closing is 1, set start to spot plus 1.
+
+For each answer in answers, show answer.

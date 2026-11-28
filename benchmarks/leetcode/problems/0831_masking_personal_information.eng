@@ -1,0 +1,98 @@
+Keep a shared source as empty text.
+Place "Alice@Example.com" into source.
+Keep a shared bigletters as empty text.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into bigletters.
+Keep a shared smallletters as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into smallletters.
+Keep a shared current as empty text.
+Keep a shared converted as empty text.
+Keep a shared softened as empty text.
+Keep a shared domaintext as empty text.
+Keep a shared line as empty text.
+Keep a shared digits as empty text.
+Keep a shared lowdigit as empty text.
+Place "0" into lowdigit.
+Keep a shared highdigit as empty text.
+Place "9" into highdigit.
+Keep a shared foundspot as 0.
+
+To lower from spot (a whole number).
+If spot is more than 25, return.
+The bigpiece is the slice of bigletters from spot to spot plus 1.
+If bigpiece matches current, set converted to the slice of smallletters from spot to spot plus 1, return.
+Lower from spot plus 1.
+
+To soften from spot (a whole number).
+If spot is more than the last position of domaintext, return.
+Set current to the slice of domaintext from spot to spot plus 1.
+Set converted to current.
+Lower from 0.
+Place converted into softened.
+Soften from spot plus 1.
+
+To pad from count (a whole number) with limit (a whole number).
+If count is at least limit, return.
+Place "*" into line.
+Pad from count plus 1 with limit.
+
+To findat from spot (a whole number).
+If spot is more than the last position of source, return.
+The piece is the slice of source from spot to spot plus 1.
+If piece matches "@", set foundspot to spot, return.
+Findat from spot plus 1.
+
+To veil.
+Findat from 0.
+The person is the slice of source from 0 to foundspot.
+The sourcelast is the last position of source.
+The finish is sourcelast plus 1.
+The begin is foundspot plus 1.
+The domain is the slice of source from begin to finish.
+Set domaintext to domain.
+Set current to the slice of person from 0 to 1.
+Set converted to current.
+Lower from 0.
+The firstletter is converted.
+The lastspot is the last position of person.
+The localsize is lastspot plus 1.
+The endspot is localsize minus 1.
+Set current to the slice of person from endspot to localsize.
+Set converted to current.
+Lower from 0.
+The lastletter is converted.
+Set line to empty text.
+Place firstletter into line.
+Pad from 0 with localsize minus 2.
+Place lastletter into line.
+Place "@" into line.
+Set softened to empty text.
+Soften from 0.
+Place softened into line.
+Show line.
+
+To gather digits from spot (a whole number).
+If spot is more than the last position of source, return.
+The piece is the slice of source from spot to spot plus 1.
+If piece comes before lowdigit, Gather digits from spot plus 1, return.
+If highdigit comes before piece, Gather digits from spot plus 1, return.
+Place piece into digits.
+Gather digits from spot plus 1.
+
+To cloak.
+Set digits to empty text.
+Gather digits from 0.
+The lastdigit is the last position of digits.
+The start is lastdigit minus 3.
+The tail is the slice of digits from start to lastdigit plus 1.
+Set line to empty text.
+Place "***-***-" into line.
+Place tail into line.
+Show line.
+
+The postal is 0.
+For every spot from 0 to the last position of source.
+The piece is the slice of source from spot to spot plus 1.
+If piece matches "@", set postal to 1.
+
+If postal is 1, Veil.
+If postal is 0, Cloak.
