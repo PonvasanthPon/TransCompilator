@@ -1,0 +1,34 @@
+The source is "ab".
+The goal is "ba".
+The last is the last position of source.
+The valid is 1.
+The sizesource is the number of characters in source.
+The sizegoal is the number of characters in goal.
+If sizesource is not sizegoal, set valid to 0.
+The first is -1.
+The second is -1.
+The misses is 0.
+For every spot from 0 to last.
+The symbol is character spot of source.
+The wanted is character spot of goal.
+If symbol is not wanted and misses is 0, set first to spot.
+If symbol is not wanted and misses is 1, set second to spot.
+If symbol is not wanted, add 1 to misses.
+
+The twin is 0.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+The leftsymbol is character left of source.
+The rightsymbol is character right of source.
+If leftsymbol is rightsymbol, set twin to 1.
+
+The answer is 0.
+If valid is 1 and misses is 0, set answer to twin.
+If valid is 1 and misses is 2.
+The leftletter is character first of source.
+The rightletter is character second of goal.
+The backletter is character second of source.
+The frontletter is character first of goal.
+If leftletter is rightletter and backletter is frontletter, set answer to 1.
+
+If answer is 1, show true, otherwise show false.

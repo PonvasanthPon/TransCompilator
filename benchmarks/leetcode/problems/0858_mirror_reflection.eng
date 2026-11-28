@@ -1,0 +1,13 @@
+The width is 4, while the height is 2.
+The left is width, while the right is height.
+Repeat while right is more than 0.
+The carry is left modulo right.
+Set left to right.
+Set right to carry.
+
+The short is width divided by left, while the tall is height divided by left.
+The corner is 1.
+If short modulo 2 is 0, set corner to 2.
+If short modulo 2 is 1 and tall modulo 2 is 0, set corner to 0.
+
+Show corner.

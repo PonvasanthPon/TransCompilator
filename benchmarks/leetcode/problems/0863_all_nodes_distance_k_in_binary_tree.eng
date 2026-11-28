@@ -1,0 +1,87 @@
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place 9 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place 10 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared parents as an empty list of whole numbers.
+For every node from 0 to 10.
+Place -2 into parents.
+
+Keep a shared queue as an empty list of whole numbers.
+For every node from 0 to 10.
+Place -1 into queue.
+
+Keep a shared seen as an empty list of whole numbers.
+For every node from 0 to 10.
+Place 0 into seen.
+
+Keep a shared distance as an empty list of whole numbers.
+For every node from 0 to 10.
+Place 0 into distance.
+
+Keep a shared answers as an empty list of whole numbers.
+Keep a shared count as 0.
+
+To attach from node (a whole number) with parent (a whole number).
+If node is less than 0, return.
+Set item node of parents to parent.
+The left is item node of lefts.
+Attach from left with node.
+The right is item node of rights.
+Attach from right with node.
+
+To visit from neighbor (a whole number) with depth (a whole number).
+If neighbor is less than 0, return.
+If item neighbor of seen is 1, return.
+Set item neighbor of seen to 1.
+Set item neighbor of distance to depth plus 1.
+The spot is count.
+Set item spot of queue to neighbor.
+Add 1 to count.
+
+To expand from here (a whole number) with depth (a whole number).
+The left is item here of lefts.
+Visit from left with depth.
+The right is item here of rights.
+Visit from right with depth.
+The parent is item here of parents.
+Visit from parent with depth.
+
+The values is a list of 3, 5, 1, 6, 2, 0, 8, -1, -1, 7, and 4.
+Attach from 0 with -1.
+Set item 0 of queue to 1.
+Set item 1 of seen to 1.
+Set count to 1.
+The head is 0.
+Repeat while head is less than count.
+The here is item head of queue.
+The depth is item here of distance.
+Add 1 to head.
+If depth is 2, Place item here of values into answers.
+If depth is less than 2, Expand from here with depth.
+
+The line is empty text.
+For each value in answers.
+If the length of line is more than 0, Place "," into line.
+Place format whole number value as text into line.
+
+Show line.

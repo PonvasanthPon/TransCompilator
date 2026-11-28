@@ -1,0 +1,23 @@
+The positions is a list of 10, 8, 0, 5, and 3.
+The speeds is a list of 2, 4, 1, 1, and 3.
+The target is 12.
+The last is the last position of positions.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+If item right of positions is more than item left of positions, swap item left of positions and item right of positions, swap item left of speeds and item right of speeds.
+
+The leaders is an empty list of whole numbers.
+The paces is an empty list of whole numbers.
+For every spot from 0 to last.
+The here is item spot of positions.
+The pace is item spot of speeds.
+The size is the number of items in leaders.
+If size is 0, Place here into leaders, Place pace into paces.
+If size is more than 0.
+The ahead is item (size minus 1) of leaders.
+The cruise is item (size minus 1) of paces.
+The mine is (target minus here) times cruise.
+The theirs is (target minus ahead) times pace.
+If mine is more than theirs, Place here into leaders, Place pace into paces.
+
+Show the number of items in leaders.

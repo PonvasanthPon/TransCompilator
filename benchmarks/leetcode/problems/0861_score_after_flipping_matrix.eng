@@ -1,0 +1,49 @@
+Keep a shared rows as 0.
+Keep a shared columns as 0.
+Set rows to 3.
+Set columns to 4.
+Keep a shared grid as an empty list of whole numbers.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+For every row from 0 to rows minus 1.
+The start is row times columns.
+If item start of grid is 0.
+For every column from 0 to columns minus 1.
+The cell is start plus column.
+The flipped is exclusive or of item cell of grid and 1.
+Set item cell of grid to flipped.
+
+Keep a shared ones as 0.
+Keep a shared weight as 0.
+
+To count from column (a whole number).
+Set ones to 0.
+For every row from 0 to rows minus 1.
+The cell is row times columns plus column.
+If item cell of grid is 1, add 1 to ones.
+
+To weigh from place (a whole number).
+Set weight to 1.
+For every step from 0 to place minus 1.
+Set weight to weight times 2.
+
+The total is 0.
+For every column from 0 to columns minus 1.
+Count from column.
+The taller is ones.
+If rows minus ones is more than taller, set taller to rows minus ones.
+The place is columns minus 1 minus column.
+Weigh from place.
+Set total to total plus taller times weight.
+
+Show total.

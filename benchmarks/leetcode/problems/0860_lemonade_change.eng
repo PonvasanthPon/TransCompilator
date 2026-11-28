@@ -1,0 +1,13 @@
+The bills is a list of 5, 5, 5, 10, and 20.
+The fives is 0, while the tens is 0.
+The valid is 1.
+For each bill in bills.
+If bill is 5, add 1 to fives.
+If bill is 10 and fives is 0, set valid to 0.
+If bill is 10 and fives is more than 0, subtract 1 from fives, add 1 to tens.
+The paid is 0.
+If bill is 20 and tens is more than 0 and fives is more than 0, subtract 1 from tens, subtract 1 from fives, set paid to 1.
+If bill is 20 and paid is 0 and fives is at least 3, subtract 3 from fives, set paid to 1.
+If bill is 20 and paid is 0, set valid to 0.
+
+If valid is 1, show true, otherwise show false.

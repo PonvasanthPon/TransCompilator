@@ -1,0 +1,79 @@
+Keep a shared source as empty text.
+Keep a shared goal as empty text.
+Place "abc" into source.
+Place "bca" into goal.
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared current as empty text.
+Keep a shared targetletter as 0.
+Keep a shared codes as an empty list of whole numbers.
+Keep a shared found as 0.
+
+To locate from spot (a whole number).
+If spot is more than 25, return.
+The symbol is character spot of alphabet.
+If symbol is targetletter, set found to spot, return.
+Locate from spot plus 1.
+
+To encode from spot (a whole number).
+If spot is more than the last position of current, return.
+Set targetletter to character spot of current.
+Set found to -1.
+Locate from 0.
+Place found into codes.
+Encode from spot plus 1.
+
+Set current to source.
+Encode from 0.
+Set current to goal.
+Encode from 0.
+
+The final is the last position of source.
+Keep a shared chars as an empty list of whole numbers.
+Keep a shared wanted as an empty list of whole numbers.
+For every spot from 0 to final.
+Place item spot of codes into chars.
+For every spot from final plus 1 to the last position of codes.
+Place item spot of codes into wanted.
+
+Keep a shared first as 0.
+Keep a shared best as 0.
+Set best to final plus 1.
+
+To scan from spot (a whole number).
+Set first to -1.
+For every index from spot to the last position of chars.
+If first is -1 and item index of chars is not item index of wanted, set first to index.
+
+To seek from spot (a whole number) with level (a whole number).
+If level is at least best, return.
+Scan from spot.
+The foundspot is first.
+If foundspot is -1, set best to level, return.
+Tryexact from foundspot with foundspot and level.
+Tryany from foundspot with foundspot and level.
+
+To carry from first (a whole number) with index (a whole number) and level (a whole number).
+swap item first of chars and item index of chars.
+Seek from first plus 1 with level.
+swap item first of chars and item index of chars.
+
+To consider from index (a whole number) with targetspot (a whole number) and level (a whole number).
+If item index of chars is not item targetspot of wanted, return.
+If item targetspot of chars is not item index of wanted, return.
+Carry from targetspot with index and level plus 1.
+
+To probe from index (a whole number) with targetspot (a whole number) and level (a whole number).
+If item index of chars is not item targetspot of wanted, return.
+Carry from targetspot with index and level plus 1.
+
+To tryexact from spot (a whole number) with targetspot (a whole number) and level (a whole number).
+For every index from spot plus 1 to the last position of chars.
+Consider from index with targetspot and level.
+
+To tryany from spot (a whole number) with targetspot (a whole number) and level (a whole number).
+For every index from spot plus 1 to the last position of chars.
+Probe from index with targetspot and level.
+
+Seek from 0 with 0.
+Show best.

@@ -1,0 +1,17 @@
+The word is "(()(()))".
+The last is the last position of word.
+The stack is an empty list of whole numbers.
+For every spot from 0 to last.
+The symbol is character spot of word.
+The size is the number of items in stack.
+If symbol is "(", Place 0 into stack.
+If symbol is ")".
+The inner is item (size minus 1) of stack.
+Remove the last item from stack.
+The left is the number of items in stack.
+The scored is 1.
+If inner is more than 0, set scored to inner times 2.
+If left is 0, Place scored into stack.
+If left is more than 0, set item (left minus 1) of stack to item (left minus 1) of stack plus scored.
+
+Show item 0 of stack.

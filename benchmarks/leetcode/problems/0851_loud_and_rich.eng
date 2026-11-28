@@ -1,0 +1,51 @@
+Keep a shared quiet as an empty list of whole numbers.
+Place 3 into quiet.
+Place 2 into quiet.
+Place 5 into quiet.
+Place 4 into quiet.
+Place 1 into quiet.
+Place 0 into quiet.
+Keep a shared edges as an empty list of whole numbers.
+Place 1 into edges.
+Place 2 into edges.
+Place 3 into edges.
+Place 4 into edges.
+Place 5 into edges.
+Keep a shared starts as an empty list of whole numbers.
+Place 0 into starts.
+Place 1 into starts.
+Place 3 into starts.
+Place 3 into starts.
+Place 5 into starts.
+Place 5 into starts.
+Keep a shared counts as an empty list of whole numbers.
+Place 1 into counts.
+Place 2 into counts.
+Place 0 into counts.
+Place 2 into counts.
+Place 0 into counts.
+Place 0 into counts.
+Keep a shared answers as an empty list of whole numbers.
+Place 0 into answers.
+Place 1 into answers.
+Place 2 into answers.
+Place 3 into answers.
+Place 4 into answers.
+Place 5 into answers.
+
+To settle from person (a whole number).
+For every offset from 0 to item person of counts minus 1.
+The source is item (item person of starts plus offset) of edges.
+Settle from source.
+The voice is item source of answers.
+If item voice of quiet is less than item person of quiet, set item person of answers to voice.
+
+For every person from 0 to 5.
+Settle from person.
+
+The line is empty text.
+For each value in answers.
+If the length of line is more than 0, Place "," into line.
+Place format whole number value as text into line.
+
+Show line.

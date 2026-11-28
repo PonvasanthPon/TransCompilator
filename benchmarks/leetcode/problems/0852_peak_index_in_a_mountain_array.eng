@@ -1,0 +1,8 @@
+The heights is a list of 0, 10, 5, 2, and 1.
+The low is 0, while the high is the last position of heights.
+Repeat while low is less than high.
+The middle is (low plus high) divided by 2.
+If item middle of heights is less than item (middle plus 1) of heights, set low to middle plus 1.
+If item middle of heights is more than item (middle plus 1) of heights, set high to middle.
+
+Show low.

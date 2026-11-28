@@ -1,0 +1,42 @@
+The qualities is a list of 10, 20, and 5.
+The wages is a list of 70, 50, and 30.
+The wanted is 2.
+The last is the last position of qualities.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+If item right of wages times item left of qualities is less than item left of wages times item right of qualities, swap item left of qualities and item right of qualities, swap item left of wages and item right of wages.
+
+Keep a shared pool as an empty list of whole numbers.
+Place 0 into pool.
+Place 0 into pool.
+Keep a shared filled as 0.
+Keep a shared total as 0.
+Keep a shared bestnum as 0.
+Keep a shared bestden as 0.
+Keep a shared biggest as 0.
+Set bestden to 1.
+
+To largest from count (a whole number).
+Set biggest to 0.
+For every spot from 1 to count minus 1.
+The local is biggest.
+If item spot of pool is more than item local of pool, set biggest to spot.
+
+To record with wage (a whole number) and quality (a whole number).
+The big is total times wage.
+If bestnum is 0 or big times bestden is less than bestnum times quality, set bestnum to big, set bestden to quality.
+
+For every spot from 0 to last.
+The quality is item spot of qualities.
+The wage is item spot of wages.
+The added is 0.
+If filled is less than wanted, set item filled of pool to quality, add quality to total, add 1 to filled, set added to 1.
+If filled is wanted and added is 1, Record with wage and quality.
+If added is 0 and filled is wanted.
+Largest from filled.
+The top is biggest.
+The old is item top of pool.
+If quality is less than old, set total to total minus old plus quality, set item top of pool to quality, Record with wage and quality.
+If quality is at least old, Record with wage and quality.
+
+Show bestnum divided by bestden.
