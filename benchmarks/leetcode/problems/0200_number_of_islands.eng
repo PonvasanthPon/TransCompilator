@@ -1,0 +1,26 @@
+The chart is a list of 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, and 0.
+Keep a shared land as an empty list of whole numbers.
+For each square in chart.
+Place square into land.
+
+Keep a shared visited as an empty list of whole numbers.
+For every spot from 0 to 19.
+Place 0 into visited.
+
+To walk from node (a whole number).
+If item node of land is 0, return.
+If item node of visited is 1, return.
+Set item node of visited to 1.
+The row is node divided by 5.
+The column is node modulo 5.
+If row is more than 0, walk from node minus 5.
+If row is less than 3, walk from node plus 5.
+If column is more than 0, walk from node minus 1.
+If column is less than 4, walk from node plus 1.
+
+The islands is 0.
+For every node from 0 to 19.
+If item node of land is 1 and item node of visited is 0, add 1 to islands.
+If item node of land is 1 and item node of visited is 0, walk from node.
+
+Show islands.

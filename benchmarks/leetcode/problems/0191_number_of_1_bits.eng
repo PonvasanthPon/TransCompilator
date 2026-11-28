@@ -1,0 +1,9 @@
+The number is 11.
+The value is number.
+The count is 0.
+Repeat while value is more than 0.
+The bit is bitwise and of value and 1.
+Add bit to count.
+Set value to shift value right by 1.
+
+Show count.

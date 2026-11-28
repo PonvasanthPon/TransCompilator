@@ -1,0 +1,12 @@
+The numbers is a list of 2, 7, 11, and 15.
+The target is 9.
+The left is 0.
+The right is 3.
+The answers is an empty list of whole numbers.
+Repeat while left is less than right.
+The sum is item left of numbers plus item right of numbers.
+If sum is target, Place left plus 1 into answers, Place right plus 1 into answers, break.
+If sum is less than target, add 1 to left.
+If sum is more than target, subtract 1 from right.
+
+For each answer in answers, show answer.

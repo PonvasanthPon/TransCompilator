@@ -1,0 +1,29 @@
+The values is a list of 4, 1, 8, 4, 5, 5, 6, and 1.
+The nexts is a list of 1, 2, 3, 4, -1, 6, 7, and 2.
+The first is 0.
+The second is 5.
+The firstsize is 0.
+The secondsize is 0.
+The node is 0.
+Repeat while node is at least 0.
+Add 1 to firstsize.
+Set node to item node of nexts.
+
+Set node to 5.
+Repeat while node is at least 0.
+Add 1 to secondsize.
+Set node to item node of nexts.
+
+Repeat while firstsize is more than secondsize.
+Set first to item first of nexts.
+Subtract 1 from firstsize.
+
+Repeat while secondsize is more than firstsize.
+Set second to item second of nexts.
+Subtract 1 from secondsize.
+
+Repeat while first is not second.
+Set first to item first of nexts.
+Set second to item second of nexts.
+
+Show item first of values.

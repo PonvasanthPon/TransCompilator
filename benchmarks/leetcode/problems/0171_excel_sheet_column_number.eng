@@ -1,0 +1,17 @@
+Keep a shared alphabet as empty text.
+Keep a shared foundat as 0.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into alphabet.
+To locate from spot (a whole number) with symbol (a whole number).
+If spot is more than 25, return.
+If symbol is character spot of alphabet, set foundat to spot, return.
+Locate from spot plus 1 with symbol.
+
+The name is "AB".
+The last is the last position of name.
+The value is 0.
+For every spot from 0 to last.
+Set foundat to -1.
+Locate from 0 with character spot of name.
+Set value to value times 26 plus foundat plus 1.
+
+Show value.

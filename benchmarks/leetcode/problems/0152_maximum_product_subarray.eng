@@ -1,0 +1,20 @@
+The numbers is a list of 2, 3, -2, and 4.
+The last is the last position of numbers.
+The high is item 0 of numbers.
+The low is item 0 of numbers.
+The best is item 0 of numbers.
+For every spot from 1 to last.
+The value is item spot of numbers.
+The first is high times value.
+The second is low times value.
+The top is first.
+If second is more than top, set top to second.
+If value is more than top, set top to value.
+The bottom is first.
+If second is less than bottom, set bottom to second.
+If value is less than bottom, set bottom to value.
+Set high to top.
+Set low to bottom.
+If high is more than best, set best to high.
+
+Show best.

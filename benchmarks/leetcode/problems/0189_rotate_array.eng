@@ -1,0 +1,11 @@
+The numbers is a list of 1, 2, 3, 4, 5, 6, and 7.
+The size is 7.
+The turn is 3.
+The offset is turn modulo size.
+The result is an empty list of whole numbers.
+For every spot from 0 to 6.
+The source is spot plus size minus offset.
+If source is at least size, set source to source minus size.
+Place item source of numbers into result.
+
+For each value in result, show value.

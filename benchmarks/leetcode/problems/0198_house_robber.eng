@@ -1,0 +1,11 @@
+The houses is a list of 1, 2, 3, and 1.
+The before is 0.
+The recent is 0.
+For each value in houses.
+The current is recent.
+The offered is before plus value.
+If offered is more than current, set current to offered.
+Set before to recent.
+Set recent to current.
+
+Show recent.

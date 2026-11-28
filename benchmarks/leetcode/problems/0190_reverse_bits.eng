@@ -1,0 +1,10 @@
+The number is 43261596.
+The value is number.
+The result is 0.
+For every step from 1 to 32.
+The bit is bitwise and of value and 1.
+Set result to shift result left by 1.
+Set result to bitwise or of result and bit.
+Set value to shift value right by 1.
+
+Show result.

@@ -1,0 +1,6 @@
+The numbers is a list of 3, 4, 5, 1, and 2.
+The smallest is item 0 of numbers.
+For each value in numbers.
+If value is less than smallest, set smallest to value.
+
+Show smallest.

@@ -1,0 +1,17 @@
+The dungeon is a list of -2, -3, 3, -5, -10, 1, 10, 30, and -5.
+The rows is a list of 2, 2, 2, 1, 1, 1, 0, 0, and 0.
+The columns is a list of 2, 1, 0, 2, 1, 0, 2, 1, and 0.
+The health is a list of 9 zeros.
+For every step from 0 to 8.
+The row is item step of rows.
+The column is item step of columns.
+The index is row times 3 plus column.
+The need is 1000000.
+If row is less than 2, set need to item (index plus 3) of health.
+If column is less than 2 and item (index plus 1) of health is less than need, set need to item (index plus 1) of health.
+If row is 2 and column is 2, set need to 1.
+The here is need minus item index of dungeon.
+If here is less than 1, set here to 1.
+Set item index of health to here.
+
+Show item 0 of health.

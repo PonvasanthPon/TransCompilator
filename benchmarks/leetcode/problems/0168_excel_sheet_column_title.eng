@@ -1,0 +1,16 @@
+The value is 28.
+The alphabet is "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
+The reversed is empty text.
+Repeat while value is more than 0.
+Subtract 1 from value.
+The digit is value modulo 26.
+Place character digit of alphabet into reversed.
+Set value to value divided by 26.
+
+The last is the last position of reversed.
+The result is empty text.
+For every step from 0 to last.
+The source is last minus step.
+Place character source of reversed into result.
+
+Show result.

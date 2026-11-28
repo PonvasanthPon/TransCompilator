@@ -1,159 +1,144 @@
-# LeetCode Gold-Standard Writer Prose — 100 / 100
+# LeetCode Gold-Standard Writer Prose — 173 / 173
 
 **Project:** `tc_r1` `0.1.0-alpha-preview`  
 **Batch 1 (`1–50`):** 50 solved, 0 skipped  
 **Batch 2 (`51–100`):** 50 solved, 0 skipped  
-**Global:** 100 solved, 1,002 skipped, 3,022 pending of 4,124 catalog entries.
+**Batch 3A (`101–150`):** 49 solved, 1 non-algorithmic skip  
+**Batch 3B (`151–200`):** 24 solved, 26 non-algorithmic skips  
+**Global:** 173 solved, 1,002 skipped, 2,949 pending of 4,124 catalog entries.
 
-The strict gate now enforces **writer prose**, not only unindented prose. Every
-one of the 100 solutions has **zero** occurrences of `Let`, `Append`,
-`'s len`, `'s data`, `create text from`, `compare text`, ASCII conversion
-codes, hardcoded 8+ space padding strings, or three-level nested index formulas.
-
----
-
-## 1. Writer-English primitives added
-
-- `Start with ...` / `Begin with ...` compound declarations.
-- Subject-verb declarations: `The target is 9.`, `The word holds "babad".`,
-  `The stack starts as an empty list of whole numbers.`
-- Compound declarations with `, while` and `, and`.
-- Placement verbs routed by target type:
-  `Place`, `Put`, `Record`, `Collect`, `Add ... onto`.
-- `a copy of <text>` for owned text copies.
-- Character literals on byte variables:
-  `symbol is "("`, `symbol is between "0" and "9"`.
-- Lexicographic prose:
-  `word comes before other`, `word comes after other`, `word matches other`.
-- Dynamic text:
-  `<count> spaces`, `repeat text " " <count> times`,
-  `the digit value of <char>`, `the character for <number>`.
-- `the length of <text>` and `the number of items in <list>` for all locals
-  and shared globals.
-
-The gate still rejects indentation, colons, `End.`, symbolic operators,
-single-letter variables, boolean flags, snake_case, C calls, casts, `Use`,
-top-level `Return 0`, and all former strict-prose violations.
+Every solved solution passes the **Gold-Standard Writer Gate** with **zero**
+occurrences of `Let`, `Append`, `'s len`, `'s data`, `create text from`,
+`compare text`, ASCII conversion codes, hardcoded 8+ space padding strings,
+three-level nested index formulas, indentation, colons, `End.`, symbolic
+operators, single-letter variables, boolean-flag boilerplate, snake_case, C
+calls, casts, or manual `Use` / top-level `Return 0`.
 
 ---
 
-## 2. Gold-gate audit
+## 1. Batch 3 coverage
 
-| Check | Violations across 100 files |
+Batch 3 solved **every eligible algorithmic problem** in `101–200`. No
+algorithmic problem was skipped for difficulty, compiler friction, missing
+prose, or a workaround. The 27 remaining skips are all outside the standalone
+Core-7 English execution surface:
+
+| Category | Count | Problems |
+|---|---:|---|
+| SQL/database | 12 | `175–178`, `180–185`, `196`, `197` |
+| Paywalled / unavailable | 8 | `156–159`, `161`, `163`, `170`, `186` |
+| Shell | 4 | `192–195` |
+| OOP/class design | 3 | `146`, `155`, `173` |
+
+Data-structure problems were represented with the canonical zero-pointer
+patterns: parallel `values` / `lefts` / `rights` lists for binary trees,
+index-chain `nexts` lists for linked lists, flattened grids for islands and
+regions, and parallel adjacency lists for graphs.
+
+### New general prose primitive
+
+Natural bitwise prose now works in assignments as well as declarations:
+
+- `Set bit to bitwise and of value and 1.`
+- `Set mixed to exclusive or of value and 3.`
+- `Set moved to shift value right by 1.`
+- `Set raised to shift value left by 1.`
+- `Set flipped to bitwise inverse of 0.`
+
+This is a general expression rule in `crates/tc-semantics/src/value.rs`, covered
+by `bitwise_assignment_and_shift_prose` in `crates/tc-cli/tests/writer_prose.rs`.
+It adds **75 net lines** to the lowering layer; no Core-7 opcode, external crate,
+OOP construct, or compile-time evaluator was introduced.
+
+---
+
+## 2. Complete Batch 3 examples
+
+### #0121 — Best Time to Buy and Sell Stock
+
+```text
+The prices is a list of 7, 1, 5, 3, 6, and 4.
+The last is the last position of prices.
+The cheapest is item 0 of prices.
+The best is 0.
+For every spot from 1 to last.
+The price is item spot of prices.
+The gain is price minus cheapest.
+If gain is more than best, set best to gain.
+If price is less than cheapest, set cheapest to price.
+
+Show best.
+```
+
+Output: `5`.
+
+### #0141 — Linked List Cycle
+
+```text
+The values is a list of 3, 2, 0, and -4.
+The nexts is a list of 1, 2, 3, and 1.
+The visited is a list of 4 zeros.
+The node is 0.
+Repeat while node is at least 0 and item node of visited is 0.
+Set item node of visited to 1.
+Set node to item node of nexts.
+
+If node is at least 0, show true, otherwise show false.
+```
+
+Output: `true`.
+
+### #0200 — Number of Islands
+
+```text
+The chart is a list of 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, and 0.
+Keep a shared land as an empty list of whole numbers.
+For each square in chart.
+Place square into land.
+
+Keep a shared visited as an empty list of whole numbers.
+For every spot from 0 to 19.
+Place 0 into visited.
+
+To walk from node (a whole number).
+If item node of land is 0, return.
+If item node of visited is 1, return.
+Set item node of visited to 1.
+The row is node divided by 5.
+The column is node modulo 5.
+If row is more than 0, walk from node minus 5.
+If row is less than 3, walk from node plus 5.
+If column is more than 0, walk from node minus 1.
+If column is less than 4, walk from node plus 1.
+
+The islands is 0.
+For every node from 0 to 19.
+If item node of land is 1 and item node of visited is 0, add 1 to islands.
+If item node of land is 1 and item node of visited is 0, walk from node.
+
+Show islands.
+```
+
+Output: `1`.
+
+---
+
+## 3. Gold-gate audit
+
+| Check | Violations across 173 files |
 |---|---:|
 | `Let` declarations | **0** |
 | `Append` jargon | **0** |
 | `'s len` / `'s data` | **0** |
 | `create text from` | **0** |
 | `compare text` | **0** |
-| ASCII conversion codes `48` / `57` and char-code comparisons | **0** |
-| 64-space / 8+ space literals | **0** |
+| ASCII conversion codes / char-code comparisons | **0** |
+| 8+ space padding literals | **0** |
 | Three-level nested index formulas | **0** |
-| Strict prose-only violations | **0** |
-
----
-
-## 3. Complete gold-standard examples
-
-### #0002 — Add Two Numbers
-
-```text
-The firstlist holds 2, 4, and 3, while the secondlist holds 5, 6, and 4. Start with an empty list for the answer, a carry of 0, and a position of 0.
-The firstlast is the last position of firstlist.
-The secondlast is the last position of secondlist.
-Repeat while position is at most firstlast or position is at most secondlast or carry is 1.
-The sum is carry.
-If position is at most firstlast, set sum to sum plus item position of firstlist.
-If position is at most secondlast, set sum to sum plus item position of secondlist.
-Place sum modulo 10 into answer.
-Set carry to sum divided by 10.
-Add 1 to position.
-
-For each value in answer, show value.
-```
-
-Output: `7`, `0`, `8`.
-
-### #0020 — Valid Parentheses
-
-```text
-The word is "()[]{}". The last is the last position of word.
-The stack is an empty list of whole numbers.
-The invalid is 0.
-The top is 0.
-For every position from 0 to last.
-The symbol is character position of word.
-The size is the number of items in stack.
-If symbol is "(" or symbol is "[" or symbol is "{", Place symbol into stack.
-If symbol is ")" and size is 0, add 1 to invalid.
-If symbol is ")" and size is more than 0, set top to item (size minus 1) of stack, remove the last item from stack, if top is not "(", add 1 to invalid.
-If symbol is "]" and size is 0, add 1 to invalid.
-If symbol is "]" and size is more than 0, set top to item (size minus 1) of stack, remove the last item from stack, if top is not "[", add 1 to invalid.
-If symbol is "}" and size is 0, add 1 to invalid.
-If symbol is "}" and size is more than 0, set top to item (size minus 1) of stack, remove the last item from stack, if top is not "{", add 1 to invalid.
-
-The finalsize is the number of items in stack.
-If invalid is 0 and finalsize is 0, show true, otherwise show false.
-```
-
-Output: `true`.
-
-### #0022 — Generate Parentheses
-
-```text
-Keep a shared current as empty text.
-Keep a shared answers as an empty list of text.
-Keep a shared copy as empty text.
-To build from opened (a whole number) with closed (a whole number).
-If opened plus closed is 6, The copy is a copy of current, Place copy into answers, then return.
-If opened is less than 3, Place "(" into current, build from opened plus 1 with closed, remove last character from current.
-If closed is less than opened, Place ")" into current, build from opened with closed plus 1, remove last character from current.
-
-Build from 0 with 0.
-For each answer in answers, display answer.
-```
-
-Output: `((()))`, `(()())`, `(())()`, `()(())`, `()()()`.
-
-### #0049 — Group Anagrams
-
-```text
-The text is "eat,tea,tan,ate,nat,bat". The wordslist is split text by ",".
-The last is the last position of wordslist.
-The signatures is an empty list of text.
-For each word in wordslist.
-The signature is sort characters of word.
-Place signature into signatures.
-
-For every left from 0 to last.
-For every right from left to last.
-If item right of signatures comes before item left of signatures, swap item left of signatures and item right of signatures, swap item left of wordslist and item right of wordslist.
-
-The group is empty text.
-The groupcount is 0.
-The current is empty text.
-The answers is an empty list of text.
-For every position from 0 to last.
-The signature is item position of signatures.
-The word is item position of wordslist.
-If position is 0, set current to signature, Place word into group, add 1 to groupcount.
-The same is 1.
-If signature comes before current, set same to 0.
-If current comes before signature, set same to 0.
-If position is more than 0 and same is 1 and groupcount is more than 0, Place "," into group, Place word into group, add 1 to groupcount.
-If position is more than 0 and same is 0, Place group into answers, set group to empty text, set groupcount to 0, set current to signature, Place word into group, add 1 to groupcount.
-
-Place group into answers.
-For each answer in answers, display answer.
-```
-
-Output:
-
-```text
-bat
-tea,ate,eat
-nat,tan
-```
+| Indentation, colons, `End.` | **0** |
+| Symbolic operators | **0** |
+| Single-letter variables / boolean flags | **0** |
+| snake_case / C calls / casts / `Use` | **0** |
 
 ---
 
@@ -161,29 +146,29 @@ nat,tan
 
 | Gate | Result |
 |---|---|
-| `make mbt` | **100/100 PASS** |
-| Gold-Standard Writer Gate | **100/100 PASS, 0 violations** |
-| `tc interp` expected stdout | 100/100 |
-| Static zero-libc ELF64 | 100/100 |
-| `tc_wasm.wasm` | 100/100 |
-| IR runtime-honesty | 100/100 |
+| `make mbt` | **173/173 PASS** |
+| Gold-Standard Writer Gate | **173/173 PASS, 0 violations** |
+| `tc interp` expected stdout | 173/173 |
+| Static zero-libc ELF64 | 173/173 |
+| `tc_wasm.wasm` | 173/173 |
+| IR runtime-honesty | 173/173 |
 | `tc-lsp` diagnostics | 0 |
-| `make test` | **1,096 tests PASS** |
+| `make test` | **1,097 tests PASS** |
 | `make fmt-check` | PASS |
 | `make lint` | PASS, 0 warnings |
-| `make audit` | PASS |
+| `make audit` | PASS: 9 local crates, 0 sources, 0 checksums |
 | `tc --audit` / `tc --selftest` | PASS |
 
 ---
 
 ## 5. Playground
 
-- Drawer title: `Solved Problems (100)`.
-- Desktop at **1440×900**: drawer **100 of 100**, zero console errors,
+- Drawer title: `Solved Problems (173)`.
+- Desktop at **1440×900**: drawer **173 of 173**, zero console errors,
   `Page.getInstallabilityErrors` = `[]`.
-- Wasm runs verified: `#0002`, `#0020`, `#0022`, `#0049`, `#0068`.
-- Mobile at **375×812**: drawer **100 of 100**, zero console errors.
+- Wasm runs verified: `#0121`, `#0198`, `#0200`, plus the existing
+  `#0002`, `#0020`, `#0022`, `#0049`, and `#0068`.
+- Mobile at **375×812**: drawer **173 of 173**, zero console errors.
 
-No problems in `1–100` are skipped. The remaining catalog skips are outside
-this batch: paywalled entries, OOP/class design, SQL/shell, interactive
-judges, and concurrency.
+No eligible algorithmic problem in `1–200` is skipped. The remaining catalog
+skips are paywalled, SQL, shell, interactive, concurrency, or OOP class design.

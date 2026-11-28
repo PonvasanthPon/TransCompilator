@@ -1,0 +1,14 @@
+The sentence is "the sky is blue".
+The parts is split sentence by " ".
+The words is an empty list of text.
+For each part in parts.
+If the length of part is more than 0, Place part into words.
+
+The last is the last position of words.
+The result is empty text.
+For every step from 0 to last.
+The source is last minus step.
+If the length of result is more than 0, Place " " into result.
+Place item source of words into result.
+
+Show result.

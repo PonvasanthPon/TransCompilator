@@ -1,0 +1,33 @@
+Keep a shared source as empty text.
+Keep a shared windows as an empty list of text.
+Keep a shared target as empty text.
+Keep a shared tally as 0.
+Keep a shared already as 0.
+Keep a shared limit as 0.
+Place "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT" into source.
+To count from spot (a whole number) with word (a whole number).
+If spot is more than the last position of windows, return.
+If item spot of windows matches target, add 1 to tally.
+Count from spot plus 1 with word.
+
+To earlier from spot (a whole number) with word (a whole number).
+If spot is more than limit, return.
+If item spot of windows matches target, set already to 1, return.
+Earlier from spot plus 1 with word.
+
+The last is 30.
+The finishstart is last minus 9.
+For every start from 0 to finishstart.
+The finish is start plus 10.
+The piece is the slice of source from start to finish.
+Place piece into windows.
+
+The lastwindow is the last position of windows.
+For every spot from 0 to lastwindow.
+Set target to item spot of windows.
+Set tally to 0.
+Set already to 0.
+Set limit to spot minus 1.
+Count from 0 with 0.
+Earlier from 0 with 0.
+If tally is more than 1 and already is 0, show target.

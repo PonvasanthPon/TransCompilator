@@ -1,0 +1,57 @@
+Keep a shared current as empty text.
+Keep a shared value as 0.
+Keep a shared foundat as 0.
+Keep a shared leftvalue as 0.
+Keep a shared rightvalue as 0.
+Keep a shared lastfirst as 0.
+Keep a shared lastsecond as 0.
+Keep a shared firsts as an empty list of text.
+Keep a shared seconds as an empty list of text.
+To parse from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The digit is the digit value of character spot of current.
+Set value to value times 10 plus digit.
+Parse from spot plus 1 with finish.
+
+To parse segment.
+The finish is the last position of current.
+Parse from 0 with finish.
+
+To read left at spot (a whole number).
+If spot is more than lastfirst, return.
+Set current to item spot of firsts.
+Set value to 0.
+Parse segment.
+Set leftvalue to value.
+
+To read right at spot (a whole number).
+If spot is more than lastsecond, return.
+Set current to item spot of seconds.
+Set value to 0.
+Parse segment.
+Set rightvalue to value.
+
+The first is "1.01".
+The second is "1.001".
+The firstparts is split first by ".".
+The secondparts is split second by ".".
+For each part in firstparts.
+Place part into firsts.
+
+For each part in secondparts.
+Place part into seconds.
+
+The endfirst is the last position of firsts.
+The endsecond is the last position of seconds.
+Set lastfirst to endfirst.
+Set lastsecond to endsecond.
+The result is 0.
+For every spot from 0 to 2.
+Set leftvalue to 0.
+Set rightvalue to 0.
+If spot is at most lastfirst, read left at spot.
+If spot is at most lastsecond, read right at spot.
+If result is 0 and leftvalue is less than rightvalue, set result to -1.
+If result is 0 and leftvalue is more than rightvalue, set result to 1.
+
+Show result.

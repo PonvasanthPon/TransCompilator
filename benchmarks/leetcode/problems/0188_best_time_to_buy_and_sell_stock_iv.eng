@@ -1,0 +1,24 @@
+Keep a shared buy as an empty list of whole numbers.
+Keep a shared sell as an empty list of whole numbers.
+Keep a shared deals as 0.
+Set deals to 2.
+For every spot from 0 to 2.
+Place 0 into buy.
+Place 0 into sell.
+
+Set item 1 of buy to -1000000.
+Set item 2 of buy to -1000000.
+To revise from deal (a whole number) with price (a whole number).
+If deal is more than deals, return.
+The trial is item (deal minus 1) of sell minus price.
+If trial is more than item deal of buy, set item deal of buy to trial.
+The trial is item deal of buy plus price.
+If trial is more than item deal of sell, set item deal of sell to trial.
+Revise from deal plus 1 with price.
+
+The prices is a list of 3, 2, 6, 5, 0, and 3.
+For each price in prices.
+Revise from 1 with price.
+
+The lastdeal is deals.
+Show item lastdeal of sell.

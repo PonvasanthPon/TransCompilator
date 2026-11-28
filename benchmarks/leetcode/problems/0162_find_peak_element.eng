@@ -1,0 +1,11 @@
+The numbers is a list of 1, 2, 3, and 1.
+The last is the last position of numbers.
+The peak is 0.
+For every spot from 0 to last.
+The higherleft is 1.
+The higherright is 1.
+If spot is more than 0 and item (spot minus 1) of numbers is at least item spot of numbers, set higherleft to 0.
+If spot is less than last and item (spot plus 1) of numbers is at least item spot of numbers, set higherright to 0.
+If higherleft is 1 and higherright is 1, set peak to spot.
+
+Show peak.

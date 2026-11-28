@@ -1,0 +1,37 @@
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared digits as an empty list of text.
+Keep a shared foundat as 0.
+To find from spot (a whole number) with target (a whole number).
+If spot is more than the last position of seen, return.
+If item spot of seen is target, set foundat to spot, return.
+Find from spot plus 1 with target.
+
+The numerator is 1.
+The denominator is 6.
+The sign is 1.
+If numerator is less than 0, set sign to -1.
+The top is numerator times sign.
+The bottom is denominator.
+The whole is top divided by bottom.
+The remainder is top modulo bottom.
+The result is format whole number whole as text.
+If sign is -1, The mark is empty text, Place "-" into mark, Place mark into result.
+The cycle is -1.
+If remainder is more than 0, Place "." into result.
+Repeat while remainder is more than 0.
+Set foundat to -1.
+Find from 0 with remainder.
+If foundat is at least 0, set cycle to foundat, break.
+Place remainder into seen.
+The digit is remainder times 10 divided by bottom.
+The piece is format whole number digit as text.
+Place piece into digits.
+Set remainder to remainder times 10 modulo bottom.
+
+The lastdigit is the last position of digits.
+For every spot from 0 to lastdigit.
+If spot is cycle, Place "(" into result.
+Place item spot of digits into result.
+
+If cycle is at least 0, Place ")" into result.
+Show result.

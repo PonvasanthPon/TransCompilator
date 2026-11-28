@@ -1,0 +1,8 @@
+The number is 25.
+The value is number.
+The count is 0.
+Repeat while value is more than 0.
+Set value to value divided by 5.
+Add value to count.
+
+Show count.

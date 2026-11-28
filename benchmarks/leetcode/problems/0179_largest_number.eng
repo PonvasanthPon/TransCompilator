@@ -1,0 +1,28 @@
+Keep a shared parts as an empty list of text.
+Keep a shared keytext as empty text.
+Keep a shared front as empty text.
+Keep a shared back as empty text.
+The numbers is a list of 3, 30, 34, 5, and 9.
+For each number in numbers.
+The piece is format whole number number as text.
+Place piece into parts.
+
+To shift from spot (a whole number) with marker (a whole number).
+If spot is less than 0, set item 0 of parts to keytext, return.
+The other is item spot of parts.
+Set front to empty text.
+Place other into front.
+Place keytext into front.
+Set back to empty text.
+Place keytext into back.
+Place other into back.
+If front comes before back, set item (spot plus 1) of parts to other, shift from spot minus 1 with marker, return.
+Set item (spot plus 1) of parts to keytext.
+
+The last is 4.
+For every spot from 1 to last.
+Set keytext to item spot of parts.
+Shift from spot minus 1 with 0.
+
+The result is join parts with "".
+Show result.
