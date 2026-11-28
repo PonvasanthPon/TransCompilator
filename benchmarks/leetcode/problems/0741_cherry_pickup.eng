@@ -1,0 +1,68 @@
+Keep a shared grid as an empty list of whole numbers.
+Place 0 into grid.
+Place 1 into grid.
+Place -1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place -1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Keep a shared table as an empty list of whole numbers.
+For every spot from 0 to 44.
+Place -1 into table.
+
+Keep a shared best as 0.
+Keep a shared stepnow as 0.
+Keep a shared firstnow as 0.
+Keep a shared secondnow as 0.
+To improve from index (a whole number).
+If index is less than 0, return.
+If index is at least 45, return.
+The candidate is item index of table.
+If candidate is more than best, set best to candidate.
+
+To walk.
+The firstcolumn is stepnow minus firstnow.
+The secondcolumn is stepnow minus secondnow.
+If firstcolumn is less than 0, return.
+If firstcolumn is at least 3, return.
+If secondcolumn is less than 0, return.
+If secondcolumn is at least 3, return.
+The firstcell is item (firstnow times 3 plus firstcolumn) of grid.
+The secondcell is item (secondnow times 3 plus secondcolumn) of grid.
+If firstcell is -1, return.
+If secondcell is -1, return.
+Set best to -1.
+The base is (stepnow minus 1) times 9.
+The above is firstnow minus 1.
+The beside is secondnow minus 1.
+The topstripe is above times 3.
+The firststripe is firstnow times 3.
+The secondstripe is secondnow times 3.
+The upleft is base plus topstripe plus beside.
+The upright is base plus firststripe plus beside.
+The downleft is base plus topstripe plus secondnow.
+The downright is base plus firststripe plus secondnow.
+Improve from upleft.
+Improve from upright.
+Improve from downleft.
+Improve from downright.
+If best is less than 0, return.
+The gain is firstcell.
+If firstnow is not secondnow, set gain to gain plus secondcell.
+The slot is stepnow times 9.
+The spot is slot plus firststripe plus secondnow.
+Set item spot of table to best plus gain.
+
+If item 0 of grid is not -1, set item 0 of table to item 0 of grid.
+For every step from 1 to 4.
+For every firstrow from 0 to 2.
+For every secondrow from 0 to 2.
+Set stepnow to step.
+Set firstnow to firstrow.
+Set secondnow to secondrow.
+Walk.
+
+The answer is item 44 of table.
+If answer is less than 0, show 0, otherwise show answer.

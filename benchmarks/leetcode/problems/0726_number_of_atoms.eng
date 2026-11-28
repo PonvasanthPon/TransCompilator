@@ -1,0 +1,162 @@
+Keep a shared formula as empty text.
+Place "K4(ON(SO3)2)2" into formula.
+Keep a shared flatnames as an empty list of text.
+Keep a shared flatcounts as an empty list of whole numbers.
+Keep a shared flatvalid as an empty list of whole numbers.
+Keep a shared finalnames as an empty list of text.
+Keep a shared finalcounts as an empty list of whole numbers.
+Keep a shared scanspot as 0.
+Keep a shared limit as 0.
+Keep a shared parsename as empty text.
+Keep a shared parsecount as 0.
+Keep a shared mergename as empty text.
+Keep a shared foundspot as 0.
+Keep a shared multiplier as 0.
+Keep a shared parentstart as 0.
+To findentry from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The okay is item spot of flatvalid.
+The same is 0.
+If item spot of flatnames matches mergename, set same to 1.
+If okay is 1 and same is 1, set foundspot to spot, return.
+Findentry from spot plus 1 with finish.
+
+To store with base (a whole number) and amount (a whole number).
+Set mergename to empty text.
+Place parsename into mergename.
+Set foundspot to -1.
+The finish is the last position of flatnames.
+Findentry from base with finish.
+The placefound is foundspot.
+If placefound is at least 0, set item placefound of flatcounts to item placefound of flatcounts plus amount.
+If placefound is at least 0, return.
+Place parsename into flatnames.
+Place amount into flatcounts.
+Place 1 into flatvalid.
+
+To readlower.
+If scanspot is more than limit, return.
+The piece is the slice of formula from scanspot to scanspot plus 1.
+The spot is scanspot.
+The symbol is character spot of formula.
+If symbol is between "a" and "z".
+Place piece into parsename.
+Add 1 to scanspot.
+Readlower.
+
+To readcount.
+If scanspot is more than limit, return.
+The piece is the slice of formula from scanspot to scanspot plus 1.
+The spot is scanspot.
+The symbol is character spot of formula.
+If symbol is between "0" and "9".
+The digit is the digit value of symbol.
+Set parsecount to parsecount times 10 plus digit.
+Add 1 to scanspot.
+Readcount.
+
+To readelement from base (a whole number).
+Set parsename to empty text.
+The piece is the slice of formula from scanspot to scanspot plus 1.
+Place piece into parsename.
+Add 1 to scanspot.
+Readlower.
+Set parsecount to 0.
+Readcount.
+If parsecount is 0, set parsecount to 1.
+Store with base and parsecount.
+Readgroup from base.
+
+To readmultiplier.
+If scanspot is more than limit, return.
+The piece is the slice of formula from scanspot to scanspot plus 1.
+The spot is scanspot.
+The symbol is character spot of formula.
+If symbol is between "0" and "9".
+The digit is the digit value of symbol.
+Set multiplier to multiplier times 10 plus digit.
+Add 1 to scanspot.
+Readmultiplier.
+
+To skipclose.
+The piece is the slice of formula from scanspot to scanspot plus 1.
+If piece matches ")", add 1 to scanspot.
+
+To multiplyrange from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+If item spot of flatvalid is 1, set item spot of flatcounts to item spot of flatcounts times multiplier.
+Multiplyrange from spot plus 1 with finish.
+
+To mergeone from spot (a whole number).
+The name is item spot of flatnames.
+Set mergename to empty text.
+Place name into mergename.
+Set foundspot to -1.
+Findentry from parentstart with spot minus 1.
+The placefound is foundspot.
+If placefound is at least 0, set item placefound of flatcounts to item placefound of flatcounts plus item spot of flatcounts.
+If foundspot is less than 0, Place mergename into flatnames, Place item spot of flatcounts into flatcounts, Place 1 into flatvalid.
+
+To mergerange from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+If item spot of flatvalid is 1, mergeone from spot.
+Mergerange from spot plus 1 with finish.
+
+To readgroup from base (a whole number).
+If scanspot is more than limit, return.
+The piece is the slice of formula from scanspot to scanspot plus 1.
+If piece matches ")", return.
+If piece matches "(", readgroupbody from base, return.
+Readelement from base.
+
+To readgroupbody from base (a whole number).
+Add 1 to scanspot.
+The top is the last position of flatnames.
+The childstart is top plus 1.
+Readgroup from childstart.
+Finishgroup with base and childstart.
+
+To invalidate from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+Set item spot of flatvalid to 0.
+Invalidate from spot plus 1 with finish.
+
+To finishgroup with base (a whole number) and childstart (a whole number).
+If scanspot is at most limit, skipclose.
+Set multiplier to 0.
+Readmultiplier.
+If multiplier is 0, set multiplier to 1.
+The childend is the last position of flatnames.
+Multiplyrange from childstart with childend.
+Set parentstart to base.
+Mergerange from childstart with childend.
+Invalidate from childstart with childend.
+Readgroup from base.
+
+Set limit to the last position of formula.
+Readgroup from 0.
+The last is the last position of flatnames.
+For every spot from 0 to last.
+The okay is item spot of flatvalid.
+If okay is 1.
+The name is item spot of flatnames.
+The amount is item spot of flatcounts.
+Place name into finalnames.
+Place amount into finalcounts.
+
+The finallast is the last position of finalnames.
+For every left from 0 to finallast.
+For every right from left plus 1 to finallast.
+If item right of finalnames comes before item left of finalnames.
+Swap item left of finalnames and item right of finalnames.
+Swap item left of finalcounts and item right of finalcounts.
+
+The result is empty text.
+For every spot from 0 to finallast.
+The name is item spot of finalnames.
+The amount is item spot of finalcounts.
+Place name into result.
+If amount is more than 1.
+Place format whole number amount as text into result.
+
+Show result.

@@ -1,0 +1,19 @@
+The temperatures is a list of 73, 74, 75, 71, 69, 72, 76, and 73.
+The last is the last position of temperatures.
+The wait is a list of 8 zeros.
+The stack is an empty list of whole numbers.
+For every day from 0 to last.
+The settled is 0.
+Repeat while settled is 0.
+The end is the last position of stack.
+If end is less than 0, Place day into stack, set settled to 1, stop.
+The top is item end of stack.
+If item day of temperatures is more than item top of temperatures, remove the last item from stack, set item top of wait to day minus top.
+If item day of temperatures is at most item top of temperatures, Place day into stack, set settled to 1, stop.
+
+The line is empty text.
+For each value in wait.
+If the length of line is more than 0, Place "," into line.
+Place format whole number value as text into line.
+
+Show line.

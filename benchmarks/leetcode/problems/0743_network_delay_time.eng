@@ -1,0 +1,44 @@
+The nodes is 4.
+The large is 1000000.
+The times is an empty list of whole numbers.
+Place 2 into times.
+Place 1 into times.
+Place 1 into times.
+Place 2 into times.
+Place 3 into times.
+Place 1 into times.
+Place 3 into times.
+Place 4 into times.
+Place 1 into times.
+The graph is an empty list of whole numbers.
+For every spot from 0 to 15.
+Place large into graph.
+
+For every spot from 0 to 3.
+Set item (spot times 4 plus spot) of graph to 0.
+
+For every pair from 0 to 2.
+The base is pair times 3.
+The source is item base of times.
+The target is item (base plus 1) of times.
+The weight is item (base plus 2) of times.
+The slot is source minus 1.
+The place is target minus 1.
+The here is item (slot times 4 plus place) of graph.
+If weight is less than here, set item (slot times 4 plus place) of graph to weight.
+
+For every middle from 0 to 3.
+For every start from 0 to 3.
+For every finish from 0 to 3.
+The first is item (start times 4 plus middle) of graph.
+The second is item (middle times 4 plus finish) of graph.
+The through is first plus second.
+The direct is item (start times 4 plus finish) of graph.
+If through is less than direct, set item (start times 4 plus finish) of graph to through.
+
+The answer is 0.
+For every spot from 0 to 3.
+The distance is item (4 plus spot) of graph.
+If distance is more than answer, set answer to distance.
+
+If answer is at least large, show -1, otherwise show answer.

@@ -1,0 +1,53 @@
+The plate is "1s3 PSt".
+The alphabet is "abcdefghijklmnopqrstuvwxyz".
+The capitals is "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
+The base is character 0 of alphabet.
+The upbase is character 0 of capitals.
+Keep a shared needed as an empty list of whole numbers.
+For every letter from 0 to 25.
+Place 0 into needed.
+
+The platelast is the last position of plate.
+For every spot from 0 to platelast.
+The symbol is character spot of plate.
+The lower is 0.
+If symbol is at least base and symbol is at most base plus 25, set lower to symbol.
+If symbol is at least upbase and symbol is at most upbase plus 25, set lower to symbol plus base minus upbase.
+If lower is more than 0.
+The index is lower minus base.
+Set item index of needed to item index of needed plus 1.
+
+The words is a list of "step", "steps", "stripe", and "stepp".
+The wordlast is the last position of words.
+The slots is wordlast plus 1.
+The size is slots times 26.
+Keep a shared lettercounts as an empty list of whole numbers.
+For every spot from 0 to size minus 1.
+Place 0 into lettercounts.
+
+For every slot from 0 to wordlast.
+The word is item slot of words.
+The letters is the last position of word.
+For every spot from 0 to letters.
+The symbol is character spot of word.
+The index is symbol minus base.
+Set item (slot times 26 plus index) of lettercounts to item (slot times 26 plus index) of lettercounts plus 1.
+
+Keep a shared good as 0.
+To inspect with slot (a whole number).
+Set good to 1.
+For every letter from 0 to 25.
+The have is item (slot times 26 plus letter) of lettercounts.
+If have is less than item letter of needed, set good to 0.
+
+The best is -1.
+The bestsize is 0.
+For every slot from 0 to wordlast.
+Inspect with slot.
+The word is item slot of words.
+The end is the last position of word.
+The sizeword is end plus 1.
+If good is 1 and best is -1, set best to slot, set bestsize to sizeword.
+If good is 1 and best is not -1 and sizeword is less than bestsize, set best to slot, set bestsize to sizeword.
+
+Show item best of words.

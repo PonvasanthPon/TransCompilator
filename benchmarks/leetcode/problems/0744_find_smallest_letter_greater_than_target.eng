@@ -1,0 +1,12 @@
+The letters is a list of "c", "f", and "j".
+The target is "a".
+The last is the last position of letters.
+The picked is 0.
+For every spot from 0 to last.
+If picked is 0.
+If item spot of letters comes after target.
+Show item spot of letters.
+Set picked to 1.
+
+
+If picked is 0, Show item 0 of letters.

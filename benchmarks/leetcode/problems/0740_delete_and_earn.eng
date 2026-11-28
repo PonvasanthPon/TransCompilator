@@ -1,0 +1,20 @@
+The numbers is a list of 3, 4, 2.
+The last is the last position of numbers.
+The largest is 0.
+For every spot from 0 to last.
+If item spot of numbers is more than largest, set largest to item spot of numbers.
+
+The counts is a list of largest plus 1 zeros.
+For every spot from 0 to last.
+The value is item spot of numbers.
+Set item value of counts to item value of counts plus 1.
+
+The best is a list of largest plus 1 zeros.
+For every value from 1 to largest.
+The skip is 0.
+If value is more than 1, set skip to item (value minus 1) of best.
+The take is value times item value of counts.
+If value is more than 1, set take to take plus item (value minus 2) of best.
+If skip is more than take, set item value of best to skip, otherwise set item value of best to take.
+
+Show item largest of best.

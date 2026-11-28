@@ -1,0 +1,46 @@
+Keep a shared image as an empty list of whole numbers.
+Place 1 into image.
+Place 1 into image.
+Place 1 into image.
+Place 1 into image.
+Place 1 into image.
+Place 0 into image.
+Place 1 into image.
+Place 0 into image.
+Place 1 into image.
+Keep a shared rows as 0.
+Set rows to 3.
+Keep a shared columns as 0.
+Set columns to 3.
+Keep a shared old as 0.
+The start is 4.
+Set old to item start of image.
+Keep a shared color as 0.
+Set color to 2.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared count as 0.
+Keep a shared front as 0.
+To expand from node (a whole number).
+The row is node divided by columns.
+The column is node modulo columns.
+The up is node minus columns.
+The down is node plus columns.
+The left is node minus 1.
+The right is node plus 1.
+If row is more than 0 and item up of image is old, set item up of image to color, Place up into queue, add 1 to count.
+If row is less than rows minus 1 and item down of image is old, set item down of image to color, Place down into queue, add 1 to count.
+If column is more than 0 and item left of image is old, set item left of image to color, Place left into queue, add 1 to count.
+If column is less than columns minus 1 and item right of image is old, set item right of image to color, Place right into queue, add 1 to count.
+
+If old is not color.
+Set item start of image to color.
+Place start into queue.
+Set count to 1.
+
+Repeat while front is less than count.
+The spot is front.
+The node is item spot of queue.
+Add 1 to front.
+Expand from node.
+
+For each value in image, show value.

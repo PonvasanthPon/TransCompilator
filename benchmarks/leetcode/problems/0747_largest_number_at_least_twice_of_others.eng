@@ -1,0 +1,13 @@
+The numbers is a list of 3, 6, 1, and 0.
+The last is the last position of numbers.
+The champion is 0.
+The bestspot is 0.
+For every spot from 0 to last.
+If item spot of numbers is more than champion, set champion to item spot of numbers, set bestspot to spot.
+
+The second is -1.
+For every spot from 0 to last.
+If spot is not bestspot and item spot of numbers is more than second, set second to item spot of numbers.
+
+The doubled is second times 2.
+If champion is at least doubled and bestspot is not -1, show bestspot, otherwise show -1.

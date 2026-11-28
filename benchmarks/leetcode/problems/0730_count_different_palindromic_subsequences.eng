@@ -1,0 +1,70 @@
+Keep a shared word as empty text.
+Place "bccb" into word.
+Keep a shared size as 0.
+Set size to 4.
+Keep a shared modulus as 0.
+Set modulus to 1000000007.
+Keep a shared table as an empty list of whole numbers.
+For every spot from 0 to 15.
+Place 0 into table.
+
+Keep a shared firstspot as 0.
+Keep a shared lastspot as 0.
+To findfirst from spot (a whole number) with finish (a whole number) and target (a whole number).
+If spot is at least finish, return.
+The here is character spot of word.
+If here is target, set firstspot to spot, return.
+Findfirst from spot plus 1 with finish and target.
+
+To findlast from spot (a whole number) with finish (a whole number) and target (a whole number).
+If spot is less than finish, return.
+The here is character spot of word.
+If here is target, set lastspot to spot, return.
+Findlast from spot minus 1 with finish and target.
+
+To fold from start (a whole number) with span (a whole number) and width (a whole number).
+The finish is start plus span minus 1.
+The next is start plus 1.
+The before is finish minus 1.
+The inside is item (next times width plus finish) of table.
+The below is item (start times width plus before) of table.
+The overlap is item (next times width plus before) of table.
+The value is inside plus below minus overlap.
+Set value to value modulo modulus.
+If value is less than 0, set value to value plus modulus.
+Set item (start times width plus finish) of table to value.
+
+To match from start (a whole number) with span (a whole number) and width (a whole number).
+The finish is start plus span minus 1.
+If span is 2, set item (start times width plus finish) of table to 2, return.
+The next is start plus 1.
+The before is finish minus 1.
+The inside is item (next times width plus before) of table.
+The value is inside times 2.
+Set firstspot to -1.
+Set lastspot to -2.
+The target is character start of word.
+Findfirst from next with finish and target.
+Findlast from before with next and target.
+If firstspot is less than 0, set value to value plus 2.
+If firstspot is at least 0 and firstspot is lastspot, set value to value plus 1.
+The leftcut is firstspot plus 1.
+The rightcut is lastspot minus 1.
+If firstspot is at least 0 and firstspot is not lastspot, set value to value minus item (leftcut times width plus rightcut) of table.
+Set value to value modulo modulus.
+If value is less than 0, set value to value plus modulus.
+Set item (start times width plus finish) of table to value.
+
+For every spot from 0 to 3.
+Set item (spot times 4 plus spot) of table to 1.
+
+For every span from 2 to 4.
+For every start from 0 to 4 minus span.
+The finish is start plus span minus 1.
+The firstchar is character start of word.
+The lastchar is character finish of word.
+If firstchar is not lastchar, Fold from start with span and size.
+If firstchar is lastchar, Match from start with span and size.
+
+The last is size minus 1.
+Show item last of table.

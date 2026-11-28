@@ -1,0 +1,30 @@
+The value is 332.
+The rest is value.
+The digits is an empty list of whole numbers.
+Repeat while rest is more than 0.
+Place rest modulo 10 into digits.
+Set rest to rest divided by 10.
+
+The last is the last position of digits.
+Keep a shared ordered as an empty list of whole numbers.
+For every spot from 0 to last.
+The source is last minus spot.
+Place item source of digits into ordered.
+
+Keep a shared cut as 0.
+To repair from spot (a whole number).
+If spot is less than 0, return.
+If item spot of ordered is more than item (spot plus 1) of ordered.
+Set item spot of ordered to item spot of ordered minus 1.
+Set cut to spot plus 1.
+Repair from spot minus 1.
+
+Set cut to last plus 1.
+Repair from last minus 1.
+The result is 0.
+For every spot from 0 to last.
+The digit is item spot of ordered.
+If spot is at least cut, set digit to 9.
+Set result to result times 10 plus digit.
+
+Show result.

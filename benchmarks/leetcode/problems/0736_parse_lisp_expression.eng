@@ -1,0 +1,127 @@
+Keep a shared tokens as an empty list of text.
+Keep a shared token as empty text.
+Keep a shared nextspot as 0.
+Keep a shared atom as empty text.
+Keep a shared wanted as empty text.
+Keep a shared parsevalue as 0.
+Keep a shared numbervalue as 0.
+Keep a shared lookupvalue as 0.
+Keep a shared depth as 0.
+Keep a shared groupclose as 0.
+Keep a shared names as an empty list of text.
+Keep a shared values as an empty list of whole numbers.
+To flush.
+If the length of token is more than 0, Place token into tokens, set token to empty text.
+
+To seekclose from spot (a whole number).
+If spot is more than the last position of tokens, return.
+The piece is item spot of tokens.
+If piece matches "(", add 1 to depth.
+If piece matches ")", subtract 1 from depth.
+If depth is 0, set groupclose to spot, return.
+Seekclose from spot plus 1.
+
+To shrink from base (a whole number).
+If the last position of names is less than base, return.
+remove the last item from names.
+remove the last item from values.
+Shrink from base.
+
+To lookup from spot (a whole number).
+If spot is less than 0, return.
+If item spot of names matches wanted, set lookupvalue to item spot of values, return.
+Lookup from spot minus 1.
+
+To numbervalue from spot (a whole number).
+If spot is more than the last position of atom, return.
+The letter is character spot of atom.
+The digit is the digit value of letter.
+Set numbervalue to numbervalue times 10 plus digit.
+Numbervalue from spot plus 1.
+
+To parsenumber.
+Set numbervalue to 0.
+Numbervalue from 0.
+Set parsevalue to numbervalue.
+Add 1 to nextspot.
+
+To parse.
+The spot is nextspot.
+Set atom to item spot of tokens.
+If atom matches "(", parselist, return.
+If atom matches ")", return.
+The firstchar is character 0 of atom.
+If firstchar is between "0" and "9", parsenumber, return.
+Set wanted to atom.
+The top is the last position of names.
+Lookup from top.
+Set parsevalue to lookupvalue.
+Add 1 to nextspot.
+
+To parselist.
+Add 1 to nextspot.
+The spot is nextspot.
+The operator is item spot of tokens.
+Add 1 to nextspot.
+If operator matches "add", parseadd, return.
+If operator matches "mult", parsemult, return.
+If operator matches "let", parselet, return.
+
+To parseadd.
+Parse.
+The first is parsevalue.
+Parse.
+The second is parsevalue.
+Add 1 to nextspot.
+Set parsevalue to first plus second.
+
+To parsemult.
+Parse.
+The first is parsevalue.
+Parse.
+The second is parsevalue.
+Add 1 to nextspot.
+Set parsevalue to first times second.
+
+To parselet.
+Set depth to 0.
+The open is nextspot minus 2.
+Seekclose from open.
+The top is the last position of names.
+The base is top plus 1.
+The finish is groupclose.
+Letpairs with base and finish.
+
+To finishlet with base (a whole number).
+Parse.
+Shrink from base.
+
+To letpairs with base (a whole number) and finish (a whole number).
+The spot is nextspot.
+The atom is item spot of tokens.
+If atom matches "(", Finishlet with base, return.
+If nextspot plus 1 is finish, Finishlet with base, return.
+The name is atom.
+Add 1 to nextspot.
+Parse.
+Place name into names.
+Place parsevalue into values.
+Letpairs with base and finish.
+
+The expression is "(let x 2 (mult x (let x 3 y 4 (add x y))))".
+The last is the last position of expression.
+For every spot from 0 to last.
+The symbol is the slice of expression from spot to spot plus 1.
+The special is 0.
+The brace is 0.
+If symbol matches "(", set brace to 1, set special to 1.
+If symbol matches ")", set brace to 1, set special to 1.
+If symbol matches " ", set special to 1.
+If special is 1, Flush.
+If special is 0, Place symbol into token.
+If brace is 1, Place symbol into tokens.
+
+Flush.
+Set nextspot to 0.
+Parse.
+Show parsevalue.

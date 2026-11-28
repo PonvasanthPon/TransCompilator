@@ -1,0 +1,24 @@
+The left is 1.
+The right is 22.
+Keep a shared quality as 0.
+Set quality to 1.
+To check with value (a whole number) and original (a whole number).
+If value is 0, return.
+If quality is 0, return.
+The digit is value modulo 10.
+If digit is 0, set quality to 0, return.
+If original modulo digit is not 0, set quality to 0, return.
+Check with value divided by 10 and original.
+
+The answers is an empty list of whole numbers.
+For every number from left to right.
+Set quality to 1.
+Check with number and number.
+If quality is 1, Place number into answers.
+
+The line is empty text.
+For each answer in answers.
+If the length of line is more than 0, Place "," into line.
+Place format whole number answer as text into line.
+
+Show line.

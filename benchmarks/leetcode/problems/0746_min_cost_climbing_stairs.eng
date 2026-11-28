@@ -1,0 +1,9 @@
+The costs is a list of 10, 15, and 20.
+The last is the last position of costs.
+The best is a list of last plus 2 zeros.
+For every step from 2 to last plus 1.
+The first is item (step minus 1) of best plus item (step minus 1) of costs.
+The second is item (step minus 2) of best plus item (step minus 2) of costs.
+If first is less than second, set item step of best to first, otherwise set item step of best to second.
+
+Show item (last plus 1) of best.

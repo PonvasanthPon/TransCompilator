@@ -1,0 +1,24 @@
+The rocks is a list of 5, 10, and -5.
+The last is the last position of rocks.
+The stack is an empty list of whole numbers.
+For each rock in rocks.
+If rock is more than 0, Place rock into stack.
+If rock is less than 0.
+The alive is 1.
+Repeat while alive is 1.
+The end is the last position of stack.
+If end is less than 0, Place rock into stack, set alive to 0, stop.
+The top is item end of stack.
+If top is less than 0, Place rock into stack, set alive to 0, stop.
+The size is 0 minus rock.
+If top is less than size, remove the last item from stack.
+If top is more than size, set alive to 0, stop.
+If top is size, remove the last item from stack, set alive to 0, stop.
+
+
+The line is empty text.
+For each rock in stack.
+If the length of line is more than 0, Place "," into line.
+Place format whole number rock as text into line.
+
+Show line.

@@ -1,0 +1,201 @@
+Keep a shared grid as an empty list of whole numbers.
+Place 0 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Keep a shared seen as an empty list of whole numbers.
+For every spot from 0 to 31.
+Place 0 into seen.
+
+Keep a shared regioncells as an empty list of whole numbers.
+Keep a shared regionstart as an empty list of whole numbers.
+Keep a shared regionwalls as an empty list of whole numbers.
+Keep a shared threats as an empty list of whole numbers.
+Keep a shared regionthreatstart as an empty list of whole numbers.
+Keep a shared currentregion as 0.
+Keep a shared regioncount as 0.
+Keep a shared wantedcell as 0.
+Keep a shared threatfound as 0.
+Keep a shared rangestart as 0.
+Keep a shared rangefinish as 0.
+Keep a shared threatbegin as 0.
+Keep a shared threatend as 0.
+Keep a shared bestregion as 0.
+Keep a shared bestscore as 0.
+Keep a shared totalwalls as 0.
+Keep a shared active as 0.
+To resetseen from spot (a whole number).
+If spot is more than 31, return.
+Set item spot of seen to 0.
+Resetseen from spot plus 1.
+
+To clearcells.
+If the last position of regioncells is less than 0, return.
+remove the last item from regioncells.
+Clearcells.
+
+To clearstarts.
+If the last position of regionstart is less than 0, return.
+remove the last item from regionstart.
+Clearstarts.
+
+To clearwalls.
+If the last position of regionwalls is less than 0, return.
+remove the last item from regionwalls.
+Clearwalls.
+
+To clearthreats.
+If the last position of threats is less than 0, return.
+remove the last item from threats.
+Clearthreats.
+
+To clearthreatstarts.
+If the last position of regionthreatstart is less than 0, return.
+remove the last item from regionthreatstart.
+Clearthreatstarts.
+
+To findthreat from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+If item spot of threats is wantedcell, set threatfound to 1, return.
+Findthreat from spot plus 1 with finish.
+
+To exploreempty from cell (a whole number).
+The region is currentregion.
+Set item region of regionwalls to item region of regionwalls plus 1.
+Set wantedcell to cell.
+The start is item region of regionthreatstart.
+The finish is the last position of threats.
+Set threatfound to 0.
+Findthreat from start with finish.
+If threatfound is 0, Place cell into threats.
+
+To explore from cell (a whole number).
+If cell is less than 0, return.
+If cell is more than 31, return.
+If item cell of seen is 1, return.
+If item cell of grid is 2, return.
+If item cell of grid is 0, exploreempty from cell, return.
+Set item cell of seen to 1.
+Place cell into regioncells.
+The row is cell divided by 8.
+The column is cell modulo 8.
+If row is more than 0, explore from cell minus 8.
+If row is less than 3, explore from cell plus 8.
+If column is more than 0, explore from cell minus 1.
+If column is less than 7, explore from cell plus 1.
+
+To scanone from spot (a whole number).
+The cellend is the last position of regioncells.
+The cellstart is cellend plus 1.
+The threatend is the last position of threats.
+The threatstart is threatend plus 1.
+Place cellstart into regionstart.
+Place threatstart into regionthreatstart.
+Place 0 into regionwalls.
+Set currentregion to the last position of regionwalls.
+Explore from spot.
+
+To scan from spot (a whole number).
+If spot is more than 31, return.
+If item spot of grid is 1 and item spot of seen is 0, scanone from spot.
+Scan from spot plus 1.
+
+To choose.
+Set bestregion to -1.
+Set bestscore to -1.
+The lastregion is the last position of regionwalls.
+For every region from 0 to lastregion.
+The score is item region of regionwalls.
+If score is more than bestscore, set bestscore to score, set bestregion to region.
+
+To bounds with region (a whole number).
+Set rangestart to item region of regionstart.
+Set rangefinish to the last position of regioncells.
+If region is less than regioncount minus 1.
+The next is region plus 1.
+The nextstart is item next of regionstart.
+Set rangefinish to nextstart minus 1.
+
+To threatbounds with region (a whole number).
+Set threatbegin to item region of regionthreatstart.
+Set threatend to the last position of threats.
+If region is less than regioncount minus 1.
+The next is region plus 1.
+The nextstart is item next of regionthreatstart.
+Set threatend to nextstart minus 1.
+
+To quarantine from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The cell is item spot of regioncells.
+Set item cell of grid to 2.
+Quarantine from spot plus 1 with finish.
+
+To spreadcells from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The cell is item spot of threats.
+Set item cell of grid to 1.
+Spreadcells from spot plus 1 with finish.
+
+To spread from region (a whole number).
+If region is more than the last position of regionwalls, return.
+If region is bestregion, spread from region plus 1, return.
+Threatbounds with region.
+Spreadcells from threatbegin with threatend.
+Spread from region plus 1.
+
+To apply.
+The chosen is bestregion.
+The score is item chosen of regionwalls.
+Set totalwalls to totalwalls plus score.
+Bounds with chosen.
+Quarantine from rangestart with rangefinish.
+Spread from 0.
+
+To reset.
+Resetseen from 0.
+Clearcells.
+Clearstarts.
+Clearwalls.
+Clearthreats.
+Clearthreatstarts.
+Set bestregion to -1.
+
+Set active to 1.
+Repeat while active is 1.
+Reset.
+Scan from 0.
+The top is the last position of regionwalls.
+Set regioncount to top plus 1.
+Choose.
+If bestregion is less than 0, set active to 0.
+If bestregion is at least 0, Apply.
+
+Show totalwalls.
