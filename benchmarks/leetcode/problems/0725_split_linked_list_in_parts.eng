@@ -1,0 +1,29 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Keep a shared width as 0.
+Keep a shared spot as 0.
+Keep a shared line as empty text.
+The parts is 5.
+The last is the last position of values.
+The size is last plus 1.
+The base is size divided by parts.
+The extra is size modulo parts.
+
+To pack from start (a whole number) with count (a whole number).
+Place "[" into line.
+For every step from start to start plus count minus 1.
+If step is more than start, Place ", " into line.
+The piece is format whole number item step of values as text.
+Place piece into line.
+
+For every part from 0 to parts minus 1.
+Set width to base.
+If part is less than extra, add 1 to width.
+Set line to empty text.
+Pack from spot with width.
+Place "]" into line.
+Set spot to spot plus width.
+Show line.
+

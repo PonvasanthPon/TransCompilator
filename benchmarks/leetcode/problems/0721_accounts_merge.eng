@@ -1,0 +1,98 @@
+Keep a shared people as an empty list of text.
+Place "John" into people.
+Place "John" into people.
+Place "Mary" into people.
+Place "John" into people.
+Keep a shared emails as an empty list of text.
+Place "johnsmith@mail.com" into emails.
+Place "john_newyork@mail.com" into emails.
+Place "johnsmith@mail.com" into emails.
+Place "john00@mail.com" into emails.
+Place "mary@mail.com" into emails.
+Place "johnnybravo@mail.com" into emails.
+Keep a shared starts as an empty list of whole numbers.
+Place 0 into starts.
+Place 2 into starts.
+Place 4 into starts.
+Place 5 into starts.
+Place 6 into starts.
+Keep a shared parents as an empty list of whole numbers.
+Place 0 into parents.
+Place 1 into parents.
+Place 2 into parents.
+Place 3 into parents.
+Keep a shared rootresult as 0.
+Keep a shared sharedfound as 0.
+Keep a shared gathered as an empty list of text.
+Keep a shared merged as empty text.
+Keep a shared candidate as empty text.
+Keep a shared found as 0.
+
+To root from node (a whole number).
+If item node of parents is node, set rootresult to node, return.
+Root from item node of parents.
+
+To merge from first (a whole number) with second (a whole number).
+Root from first.
+The firstroot is rootresult.
+Root from second.
+The secondroot is rootresult.
+If firstroot is not secondroot, set item firstroot of parents to secondroot.
+
+To share from first (a whole number) with second (a whole number).
+Set sharedfound to 0.
+For every left from item first of starts to item (first plus 1) of starts minus 1.
+For every right from item second of starts to item (second plus 1) of starts minus 1.
+If item left of emails matches item right of emails, set sharedfound to 1.
+
+To locate from spot (a whole number).
+If spot is more than the last position of gathered, return.
+If item spot of gathered matches candidate, set found to 1, return.
+Locate from spot plus 1.
+
+To gather from person (a whole number) with root (a whole number).
+Root from person.
+If rootresult is not root, return.
+For every spot from item person of starts to item (person plus 1) of starts minus 1.
+Set candidate to item spot of emails.
+Set found to 0.
+Locate from 0.
+If found is 0, Place candidate into gathered.
+
+To order.
+The total is the number of items in gathered.
+The final is total minus 1.
+For every left from 0 to final.
+For every right from left plus 1 to final.
+If item right of gathered comes before item left of gathered, swap item left of gathered and item right of gathered.
+
+To attach from spot (a whole number).
+If spot is more than the last position of gathered, return.
+Place "," into merged.
+Place item spot of gathered into merged.
+Attach from spot plus 1.
+
+To wipe.
+The count is the number of items in gathered.
+If count is 0, return.
+Remove the last item from gathered.
+Wipe.
+
+To render from person (a whole number) with root (a whole number).
+Wipe.
+For every member from 0 to the last position of people, Gather from member with root.
+Order.
+The source is item person of people.
+Set merged to a copy of source.
+Attach from 0.
+Show merged.
+
+For every left from 0 to the last position of people.
+For every right from left plus 1 to the last position of people.
+Share from left with right.
+If sharedfound is 1, merge from left with right.
+
+For every person from 0 to the last position of people.
+Root from person.
+If rootresult is person, Render from person with person.
+

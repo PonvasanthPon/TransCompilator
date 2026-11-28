@@ -1,0 +1,13 @@
+The prices is a list of 1, 3, 2, 8, 4, and 9.
+The fee is 2.
+The cash is 0.
+The hold is 0 minus item 0 of prices.
+For every spot from 1 to the last position of prices.
+The price is item spot of prices.
+The sell is hold plus price minus fee.
+If sell is more than cash, set cash to sell.
+The buy is cash minus price.
+If buy is more than hold, set hold to buy.
+
+Show cash.
+

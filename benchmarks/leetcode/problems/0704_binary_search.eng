@@ -1,0 +1,13 @@
+The numbers is a list of -1, 0, 3, 5, 9, and 12.
+The target is 9.
+The low is 0.
+The high is the last position of numbers.
+The answer is -1.
+Repeat while low is at most high and answer is -1.
+The middle is the midpoint of low and high.
+If item middle of numbers is target, set answer to middle.
+If item middle of numbers is less than target, set low to middle plus 1.
+If item middle of numbers is more than target, set high to middle minus 1.
+
+Show answer.
+

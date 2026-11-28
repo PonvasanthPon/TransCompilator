@@ -1,0 +1,39 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 3 into numbers.
+Place 1 into numbers.
+Keep a shared wanted as 0.
+Set wanted to 1.
+Keep a shared finish as 0.
+Keep a shared bottom as 0.
+Keep a shared top as 0.
+Keep a shared answer as 0.
+Keep a shared tally as 0.
+Keep a shared front as 0.
+Sort numbers.
+Set finish to the last position of numbers.
+The endpoint is finish.
+Set top to item endpoint of numbers minus item 0 of numbers.
+Set answer to top.
+
+To retreat from right (a whole number) with middle (a whole number).
+The spot is front.
+If item right of numbers minus item spot of numbers is at most middle, return.
+Add 1 to front.
+Retreat from right with middle.
+
+To measure from middle (a whole number).
+Set tally to 0.
+Set front to 0.
+For every right from 0 to finish.
+Retreat from right with middle.
+Set tally to tally plus right minus front.
+
+Repeat while bottom is at most top.
+The middle is the midpoint of bottom and top.
+Measure from middle.
+If tally is at least wanted, set answer to middle, set top to middle minus 1.
+If tally is less than wanted, set bottom to middle plus 1.
+
+Show answer.
+

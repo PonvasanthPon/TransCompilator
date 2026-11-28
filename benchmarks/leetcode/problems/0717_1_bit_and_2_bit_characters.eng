@@ -1,0 +1,8 @@
+The bits is a list of 1, 0, and 0.
+The last is the last position of bits.
+The spot is 0.
+Repeat while spot is less than last.
+If item spot of bits is 1, add 2 to spot, otherwise add 1 to spot.
+
+If spot is last, show true, otherwise show false.
+

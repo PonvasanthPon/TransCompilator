@@ -1,0 +1,51 @@
+Keep a shared source as an empty list of text.
+Place "/*Test program */" into source.
+Place "int main()" into source.
+Place "{ " into source.
+Place "  // variable declaration " into source.
+Place "int a, b, c;" into source.
+Place "/* This is a test" into source.
+Place "   multiline  " into source.
+Place "   comment for " into source.
+Place "   testing */" into source.
+Place "a = b + c;" into source.
+Place "}" into source.
+Keep a shared current as empty text.
+Keep a shared answers as an empty list of text.
+Keep a shared newline as empty text.
+Place "\n" into newline.
+
+To flush.
+The size is the number of characters in current.
+If size is more than 0, Place current into answers.
+Set current to empty text.
+
+The joined is join source with newline.
+The last is the last position of joined.
+The inblock is 0.
+The silent is 0.
+The spot is 0.
+Repeat while spot is at most last.
+The symbol is the slice of joined from spot to spot plus 1.
+The pair is symbol.
+If spot is less than last, set pair to the slice of joined from spot to spot plus 2.
+The opening is 0.
+The closing is 0.
+The notice is 0.
+The newlinehere is 0.
+If pair matches "/*", set opening to 1.
+If pair matches "*/", set closing to 1.
+If pair matches "//", set notice to 1.
+If symbol matches newline, set newlinehere to 1.
+The used is 1.
+If inblock is 1 and closing is 1, set inblock to 0, set used to 2.
+If inblock is 0 and newlinehere is 1, Flush, set silent to 0.
+If inblock is 0 and newlinehere is 0 and silent is 1, set used to 1.
+If inblock is 0 and newlinehere is 0 and silent is 0 and opening is 1, set inblock to 1, set used to 2.
+If inblock is 0 and newlinehere is 0 and silent is 0 and notice is 1, set silent to 1, set used to 2.
+If inblock is 0 and newlinehere is 0 and silent is 0 and opening is 0 and notice is 0 and used is 1, Place symbol into current.
+Set spot to spot plus used.
+
+Flush.
+For each answer in answers, show answer.
+

@@ -1,0 +1,12 @@
+The numbers is a list of 10, 5, 2, and 6.
+The limit is 100.
+The left is 0.
+The product is 1.
+The count is 0.
+For every right from 0 to the last position of numbers.
+Set product to product times item right of numbers.
+Repeat while left is at most right and product is at least limit, Set product to product divided by item left of numbers, Add 1 to left.
+Set count to count plus right minus left plus 1.
+
+Show count.
+

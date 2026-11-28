@@ -1,0 +1,18 @@
+The first is a list of 1, 2, 3, 2, and 1.
+The second is a list of 3, 2, 1, 4, and 7.
+The rowsend is the last position of first.
+The columnsend is the last position of second.
+The rows is rowsend plus 1.
+The columns is columnsend plus 1.
+The width is columns plus 1.
+The size is (rows plus 1) times width.
+The table is a list of size zeros.
+The best is 0.
+For every firstspot from 1 to rows.
+For every secondspot from 1 to columns.
+The index is firstspot times width plus secondspot.
+If item (firstspot minus 1) of first is item (secondspot minus 1) of second, set item index of table to item (index minus width minus 1) of table plus 1.
+If item index of table is more than best, set best to item index of table.
+
+Show best.
+

@@ -1,0 +1,29 @@
+The first is "sea".
+The second is "eat".
+The firstsize is the number of characters in first.
+The secondsize is the number of characters in second.
+The width is secondsize plus 1.
+The size is (firstsize plus 1) times width.
+The table is a list of size zeros.
+For every firstprefix from 1 to firstsize.
+The cost is character (firstprefix minus 1) of first.
+Set item (firstprefix times width) of table to item ((firstprefix minus 1) times width) of table plus cost.
+
+For every secondprefix from 1 to secondsize.
+The cost is character (secondprefix minus 1) of second.
+Set item secondprefix of table to item (secondprefix minus 1) of table plus cost.
+
+For every firstprefix from 1 to firstsize.
+For every secondprefix from 1 to secondsize.
+The index is firstprefix times width plus secondprefix.
+The leftcost is character (firstprefix minus 1) of first.
+The rightcost is character (secondprefix minus 1) of second.
+The removal is item (index minus width) of table plus leftcost.
+The insertion is item (index minus 1) of table plus rightcost.
+The best is the smaller of removal and insertion.
+If character (firstprefix minus 1) of first is character (secondprefix minus 1) of second, set item index of table to item (index minus width minus 1) of table.
+Otherwise, set item index of table to best.
+
+The last is one less than size.
+Show item last of table.
+

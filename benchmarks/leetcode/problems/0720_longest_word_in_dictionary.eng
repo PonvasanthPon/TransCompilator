@@ -1,0 +1,38 @@
+Keep a shared words as an empty list of text.
+Place "w" into words.
+Place "wo" into words.
+Place "wor" into words.
+Place "worl" into words.
+Place "world" into words.
+Keep a shared best as empty text.
+Keep a shared sought as empty text.
+Keep a shared valid as 0.
+Keep a shared found as 0.
+
+To locate from spot (a whole number).
+If spot is more than the last position of words, return.
+If item spot of words matches sought, set found to 1, return.
+Locate from spot plus 1.
+
+To check from index (a whole number).
+The word is item index of words.
+The last is the last position of word.
+Set valid to 1.
+For every spot from 0 to last minus 1.
+The prefix is the slice of word from 0 to spot plus 1.
+Set sought to prefix.
+Set found to 0.
+Locate from 0.
+If found is 0, set valid to 0.
+
+For every index from 0 to the last position of words.
+The word is item index of words.
+The last is the last position of word.
+Check from index.
+If valid is 1.
+The bestlast is the last position of best.
+If last is more than bestlast, set best to word.
+If last is bestlast, If word comes before best, set best to word.
+
+Show best.
+

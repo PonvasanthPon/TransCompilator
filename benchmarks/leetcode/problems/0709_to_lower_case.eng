@@ -1,0 +1,17 @@
+Keep a shared word as empty text.
+Place "Hello" into word.
+Keep a shared smalls as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into smalls.
+Keep a shared result as empty text.
+The last is the last position of word.
+For every spot from 0 to last.
+The symbol is the slice of word from spot to spot plus 1.
+The code is character 0 of symbol.
+The lowcap is character 0 of "A".
+The highcap is character 0 of "Z".
+The mapped is symbol.
+If code is at least lowcap and code is at most highcap, The offset is code minus lowcap, The lowerpiece is the slice of smalls from offset to offset plus 1, set mapped to lowerpiece.
+Place mapped into result.
+
+Show result.
+
