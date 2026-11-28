@@ -1,0 +1,42 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 17 into numbers.
+Place 8 into numbers.
+Sort numbers.
+Keep a shared used as an empty list of whole numbers.
+Keep a shared order as an empty list of whole numbers.
+For every spot from 0 to 2, Place 0 into used.
+For every spot from 0 to 2, Place 0 into order.
+Keep a shared squares as an empty list of whole numbers.
+Place 1 into squares.
+Place 4 into squares.
+Place 9 into squares.
+Place 16 into squares.
+Place 25 into squares.
+Place 36 into squares.
+Keep a shared total as 0.
+
+To seed.
+For every spot from 0 to 2.
+If item spot of used is 1, skip to the next one.
+If spot is more than 0 and item spot of numbers is item (spot minus 1) of numbers and item (spot minus 1) of used is 0, skip to the next one.
+Set item 0 of order to item spot of numbers.
+Set item spot of used to 1.
+Extend from 1.
+Set item spot of used to 0.
+
+To extend from depth (a whole number).
+If depth is 3, add 1 to total, return.
+For every spot from 0 to 2.
+If item spot of used is 1, skip to the next one.
+If spot is more than 0 and item spot of numbers is item (spot minus 1) of numbers and item (spot minus 1) of used is 0, skip to the next one.
+The previous is item (depth minus 1) of order.
+The candidate is previous plus item spot of numbers.
+If squares does not contain candidate, skip to the next one.
+Set item depth of order to item spot of numbers.
+Set item spot of used to 1.
+Extend from depth plus 1.
+Set item spot of used to 0.
+
+Seed.
+Show total.

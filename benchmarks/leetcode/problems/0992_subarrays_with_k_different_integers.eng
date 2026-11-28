@@ -1,0 +1,45 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Keep a shared counts as an empty list of whole numbers.
+For every spot from 0 to 5, Place 0 into counts.
+Keep a shared limit as 0.
+Keep a shared beginning as 0.
+Keep a shared distinct as 0.
+Keep a shared total as 0.
+Keep a shared window as 0.
+
+To wipe.
+For every spot from 0 to 5, set item spot of counts to 0.
+
+To tighten from right (a whole number).
+Repeat while distinct is more than limit.
+The position is beginning.
+The old is item position of numbers.
+Set item old of counts to item old of counts minus 1.
+If item old of counts is 0, set distinct to distinct minus 1.
+Set beginning to beginning plus 1.
+Set window to right minus beginning plus 1.
+
+To tally with bound (a whole number).
+Set limit to bound.
+Wipe.
+Set total to 0.
+Set beginning to 0.
+Set distinct to 0.
+For every right from 0 to 4.
+The value is item right of numbers.
+If item value of counts is 0, add 1 to distinct.
+Set item value of counts to item value of counts plus 1.
+Set window to right minus beginning plus 1.
+Tighten from right.
+Set total to total plus window.
+
+Tally with 2.
+The high is total.
+Tally with 1.
+The low is total.
+Show high minus low.

@@ -1,0 +1,9 @@
+The start is 2, while the target is 3.
+The steps is 0, while the current is target.
+Repeat while current is more than start.
+If current modulo 2 is 0 and current divided by 2 is at least start, set current to current divided by 2.
+Otherwise, set current to current plus 1.
+Add 1 to steps.
+
+Set steps to steps plus current minus start.
+Show steps.

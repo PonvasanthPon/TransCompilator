@@ -1,0 +1,50 @@
+Keep a shared grid as an empty list of whole numbers.
+Place 2 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Keep a shared distances as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+For every cell from 0 to 8, Place 0 into distances.
+For every cell from 0 to 8, Place 0 into queue.
+Keep a shared fresh as 0.
+Keep a shared count as 0.
+For every cell from 0 to 8.
+If item cell of grid is 1, add 1 to fresh.
+If item cell of grid is 2, set item count of queue to cell, add 1 to count.
+
+To spread from node (a whole number).
+The offsets is a list of -3, 3, -1, and 1.
+The row is node divided by 3, while the column is node modulo 3.
+For every which from 0 to 3.
+The offset is item which of offsets.
+The target is node plus offset.
+The level is item node of distances plus 1.
+The open is 1.
+If which is 0 and row is 0, set open to 0.
+If which is 1 and row is 2, set open to 0.
+If which is 2 and column is 0, set open to 0.
+If which is 3 and column is 2, set open to 0.
+If open is 1 and item target of grid is 1.
+Set item target of grid to 2.
+Set item target of distances to level.
+Set item count of queue to target.
+Add 1 to count.
+Set fresh to fresh minus 1.
+
+The head is 0.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Spread from node.
+
+The best is 0.
+For every cell from 0 to 8.
+If item cell of distances is more than best, set best to item cell of distances.
+
+If fresh is more than 0, show -1, otherwise show best.

@@ -1,0 +1,39 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 4 into values.
+Place 5 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 3 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared depths as an empty list of whole numbers.
+Keep a shared parents as an empty list of whole numbers.
+For every spot from 0 to 4, Place 0 into depths.
+For every spot from 0 to 4, Place 0 into parents.
+
+To walk from node (a whole number) with parent (a whole number) and level (a whole number).
+If node is less than 0, return.
+Set item node of depths to level.
+Set item node of parents to parent.
+Walk from item node of lefts with node and level plus 1.
+Walk from item node of rights with node and level plus 1.
+
+Walk from 0 with -1 and 0.
+The first is -1, while the second is -1.
+For every spot from 0 to 4.
+If item spot of values is 4, set second to spot.
+If item spot of values is 5, set first to spot.
+
+The verdict is 0.
+If item first of depths is item second of depths and item first of parents is not item second of parents, set verdict to 1.
+If verdict is 1, show true, otherwise show false.

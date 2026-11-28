@@ -1,0 +1,16 @@
+The bits is a list of 0, 0, 0, 1, 0, 1, 1, and 0.
+The ends is a list of 9 zeros.
+The size is 8, while the span is 3.
+The flips is 0, while the active is 0, while the impossible is 0.
+For every spot from 0 to size minus 1.
+If item spot of ends is 1, set active to 1 minus active.
+The value is item spot of bits.
+If active is 1, set value to 1 minus value.
+If value is 0 and spot plus span is at most size.
+Set item (spot plus span) of ends to 1.
+Add 1 to flips.
+Set active to 1 minus active.
+If value is 0 and spot plus span is more than size.
+Set impossible to 1.
+
+If impossible is 1, show -1, otherwise show flips.

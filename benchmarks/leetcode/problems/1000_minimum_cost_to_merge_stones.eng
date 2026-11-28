@@ -1,0 +1,21 @@
+The stones is a list of 3, 2, 4, and 1.
+The prefix is a list of 5 zeros.
+For every spot from 0 to 3.
+Set item (spot plus 1) of prefix to item spot of prefix plus item spot of stones.
+
+The table is a list of 16 zeros.
+For every length from 2 to 4.
+For every start from 0 to 4 minus length.
+The finish is start plus length minus 1.
+The cell is start times 4 plus finish.
+The before is item start of prefix, while the after is item (finish plus 1) of prefix.
+The range is after minus before.
+Set item cell of table to 1000000.
+For every split from start to finish minus 1.
+The beyond is split plus 1.
+The leftcell is start times 4 plus split.
+The rightcell is beyond times 4 plus finish.
+The candidate is item leftcell of table plus item rightcell of table plus range.
+If candidate is less than item cell of table, set item cell of table to candidate.
+
+Show item 3 of table.

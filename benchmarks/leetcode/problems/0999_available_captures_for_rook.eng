@@ -1,0 +1,35 @@
+Keep a shared board as an empty list of text.
+Place "...p...." into board.
+Place "...p...." into board.
+Place "........" into board.
+Place ".p.R..p." into board.
+Place "........" into board.
+Place "...p...." into board.
+Place "........" into board.
+Place "........" into board.
+Keep a shared captures as 0.
+
+To sweep from spot (a whole number) with step (a whole number) and steps (a whole number).
+The cursor is spot plus step, while remaining is steps, while open is 0.
+Repeat while remaining is more than 0 and open is 0.
+The row is cursor divided by 8, while the column is cursor modulo 8.
+The line is item row of board.
+The symbol is the slice of line from column to column plus 1.
+If symbol matches "p", add 1 to captures, set open to 1.
+If symbol matches "R", set open to 1.
+Set cursor to cursor plus step.
+Set remaining to remaining minus 1.
+
+The rook is -1.
+For every spot from 0 to 63.
+The row is spot divided by 8, while the column is spot modulo 8.
+The line is item row of board.
+The symbol is the slice of line from column to column plus 1.
+If symbol matches "R", set rook to spot.
+
+The rank is rook divided by 8, while the file is rook modulo 8.
+Sweep from rook with -8 and rank.
+Sweep from rook with 8 and 7 minus rank.
+Sweep from rook with -1 and file.
+Sweep from rook with 1 and 7 minus file.
+Show captures.
