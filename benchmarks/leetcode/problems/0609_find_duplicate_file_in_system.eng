@@ -1,0 +1,66 @@
+Keep a shared listings as an empty list of text.
+Place "root/a 1.txt(abcd) 2.txt(efgh)" into listings.
+Place "root/c 3.txt(abcd)" into listings.
+Place "root/c/d 4.txt(efgh)" into listings.
+Place "root 4.txt(efgh)" into listings.
+Keep a shared parts as an empty list of text.
+Keep a shared folder as empty text.
+Keep a shared wanted as empty text.
+Keep a shared symbol as empty text.
+Keep a shared bracket as 0.
+Keep a shared contents as an empty list of text.
+Keep a shared groups as an empty list of text.
+Keep a shared atspot as 0.
+Keep a shared fullpath as empty text.
+Keep a shared content as empty text.
+Keep a shared line as empty text.
+To seek from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The piece is the slice of wanted from spot to spot plus 1.
+If piece matches symbol, set bracket to spot, return.
+Seek from spot plus 1 with finish.
+
+To look from place (a whole number).
+If place is more than the last position of contents, return.
+If item place of contents matches wanted, set atspot to place, return.
+Look from place plus 1.
+
+To attach from spot (a whole number).
+Set line to item spot of groups.
+Place "," into line.
+Place fullpath into line.
+Set item spot of groups to line.
+
+To collect from place (a whole number) with finish (a whole number).
+If place is more than finish, return.
+The part is item place of parts.
+The final is the last position of part.
+Set wanted to part.
+Set symbol to empty text.
+Place "(" into symbol.
+Set bracket to -1.
+Seek from 0 with final.
+The nameend is bracket.
+The name is the slice of part from 0 to nameend.
+Set content to the slice of part from bracket plus 1 to final.
+Set fullpath to empty text.
+Place folder into fullpath.
+Place "/" into fullpath.
+Place name into fullpath.
+Set wanted to content.
+Set atspot to -1.
+Look from 0.
+If atspot is less than 0, Place content into contents.
+If atspot is less than 0, Place fullpath into groups.
+If atspot is at least 0, Attach from atspot.
+Collect from place plus 1 with finish.
+
+For each listing in listings.
+Set parts to split listing by " ".
+Set folder to item 0 of parts.
+Collect from 1 with the last position of parts.
+
+The spot is the last position of groups.
+Repeat while spot is at least 0.
+Show item spot of groups.
+Subtract 1 from spot.

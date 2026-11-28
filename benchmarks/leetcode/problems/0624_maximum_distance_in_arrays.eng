@@ -1,0 +1,40 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 4 into numbers.
+Place 5 into numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+The starts is a list of 0, 3, and 5.
+The sizes is a list of 3, 2, and 3.
+Keep a shared smallest as 0.
+Keep a shared largest as 0.
+To scan from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The amount is item spot of numbers.
+If amount is less than smallest, set smallest to amount.
+If amount is more than largest, set largest to amount.
+Scan from spot plus 1 with finish.
+
+Set smallest to item 0 of numbers.
+Set largest to item 0 of numbers.
+Scan from 0 with 2.
+The low is smallest.
+The high is largest.
+The best is 0.
+For every band from 1 to 2.
+The start is item band of starts.
+The finish is start plus item band of sizes minus 1.
+Set smallest to item start of numbers.
+Set largest to item start of numbers.
+Scan from start with finish.
+The down is largest minus low.
+The up is high minus smallest.
+If down is more than best, set best to down.
+If up is more than best, set best to up.
+If smallest is less than low, set low to smallest.
+If largest is more than high, set high to largest.
+
+Show best.

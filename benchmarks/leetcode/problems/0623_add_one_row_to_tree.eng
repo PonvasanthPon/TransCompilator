@@ -1,0 +1,72 @@
+Keep a shared values as an empty list of whole numbers.
+Place 4 into values.
+Place 2 into values.
+Place 6 into values.
+Place 3 into values.
+Place 1 into values.
+Place 5 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared inserted as 0.
+Set inserted to 1.
+Keep a shared depth as 0.
+Set depth to 2.
+Keep a shared made as 0.
+Keep a shared root as 0.
+Keep a shared pieces as an empty list of text.
+To sprout.
+Place inserted into values.
+Place -1 into lefts.
+Place -1 into rights.
+Set made to the last position of values.
+
+To fill from node (a whole number).
+The oldleft is item node of lefts.
+Sprout.
+Set item made of lefts to oldleft.
+Set item node of lefts to made.
+The oldright is item node of rights.
+Sprout.
+Set item made of rights to oldright.
+Set item node of rights to made.
+
+To graft from node (a whole number) with level (a whole number).
+If node is less than 0, return.
+If level is depth minus 1, fill from node, return.
+If item node of lefts is at least 0, graft from item node of lefts with level plus 1.
+If item node of rights is at least 0, graft from item node of rights with level plus 1.
+
+To record from node (a whole number).
+The piece is format whole number item node of values as text.
+Place piece into pieces.
+
+If depth is 1, The oldroot is root, Sprout, Set item made of lefts to oldroot, Set root to made.
+If depth is more than 1, Graft from root with 1.
+The queue is an empty list of whole numbers.
+Place root into queue.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+If node is less than 0, Place "null" into pieces.
+If node is at least 0, record from node, Place item node of lefts into queue, Place item node of rights into queue, add 2 to count.
+
+Repeat while the last position of pieces is at least 0.
+The tail is the last position of pieces.
+If item tail of pieces matches "null", remove the last item from pieces, otherwise stop.
+
+The line is join pieces with ",".
+Show line.

@@ -1,0 +1,13 @@
+The flowerbed is a list of 1, 0, 0, 0, and 1.
+The wanted is 1.
+The last is the last position of flowerbed.
+The planted is 0.
+For every spot from 0 to last.
+The here is item spot of flowerbed.
+The leftfree is 1.
+If spot is more than 0 and item (spot minus 1) of flowerbed is 1, set leftfree to 0.
+The rightfree is 1.
+If spot is less than last and item (spot plus 1) of flowerbed is 1, set rightfree to 0.
+If here is 0 and leftfree is 1 and rightfree is 1, set item spot of flowerbed to 1, add 1 to planted.
+
+If planted is at least wanted, show true, otherwise show false.

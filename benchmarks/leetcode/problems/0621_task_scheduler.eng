@@ -1,0 +1,23 @@
+The tasks is a list of "A", "A", "A", "B", "B", and "B".
+The gap is 2.
+Keep a shared run as 0.
+Keep a shared biggest as 0.
+Keep a shared leaders as 0.
+The joined is join tasks with "".
+The order is sort characters of joined.
+The last is the last position of order.
+The symbol is the slice of order from 0 to 1.
+Set run to 1.
+To finish.
+If run is more than biggest, set biggest to run, set leaders to 1, return.
+If run is biggest, add 1 to leaders.
+
+For every spot from 1 to last.
+The piece is the slice of order from spot to spot plus 1.
+If piece matches symbol, add 1 to run, otherwise Finish, set symbol to piece, set run to 1.
+
+Finish.
+The spread is (biggest minus 1) times (gap plus 1) plus leaders.
+The final is the last position of tasks.
+The total is final plus 1.
+If spread is less than total, show total, otherwise show spread.

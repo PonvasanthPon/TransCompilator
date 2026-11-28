@@ -1,0 +1,17 @@
+Keep a shared sides as an empty list of whole numbers.
+Place 2 into sides.
+Place 2 into sides.
+Place 3 into sides.
+Place 4 into sides.
+Sort sides.
+The final is the last position of sides.
+The count is 0.
+For every first from 0 to final.
+For every second from first plus 1 to final.
+For every third from second plus 1 to final.
+The left is item first of sides.
+The right is item second of sides.
+The longest is item third of sides.
+If left plus right is more than longest, add 1 to count.
+
+Show count.
