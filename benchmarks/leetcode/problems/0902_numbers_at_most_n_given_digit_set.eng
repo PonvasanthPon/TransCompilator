@@ -1,0 +1,20 @@
+Keep a shared digits as an empty list of whole numbers.
+Place 1 into digits.
+Place 3 into digits.
+Place 5 into digits.
+Place 7 into digits.
+Keep a shared counter as 0.
+The limit is 100.
+To screen from value (a whole number).
+Set counter to 1.
+The rest is value.
+Repeat while rest is more than 0.
+The digit is rest modulo 10.
+If digits contains digit, set rest to rest divided by 10, otherwise set counter to 0, set rest to 0.
+
+The total is 0.
+For every value from 1 to limit.
+Screen from value.
+If counter is 1, add 1 to total.
+
+Show total.

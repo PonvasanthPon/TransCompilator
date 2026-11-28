@@ -1,0 +1,10 @@
+The numbers is a list of 3, 1, 2, and 4.
+The last is the last position of numbers.
+The total is 0.
+For every start from 0 to last.
+The lowest is item start of numbers.
+For every finish from start to last.
+If item finish of numbers is less than lowest, set lowest to item finish of numbers.
+Set total to total plus lowest.
+
+Show total.

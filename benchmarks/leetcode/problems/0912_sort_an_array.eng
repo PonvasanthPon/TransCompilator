@@ -1,0 +1,7 @@
+The numbers is a list of 5, 2, 3, and 1.
+The last is the last position of numbers.
+For every spot from 0 to last.
+For every look from spot plus 1 to last.
+If item look of numbers is less than item spot of numbers, swap item spot of numbers and item look of numbers.
+
+For each value in numbers, show value.

@@ -1,0 +1,13 @@
+The numbers is a list of 0 and 10.
+The slack is 2.
+The last is the last position of numbers.
+The lowest is item 0 of numbers.
+The highest is item 0 of numbers.
+For every spot from 1 to last.
+If item spot of numbers is less than lowest, set lowest to item spot of numbers.
+If item spot of numbers is more than highest, set highest to item spot of numbers.
+
+The spread is highest minus lowest.
+Set spread to spread minus 2 times slack.
+If spread is less than 0, set spread to 0.
+Show spread.

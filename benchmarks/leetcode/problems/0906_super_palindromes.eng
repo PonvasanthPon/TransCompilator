@@ -1,0 +1,27 @@
+Keep a shared reflection as 0.
+Keep a shared root as 0.
+Keep a shared total as 0.
+The low is 4.
+The high is 1000.
+To mirror from value (a whole number).
+Set reflection to 1.
+The text is format whole number value as text.
+The last is the last position of text.
+For every spot from 0 to last.
+If character spot of text is not character (last minus spot) of text, set reflection to 0.
+
+To seek from value (a whole number).
+Set root to 0.
+Repeat while root times root is less than value.
+Add 1 to root.
+
+To inspect from value (a whole number).
+Mirror from value.
+If reflection is 0, return.
+Seek from value.
+If root times root is value and root is more than 0, Mirror from root, if reflection is 1, add 1 to total.
+
+For every value from low to high.
+Inspect from value.
+
+Show total.

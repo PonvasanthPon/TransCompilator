@@ -1,0 +1,20 @@
+The jumps is a list of -1, -1, -1, 9, -1, -1, -1, -1, -1, and -1.
+The visited is a list of 10 zeros.
+The distance is a list of 10 zeros.
+The queue is an empty list of whole numbers.
+Set item 1 of visited to 1.
+Place 1 into queue.
+The head is 0.
+The count is 1.
+The target is 9.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+For every roll from 1 to 6.
+The landing is node plus roll.
+If landing is at most target.
+The jump is item landing of jumps.
+If jump is not -1, set landing to jump.
+If item landing of visited is 0, set item landing of visited to 1, set item landing of distance to item node of distance plus 1, Place landing into queue, add 1 to count.
+
+Show item target of distance.

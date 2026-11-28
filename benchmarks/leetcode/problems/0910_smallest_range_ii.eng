@@ -1,0 +1,14 @@
+The numbers is a list of 1, 3, and 6.
+The slack is 3.
+Sort numbers.
+The last is the last position of numbers.
+The best is item last of numbers minus item 0 of numbers.
+For every spot from 0 to last minus 1.
+The low is item 0 of numbers plus slack.
+The high is item last of numbers minus slack.
+If item (spot plus 1) of numbers minus slack is less than low, set low to item (spot plus 1) of numbers minus slack.
+If item spot of numbers plus slack is more than high, set high to item spot of numbers plus slack.
+The spread is high minus low.
+If spread is less than best, set best to spread.
+
+Show best.

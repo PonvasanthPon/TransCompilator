@@ -1,0 +1,9 @@
+The numbers is a list of 3, 1, 2, and 4.
+The ordered is an empty list of whole numbers.
+For each value in numbers.
+If value modulo 2 is 0, Place value into ordered.
+
+For each value in numbers.
+If value modulo 2 is not 0, Place value into ordered.
+
+For each value in ordered, show value.

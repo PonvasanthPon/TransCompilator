@@ -1,0 +1,17 @@
+The deck is a list of 1, 2, 3, 4, 4, 3, 2, and 1.
+The counts is a list of 5 zeros.
+For each card in deck.
+Set item card of counts to item card of counts plus 1.
+
+Keep a shared answer as 0.
+To gather from left (a whole number) with right (a whole number).
+If right is 0, set answer to left, return.
+Gather from right with left modulo right.
+
+For every rank from 0 to 4.
+If item rank of counts is more than 0.
+The amount is item rank of counts.
+If answer is 0, set answer to amount.
+If answer is more than 0, Gather from answer with amount.
+
+If answer is at least 2, show true, otherwise show false.

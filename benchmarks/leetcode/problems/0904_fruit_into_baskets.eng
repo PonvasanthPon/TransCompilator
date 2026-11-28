@@ -1,0 +1,15 @@
+The fruits is a list of 1, 2, 3, 2, and 2.
+The lastfruit is -1.
+The priorfruit is -1.
+The lastcount is 0.
+The priorcount is 0.
+The held is 0.
+The best is 0.
+For each fruit in fruits.
+If fruit is lastfruit, add 1 to lastcount.
+If fruit is priorfruit, set held to lastcount, set lastcount to priorcount plus 1, set priorcount to held, set priorfruit to lastfruit, set lastfruit to fruit.
+If fruit is not lastfruit and fruit is not priorfruit, set priorfruit to lastfruit, set priorcount to lastcount, set lastfruit to fruit, set lastcount to 1.
+The span is lastcount plus priorcount.
+If span is more than best, set best to span.
+
+Show best.
