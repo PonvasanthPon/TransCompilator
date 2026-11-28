@@ -1,0 +1,70 @@
+Keep a shared grid as an empty list of whole numbers.
+Place 2 into grid.
+Place 0 into grid.
+Place 3 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 4 into grid.
+Place 0 into grid.
+Place 5 into grid.
+Place 0 into grid.
+Place 6 into grid.
+Keep a shared visited as an empty list of whole numbers.
+For every spot from 0 to 59, Place 0 into visited.
+Keep a shared queued cells as an empty list of whole numbers.
+Keep a shared queued masks as an empty list of whole numbers.
+Keep a shared queued distances as an empty list of whole numbers.
+Keep a shared count as 0.
+Keep a shared head as 0.
+Keep a shared answer as 0.
+Keep a shared activemask as 0.
+Keep a shared activetravel as 0.
+To visit from target (a whole number).
+The cell is item target of grid.
+If cell is 1, return.
+The gained is activemask.
+If cell is 3, set gained to bitwise or of activemask and 1.
+If cell is 4, set gained to bitwise or of activemask and 2.
+The keyone is bitwise and of activemask and 1.
+The keytwo is bitwise and of activemask and 2.
+If cell is 5 and keyone is 0, return.
+If cell is 6 and keytwo is 0, return.
+The mark is target times 4 plus gained.
+If item mark of visited is 1, return.
+Set item mark of visited to 1.
+Place target into queued cells.
+Place gained into queued masks.
+Place activetravel plus 1 into queued distances.
+Add 1 to count.
+
+Set item 0 of visited to 1.
+Place 0 into queued cells.
+Place 0 into queued masks.
+Place 0 into queued distances.
+Set count to 1.
+Set head to 0.
+Set answer to -1.
+The columns is 5.
+The rows is 3.
+The lastrow is rows minus 1.
+The lastcolumn is columns minus 1.
+Repeat while head is less than count.
+The cursor is head.
+The spot is item cursor of queued cells.
+Set activemask to item cursor of queued masks.
+Set activetravel to item cursor of queued distances.
+Add 1 to head.
+If activemask is 3, set answer to activetravel, stop.
+The line is spot divided by columns.
+The column is spot modulo columns.
+If line is more than 0, Visit from spot minus columns.
+If line is less than lastrow, Visit from spot plus columns.
+If column is more than 0, Visit from spot minus 1.
+If column is less than lastcolumn, Visit from spot plus 1.
+
+Show answer.

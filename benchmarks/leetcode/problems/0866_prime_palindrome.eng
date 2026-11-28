@@ -1,0 +1,25 @@
+Keep a shared candidate as 0.
+Keep a shared prime as 0.
+Set prime to 1.
+Keep a shared flipped as 0.
+Keep a shared arrived as 0.
+To probe from divisor (a whole number).
+If divisor times divisor is more than candidate, return.
+If candidate modulo divisor is 0, set prime to 0, return.
+Probe from divisor plus 1.
+
+To flip from value (a whole number).
+If value is 0, return.
+Set flipped to flipped times 10 plus value modulo 10.
+Flip from value divided by 10.
+
+Set candidate to 13.
+Repeat while arrived is 0.
+Set prime to 1.
+Probe from 2.
+Set flipped to 0.
+Flip from candidate.
+If prime is 1 and flipped is candidate, set arrived to 1.
+If arrived is 0, add 1 to candidate.
+
+Show candidate.

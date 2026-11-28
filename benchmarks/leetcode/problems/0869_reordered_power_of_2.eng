@@ -1,0 +1,34 @@
+Keep a shared basecounts as an empty list of whole numbers.
+Keep a shared testcounts as an empty list of whole numbers.
+Keep a shared same as 0.
+To mark base from value (a whole number).
+Repeat while value is more than 0, set digit to value modulo 10, set item digit of basecounts to item digit of basecounts plus 1, set value to value divided by 10.
+
+To mark test from value (a whole number).
+Repeat while value is more than 0, set digit to value modulo 10, set item digit of testcounts to item digit of testcounts plus 1, set value to value divided by 10.
+
+To wipe from spot (a whole number).
+If spot is more than 9, return.
+Set item spot of testcounts to 0.
+Wipe from spot plus 1.
+
+To compare from spot (a whole number).
+If spot is more than 9, return.
+If item spot of basecounts is not item spot of testcounts, set same to 0, return.
+Compare from spot plus 1.
+
+For every spot from 0 to 9, Place 0 into basecounts.
+For every spot from 0 to 9, Place 0 into testcounts.
+The number is 10.
+Mark base from number.
+The power is 1.
+The reached is 0.
+Repeat while power is at most 1000000000.
+Set same to 1.
+Wipe from 0.
+Mark test from power.
+Compare from 0.
+If same is 1, set reached to 1, stop.
+Set power to power times 2.
+
+If reached is 1, show true, otherwise show false.

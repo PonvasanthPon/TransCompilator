@@ -1,0 +1,32 @@
+Keep a shared places as an empty list of whole numbers.
+Place 10 into places.
+Place 20 into places.
+Place 30 into places.
+Place 60 into places.
+Keep a shared fuels as an empty list of whole numbers.
+Place 60 into fuels.
+Place 30 into fuels.
+Place 30 into fuels.
+Place 40 into fuels.
+Keep a shared reach as an empty list of whole numbers.
+Place 0 into reach.
+Place 0 into reach.
+Place 0 into reach.
+Place 0 into reach.
+Place 0 into reach.
+To expand from spot (a whole number).
+If spot is less than 0, return.
+The position is item spot of places.
+The raised is item spot of reach plus item spot of fuels.
+If item spot of reach is at least position and raised is more than item (spot plus 1) of reach, set item (spot plus 1) of reach to raised.
+Expand from spot minus 1.
+
+Set item 0 of reach to 10.
+For every station from 0 to 3.
+Expand from station.
+
+The answer is -1.
+For every stops from 0 to 4.
+If item stops of reach is at least 100 and answer is -1, set answer to stops.
+
+Show answer.

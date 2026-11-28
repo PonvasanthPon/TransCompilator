@@ -1,0 +1,13 @@
+The value is 22.
+The working is value.
+The best is 0.
+The previous is -1.
+The spot is 0.
+Repeat while working is more than 0.
+The low is bitwise and of working and 1.
+If low is 1 and previous is at least 0 and spot minus previous is more than best, set best to spot minus previous.
+If low is 1, set previous to spot.
+Set working to shift working right by 1.
+Add 1 to spot.
+
+Show best.

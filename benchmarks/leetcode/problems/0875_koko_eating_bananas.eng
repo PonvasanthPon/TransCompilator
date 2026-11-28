@@ -1,0 +1,24 @@
+Keep a shared piles as an empty list of whole numbers.
+Place 3 into piles.
+Place 6 into piles.
+Place 7 into piles.
+Place 11 into piles.
+Keep a shared hours as 0.
+To count from spot (a whole number) with speed (a whole number).
+If spot is more than the last position of piles, return.
+The pile is item spot of piles.
+The needed is (pile plus speed minus 1) divided by speed.
+Add needed to hours.
+Count from spot plus 1 with speed.
+
+The limit is 8.
+The low is 1.
+The high is 11.
+The answer is 11.
+Repeat while low is at most high.
+The middle is the midpoint of low and high.
+Set hours to 0.
+Count from 0 with middle.
+If hours is at most limit, set answer to middle, set high to middle minus 1, otherwise set low to middle plus 1.
+
+Show answer.

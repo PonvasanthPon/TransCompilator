@@ -1,0 +1,47 @@
+Keep a shared stepx as an empty list of whole numbers.
+Place 0 into stepx.
+Place 1 into stepx.
+Place 0 into stepx.
+Place -1 into stepx.
+Keep a shared stepy as an empty list of whole numbers.
+Place 1 into stepy.
+Place 0 into stepy.
+Place -1 into stepy.
+Place 0 into stepy.
+Keep a shared barrierx as an empty list of whole numbers.
+Keep a shared barriery as an empty list of whole numbers.
+Keep a shared east as 0.
+Keep a shared north as 0.
+Keep a shared dir as 0.
+Keep a shared best as 0.
+Keep a shared probex as 0.
+Keep a shared probey as 0.
+Keep a shared blocked as 0.
+To obstruct from spot (a whole number).
+If spot is more than the last position of barrierx, return.
+If item spot of barrierx is probex and item spot of barriery is probey, set blocked to 1, return.
+Obstruct from spot plus 1.
+
+To advance from remaining (a whole number).
+If remaining is 0, return.
+The way is dir.
+The nextx is east plus item way of stepx.
+The nexty is north plus item way of stepy.
+Set probex to nextx.
+Set probey to nexty.
+Set blocked to 0.
+Obstruct from 0.
+If blocked is 1, return.
+Set east to nextx.
+Set north to nexty.
+The reach is east times east plus north times north.
+If reach is more than best, set best to reach.
+Advance from remaining minus 1.
+
+The commands is a list of 4, -1, and 3.
+For each command in commands.
+If command is equal to -1, set dir to dir plus 1 modulo 4.
+If command is equal to -2, set dir to dir plus 3 modulo 4.
+If command is more than 0, Advance from command.
+
+Show best.

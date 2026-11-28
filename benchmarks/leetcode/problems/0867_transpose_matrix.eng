@@ -1,0 +1,8 @@
+The grid is a list of 1, 2, 3, 4, 5, 6, 7, 8, and 9.
+The rows is 3.
+The columns is 3.
+The lastrow is rows minus 1.
+The lastcolumn is columns minus 1.
+For every column from 0 to lastcolumn.
+For every line from 0 to lastrow.
+Show item (line times columns plus column) of grid.
