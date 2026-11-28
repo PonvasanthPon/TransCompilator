@@ -1,13 +1,13 @@
-The text is "eat,tea,tan,ate,nat,bat". The words is split text by ",".
-The last is the last position of words.
+The text is "eat,tea,tan,ate,nat,bat". The wordslist is split text by ",".
+The last is the last position of wordslist.
 The signatures is an empty list of text.
-For each word in words.
+For each word in wordslist.
 The signature is sort characters of word.
 Place signature into signatures.
 
 For every left from 0 to last.
 For every right from left to last.
-If item right of signatures comes before item left of signatures, swap item left of signatures and item right of signatures, swap item left of words and item right of words.
+If item right of signatures comes before item left of signatures, swap item left of signatures and item right of signatures, swap item left of wordslist and item right of wordslist.
 
 The group is empty text.
 The groupcount is 0.
@@ -15,7 +15,7 @@ The current is empty text.
 The answers is an empty list of text.
 For every position from 0 to last.
 The signature is item position of signatures.
-The word is item position of words.
+The word is item position of wordslist.
 If position is 0, set current to signature, Place word into group, add 1 to groupcount.
 The same is 1.
 If signature comes before current, set same to 0.
