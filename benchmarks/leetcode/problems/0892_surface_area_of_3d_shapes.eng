@@ -1,0 +1,13 @@
+The shape is a list of 1, 2, 3, and 4.
+The lines is 2, while the columns is 2.
+The lastline is lines minus 1, while the lastcolumn is columns minus 1.
+The area is 0.
+For every line from 0 to lastline.
+For every column from 0 to lastcolumn.
+The cell is line times columns plus column.
+The height is item cell of shape.
+If height is more than 0, add 2 to area, add height times 4 to area.
+If column is less than lastcolumn, The rightheight is item (cell plus 1) of shape, The shared is the smaller of height and rightheight, subtract shared times 2 from area.
+If line is less than lastline, The downheight is item (cell plus columns) of shape, The shared is the smaller of height and downheight, subtract shared times 2 from area.
+
+Show area.

@@ -1,0 +1,23 @@
+The numbers is a list of 5, 4, 3, 2, and 1.
+Sort numbers.
+The last is the last position of numbers.
+The powers is an empty list of whole numbers.
+Place 1 into powers.
+For every step from 0 to last minus 1.
+The tail is item step of powers.
+The next is (tail times 2) modulo 1000000007.
+Place next into powers.
+
+The total is 0.
+For every spot from 0 to last.
+The leftpower is item spot of powers.
+The mirror is last minus spot.
+The rightpower is item mirror of powers.
+The gap is leftpower minus rightpower.
+If gap is less than 0, add 1000000007 to gap.
+The value is item spot of numbers.
+The term is (value times gap) modulo 1000000007.
+Add term to total.
+Set total to total modulo 1000000007.
+
+Show total.

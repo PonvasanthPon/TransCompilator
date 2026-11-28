@@ -1,0 +1,10 @@
+The numbers is a list of 1, 2, 2, and 3.
+The last is the last position of numbers.
+The rising is 1, while the falling is 1.
+For every spot from 1 to last.
+The before is item (spot minus 1) of numbers.
+The here is item spot of numbers.
+If before is more than here, set rising to 0.
+If before is less than here, set falling to 0.
+
+If rising is 1 or falling is 1, show true, otherwise show false.

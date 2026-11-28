@@ -1,0 +1,17 @@
+The word is "cba".
+The turns is 1.
+The last is the last position of word.
+The best is a copy of word.
+The current is a copy of word.
+If turns is 1.
+For every step from 0 to last.
+If current comes before best, set best to current.
+The first is the slice of current from 0 to 1.
+The rest is the slice of current from 1 to last plus 1.
+The moved is empty text.
+Place rest into moved.
+Place first into moved.
+Set current to moved.
+
+If turns is more than 1, The sorted is sort characters of word, show sorted.
+If turns is 1, show best.

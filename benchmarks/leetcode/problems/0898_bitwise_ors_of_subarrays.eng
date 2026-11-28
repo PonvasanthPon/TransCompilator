@@ -1,0 +1,11 @@
+The numbers is a list of 1, 1, and 2.
+The last is the last position of numbers.
+The seen is an empty list of whole numbers.
+For every start from 0 to last.
+The running is 0.
+For every finish from start to last.
+The value is item finish of numbers.
+Set running to bitwise or of running and value.
+If seen does not contain running, Place running into seen.
+
+Show the number of items in seen.

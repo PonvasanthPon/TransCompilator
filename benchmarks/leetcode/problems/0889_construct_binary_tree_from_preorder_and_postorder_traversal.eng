@@ -1,0 +1,57 @@
+Keep a shared values as an empty list of whole numbers.
+Keep a shared lefts as an empty list of whole numbers.
+Keep a shared rights as an empty list of whole numbers.
+Keep a shared built as 0.
+Keep a shared nextslot as 0.
+Keep a shared preindex as 0.
+Keep a shared postindex as 0.
+Keep a shared preorder as an empty list of whole numbers.
+Keep a shared postorder as an empty list of whole numbers.
+Place 1 into preorder.
+Place 2 into preorder.
+Place 4 into preorder.
+Place 5 into preorder.
+Place 3 into preorder.
+Place 6 into preorder.
+Place 7 into preorder.
+Place 4 into postorder.
+Place 5 into postorder.
+Place 2 into postorder.
+Place 6 into postorder.
+Place 7 into postorder.
+Place 3 into postorder.
+Place 1 into postorder.
+
+To build.
+The slot is nextslot.
+Add 1 to nextslot.
+The prelocal is preindex.
+The here is item prelocal of preorder.
+Add 1 to preindex.
+Place here into values.
+Place -1 into lefts.
+Place -1 into rights.
+Set built to slot.
+The postlocal is postindex.
+If here is item postlocal of postorder, add 1 to postindex, then return.
+Build.
+Set item slot of lefts to built.
+The postlocal is postindex.
+If here is item postlocal of postorder, add 1 to postindex, then return.
+Build.
+Set item slot of rights to built.
+Add 1 to postindex.
+Set built to slot.
+
+Build.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0, while the count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Show item node of values.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, Place left into queue, add 1 to count.
+If right is at least 0, Place right into queue, add 1 to count.

@@ -1,0 +1,19 @@
+The pattern is "abb".
+The words is a list of "abc", "deq", "mee", "aqq", "dkd", and "ccc".
+The answers is an empty list of text.
+For each word in words.
+The last is the last position of word.
+The okay is 1.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+The patternleft is the slice of pattern from left to left plus 1.
+The patternright is the slice of pattern from right to right plus 1.
+The wordleft is the slice of word from left to left plus 1.
+The wordright is the slice of word from right to right plus 1.
+The patternsame is 0, while the wordsame is 0.
+If patternleft matches patternright, set patternsame to 1.
+If wordleft matches wordright, set wordsame to 1.
+If patternsame is not wordsame, set okay to 0.
+If left is last minus 1 and right is last and okay is 1, Place word into answers.
+
+For each answer in answers, show answer.

@@ -1,0 +1,13 @@
+The alice is a list of 1 and 1, while the bob is a list of 2 and 2.
+The alice total is 0, while the bob total is 0.
+For each treat in alice, add treat to alice total.
+For each sweet in bob, add sweet to bob total.
+The first is 0, while the second is 0.
+The found is 0.
+For each treat in alice.
+For each sweet in bob.
+If found is 0 and alice total minus treat plus sweet is bob total plus treat minus sweet, set first to treat, set second to sweet, set found to 1.
+If found is 1, stop.
+
+Show first.
+Show second.

@@ -1,0 +1,37 @@
+The wanted is 7.
+The shapes is an empty list of text.
+The starts is a list of 8 zeros.
+The counts is a list of 8 zeros.
+Place "()" into shapes.
+Set item 1 of counts to 1.
+The slot is 1.
+For every size from 3 to wanted by 2.
+Set item size of starts to slot.
+The leftsize is 1.
+Repeat while leftsize is less than size.
+The rightsize is size minus 1 minus leftsize.
+The leftbegin is item leftsize of starts.
+The leftcount is item leftsize of counts.
+The rightbegin is item rightsize of starts.
+The rightcount is item rightsize of counts.
+The leftend is leftbegin plus leftcount minus 1.
+The rightend is rightbegin plus rightcount minus 1.
+For every leftspot from leftbegin to leftend.
+For every rightspot from rightbegin to rightend.
+The leftshape is item leftspot of shapes.
+The rightshape is item rightspot of shapes.
+The shape is empty text.
+Place "(" into shape.
+Place leftshape into shape.
+Place rightshape into shape.
+Place ")" into shape.
+Place shape into shapes.
+Set item size of counts to item size of counts plus 1.
+Add 1 to slot.
+If leftspot is leftend and rightspot is rightend, add 2 to leftsize.
+
+Show item wanted of counts.
+The first is item wanted of starts.
+The last is the last position of shapes.
+For every spot from first to last.
+Show item spot of shapes.

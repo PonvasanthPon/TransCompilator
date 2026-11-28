@@ -1,0 +1,21 @@
+The words is a list of "abcd", "cdab", "cbad", "xyzz", "zzxy", and "zzyx".
+The signatures is an empty list of text.
+The groups is 0.
+For each word in words.
+The last is the last position of word.
+The evenletters is empty text, while the oddletters is empty text.
+For every spot from 0 to last.
+The piece is the slice of word from spot to spot plus 1.
+If spot modulo 2 is 0, Place piece into evenletters.
+If spot modulo 2 is 1, Place piece into oddletters.
+The sortedeven is sort characters of evenletters.
+The sortedodd is sort characters of oddletters.
+The signature is empty text.
+Place sortedeven into signature.
+Place "|" into signature.
+Place sortedodd into signature.
+The known is 0.
+For each saved in signatures, if saved matches signature, set known to 1.
+If spot is last and known is 0, Place signature into signatures, add 1 to groups.
+
+Show groups.
