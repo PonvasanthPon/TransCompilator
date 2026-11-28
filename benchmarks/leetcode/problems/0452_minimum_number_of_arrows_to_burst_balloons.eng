@@ -1,0 +1,13 @@
+The starts is a list of 10, 2, 1, and 7.
+The ends is a list of 16, 8, 6, and 12.
+The last is the last position of starts.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+If item right of ends is less than item left of ends, swap item left of ends and item right of ends, swap item left of starts and item right of starts.
+
+The arrows is 1.
+The reach is item 0 of ends.
+For every spot from 1 to last.
+If item spot of starts is more than reach, add 1 to arrows, set reach to item spot of ends.
+
+Show arrows.

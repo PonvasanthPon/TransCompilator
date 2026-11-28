@@ -1,0 +1,12 @@
+The buckets is 1000.
+The die is 15.
+The window is 60.
+The rounds is window divided by die.
+The base is rounds plus 1.
+The pigs is 0.
+The covered is 1.
+Repeat while covered is less than buckets.
+Set covered to covered times base.
+Add 1 to pigs.
+
+Show pigs.

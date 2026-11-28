@@ -1,0 +1,35 @@
+Keep a shared sticks as an empty list of whole numbers.
+Place 1 into sticks.
+Place 1 into sticks.
+Place 2 into sticks.
+Place 2 into sticks.
+Place 2 into sticks.
+Keep a shared sides as an empty list of whole numbers.
+Place 0 into sides.
+Place 0 into sides.
+Place 0 into sides.
+Place 0 into sides.
+Keep a shared squareok as 0.
+Keep a shared target as 0.
+The whole is 0.
+For each stick in sticks.
+Add stick to whole.
+
+Set target to whole divided by 4.
+Keep a shared last as 0.
+The end is the last position of sticks.
+Set last to end.
+To place from spot (a whole number).
+If squareok is 1, return.
+If spot is more than last, set squareok to 1, return.
+The value is item spot of sticks.
+For every side from 0 to 3.
+The total is item side of sides plus value.
+If squareok is 0 and total is at most target.
+Set item side of sides to total.
+Place from spot plus 1.
+Set item side of sides to item side of sides minus value.
+If squareok is 1, return.
+
+Place from 0.
+If squareok is 1, show true, otherwise show false.

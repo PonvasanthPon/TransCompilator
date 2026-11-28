@@ -1,0 +1,31 @@
+The word is "tree".
+The sorted is sort characters of word.
+The last is the last position of sorted.
+The letters is an empty list of text.
+The counts is an empty list of whole numbers.
+The current is the slice of sorted from 0 to 1.
+Place current into letters.
+Place 0 into counts.
+The runspot is 0.
+For every spot from 0 to last.
+The piece is the slice of sorted from spot to spot plus 1.
+If piece matches current, set item runspot of counts to item runspot of counts plus 1.
+If piece does not match current, add 1 to runspot, set current to piece, Place piece into letters, Place 1 into counts.
+
+The lastrun is the last position of counts.
+For every left from 0 to lastrun.
+For every right from left plus 1 to lastrun.
+If item right of counts is more than item left of counts, swap item left of counts and item right of counts, swap item left of letters and item right of letters.
+
+Keep a shared result as empty text.
+Keep a shared symbol as empty text.
+To emit from times (a whole number).
+If times is 0, return.
+Place symbol into result.
+Emit from times minus 1.
+
+For every spot from 0 to lastrun.
+Set symbol to item spot of letters.
+Emit from item spot of counts.
+
+Show result.

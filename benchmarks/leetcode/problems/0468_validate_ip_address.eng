@@ -1,0 +1,53 @@
+Keep a shared parts as an empty list of text.
+Set parts to split "172.16.254.1" by ".".
+Keep a shared parts6 as an empty list of text.
+Set parts6 to split "172.16.254.1" by ":".
+Keep a shared bad as 0.
+Keep a shared bad6 as 0.
+To check from spot (a whole number) with cap (a whole number).
+If spot is at least cap, return.
+If bad is 1, return.
+The part is item spot of parts.
+The size is the length of part.
+If size is less than 1, set bad to 1.
+If size is more than 3, set bad to 1.
+If size is more than 1 and character 0 of part is "0", set bad to 1.
+The total is 0.
+For every index from 0 to size minus 1.
+The symbol is character index of part.
+The isnum is 0.
+The value is the digit value of symbol.
+If symbol is between "0" and "9", set isnum to 1.
+If isnum is 0, set bad to 1.
+If isnum is 1, set total to total times 10 plus value.
+If total is more than 255, set bad to 1.
+If index is size minus 1, check from spot plus 1 with cap.
+
+To verify from spot (a whole number) with cap (a whole number).
+If spot is at least cap, return.
+If bad6 is 1, return.
+The part is item spot of parts6.
+The size is the length of part.
+If size is less than 1, set bad6 to 1.
+If size is more than 4, set bad6 to 1.
+For every index from 0 to size minus 1.
+The symbol is character index of part.
+The ishex is 0.
+If symbol is between "0" and "9", set ishex to 1.
+If symbol is between "a" and "f", set ishex to 1.
+If symbol is between "A" and "F", set ishex to 1.
+If ishex is 0, set bad6 to 1.
+If index is size minus 1, verify from spot plus 1 with cap.
+
+The last is the last position of parts.
+The count is last plus 1.
+The last6 is the last position of parts6.
+The count6 is last6 plus 1.
+Check from 0 with count.
+Verify from 0 with count6.
+The is4 is 0.
+If count is 4 and bad is 0, set is4 to 1.
+If is4 is 1, show "IPv4".
+If is4 is 0 and count6 is 8 and bad6 is 0, show "IPv6".
+If is4 is 0 and count6 is not 8, show "Neither".
+If is4 is 0 and count6 is 8 and bad6 is 1, show "Neither".

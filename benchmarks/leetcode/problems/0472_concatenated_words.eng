@@ -1,0 +1,36 @@
+Keep a shared words as an empty list of text.
+Place "cat" into words.
+Place "cats" into words.
+Place "catsdogcats" into words.
+Place "dog" into words.
+Place "dogcatsdog" into words.
+Place "hippopotamuses" into words.
+Place "rat" into words.
+Place "ratcatdogcat" into words.
+Keep a shared source as empty text.
+Keep a shared skipindex as 0.
+Keep a shared segok as 0.
+Keep a shared last as 0.
+The endword is the last position of words.
+Set last to endword.
+To segment from start (a whole number) with pieces (a whole number).
+The end is the last position of source.
+The extent is end plus 1.
+If segok is 1, return.
+If start is extent and pieces is at least 2, set segok to 1.
+If start is extent, return.
+For every index from 0 to last.
+The word is item index of words.
+The endword is the last position of word.
+The size is endword plus 1.
+If index is not skipindex and start plus size is at most extent.
+Set piece to the slice of source from start to start plus size.
+If piece matches word.
+Segment from start plus size with pieces plus 1.
+
+For every index from 0 to last.
+Set source to item index of words.
+Set skipindex to index.
+Set segok to 0.
+Segment from 0 with 0.
+If segok is 1, show source.

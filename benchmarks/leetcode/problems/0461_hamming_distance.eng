@@ -1,0 +1,10 @@
+The first is 1.
+The second is 4.
+The mixed is exclusive or of first and second.
+The count is 0.
+Repeat while mixed is more than 0.
+The bit is bitwise and of mixed and 1.
+Add bit to count.
+Set mixed to shift mixed right by 1.
+
+Show count.

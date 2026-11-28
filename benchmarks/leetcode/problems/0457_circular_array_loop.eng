@@ -1,0 +1,31 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 2 into numbers.
+Place -1 into numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 2 into numbers.
+Keep a shared found as 0.
+To seek from start (a whole number) with cap (a whole number).
+The direction is item start of numbers.
+The current is start.
+The next is 0.
+The steps is 0.
+Repeat while steps is less than cap.
+The move is item current of numbers.
+The samedir is 1.
+If direction is more than 0 and move is less than 0, set samedir to 0.
+If direction is less than 0 and move is more than 0, set samedir to 0.
+If samedir is 0, set steps to cap.
+If samedir is 1, set next to current plus move.
+If samedir is 1 and next is less than 0, add cap to next.
+If samedir is 1 and next is at least cap, subtract cap from next.
+If samedir is 1 and next is current, set steps to cap.
+If samedir is 1 and next is start and steps is more than 0, set found to 1, set steps to cap.
+If samedir is 1 and next is not current and next is not start, set current to next, add 1 to steps.
+
+The last is the last position of numbers.
+The cap is last plus 1.
+For every start from 0 to last.
+Seek from start with cap.
+
+If found is 1, show true, otherwise show false.

@@ -1,0 +1,15 @@
+The cells is a list of 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, and 0.
+The last is 3.
+The side is 4.
+The perimeter is 0.
+For every row from 0 to last.
+For every column from 0 to last.
+The spot is row times side plus column.
+If item spot of cells is 1.
+Add 4 to perimeter.
+If row is more than 0 and item (spot minus side) of cells is 1, subtract 1 from perimeter.
+If row is less than last and item (spot plus side) of cells is 1, subtract 1 from perimeter.
+If column is more than 0 and item (spot minus 1) of cells is 1, subtract 1 from perimeter.
+If column is less than last and item (spot plus 1) of cells is 1, subtract 1 from perimeter.
+
+Show perimeter.

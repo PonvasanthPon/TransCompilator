@@ -1,0 +1,13 @@
+The word is "abab".
+The longer is the length of word.
+The last is the last position of word.
+The found is 0.
+For every width from 1 to last.
+The same is 1.
+If the longer modulo width is not 0, set same to -1.
+For every spot from 0 to last.
+The other is spot modulo width.
+If same is 1 and character spot of word is not character other of word, set same to 0.
+If same is 1 and spot is last, set found to 1.
+
+If found is 1, show true, otherwise show false.

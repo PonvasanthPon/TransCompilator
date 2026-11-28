@@ -1,0 +1,9 @@
+The numbers is a list of 1, 2, 3, and 4.
+The last is the last position of numbers.
+The found is 0.
+For every first from 0 to last.
+For every second from first plus 1 to last.
+For every third from second plus 1 to last.
+If item first of numbers is less than item third of numbers and item third of numbers is less than item second of numbers, set found to 1.
+
+If found is 1, show true, otherwise show false.

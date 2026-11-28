@@ -1,0 +1,14 @@
+The firsts is a list of 1, and 2.
+The seconds is a list of -2, and -1.
+The thirds is a list of -1, and 2.
+The fourths is a list of 0, and 2.
+The last is the last position of firsts.
+The found is 0.
+For every alpha from 0 to last.
+For every beta from 0 to last.
+For every gamma from 0 to last.
+For every delta from 0 to last.
+The total is item alpha of firsts plus item beta of seconds plus item gamma of thirds plus item delta of fourths.
+If total is 0, add 1 to found.
+
+Show found.

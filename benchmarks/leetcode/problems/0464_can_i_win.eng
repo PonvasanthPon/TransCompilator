@@ -1,0 +1,25 @@
+Keep a shared known as an empty list of whole numbers.
+Keep a shared won as an empty list of whole numbers.
+Keep a shared answer as 0.
+Keep a shared maxchoice as 0.
+Set maxchoice to 10.
+For every spot from 0 to 1023.
+Place 0 into known.
+Place 0 into won.
+
+To search from mask (a whole number) with remaining (a whole number).
+The good is 0.
+If item mask of known is 1, set answer to item mask of won, return.
+Set item mask of known to 1.
+For every value from 1 to maxchoice.
+The offset is value minus 1.
+The bit is shift 1 left by offset.
+The taken is bitwise and of mask and bit.
+If good is 0 and taken is 0 and value is at least remaining, set good to 1.
+If good is 0 and taken is 0 and value is less than remaining, search from mask plus bit with remaining minus value.
+If good is 0 and answer is 0 and taken is 0 and value is less than remaining, set good to 1.
+Set item mask of won to good.
+Set answer to good.
+
+Search from 0 with 11.
+If answer is 1, show true, otherwise show false.

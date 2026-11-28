@@ -1,0 +1,19 @@
+The first is "acb".
+The second is "ab".
+The firsttimes is 4.
+The secondtimes is 2.
+The long is empty text.
+For every round from 1 to firsttimes.
+Place first into long.
+
+The needle is a copy of second.
+The lastlong is the last position of long.
+The lastneedle is the last position of needle.
+The cursor is 0.
+The full is 0.
+For every spot from 0 to lastlong.
+If character spot of long is character cursor of needle, add 1 to cursor.
+If cursor is more than lastneedle, set cursor to 0, add 1 to full.
+
+The answer is full divided by secondtimes.
+Show answer.

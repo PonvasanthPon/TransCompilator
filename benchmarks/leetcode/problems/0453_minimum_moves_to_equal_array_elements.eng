@@ -1,0 +1,11 @@
+The numbers is a list of 1, 2, and 3.
+The last is the last position of numbers.
+The size is last plus 1.
+The total is 0.
+The smallest is item 0 of numbers.
+For each value in numbers.
+Add value to total.
+If value is less than smallest, set smallest to value.
+
+The moves is total minus smallest times size.
+Show moves.

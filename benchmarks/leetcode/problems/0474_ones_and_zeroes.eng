@@ -1,0 +1,51 @@
+Keep a shared words as an empty list of text.
+Place "10" into words.
+Place "0001" into words.
+Place "111001" into words.
+Place "1" into words.
+Place "0" into words.
+Keep a shared zeros as an empty list of whole numbers.
+Keep a shared ones as an empty list of whole numbers.
+Keep a shared current as empty text.
+Keep a shared zcount as 0.
+Keep a shared ocount as 0.
+To measure from spot (a whole number) with limit (a whole number).
+If spot is more than limit, return.
+If character spot of current is "0", add 1 to zcount.
+If character spot of current is "1", add 1 to ocount.
+Measure from spot plus 1 with limit.
+
+Keep a shared last as 0.
+The endword is the last position of words.
+Set last to endword.
+For every index from 0 to last.
+Set current to item index of words.
+Set zcount to 0.
+Set ocount to 0.
+The limit is the last position of current.
+Measure from 0 with limit.
+Place zcount into zeros.
+Place ocount into ones.
+
+Keep a shared best as 0.
+Keep a shared maxzeros as 0.
+Set maxzeros to 5.
+Keep a shared maxones as 0.
+Set maxones to 3.
+Keep a shared usedzeros as 0.
+Keep a shared usedones as 0.
+To walk from spot (a whole number) with taken (a whole number).
+If spot is more than last and taken is more than best, set best to taken.
+If spot is more than last, return.
+Walk from spot plus 1 with taken.
+The zcost is item spot of zeros.
+The ocost is item spot of ones.
+If usedzeros plus zcost is at most maxzeros and usedones plus ocost is at most maxones.
+Add zcost to usedzeros.
+Add ocost to usedones.
+Walk from spot plus 1 with taken plus 1.
+Subtract zcost from usedzeros.
+Subtract ocost from usedones.
+
+Walk from 0 with 0.
+Show best.

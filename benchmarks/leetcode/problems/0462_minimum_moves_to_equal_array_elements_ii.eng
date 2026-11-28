@@ -1,0 +1,12 @@
+The numbers is a list of 1, 2, and 3.
+Sort numbers.
+The last is the last position of numbers.
+The middle is last divided by 2.
+The median is item middle of numbers.
+The moves is 0.
+For each value in numbers.
+The diff is value minus median.
+If diff is less than 0, set diff to 0 minus diff.
+Add diff to moves.
+
+Show moves.

@@ -1,0 +1,19 @@
+Keep a shared state as 0.
+Keep a shared value as 0.
+Keep a shared group as 0.
+Keep a shared result as 0.
+To roll.
+Set state to state plus 1.
+If state is more than 7, set state to 1.
+
+To draw.
+Set value to 0.
+Repeat while value is less than 1 or value is more than 40.
+Roll.
+Set group to state minus 1.
+Roll.
+Set value to group times 7 plus state.
+Set result to (value minus 1) modulo 10 plus 1.
+
+Draw.
+Show result.

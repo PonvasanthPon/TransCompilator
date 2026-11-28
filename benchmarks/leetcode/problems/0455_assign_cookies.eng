@@ -1,0 +1,13 @@
+The greed is a list of 1, 2, and 3.
+The sizes is a list of 1, and 1.
+The lastg is the last position of greed.
+The lasts is the last position of sizes.
+Sort greed.
+Sort sizes.
+The child is 0.
+The cookie is 0.
+Repeat while child is at most lastg and cookie is at most lasts.
+If item cookie of sizes is at least item child of greed, add 1 to child.
+Add 1 to cookie.
+
+Show child.
