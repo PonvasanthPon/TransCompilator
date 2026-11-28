@@ -1,14 +1,19 @@
 Keep a shared reflection as 0.
 Keep a shared root as 0.
 Keep a shared total as 0.
+Keep a shared mirrorvalue as 0.
 The low is 4.
 The high is 1000.
+To reverse from remaining (a whole number) with built (a whole number).
+If remaining is less than 1 and built is not mirrorvalue, set reflection to 0, return.
+If remaining is less than 1, return.
+The digit is remaining modulo 10.
+Reverse from remaining divided by 10 with built times 10 plus digit.
+
 To mirror from value (a whole number).
+Set mirrorvalue to value.
 Set reflection to 1.
-The text is format whole number value as text.
-The last is the last position of text.
-For every spot from 0 to last.
-If character spot of text is not character (last minus spot) of text, set reflection to 0.
+Reverse from value with 0.
 
 To seek from value (a whole number).
 Set root to 0.
