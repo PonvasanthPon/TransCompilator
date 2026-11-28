@@ -1,0 +1,25 @@
+The letters is "bbbab".
+The last is the last position of letters.
+The width is last plus 1.
+The table is a list of 25 zeros.
+For every spot from 0 to last.
+Set item (spot times width plus spot) of table to 1.
+
+For every span from 2 to width.
+For every begin from 0 to width minus span.
+The tail is begin plus span minus 1.
+The belowrow is begin plus 1.
+The beforecolumn is tail minus 1.
+The cell is begin times width plus tail.
+The insidecell is belowrow times width plus beforecolumn.
+The inside is item insidecell of table.
+The withinside is inside plus 2.
+The dropfirstcell is belowrow times width plus tail.
+The droplastcell is begin times width plus beforecolumn.
+The dropfirst is item dropfirstcell of table.
+The droplast is item droplastcell of table.
+The better is the larger of dropfirst and droplast.
+If the slice of letters from begin to begin plus 1 matches the slice of letters from tail to tail plus 1, set item cell of table to withinside, otherwise set item cell of table to better.
+
+The answer is item (width minus 1) of table.
+Show answer.

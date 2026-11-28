@@ -1,0 +1,25 @@
+Keep a shared ranking as an empty list of whole numbers.
+Keep a shared last as 0.
+Keep a shared rank as 0.
+
+To locate from spot (a whole number) with value (a whole number).
+If spot is more than last, return.
+If item spot of ranking is value, set rank to last minus spot plus 1, return.
+Locate from spot plus 1 with value.
+
+The scores is a list of 5, 4, 3, 2, and 1.
+For each value in scores.
+Place value into ranking.
+
+Sort ranking.
+Set last to the last position of ranking.
+The answers is an empty list of text.
+For each value in scores.
+Set rank to 0.
+Locate from 0 with value.
+If rank is 1, Place "Gold Medal" into answers.
+If rank is 2, Place "Silver Medal" into answers.
+If rank is 3, Place "Bronze Medal" into answers.
+If rank is more than 3, The piece is format whole number rank as text, Place piece into answers.
+
+For each line in answers, show line.

@@ -1,0 +1,19 @@
+The numbers is a list of 23, 2, 4, 6, and 7.
+The divisor is 6.
+The last is the last position of numbers.
+The flags is a list of 6 zeros.
+The firsts is a list of 6 zeros.
+Set item 0 of flags to 1.
+Set item 0 of firsts to -1.
+The running is 0.
+The found is 0.
+For every spot from 0 to last.
+Set running to running plus item spot of numbers.
+Set running to running modulo divisor.
+The key is running.
+If item key of flags is 0, set item key of flags to 1, set item key of firsts to spot.
+The stretch is spot minus item key of firsts.
+If item key of flags is 1 and stretch is at least 2, set found to 1.
+If found is 1, stop.
+
+If found is 1, show true, otherwise show false.

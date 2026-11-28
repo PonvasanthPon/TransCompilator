@@ -1,0 +1,43 @@
+Keep a shared words as an empty list of text.
+Place "aba" into words.
+Place "cdc" into words.
+Place "eae" into words.
+Keep a shared count as 0.
+Set count to 3.
+Keep a shared source as empty text.
+Keep a shared target as empty text.
+Keep a shared current as empty text.
+Keep a shared found as 0.
+Keep a shared span as 0.
+Keep a shared best as 0.
+
+To scan from through (a whole number) with aim (a whole number).
+If aim is more than the last position of source, set found to 1, return.
+If through is more than the last position of target, return.
+If the slice of target from through to through plus 1 matches the slice of source from aim to aim plus 1, scan from through plus 1 with aim plus 1, return.
+Scan from through plus 1 with aim.
+
+To measure.
+Set span to 0.
+For every spot from 0 to the last position of current.
+Add 1 to span.
+
+To evaluate with first (a whole number).
+Set current to item first of words.
+Measure.
+If span is more than best, set best to span.
+
+To probe from first (a whole number) with second (a whole number).
+If second is at least count, evaluate with first, return.
+If second is first, probe from first with second plus 1, return.
+Set source to item first of words.
+Set target to item second of words.
+Set found to 0.
+Scan from 0 with 0.
+If found is 1, return.
+Probe from first with second plus 1.
+
+For every first from 0 to count minus 1.
+Probe from first with 0.
+
+Show best.

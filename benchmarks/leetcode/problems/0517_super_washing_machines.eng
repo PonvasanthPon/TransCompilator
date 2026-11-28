@@ -1,0 +1,19 @@
+The machines is a list of 1, 0, and 5.
+The last is the last position of machines.
+The count is last plus 1.
+The total is 0.
+For each value in machines, add value to total.
+
+The share is total divided by count.
+The remainder is total modulo count.
+The running is 0.
+The best is 0.
+For each value in machines.
+The extra is value minus share.
+Set running to running plus extra.
+The flow is the absolute value of running.
+If flow is more than best, set best to flow.
+If extra is more than best, set best to extra.
+
+If remainder is not 0, set best to -1.
+Show best.

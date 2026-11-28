@@ -1,0 +1,30 @@
+Keep a shared alphabet as empty text.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into alphabet.
+Keep a shared piece as empty text.
+Keep a shared upper as 0.
+
+To test from spot (a whole number).
+If spot is more than 25, return.
+If the slice of alphabet from spot to spot plus 1 matches piece, set upper to 1, return.
+Test from spot plus 1.
+
+The word is "FlaG".
+The last is the last position of word.
+The size is last plus 1.
+The capitals is 0.
+For every spot from 0 to last.
+Set piece to the slice of word from spot to spot plus 1.
+Set upper to 0.
+Test from 0.
+If upper is 1, add 1 to capitals.
+
+The firstpiece is the slice of word from 0 to 1.
+Set piece to firstpiece.
+Set upper to 0.
+Test from 0.
+The firstupper is upper.
+The valid is 0.
+If capitals is size, set valid to 1.
+If capitals is 0, set valid to 1.
+If firstupper is 1 and capitals is 1, set valid to 1.
+If valid is 1, show true, otherwise show false.

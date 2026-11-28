@@ -1,0 +1,9 @@
+The count is 4.
+The first is 0.
+The second is 1.
+For every step from 1 to count.
+The following is first plus second.
+Set first to second.
+Set second to following.
+
+Show first.

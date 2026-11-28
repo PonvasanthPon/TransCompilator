@@ -1,0 +1,6 @@
+The target is 28.
+The total is 0.
+For every divisor from 1 to target minus 1.
+If target modulo divisor is 0, add divisor to total.
+
+If total is target, show true, otherwise show false.

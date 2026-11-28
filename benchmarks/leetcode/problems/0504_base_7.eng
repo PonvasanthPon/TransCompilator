@@ -1,0 +1,20 @@
+The amount is 100.
+The sign is 0.
+If amount is less than 0, set sign to 1, set amount to 0 minus amount.
+The digits is an empty list of whole numbers.
+If amount is 0, Place 0 into digits.
+Repeat while amount is more than 0.
+The digit is amount modulo 7.
+Place digit into digits.
+Set amount to amount divided by 7.
+
+The parts is an empty list of text.
+If sign is 1, Place "-" into parts.
+The last is the last position of digits.
+For every spot from 0 to last.
+The place is last minus spot.
+The piece is format whole number item place of digits as text.
+Place piece into parts.
+
+The result is join parts with "".
+Show result.

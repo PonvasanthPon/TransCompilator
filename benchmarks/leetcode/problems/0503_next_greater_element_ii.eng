@@ -1,0 +1,21 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 1 into numbers.
+Keep a shared width as 0.
+Keep a shared answer as 0.
+Keep a shared last as 0.
+Set last to 2.
+Set width to last plus 1.
+
+To seek from step (a whole number) with spot (a whole number).
+If step is at least width, set answer to -1, return.
+The other is spot plus step.
+If other is more than last, set other to other minus width.
+If item other of numbers is more than item spot of numbers, set answer to item other of numbers, return.
+Seek from step plus 1 with spot.
+
+For every spot from 0 to last.
+Set answer to -1.
+Seek from 1 with spot.
+Show answer.

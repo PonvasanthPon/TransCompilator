@@ -1,0 +1,59 @@
+Keep a shared ring as empty text.
+Place "godding" into ring.
+Keep a shared key as empty text.
+Place "gd" into key.
+Keep a shared width as 0.
+Set width to 7.
+Keep a shared big as 0.
+Set big to 1000000.
+Keep a shared costs as an empty list of whole numbers.
+Keep a shared fresh as an empty list of whole numbers.
+Keep a shared wanted as empty text.
+Keep a shared active as 0.
+Keep a shared bestcost as 0.
+
+For every slot from 0 to 6.
+Place 1000000 into costs.
+Place 1000000 into fresh.
+
+To probe from before (a whole number).
+If before is more than width minus 1, return.
+If item before of costs is less than big, The raw is active minus before, The gap is the absolute value of raw, The wrap is width minus gap, The route is the smaller of gap and wrap, The candidate is item before of costs plus route plus 1, If candidate is less than bestcost, set bestcost to candidate.
+Probe from before plus 1.
+
+To prepare.
+For every slot from 0 to width minus 1.
+Set item slot of fresh to big.
+
+To measure from slot (a whole number).
+If slot is more than width minus 1, return.
+Set bestcost to big.
+If the slice of ring from slot to slot plus 1 matches wanted, set active to slot.
+If the slice of ring from slot to slot plus 1 matches wanted, probe from 0.
+If the slice of ring from slot to slot plus 1 matches wanted, record from slot.
+Measure from slot plus 1.
+
+To record from slot (a whole number).
+Set item slot of fresh to bestcost.
+
+To adopt.
+For every slot from 0 to width minus 1.
+Set item slot of costs to item slot of fresh.
+
+Set wanted to the slice of key from 0 to 1.
+For every slot from 0 to width minus 1.
+The gap is the smaller of slot and width minus slot.
+If the slice of ring from slot to slot plus 1 matches wanted, set item slot of costs to gap plus 1.
+
+The keylast is the last position of key.
+For every step from 1 to keylast.
+Set wanted to the slice of key from step to step plus 1.
+Prepare.
+Measure from 0.
+Adopt.
+
+The answer is big.
+For every slot from 0 to width minus 1.
+If item slot of costs is less than answer, set answer to item slot of costs.
+
+Show answer.

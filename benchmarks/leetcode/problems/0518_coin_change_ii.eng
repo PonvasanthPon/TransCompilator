@@ -1,0 +1,10 @@
+The coins is a list of 1, 2, and 5.
+The amount is 5.
+The ways is a list of 6 zeros.
+Set item 0 of ways to 1.
+For each coin in coins.
+For every value from coin to amount.
+The previous is item (value minus coin) of ways.
+Set item value of ways to item value of ways plus previous.
+
+Show item amount of ways.

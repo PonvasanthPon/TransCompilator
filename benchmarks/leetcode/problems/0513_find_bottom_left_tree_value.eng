@@ -1,0 +1,23 @@
+The values is a list of 2, 1, and 3.
+The lefts is a list of 1, -1, and -1.
+The rights is a list of 2, -1, and -1.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0.
+The count is 1.
+The remaining is 1.
+The levelcount is 1.
+The nextcount is 0.
+The depth is 0.
+The bestdepth is 0.
+The leftmost is item 0 of values.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+If remaining is levelcount and depth is more than bestdepth, set bestdepth to depth, set leftmost to item node of values.
+If item node of lefts is at least 0, Place item node of lefts into queue, add 1 to count, add 1 to nextcount.
+If item node of rights is at least 0, Place item node of rights into queue, add 1 to count, add 1 to nextcount.
+Subtract 1 from remaining.
+If remaining is 0, set remaining to nextcount, set levelcount to nextcount, set nextcount to 0, add 1 to depth.
+
+Show leftmost.

@@ -1,0 +1,14 @@
+The first is "aba".
+The second is "cdc".
+The firstlast is the last position of first.
+The secondlast is the last position of second.
+The firstsize is 0.
+For every spot from 0 to firstlast.
+Add 1 to firstsize.
+
+The secondsize is 0.
+For every spot from 0 to secondlast.
+Add 1 to secondsize.
+
+If first matches second, show -1.
+If first does not match second, The answer is the larger of firstsize and secondsize, show answer.

@@ -1,0 +1,39 @@
+Keep a shared seed as 0.
+Set seed to 2026.
+Keep a shared flipped as an empty list of whole numbers.
+Keep a shared rows as 0.
+Set rows to 2.
+Keep a shared columns as 0.
+Set columns to 3.
+Keep a shared total as 0.
+Set total to rows times columns.
+Keep a shared chosen as 0.
+
+For every cell from 0 to total minus 1.
+Place 0 into flipped.
+
+To draw.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+Set chosen to seed modulo total.
+The position is chosen.
+If item position of flipped is 1, draw, return.
+Set item position of flipped to 1.
+
+For every turn from 1 to 4.
+Draw.
+The position is chosen.
+The row is position divided by columns.
+The column is position modulo columns.
+Show row.
+Show column.
+
+For every cell from 0 to total minus 1.
+Set item cell of flipped to 0.
+
+Draw.
+The position is chosen.
+The row is position divided by columns.
+The column is position modulo columns.
+Show row.
+Show column.

@@ -1,0 +1,51 @@
+Keep a shared values as an empty list of whole numbers.
+Place 5 into values.
+Place 2 into values.
+Place -3 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared sums as an empty list of whole numbers.
+Place 0 into sums.
+Place 0 into sums.
+Place 0 into sums.
+Keep a shared allsums as an empty list of whole numbers.
+Keep a shared occurrences as 0.
+
+To score from node (a whole number).
+If node is less than 0, return.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, score from left.
+If right is at least 0, score from right.
+The total is item node of values.
+If left is at least 0, set total to total plus item left of sums.
+If right is at least 0, set total to total plus item right of sums.
+Set item node of sums to total.
+Place total into allsums.
+
+To tally from spot (a whole number) with target (a whole number).
+If spot is more than the last position of allsums, return.
+If item spot of allsums is target, add 1 to occurrences.
+Tally from spot plus 1 with target.
+
+Score from 0.
+The best is 0.
+For each value in allsums.
+Set occurrences to 0.
+Tally from 0 with value.
+If occurrences is more than best, set best to occurrences.
+
+The answers is an empty list of whole numbers.
+For each value in allsums.
+Set occurrences to 0.
+Tally from 0 with value.
+If occurrences is best and answers does not contain value, Place value into answers.
+
+Sort answers.
+For each value in answers, show value.

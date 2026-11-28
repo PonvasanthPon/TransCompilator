@@ -1,0 +1,19 @@
+The numbers is a list of 0 and 1.
+The last is the last position of numbers.
+The width is last plus 1.
+The flags is a list of 5 zeros.
+The firsts is a list of 5 zeros.
+Set item width of flags to 1.
+Set item width of firsts to -1.
+The running is 0.
+The best is 0.
+For every spot from 0 to last.
+The step is -1.
+If item spot of numbers is 1, set step to 1.
+Set running to running plus step.
+The key is running plus width.
+If item key of flags is 0, set item key of flags to 1, set item key of firsts to spot.
+The stretch is spot minus item key of firsts.
+If item key of flags is 1 and stretch is more than best, set best to stretch.
+
+Show best.
