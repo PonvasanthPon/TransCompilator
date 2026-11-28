@@ -1,0 +1,14 @@
+The numbers is a list of 4, 3, 2, and 6.
+The size is 4.
+The last is 3.
+The best is -1000000.
+For every turn from 0 to last.
+The total is 0.
+For every spot from 0 to last.
+The source is spot plus turn.
+The source is source modulo size.
+The value is item source of numbers.
+Set total to total plus (spot times value).
+If total is more than best, set best to total.
+
+Show best.

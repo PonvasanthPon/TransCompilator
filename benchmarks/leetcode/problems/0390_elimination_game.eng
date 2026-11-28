@@ -1,0 +1,16 @@
+The numbers is a list of 1, 2, 3, 4, 5, 6, 7, 8, and 9.
+The alive is a list of 9 zeros.
+For every mark from 0 to 8.
+Set item mark of alive to 1.
+
+The last is 8.
+The remaining is 9.
+The forward is 1.
+Repeat while remaining is more than 1.
+The rank is 0.
+If forward is 1, for every spot from 0 to last, if item spot of alive is 1, add 1 to rank, if item spot of alive is 1, if rank modulo 2 is 1, set item spot of alive to 0, subtract 1 from remaining.
+If forward is 0, for every offset from 0 to last, the spot is last minus offset, if item spot of alive is 1, add 1 to rank, if item spot of alive is 1, if rank modulo 2 is 1, set item spot of alive to 0, subtract 1 from remaining.
+Set forward to 1 minus forward.
+
+For every spot from 0 to last.
+If item spot of alive is 1, show item spot of numbers.

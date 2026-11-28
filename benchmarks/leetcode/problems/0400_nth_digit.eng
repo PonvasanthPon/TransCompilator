@@ -1,0 +1,19 @@
+The position is 11.
+The width is 1.
+The start is 1.
+The count is 9.
+Repeat while position is more than count.
+Subtract count from position.
+Set width to width plus 1.
+Set start to start times 10.
+Set count to 9 times start.
+
+The offset is position minus 1.
+The number is start plus (offset divided by width).
+The place is offset modulo width.
+The places is width minus 1.
+The value is number.
+For every step from 0 to places.
+The digit is value modulo 10.
+If step is places minus place, show digit, break.
+Set value to value divided by 10.

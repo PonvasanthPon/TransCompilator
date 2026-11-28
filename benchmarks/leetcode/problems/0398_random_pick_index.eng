@@ -1,0 +1,16 @@
+The numbers is a list of 1, 2, 3, 3, and 3.
+The target is 3.
+The last is the last position of numbers.
+The total is 0.
+For every spot from 0 to last.
+If item spot of numbers is target, add 1 to total.
+
+The wanted is total divided by 2.
+Add 1 to wanted.
+The seen is 0.
+The answer is 0.
+For every spot from 0 to last.
+If item spot of numbers is target, add 1 to seen.
+If item spot of numbers is target and seen is wanted, set answer to spot, break.
+
+Show answer.

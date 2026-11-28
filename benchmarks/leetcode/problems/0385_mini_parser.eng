@@ -1,0 +1,34 @@
+Keep a shared source as empty text.
+Place "[123,[456,[789]]]" into source.
+Keep a shared cursor as 0.
+Keep a shared rendered as empty text.
+Keep a shared value as 0.
+
+To done.
+The piece is format whole number value as text.
+Place piece into rendered.
+
+To read.
+The here is cursor.
+If here is more than the last position of source, done, return.
+The symbol is character here of source.
+If symbol is not between "0" and "9", done, return.
+The digit is the digit value of symbol.
+Set value to value times 10 plus digit.
+Add 1 to cursor.
+Read.
+
+To parse group.
+Place "[" into rendered.
+Add 1 to cursor.
+Repeat while cursor is at most the last position of source.
+The here is cursor.
+The symbol is character here of source.
+If symbol is "]", Place "]" into rendered, add 1 to cursor, return.
+If symbol is ",", Place "," into rendered, add 1 to cursor.
+If symbol is "[", parse group.
+If symbol is "-", Place "-" into rendered, add 1 to cursor, set value to 0, read.
+If symbol is between "0" and "9", set value to 0, read.
+
+Parse group.
+Show rendered.

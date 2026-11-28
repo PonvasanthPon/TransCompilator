@@ -1,0 +1,48 @@
+The lefts is a list of 1, 3, 3, 1, and 2.
+The bottoms is a list of 1, 1, 2, 3, and 3.
+The rights is a list of 3, 4, 4, 2, and 3.
+The tops is a list of 3, 2, 4, 4, and 4.
+The last is 4.
+The minleft is item 0 of lefts.
+The maxright is item 0 of rights.
+The minbottom is item 0 of bottoms.
+The maxtop is item 0 of tops.
+The area is 0.
+For every spot from 0 to last.
+The left is item spot of lefts.
+The right is item spot of rights.
+The bottom is item spot of bottoms.
+The top is item spot of tops.
+The width is right minus left.
+The height is top minus bottom.
+Add (width times height) to area.
+If left is less than minleft, set minleft to left.
+If right is more than maxright, set maxright to right.
+If bottom is less than minbottom, set minbottom to bottom.
+If top is more than maxtop, set maxtop to top.
+
+The boxwidth is maxright minus minleft.
+The boxheight is maxtop minus minbottom.
+The boxarea is boxwidth times boxheight.
+The good is 1.
+If area is not boxarea, set good to 0.
+The leftmax is 0.
+The rightmin is 0.
+The bottommax is 0.
+The topmin is 0.
+For every first from 0 to last.
+For every second from 0 to last.
+If second is at most first, skip to the next one.
+Set leftmax to item first of lefts.
+If item second of lefts is more than leftmax, set leftmax to item second of lefts.
+Set rightmin to item first of rights.
+If item second of rights is less than rightmin, set rightmin to item second of rights.
+Set bottommax to item first of bottoms.
+If item second of bottoms is more than bottommax, set bottommax to item second of bottoms.
+Set topmin to item first of tops.
+If item second of tops is less than topmin, set topmin to item second of tops.
+The width is rightmin minus leftmax.
+The height is topmin minus bottommax.
+If width is more than 0 and height is more than 0, set good to 0.
+
+If good is 1, show true, otherwise show false.

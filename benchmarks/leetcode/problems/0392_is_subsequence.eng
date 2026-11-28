@@ -1,0 +1,13 @@
+The source is "abc".
+The target is "ahbgdc".
+The sourcelast is the last position of source.
+The targetlast is the last position of target.
+The spot is 0.
+The mark is 0.
+Repeat while spot is at most sourcelast and mark is at most targetlast.
+The symbol is character spot of source.
+The other is character mark of target.
+If symbol is other, add 1 to spot.
+Add 1 to mark.
+
+If spot is more than sourcelast, show true, otherwise show false.

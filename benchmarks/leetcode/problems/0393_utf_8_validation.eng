@@ -1,0 +1,21 @@
+The items is a list of 197, 130, and 1.
+The size is 3.
+The spot is 0.
+The valid is 1.
+Repeat while spot is less than size and valid is 1.
+The lead is item spot of items.
+The need is 0.
+The startpos is spot.
+If lead is less than 128, add 1 to spot.
+If lead is at least 192 and lead is less than 224, set need to 1, add 2 to spot.
+If lead is at least 224 and lead is less than 240, set need to 2, add 3 to spot.
+If lead is at least 240 and lead is less than 248, set need to 3, add 4 to spot.
+If lead is at least 128 and lead is less than 192, set valid to 0, add 1 to spot.
+If lead is at least 248, set valid to 0, add 1 to spot.
+For every step from 1 to need.
+The index is startpos plus step.
+If index is at least size, set valid to 0.
+If index is less than size and item index of items is less than 128, set valid to 0.
+If index is less than size and item index of items is more than 191, set valid to 0.
+
+If valid is 1, show true, otherwise show false.

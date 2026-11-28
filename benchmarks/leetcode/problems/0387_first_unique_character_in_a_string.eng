@@ -1,0 +1,23 @@
+Keep a shared source as empty text.
+Place "leetcode" into source.
+Keep a shared wanted as empty text.
+Keep a shared count as 0.
+Keep a shared answer as 0.
+Set answer to -1.
+
+To tally from other (a whole number) with finish (a whole number).
+If other is more than finish, return.
+The piece is the slice of source from other to other plus 1.
+If piece is wanted, add 1 to count.
+Tally from other plus 1 with finish.
+
+To check from spot (a whole number).
+Set wanted to the slice of source from spot to spot plus 1.
+Set count to 0.
+Tally from 0 with the last position of source.
+If count is 1 and answer is -1, set answer to spot.
+
+For every spot from 0 to the last position of source.
+Check from spot.
+
+Show answer.

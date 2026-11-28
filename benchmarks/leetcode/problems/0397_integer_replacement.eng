@@ -1,0 +1,25 @@
+The start is 8.
+The queue is an empty list of whole numbers.
+The distances is an empty list of whole numbers.
+The seen is an empty list of whole numbers.
+Place start into queue.
+Place 0 into distances.
+Place start into seen.
+The head is 0.
+The depth is 1.
+The answer is 0.
+The found is 0.
+Repeat while head is less than depth and found is 0.
+The current is item head of queue.
+The steps is item head of distances.
+Add 1 to head.
+The parity is current modulo 2.
+The chosen is current minus 1.
+The upper is current plus 1.
+If parity is 0, set chosen to current divided by 2.
+If chosen is 1, set answer to steps plus 1, set found to 1.
+If chosen is more than 1, if seen does not contain chosen, Place chosen into queue, Place (steps plus 1) into distances, Place chosen into seen, add 1 to depth.
+If parity is 1, if upper is 1, set answer to steps plus 1, set found to 1.
+If parity is 1, if upper is more than 1, if seen does not contain upper, Place upper into queue, Place (steps plus 1) into distances, Place upper into seen, add 1 to depth.
+
+Show answer.

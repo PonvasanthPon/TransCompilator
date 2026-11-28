@@ -1,0 +1,11 @@
+Keep a shared ceiling as 0.
+Set ceiling to 13.
+To walk from value (a whole number).
+If value is more than ceiling, return.
+Show value.
+For every digit from 0 to 9.
+The next is value times 10 plus digit.
+If next is at most ceiling, walk from next.
+
+For every start from 1 to 9.
+Walk from start.

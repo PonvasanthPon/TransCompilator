@@ -1,0 +1,94 @@
+Keep a shared lefts as an empty list of whole numbers.
+Place 0 into lefts.
+Place 1 into lefts.
+Place 1 into lefts.
+Place 2 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 1 into rights.
+Place 0 into rights.
+Place 2 into rights.
+Place 1 into rights.
+Keep a shared numerators as an empty list of whole numbers.
+Place 2 into numerators.
+Place 1 into numerators.
+Place 3 into numerators.
+Place 1 into numerators.
+Keep a shared denominators as an empty list of whole numbers.
+Place 1 into denominators.
+Place 2 into denominators.
+Place 1 into denominators.
+Place 3 into denominators.
+Keep a shared visited as an empty list of whole numbers.
+For every spot from 0 to 4.
+Place 0 into visited.
+
+Keep a shared known as an empty list of whole numbers.
+Place 1 into known.
+Place 1 into known.
+Place 1 into known.
+Place 0 into known.
+Place 0 into known.
+
+Keep a shared wantednode as 0.
+Keep a shared foundnum as 0.
+Keep a shared foundden as 0.
+Keep a shared done as 0.
+Keep a shared rendered as empty text.
+
+To seek from node (a whole number) at num (a whole number) with den (a whole number).
+If done is 1, return.
+If node is wantednode, set foundnum to num, set foundden to den, set done to 1, return.
+For every edge from 0 to 3.
+The source is item edge of lefts.
+The dest is item edge of rights.
+The factor is 0.
+The divisor is 0.
+If source is node and item dest of visited is 0.
+Set factor to item edge of numerators.
+Set divisor to item edge of denominators.
+Set item dest of visited to 1.
+The newnum is num times factor.
+The newden is den times divisor.
+Seek from dest at newnum with newden.
+
+To expand from divisor (a whole number) with left (a whole number).
+If divisor is 0, return.
+The part is left divided by divisor.
+The piece is format whole number part as text.
+Place piece into rendered.
+The rest is left modulo divisor.
+Expand from divisor divided by 10 with rest.
+
+The starts is a list of 0, 1, 0, 0, and 4.
+The ends is a list of 2, 0, 3, 0, and 4.
+The scaled is 0.
+The wholepart is 0.
+The fraction is 0.
+The marked is empty text.
+The allowed is 1.
+For every query from 0 to 4.
+The start is item query of starts.
+The end is item query of ends.
+Set wantednode to end.
+Set done to 0.
+Set foundnum to 0.
+Set foundden to 1.
+Set item 0 of visited to 0.
+Set item 1 of visited to 0.
+Set item 2 of visited to 0.
+Set item 3 of visited to 0.
+Set item 4 of visited to 0.
+Set item start of visited to 1.
+Set allowed to 1.
+If item start of known is 0, set allowed to 0.
+If allowed is 1, Seek from start at 1 with 1.
+Set rendered to empty text.
+If done is 1, set scaled to foundnum times 100000 divided by foundden.
+If done is 1, set wholepart to scaled divided by 100000.
+If done is 1, set fraction to scaled modulo 100000.
+If done is 1, set marked to format whole number wholepart as text.
+If done is 1, place marked into rendered.
+If done is 1, place "." into rendered.
+If done is 1, expand from 10000 with fraction.
+If done is 1, show rendered.
+If done is 0, show "-1.00000".

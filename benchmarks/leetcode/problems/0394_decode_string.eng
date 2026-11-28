@@ -1,0 +1,57 @@
+Keep a shared source as empty text.
+Place "3[a]2[bc]" into source.
+Keep a shared cursor as 0.
+Keep a shared frames as an empty list of text.
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared multiplier as 0.
+The base is empty text.
+Place base into frames.
+
+To gather.
+Set multiplier to 0.
+For every step from 0 to the last position of source.
+The here is cursor.
+If here is more than the last position of source, break.
+If character here of source is not between "0" and "9", break.
+The digit is the digit value of character here of source.
+Set multiplier to multiplier times 10 plus digit.
+Add 1 to cursor.
+
+To enter.
+The fresh is empty text.
+Place fresh into frames.
+Place multiplier into counts.
+Set multiplier to 0.
+Add 1 to cursor.
+
+To unwind.
+The depth is the number of items in frames.
+The part is item (depth minus 1) of frames.
+The times is item (depth minus 2) of counts.
+Remove the last item from frames.
+Remove the last item from counts.
+The duplicate is a copy of part.
+The parent is item (depth minus 2) of frames.
+Add 1 to cursor.
+For every step from 1 to times.
+Place duplicate into parent.
+Set item (depth minus 2) of frames to parent.
+
+To emit.
+The depth is the number of items in frames.
+The here is cursor.
+The piece is the slice of source from here to here plus 1.
+The current is item (depth minus 1) of frames.
+Place piece into current.
+Set item (depth minus 1) of frames to current.
+Add 1 to cursor.
+
+Repeat while cursor is at most the last position of source.
+The here is cursor.
+The symbol is character here of source.
+If symbol is between "0" and "9", gather.
+If symbol is "[", enter.
+If symbol is "]", unwind.
+If symbol is not between "0" and "9" and symbol is not "[" and symbol is not "]", emit.
+
+Show item 0 of frames.

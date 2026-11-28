@@ -1,0 +1,24 @@
+Keep a shared first as empty text.
+Place "abcd" into first.
+Keep a shared second as empty text.
+Place "abcde" into second.
+Keep a shared leftcount as 0.
+Keep a shared rightcount as 0.
+
+To countleft from spot (a whole number).
+Set leftcount to 0.
+For every mark from 0 to the last position of first.
+If character mark of first is character spot of second, add 1 to leftcount.
+
+To countright from spot (a whole number).
+Set rightcount to 0.
+For every mark from 0 to the last position of second.
+If character mark of second is character spot of second, add 1 to rightcount.
+
+The answer is empty text.
+For every spot from 0 to the last position of second.
+Countleft from spot.
+Countright from spot.
+If leftcount is less than rightcount, set answer to the slice of second from spot to one more than spot, break.
+
+Show answer.

@@ -1,0 +1,44 @@
+Keep a shared source as empty text.
+Place "dir\n\tsubdir1\n\tsubdir2\n\t\tfile.ext" into source.
+Keep a shared current as empty text.
+Keep a shared depth as 0.
+Keep a shared isfile as 0.
+
+To measure.
+For every spot from 0 to the last position of current.
+If character spot of current is not "\t", break.
+Add 1 to depth.
+
+To mark.
+For every spot from 0 to the last position of current.
+If character spot of current is ".", set isfile to 1, break.
+
+The parts is split source by "\n".
+The lastpart is the last position of parts.
+The prefix is a list of 20 zeros.
+The best is 0.
+For every index from 0 to lastpart.
+Set current to item index of parts.
+Set depth to 0.
+Measure.
+The deep is depth.
+The last is the last position of current.
+The size is last plus 1.
+The name is the slice of current from deep to size.
+The final is the last position of name.
+The namelen is final plus 1.
+Set current to name.
+Set isfile to 0.
+Mark.
+The candidate is 0.
+The total is 0.
+If isfile is 1, set candidate to namelen.
+If isfile is 1 and deep is more than 0, set candidate to candidate plus item (deep minus 1) of prefix.
+If isfile is 1 and deep is more than 0, set candidate to candidate plus 1.
+If isfile is 1 and candidate is more than best, set best to candidate.
+If isfile is 0, set total to namelen.
+If isfile is 0 and deep is more than 0, set total to total plus item (deep minus 1) of prefix.
+If isfile is 0 and deep is more than 0, set total to total plus 1.
+If isfile is 0, set item deep of prefix to total.
+
+Show best.

@@ -1,0 +1,31 @@
+Keep a shared source as empty text.
+Place "aaabb" into source.
+Keep a shared needed as 0.
+Set needed to 3.
+Keep a shared wanted as empty text.
+Keep a shared count as 0.
+Keep a shared okay as 0.
+
+To tally from other (a whole number) with finish (a whole number).
+If other is more than finish, return.
+The piece is the slice of source from other to other plus 1.
+If piece is wanted, add 1 to count.
+Tally from other plus 1 with finish.
+
+To check from start (a whole number) with finish (a whole number).
+Set okay to 1.
+For every spot from start to finish.
+Set wanted to the slice of source from spot to spot plus 1.
+Set count to 0.
+Tally from start with finish.
+If count is less than needed, set okay to 0.
+
+The last is 4.
+The best is 0.
+For every start from 0 to last.
+For every finish from start to last.
+Check from start with finish.
+The width is finish minus start plus 1.
+If okay is 1 and width is more than best, set best to width.
+
+Show best.
