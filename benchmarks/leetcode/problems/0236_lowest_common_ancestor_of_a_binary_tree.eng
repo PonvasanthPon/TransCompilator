@@ -1,0 +1,62 @@
+Keep a shared values as an empty list of whole numbers.
+Place 3 into values.
+Place 5 into values.
+Place 1 into values.
+Place 6 into values.
+Place 2 into values.
+Place 0 into values.
+Place 8 into values.
+Place 7 into values.
+Place 4 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place 7 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place 8 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+The last is 8.
+The parents is a list of 9 zeros.
+Set item 0 of parents to -1.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, Place left into queue, add 1 to count, set item left of parents to node.
+If right is at least 0, Place right into queue, add 1 to count, set item right of parents to node.
+
+The firstnode is 0.
+The secondnode is 0.
+For every spot from 0 to last.
+If item spot of values is 5, set firstnode to spot.
+If item spot of values is 1, set secondnode to spot.
+
+The marks is a list of 9 zeros.
+The walker is firstnode.
+Repeat while walker is at least 0.
+Set item walker of marks to 1.
+Set walker to item walker of parents.
+
+The seeker is secondnode.
+Repeat while item seeker of marks is 0.
+Set seeker to item seeker of parents.
+
+Show item seeker of values.

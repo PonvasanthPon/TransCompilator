@@ -1,0 +1,64 @@
+The expression is "2-1-1".
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared opercodes as an empty list of whole numbers.
+Keep a shared table as an empty list of whole numbers.
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared capacity as 0.
+Set capacity to 4.
+Keep a shared width as 0.
+Set width to 3.
+The number is 0.
+The last is the last position of expression.
+For every spot from 0 to last.
+The symbol is character spot of expression.
+If symbol is between "0" and "9", The digit is the digit value of symbol, set number to number times 10 plus digit.
+If symbol is "+", Place number into numbers, Place 1 into opercodes, set number to 0.
+If symbol is "-", Place number into numbers, Place 2 into opercodes, set number to 0.
+If symbol is "*", Place number into numbers, Place 3 into opercodes, set number to 0.
+
+Place number into numbers.
+For every slot from 0 to 35.
+Place 0 into table.
+
+For every slot from 0 to 8.
+Place 0 into counts.
+
+To solve from start (a whole number) with finish (a whole number).
+The cell is start times width plus finish.
+If start is finish, set item cell of counts to 1, set item (cell times capacity) of table to item start of numbers, return.
+Set item cell of counts to 0.
+The splitlast is finish minus 1.
+For every split from start to splitlast.
+Solve from start with split.
+Solve from split plus 1 with finish.
+The leftcell is start times width plus split.
+The rightcell is (split plus 1) times width plus finish.
+The leftcount is item leftcell of counts.
+The rightcount is item rightcell of counts.
+The oper is item split of opercodes.
+The leftlast is leftcount minus 1.
+For every leftslot from 0 to leftlast.
+The leftvalue is item (leftcell times capacity plus leftslot) of table.
+The rightlast is rightcount minus 1.
+For every rightslot from 0 to rightlast.
+The rightvalue is item (rightcell times capacity plus rightslot) of table.
+The value is 0.
+If oper is 1, set value to leftvalue plus rightvalue.
+If oper is 2, set value to leftvalue minus rightvalue.
+If oper is 3, set value to leftvalue times rightvalue.
+The slotindex is item cell of counts.
+The spot is cell times capacity plus slotindex.
+Set item spot of table to value.
+Set item cell of counts to slotindex plus 1.
+
+Solve from 0 with 2.
+The finalcell is 2.
+The total is item finalcell of counts.
+The answers is an empty list of whole numbers.
+The lastslot is total minus 1.
+For every slot from 0 to lastslot.
+The answer is item (finalcell times capacity plus slot) of table.
+Place answer into answers.
+
+Sort answers.
+For each answer in answers, show answer.

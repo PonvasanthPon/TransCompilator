@@ -1,0 +1,23 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 3 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Keep a shared last as 0.
+Set last to 2.
+Keep a shared count as 0.
+Keep a shared duplicate as 0.
+To tally from target (a whole number).
+Set count to 0.
+For every other from 0 to last.
+If item other of numbers is item target of numbers, add 1 to count.
+
+To check from target (a whole number).
+Set duplicate to 0.
+For every prior from 0 to last.
+If prior is less than target and item prior of numbers is item target of numbers, set duplicate to 1.
+
+For every spot from 0 to last.
+Tally from spot.
+Check from spot.
+If count times 3 is more than 3 and duplicate is 0, show item spot of numbers.
+

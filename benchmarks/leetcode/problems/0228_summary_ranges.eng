@@ -1,0 +1,34 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 0 into numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 4 into numbers.
+Place 5 into numbers.
+Place 7 into numbers.
+Keep a shared last as 0.
+Set last to 5.
+Keep a shared beginslot as 0.
+Keep a shared finishslot as 0.
+Keep a shared line as empty text.
+Keep a shared answers as an empty list of text.
+To store.
+Set line to empty text.
+The firstlocal is beginslot.
+The beginvalue is item firstlocal of numbers.
+The begintext is format whole number beginvalue as text.
+Place begintext into line.
+The secondlocal is finishslot.
+The endvalue is item secondlocal of numbers.
+The endtext is format whole number endvalue as text.
+If beginslot is not finishslot, Place "->" into line, Place endtext into line.
+The copy is a copy of line.
+Place copy into answers.
+
+For every spot from 0 to last.
+The current is item spot of numbers.
+If spot is 0, set beginslot to spot.
+If spot is more than 0, The previous is item (spot minus 1) of numbers, If current is not previous plus 1, set beginslot to spot.
+If spot is last, set finishslot to spot, store.
+If spot is less than last, The next is item (spot plus 1) of numbers, If next is not current plus 1, set finishslot to spot, store.
+
+For each answer in answers, show answer.

@@ -1,0 +1,25 @@
+Keep a shared first as empty text.
+Place "anagram" into first.
+Keep a shared second as empty text.
+Place "nagaram" into second.
+Keep a shared last as 0.
+Set last to 6.
+Keep a shared countfirst as 0.
+Keep a shared countsecond as 0.
+Keep a shared answer as 0.
+Set answer to 1.
+To tally from target (a whole number).
+Set countfirst to 0.
+Set countsecond to 0.
+For every other from 0 to last.
+The leftletter is character other of first.
+The rightletter is character target of first.
+The otherletter is character other of second.
+If leftletter is rightletter, add 1 to countfirst.
+If otherletter is rightletter, add 1 to countsecond.
+
+For every spot from 0 to last.
+Tally from spot.
+If countfirst is not countsecond, set answer to 0.
+
+If answer is 1, show true, otherwise show false.

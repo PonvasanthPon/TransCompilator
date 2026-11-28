@@ -1,0 +1,24 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 3 into numbers.
+Place -1 into numbers.
+Place -3 into numbers.
+Place 5 into numbers.
+Place 3 into numbers.
+Place 6 into numbers.
+Place 7 into numbers.
+Keep a shared last as 0.
+Set last to 7.
+Keep a shared best as 0.
+To scan from target (a whole number) with width (a whole number).
+Set best to item target of numbers.
+The final is target plus width minus 1.
+For every offset from target to final.
+The value is item offset of numbers.
+If value is more than best, set best to value.
+
+The limit is last minus 2.
+For every start from 0 to limit.
+Scan from start with 3.
+Show best.
+

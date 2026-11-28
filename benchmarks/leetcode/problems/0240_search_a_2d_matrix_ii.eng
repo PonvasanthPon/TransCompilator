@@ -1,0 +1,13 @@
+The matrix is a list of 1, 4, 7, 11, 15, 2, 5, 8, 12, 19, 3, 6, 9, 16, 22, 10, 13, 14, 17, 24, 18, 21, 23, 26, and 30.
+The target is 5.
+The row is 0.
+The column is 4.
+The found is 0.
+Repeat while row is less than 5 and column is at least 0 and found is 0.
+The cell is row times 5 plus column.
+The value is item cell of matrix.
+If value is target, set found to 1.
+If value is more than target, set column to column minus 1.
+If value is less than target, set row to row plus 1.
+
+If found is 1, show true, otherwise show false.

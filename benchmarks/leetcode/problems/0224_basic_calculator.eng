@@ -1,0 +1,30 @@
+The source is "(1+(4+5+2)-3)+(6+8)".
+Keep a shared stack as an empty list of whole numbers.
+Keep a shared total as 0.
+Keep a shared polarity as 0.
+Set polarity to 1.
+Keep a shared number as 0.
+Keep a shared depth as 0.
+To close.
+Set total to total plus polarity times number.
+Set number to 0.
+The savedpolarity is item (depth minus 1) of stack.
+remove the last item from stack.
+Set depth to depth minus 1.
+The savedtotal is item (depth minus 1) of stack.
+remove the last item from stack.
+Set depth to depth minus 1.
+Set total to savedtotal plus savedpolarity times total.
+Set polarity to 1.
+
+The last is the last position of source.
+For every spot from 0 to last.
+The symbol is character spot of source.
+If symbol is between "0" and "9", The digit is the digit value of symbol, set number to number times 10 plus digit.
+If symbol is "+", set total to total plus polarity times number, set number to 0, set polarity to 1.
+If symbol is "-", set total to total plus polarity times number, set number to 0, set polarity to 0 minus 1.
+If symbol is "(", Place total into stack, Place polarity into stack, add 2 to depth, set total to 0, set polarity to 1.
+If symbol is ")", close.
+
+Set total to total plus polarity times number.
+Show total.

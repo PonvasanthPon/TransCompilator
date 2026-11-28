@@ -1,0 +1,21 @@
+The grid is a list of 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, and 0.
+The dp is a list of 20 zeros.
+The best is 0.
+For every node from 0 to 19.
+The row is node divided by 5.
+The column is node modulo 5.
+If item node of grid is 1.
+Set item node of dp to 1.
+If item node of dp is more than best, set best to item node of dp.
+If row is more than 0 and column is more than 0.
+The above is item (node minus 5) of dp.
+The left is item (node minus 1) of dp.
+The corner is item (node minus 6) of dp.
+The small is above.
+If left is less than small, set small to left.
+If corner is less than small, set small to corner.
+Set item node of dp to small plus 1.
+If item node of dp is more than best, set best to item node of dp.
+
+The area is best times best.
+Show area.

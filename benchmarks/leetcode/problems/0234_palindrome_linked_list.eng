@@ -1,0 +1,10 @@
+The numbers is a list of 1, 2, 2, and 1.
+The left is 0.
+The right is the last position of numbers.
+The answer is 1.
+Repeat while left is less than right.
+If item left of numbers is not item right of numbers, set answer to 0.
+Add 1 to left.
+Set right to right minus 1.
+
+If answer is 1, show true, otherwise show false.

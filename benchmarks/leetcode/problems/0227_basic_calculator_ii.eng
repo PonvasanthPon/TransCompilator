@@ -1,0 +1,44 @@
+The source is "3+2*2".
+Keep a shared stack as an empty list of whole numbers.
+Keep a shared number as 0.
+Keep a shared lastcode as 0.
+Set lastcode to 1.
+Keep a shared depth as 0.
+Keep a shared total as 0.
+To multiply.
+The top is item (depth minus 1) of stack.
+remove the last item from stack.
+Set depth to depth minus 1.
+The product is top times number.
+Place product into stack.
+Add 1 to depth.
+Set number to 0.
+
+To divide.
+The top is item (depth minus 1) of stack.
+remove the last item from stack.
+Set depth to depth minus 1.
+The quotient is top divided by number.
+Place quotient into stack.
+Add 1 to depth.
+Set number to 0.
+
+To settle.
+If lastcode is 1, Place number into stack, add 1 to depth, set number to 0.
+If lastcode is 2, The neg is 0 minus number, Place neg into stack, add 1 to depth, set number to 0.
+If lastcode is 3, multiply.
+If lastcode is 4, divide.
+
+The last is the last position of source.
+For every spot from 0 to last.
+The symbol is character spot of source.
+If symbol is between "0" and "9", The digit is the digit value of symbol, set number to number times 10 plus digit.
+If symbol is "+", settle, set lastcode to 1.
+If symbol is "-", settle, set lastcode to 2.
+If symbol is "*", settle, set lastcode to 3.
+If symbol is "/", settle, set lastcode to 4.
+
+Settle.
+For each value in stack, add value to total.
+
+Show total.

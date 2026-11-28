@@ -1,0 +1,46 @@
+Keep a shared values as an empty list of whole numbers.
+Place 4 into values.
+Place 2 into values.
+Place 7 into values.
+Place 1 into values.
+Place 3 into values.
+Place 6 into values.
+Place 9 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+To mirror from node (a whole number).
+If node is less than 0, return.
+The saved is item node of lefts.
+Set item node of lefts to item node of rights.
+Set item node of rights to saved.
+Mirror from item node of lefts.
+Mirror from item node of rights.
+
+Mirror from 0.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Show item node of values.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, Place left into queue, add 1 to count.
+If right is at least 0, Place right into queue, add 1 to count.
+

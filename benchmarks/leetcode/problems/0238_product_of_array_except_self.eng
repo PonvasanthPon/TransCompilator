@@ -1,0 +1,22 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 4 into numbers.
+Keep a shared last as 0.
+Set last to 3.
+Keep a shared product as 0.
+To multiply from target (a whole number).
+Set product to 1.
+For every other from 0 to last.
+If other is not target, set product to product times item other of numbers.
+
+The answer is an empty list of whole numbers.
+For every slot from 0 to 3.
+Place 0 into answer.
+
+For every spot from 0 to last.
+Multiply from spot.
+Set item spot of answer to product.
+
+For each value in answer, show value.

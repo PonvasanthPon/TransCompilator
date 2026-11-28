@@ -1,0 +1,10 @@
+The number is 16.
+The value is 16.
+The answer is 0.
+If value is more than 0, set answer to 1.
+Repeat while value is more than 1.
+The remainder is value modulo 2.
+If remainder is not 0, set answer to 0.
+Set value to value divided by 2.
+
+If answer is 1, show true, otherwise show false.

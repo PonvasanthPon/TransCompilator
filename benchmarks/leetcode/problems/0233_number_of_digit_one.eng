@@ -1,0 +1,10 @@
+The limit is 13.
+Keep a shared total as 0.
+For every number from 1 to limit.
+The value is number.
+Repeat while value is more than 0.
+The digit is value modulo 10.
+If digit is 1, add 1 to total.
+Set value to value divided by 10.
+
+Show total.

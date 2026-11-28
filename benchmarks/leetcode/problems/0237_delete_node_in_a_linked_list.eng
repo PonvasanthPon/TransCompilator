@@ -1,0 +1,14 @@
+The numbers is a list of 4, 5, 1, and 9.
+The last is the last position of numbers.
+The target is 0.
+The found is 0.
+For every spot from 0 to last.
+If found is 0 and item spot of numbers is 5, set target to spot, set found to 1.
+
+The head is target.
+The end is last minus 1.
+For every spot from head to end.
+Set item spot of numbers to item (spot plus 1) of numbers.
+
+remove the last item from numbers.
+For each value in numbers, show value.

@@ -1,0 +1,28 @@
+The axone is -3.
+The ayone is 0.
+The axtwo is 3.
+The aytwo is 4.
+The bxone is 0.
+The byone is -1.
+The bxtwo is 9.
+The bytwo is 2.
+The awidth is axtwo minus axone.
+The aheight is aytwo minus ayone.
+The barea is awidth times aheight.
+The bwidth is bxtwo minus bxone.
+The bheight is bytwo minus byone.
+The bcarea is bwidth times bheight.
+The leftedge is axone.
+If bxone is more than leftedge, set leftedge to bxone.
+The rightedge is axtwo.
+If bxtwo is less than rightedge, set rightedge to bxtwo.
+The bottomedge is ayone.
+If byone is more than bottomedge, set bottomedge to byone.
+The topedge is aytwo.
+If bytwo is less than topedge, set topedge to bytwo.
+The overlapwidth is rightedge minus leftedge.
+The overlapheight is topedge minus bottomedge.
+The total is barea plus bcarea.
+If overlapwidth is more than 0 and overlapheight is more than 0, The overlaparea is overlapwidth times overlapheight, set total to total minus overlaparea.
+
+Show total.
