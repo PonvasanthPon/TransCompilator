@@ -1,0 +1,36 @@
+Keep a shared cells as an empty list of whole numbers.
+Keep a shared visited as an empty list of whole numbers.
+Keep a shared area as 0.
+Keep a shared best as 0.
+The picture is "0010000100000,0000000111000,0110100000000,0100110010100,0100110011100,0000000000100,0000000111000,0000000110000".
+The rows is split picture by ",".
+For each band in rows.
+For every column from 0 to 12.
+The digit is the digit value of character column of band.
+Place digit into cells.
+
+For every spot from 0 to 103.
+Place 0 into visited.
+
+To sink from node (a whole number).
+If node is less than 0, return.
+If item node of visited is 1, return.
+If item node of cells is 0, return.
+Set item node of visited to 1.
+Add 1 to area.
+The rowspot is node divided by 13.
+The columnspot is node modulo 13.
+If rowspot is more than 0, sink from node minus 13.
+If rowspot is less than 7, sink from node plus 13.
+If columnspot is more than 0, sink from node minus 1.
+If columnspot is less than 12, sink from node plus 1.
+
+To probe from node (a whole number).
+Set area to 0.
+Sink from node.
+If area is more than best, set best to area.
+
+For every node from 0 to 103.
+If item node of cells is 1 and item node of visited is 0, probe from node.
+
+Show best.

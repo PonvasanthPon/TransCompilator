@@ -1,0 +1,14 @@
+The source is "00110011".
+The last is the last position of source.
+The previous is 0.
+The current is 1.
+The total is 0.
+For every spot from 1 to last.
+The rightletter is character spot of source.
+The leftletter is character (spot minus 1) of source.
+If rightletter is leftletter, add 1 to current.
+If rightletter is not leftletter, The joined is the smaller of previous and current, add joined to total, set previous to current, set current to 1.
+
+The extra is the smaller of previous and current.
+Add extra to total.
+Show total.

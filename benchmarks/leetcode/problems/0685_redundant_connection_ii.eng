@@ -1,0 +1,67 @@
+Keep a shared sources as an empty list of whole numbers.
+Keep a shared targets as an empty list of whole numbers.
+Keep a shared indegree as an empty list of whole numbers.
+Keep a shared parentof as an empty list of whole numbers.
+Keep a shared total as 0.
+Keep a shared removededge as 0.
+Keep a shared valid as 0.
+Keep a shared answerone as 0.
+Keep a shared answertwo as 0.
+Place 1 into sources.
+Place 1 into sources.
+Place 2 into sources.
+Place 2 into targets.
+Place 3 into targets.
+Place 3 into targets.
+Set total to 3.
+For every node from 0 to total.
+Place 0 into indegree.
+Place 0 into parentof.
+
+To reset from marker (a whole number).
+For every node from 1 to total.
+Set item node of indegree to 0.
+Set item node of parentof to 0.
+
+To count from edge (a whole number).
+If edge is removededge, return.
+The dest is item edge of targets.
+The origin is item edge of sources.
+Set item dest of indegree to item dest of indegree plus 1.
+Set item dest of parentof to origin.
+
+To climb from node (a whole number) with steps (a whole number).
+If node is 1, return.
+If steps is more than total, set valid to 0, return.
+If node is less than 1, set valid to 0, return.
+Climb from item node of parentof with steps plus 1.
+
+To verify from start (a whole number).
+Climb from start with 0.
+
+To validate from marker (a whole number).
+Set valid to 1.
+If item 1 of indegree is not 0, set valid to 0.
+For every node from 2 to total.
+If item node of indegree is not 1, set valid to 0.
+If item node of indegree is 1, verify from node.
+
+To check from removed (a whole number).
+Set removededge to removed.
+Reset from 0.
+For every edge from 0 to total minus 1.
+Count from edge.
+Validate from 0.
+
+For every forward from 0 to total minus 1.
+The removed is total minus 1 minus forward.
+If answerone is 0, check from removed.
+If answerone is 0 and valid is 1, set answerone to item removed of sources, set answertwo to item removed of targets.
+
+The line is empty text.
+The firstword is format whole number answerone as text.
+Place firstword into line.
+Place "," into line.
+The secondword is format whole number answertwo as text.
+Place secondword into line.
+Show line.

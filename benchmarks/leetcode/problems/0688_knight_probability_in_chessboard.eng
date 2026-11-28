@@ -1,0 +1,92 @@
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared fresh as an empty list of whole numbers.
+Keep a shared downs as an empty list of whole numbers.
+Keep a shared rights as an empty list of whole numbers.
+Keep a shared size as 0.
+Keep a shared steps as 0.
+Place 1 into downs.
+Place 1 into downs.
+Place -1 into downs.
+Place -1 into downs.
+Place 2 into downs.
+Place 2 into downs.
+Place -2 into downs.
+Place -2 into downs.
+Place 2 into rights.
+Place -2 into rights.
+Place 2 into rights.
+Place -2 into rights.
+Place 1 into rights.
+Place -1 into rights.
+Place 1 into rights.
+Place -1 into rights.
+Set size to 3.
+Set steps to 2.
+For every spot from 0 to 8.
+Place 0 into counts.
+Place 0 into fresh.
+
+Set item 0 of counts to 1.
+
+To wipe from marker (a whole number).
+For every spot from 0 to 8.
+Set item spot of fresh to 0.
+
+To adopt from marker (a whole number).
+For every spot from 0 to 8.
+Set item spot of counts to item spot of fresh.
+
+To jump from cell (a whole number).
+The currentrow is cell divided by size.
+The currentcolumn is cell modulo size.
+For every move from 0 to 7.
+The nextrow is currentrow plus item move of downs.
+The nextcolumn is currentcolumn plus item move of rights.
+If nextrow is at least 0 and nextrow is less than size and nextcolumn is at least 0 and nextcolumn is less than size.
+The dest is nextrow times size plus nextcolumn.
+Set item dest of fresh to item dest of fresh plus item cell of counts.
+
+To spread from cell (a whole number).
+If cell is at least 9, adopt from 0, return.
+If item cell of counts is more than 0, jump from cell.
+Spread from cell plus 1.
+
+To begin from marker (a whole number).
+Wipe from 0.
+Spread from 0.
+
+For every step from 1 to steps.
+Begin from 0.
+
+The numerator is 0.
+For every spot from 0 to 8.
+Set numerator to numerator plus item spot of counts.
+
+The denominator is 1.
+For every step from 1 to steps.
+Set denominator to denominator times 8.
+
+The headpart is numerator divided by denominator.
+The remainder is numerator modulo denominator.
+The parts is an empty list of text.
+The headword is format whole number headpart as text.
+Place headword into parts.
+Place "." into parts.
+For every digit from 0 to 9.
+Set remainder to remainder times 10.
+The part is remainder divided by denominator.
+The digword is format whole number part as text.
+Place digword into parts.
+Set remainder to remainder modulo denominator.
+
+The answer is join parts with "".
+Repeat while the last position of answer is more than 1.
+The final is the last position of answer.
+The lastpiece is character final of answer.
+If lastpiece is "0", remove last character from answer.
+If lastpiece is not "0", stop.
+
+The final is the last position of answer.
+The lastpiece is character final of answer.
+If lastpiece is ".", remove last character from answer.
+Show answer.

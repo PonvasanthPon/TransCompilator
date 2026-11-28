@@ -1,0 +1,34 @@
+Keep a shared parent as an empty list of whole numbers.
+Keep a shared rootanswer as 0.
+For every node from 0 to 3.
+Place node into parent.
+
+To climb from node (a whole number).
+Set rootanswer to node.
+The cursor is rootanswer.
+Repeat while item cursor of parent is not cursor.
+Set rootanswer to item cursor of parent.
+Set cursor to rootanswer.
+
+The edges is a list of 1, 2, 1, 3, 2, and 3.
+The count is 3.
+The found is 0.
+The firstanswer is 0.
+The secondanswer is 0.
+For every edge from 0 to count minus 1.
+The start is item (edge times 2) of edges.
+The finish is item (edge times 2 plus 1) of edges.
+Climb from start.
+The firstroot is rootanswer.
+Climb from finish.
+The secondroot is rootanswer.
+If found is 0 and firstroot is secondroot, set found to 1, set firstanswer to start, set secondanswer to finish.
+If found is 0 and firstroot is not secondroot, set item firstroot of parent to secondroot.
+
+The line is empty text.
+The firstword is format whole number firstanswer as text.
+Place firstword into line.
+Place "," into line.
+The secondword is format whole number secondanswer as text.
+Place secondword into line.
+Show line.

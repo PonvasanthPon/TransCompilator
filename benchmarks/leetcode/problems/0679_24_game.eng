@@ -1,0 +1,104 @@
+Keep a shared tops as an empty list of whole numbers.
+Keep a shared bottoms as an empty list of whole numbers.
+Keep a shared active as an empty list of whole numbers.
+Keep a shared found as 0.
+Keep a shared remaining as 0.
+Place 4 into tops.
+Place 1 into tops.
+Place 8 into tops.
+Place 7 into tops.
+Place 1 into bottoms.
+Place 1 into bottoms.
+Place 1 into bottoms.
+Place 1 into bottoms.
+Place 1 into active.
+Place 1 into active.
+Place 1 into active.
+Place 1 into active.
+
+To count from spot (a whole number).
+If spot is more than 3, return.
+If item spot of active is 1, add 1 to remaining.
+Count from spot plus 1.
+
+To settle from marker (a whole number).
+For every spot from 0 to 3.
+If item spot of active is 1 and item spot of bottoms is not 0 and item spot of tops is 24 times item spot of bottoms, set found to 1.
+
+To explore from depth (a whole number).
+If found is 1, return.
+Set remaining to 0.
+Count from 0.
+If remaining is 1, settle from 0, return.
+For every first from 0 to 3.
+For every second from first plus 1 to 3.
+If item first of active is 1 and item second of active is 1 and found is 0, attempt from first with second.
+
+To addpair from first (a whole number) with second (a whole number).
+The firsttop is item first of tops.
+The firstbottom is item first of bottoms.
+The secondtop is item second of tops.
+The secondbottom is item second of bottoms.
+Set item first of tops to firsttop times secondbottom plus secondtop times firstbottom.
+Set item first of bottoms to firstbottom times secondbottom.
+If item first of bottoms is less than 0, set item first of tops to 0 minus item first of tops, set item first of bottoms to 0 minus item first of bottoms.
+Set item second of active to 0.
+Explore from 1.
+Set item second of active to 1.
+Set item first of tops to firsttop.
+Set item first of bottoms to firstbottom.
+
+To cutpair from first (a whole number) with second (a whole number).
+The firsttop is item first of tops.
+The firstbottom is item first of bottoms.
+The secondtop is item second of tops.
+The secondbottom is item second of bottoms.
+Set item first of tops to firsttop times secondbottom minus secondtop times firstbottom.
+Set item first of bottoms to firstbottom times secondbottom.
+If item first of bottoms is less than 0, set item first of tops to 0 minus item first of tops, set item first of bottoms to 0 minus item first of bottoms.
+Set item second of active to 0.
+Explore from 1.
+Set item second of active to 1.
+Set item first of tops to firsttop.
+Set item first of bottoms to firstbottom.
+
+To scalepair from first (a whole number) with second (a whole number).
+The firsttop is item first of tops.
+The firstbottom is item first of bottoms.
+The secondtop is item second of tops.
+The secondbottom is item second of bottoms.
+Set item first of tops to firsttop times secondtop.
+Set item first of bottoms to firstbottom times secondbottom.
+If item first of bottoms is less than 0, set item first of tops to 0 minus item first of tops, set item first of bottoms to 0 minus item first of bottoms.
+Set item second of active to 0.
+Explore from 1.
+Set item second of active to 1.
+Set item first of tops to firsttop.
+Set item first of bottoms to firstbottom.
+
+To splitpair from first (a whole number) with second (a whole number).
+If item second of tops is 0, return.
+The firsttop is item first of tops.
+The firstbottom is item first of bottoms.
+The secondtop is item second of tops.
+The secondbottom is item second of bottoms.
+Set item first of tops to firsttop times secondbottom.
+Set item first of bottoms to firstbottom times secondtop.
+If item first of bottoms is less than 0, set item first of tops to 0 minus item first of tops, set item first of bottoms to 0 minus item first of bottoms.
+Set item second of active to 0.
+Explore from 1.
+Set item second of active to 1.
+Set item first of tops to firsttop.
+Set item first of bottoms to firstbottom.
+
+To attempt from first (a whole number) with second (a whole number).
+If found is 1, return.
+If item first of active is 0, return.
+If item second of active is 0, return.
+If found is 0, addpair from first with second.
+If found is 0, cutpair from first with second.
+If found is 0, scalepair from first with second.
+If found is 0, splitpair from first with second.
+
+Explore from 1.
+If found is 1, show true, otherwise show false.

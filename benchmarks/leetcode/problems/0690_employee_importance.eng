@@ -1,0 +1,41 @@
+Keep a shared identifiers as an empty list of whole numbers.
+Keep a shared values as an empty list of whole numbers.
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared starts as an empty list of whole numbers.
+Keep a shared subordinates as an empty list of whole numbers.
+Keep a shared total as 0.
+Keep a shared foundindex as 0.
+Place 1 into identifiers.
+Place 2 into identifiers.
+Place 3 into identifiers.
+Place 5 into values.
+Place 3 into values.
+Place 3 into values.
+Place 2 into counts.
+Place 0 into counts.
+Place 0 into counts.
+Place 0 into starts.
+Place 2 into starts.
+Place 2 into starts.
+Place 2 into subordinates.
+Place 3 into subordinates.
+
+To locate from spot (a whole number) with wanted (a whole number).
+If foundindex is at least 0, return.
+If spot is more than 2, return.
+If item spot of identifiers is wanted, set foundindex to spot, return.
+Locate from spot plus 1 with wanted.
+
+To gather from spot (a whole number).
+Set total to total plus item spot of values.
+The degree is item spot of counts.
+If degree is 0, return.
+The base is item spot of starts.
+For every offset from 0 to degree minus 1.
+The childid is item (base plus offset) of subordinates.
+Set foundindex to -1.
+Locate from 0 with childid.
+Gather from foundindex.
+
+Gather from 0.
+Show total.

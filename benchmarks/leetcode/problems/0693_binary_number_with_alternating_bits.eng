@@ -1,0 +1,12 @@
+The value is 5.
+The current is value.
+The previous is current modulo 2.
+Set current to current divided by 2.
+The good is 1.
+Repeat while current is more than 0.
+The bit is current modulo 2.
+If bit is previous, set good to 0.
+Set previous to bit.
+Set current to current divided by 2.
+
+If good is 1, show true, otherwise show false.

@@ -1,0 +1,61 @@
+Keep a shared target as empty text.
+Keep a shared stickers as an empty list of text.
+Keep a shared letters as an empty list of text.
+Keep a shared bits as an empty list of whole numbers.
+Keep a shared costs as an empty list of whole numbers.
+Keep a shared currentsticker as empty text.
+Keep a shared letter as empty text.
+Keep a shared nextmask as 0.
+Keep a shared matchpos as 0.
+Place "thehat" into target.
+Place "with" into stickers.
+Place "example" into stickers.
+Place "science" into stickers.
+For every spot from 0 to the last position of target.
+The piece is the slice of target from spot to spot plus 1.
+Place piece into letters.
+
+Place 1 into bits.
+For every step from 1 to 6.
+The ending is the last position of bits.
+The prior is item ending of bits.
+The doubled is prior times 2.
+Place doubled into bits.
+
+For every spot from 0 to 63.
+Place 999 into costs.
+
+Set item 0 of costs to 0.
+
+To find from spot (a whole number).
+If matchpos is at least 0, return.
+If spot is more than the last position of letters, return.
+The raised is item spot of bits.
+The bit is bitwise and of nextmask and raised.
+If bit is not 0, find from spot plus 1, return.
+If item spot of letters matches letter, set matchpos to spot, return.
+Find from spot plus 1.
+
+To paste from marker (a whole number).
+The final is the last position of currentsticker.
+For every spot from 0 to final.
+Set letter to the slice of currentsticker from spot to spot plus 1.
+Set matchpos to -1.
+Find from 0.
+The slot is matchpos.
+If slot is at least 0, set nextmask to nextmask plus item slot of bits.
+
+To apply from mask (a whole number).
+For every index from 0 to the last position of stickers.
+Set currentsticker to item index of stickers.
+Set nextmask to mask.
+Paste from index.
+The start is mask.
+The candidate is item start of costs plus 1.
+The slot is nextmask.
+If item slot of costs is more than candidate, set item slot of costs to candidate.
+
+For every mask from 0 to 63.
+If item mask of costs is less than 999, apply from mask.
+
+Show item 63 of costs.

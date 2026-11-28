@@ -1,0 +1,34 @@
+Keep a shared source as empty text.
+Keep a shared possible as an empty list of whole numbers.
+Keep a shared fresh as an empty list of whole numbers.
+Keep a shared limit as 0.
+Place "(*))" into source.
+For every slot from 0 to 102.
+Place 0 into possible.
+Place 0 into fresh.
+
+Set limit to the last position of source.
+Set item 0 of possible to 1.
+
+To wipe from marker (a whole number).
+For every balance from 0 to limit.
+Set item balance of fresh to 0.
+
+To advance from spot (a whole number).
+For every balance from 0 to limit.
+If item balance of possible is 1 and character spot of source is "(" and balance is less than limit, set item (balance plus 1) of fresh to 1.
+If item balance of possible is 1 and character spot of source is ")" and balance is more than 0, set item (balance minus 1) of fresh to 1.
+If item balance of possible is 1 and character spot of source is "*" and balance is less than limit, set item (balance plus 1) of fresh to 1.
+If item balance of possible is 1 and character spot of source is "*" and balance is more than 0, set item (balance minus 1) of fresh to 1.
+If item balance of possible is 1 and character spot of source is "*", set item balance of fresh to 1.
+
+To adopt from marker (a whole number).
+For every balance from 0 to limit.
+Set item balance of possible to item balance of fresh.
+
+For every spot from 0 to limit.
+Wipe from 0.
+Advance from spot.
+Adopt from 0.
+
+If item 0 of possible is 1, show true, otherwise show false.

@@ -1,0 +1,36 @@
+The numbers is a list of 1, 2, 1, 2, 6, 7, 5, and 1.
+The width is 2.
+The last is the last position of numbers.
+The best is -1.
+The bestfirst is 0.
+The bestsecond is 0.
+The bestclosing is 0.
+The firstlimit is last minus width times 3 plus 1.
+The secondlimit is last minus width times 2 plus 1.
+The closinglimit is last minus width plus 1.
+For every first from 0 to firstlimit.
+For every second from first plus width to secondlimit.
+For every closing from second plus width to closinglimit.
+The sum is 0.
+For every spot from first to first plus width minus 1.
+Set sum to sum plus item spot of numbers.
+For every spot from second to second plus width minus 1.
+Set sum to sum plus item spot of numbers.
+For every spot from closing to closing plus width minus 1.
+Set sum to sum plus item spot of numbers.
+If sum is more than best.
+Set best to sum.
+Set bestfirst to first.
+Set bestsecond to second.
+Set bestclosing to closing.
+
+The line is empty text.
+The firstword is format whole number bestfirst as text.
+Place firstword into line.
+Place "," into line.
+The secondword is format whole number bestsecond as text.
+Place secondword into line.
+Place "," into line.
+The closingword is format whole number bestclosing as text.
+Place closingword into line.
+Show line.

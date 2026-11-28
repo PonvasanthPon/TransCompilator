@@ -1,0 +1,26 @@
+The numbers is a list of 1, 2, 2, 3, and 1.
+The counts is a list of 100 zeros.
+The firsts is an empty list of whole numbers.
+The lasts is an empty list of whole numbers.
+For every spot from 0 to 99.
+Place -1 into firsts.
+Place -1 into lasts.
+
+The last is the last position of numbers.
+For every spot from 0 to last.
+The value is item spot of numbers.
+Set item value of counts to item value of counts plus 1.
+If item value of firsts is -1, set item value of firsts to spot.
+Set item value of lasts to spot.
+
+The degree is 0.
+For every value from 0 to 99.
+If item value of counts is more than degree, set degree to item value of counts.
+
+The best is 1000000.
+For every value from 0 to 99.
+If item value of counts is degree.
+The width is item value of lasts minus item value of firsts plus 1.
+If width is less than best, set best to width.
+
+Show best.

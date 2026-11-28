@@ -1,0 +1,34 @@
+Keep a shared source as empty text.
+Keep a shared good as 0.
+Keep a shared verdict as 0.
+Keep a shared settled as 0.
+Place "abca" into source.
+
+To palm from left (a whole number) with right (a whole number).
+Repeat while left is less than right.
+The leftsymbol is character left of source.
+The rightsymbol is character right of source.
+If leftsymbol is not rightsymbol, set good to 0, return.
+Add 1 to left.
+Subtract 1 from right.
+
+To resolve from first (a whole number) with last (a whole number).
+Set settled to 1.
+Set verdict to 1.
+Set good to 1.
+Palm from first plus 1 with last.
+If good is 1, return.
+Set good to 1.
+Palm from first with last minus 1.
+If good is 1, return.
+Set verdict to 0.
+
+The first is 0.
+The last is the last position of source.
+Repeat while first is less than last and settled is 0.
+The leftsymbol is character first of source.
+The rightsymbol is character last of source.
+If leftsymbol is not rightsymbol, resolve from first with last.
+If leftsymbol is rightsymbol, add 1 to first, subtract 1 from last.
+
+If verdict is 1, show true, otherwise show false.

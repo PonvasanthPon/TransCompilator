@@ -1,0 +1,51 @@
+Keep a shared words as an empty list of text.
+Keep a shared distinct as an empty list of text.
+Keep a shared frequencies as an empty list of whole numbers.
+Keep a shared chosen as an empty list of whole numbers.
+Keep a shared wanted as empty text.
+Keep a shared foundindex as 0.
+Keep a shared bestindex as 0.
+Place "i" into words.
+Place "love" into words.
+Place "leetcode" into words.
+Place "i" into words.
+Place "love" into words.
+Place "coding" into words.
+
+To locate from spot (a whole number).
+If foundindex is at least 0, return.
+If spot is more than the last position of distinct, return.
+If item spot of distinct matches wanted, set foundindex to spot, return.
+Locate from spot plus 1.
+
+To consider from spot (a whole number).
+If item spot of chosen is 1, return.
+If bestindex is less than 0, set bestindex to spot, return.
+The candidatecount is item spot of frequencies.
+The local is bestindex.
+The bestcount is item local of frequencies.
+If candidatecount is more than bestcount, set bestindex to spot, return.
+If candidatecount is less than bestcount, return.
+The localbest is bestindex.
+If item spot of distinct comes before item localbest of distinct, set bestindex to spot.
+
+To choose from marker (a whole number).
+Set bestindex to -1.
+For every spot from 0 to the last position of distinct.
+Consider from spot.
+
+For each word in words.
+Set wanted to word.
+Set foundindex to -1.
+Locate from 0.
+If foundindex is at least 0, The local is foundindex, set item local of frequencies to item local of frequencies plus 1.
+If foundindex is less than 0, Place word into distinct, Place 1 into frequencies.
+
+For every spot from 0 to the last position of distinct.
+Place 0 into chosen.
+
+For every pick from 1 to 2.
+Choose from 0.
+The local is bestindex.
+Show item local of distinct.
+Set item local of chosen to 1.

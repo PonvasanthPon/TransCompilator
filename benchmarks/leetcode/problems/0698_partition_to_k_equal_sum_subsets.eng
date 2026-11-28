@@ -1,0 +1,41 @@
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared groups as an empty list of whole numbers.
+Keep a shared count as 0.
+Keep a shared bins as 0.
+Keep a shared target as 0.
+Keep a shared found as 0.
+Place 4 into numbers.
+Place 3 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 5 into numbers.
+Place 2 into numbers.
+Place 1 into numbers.
+Set count to 7.
+Set bins to 4.
+The total is 0.
+For each value in numbers.
+Set total to total plus value.
+
+Set target to total divided by bins.
+Sort numbers.
+For every group from 0 to bins minus 1.
+Place 0 into groups.
+
+To trygroup from spot (a whole number) with group (a whole number).
+If found is 1, return.
+The here is count minus 1 minus spot.
+The value is item here of numbers.
+If item group of groups plus value is more than target, return.
+Set item group of groups to item group of groups plus value.
+Fill from spot plus 1.
+Set item group of groups to item group of groups minus value.
+
+To fill from spot (a whole number).
+If found is 1, return.
+If spot is at least count, set found to 1, return.
+For every group from 0 to bins minus 1.
+Trygroup from spot with group.
+
+Fill from 0.
+If found is 1, show true, otherwise show false.

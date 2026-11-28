@@ -1,0 +1,31 @@
+Keep a shared lefts as an empty list of whole numbers.
+Keep a shared sizes as an empty list of whole numbers.
+Keep a shared tops as an empty list of whole numbers.
+Keep a shared base as 0.
+Keep a shared candidate as 0.
+Place 1 into lefts.
+Place 2 into lefts.
+Place 6 into lefts.
+Place 2 into sizes.
+Place 3 into sizes.
+Place 1 into sizes.
+
+To measure from block (a whole number) at opening (a whole number) with closing (a whole number).
+Set base to 0.
+For every before from 0 to block minus 1.
+The otherleft is item before of lefts.
+The otherright is otherleft plus item before of sizes.
+If otherleft is less than closing and opening is less than otherright.
+Set candidate to item before of tops.
+If candidate is more than base, set base to candidate.
+
+The last is the last position of lefts.
+The best is 0.
+For every block from 0 to last.
+The front is item block of lefts.
+The back is front plus item block of sizes.
+Measure from block at front with back.
+The height is base plus item block of sizes.
+Place height into tops.
+If height is more than best, set best to height.
+Show best.

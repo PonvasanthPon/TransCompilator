@@ -1,0 +1,32 @@
+Keep a shared source as empty text.
+Keep a shared target as empty text.
+Keep a shared repeated as empty text.
+Keep a shared found as 0.
+Keep a shared count as 0.
+Place "abcd" into source.
+Place "cdabcdab" into target.
+
+To seek from marker (a whole number).
+Set found to 0.
+The sourcefinal is the last position of repeated.
+The targetfinal is the last position of target.
+The final is sourcefinal minus targetfinal.
+For every start from 0 to final.
+The piece is the slice of repeated from start to start plus targetfinal plus 1.
+If piece matches target, set found to 1.
+
+To extend from marker (a whole number).
+Place source into repeated.
+Add 1 to count.
+Seek from 0.
+
+Set count to 1.
+Place source into repeated.
+Repeat while the last position of repeated is less than the last position of target.
+Place source into repeated.
+Add 1 to count.
+
+Seek from 0.
+If found is 0, extend from 0.
+If found is 0, set count to -1.
+Show count.
