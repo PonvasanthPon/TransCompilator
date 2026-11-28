@@ -66,6 +66,25 @@ Show item 4 of items.\n",
 }
 
 #[test]
+fn bitwise_assignment_and_shift_prose() {
+    assert_program(
+        "writer-bits",
+        "The value is 5. The low is 0. The mixed is 0. The moved is 0. The raised is 0. The flipped is 0.\n\
+Set low to bitwise and of value and 1.\n\
+Set mixed to exclusive or of value and 3.\n\
+Set moved to shift value right by 1.\n\
+Set raised to shift value left by 1.\n\
+Set flipped to bitwise inverse of 0.\n\
+Show low.\n\
+Show mixed.\n\
+Show moved.\n\
+Show raised.\n\
+Show flipped.\n",
+        &["1", "6", "2", "10", "-1"],
+    );
+}
+
+#[test]
 fn character_literals_ordering_and_dynamic_spaces() {
     assert_program(
         "writer-characters",

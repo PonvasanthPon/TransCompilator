@@ -603,6 +603,81 @@ impl<C: ValueContext> NpParser<'_, '_, C> {
     fn parse_prefix(&mut self) -> Result<AstExpr, SemanticError> {
         let checkpoint = self.position;
         let article = self.eat("the") || self.eat("a") || self.eat("an");
+        if self.eat("bitwise") {
+            if self.eat("and") {
+                self.expect("of")?;
+                let left = self.parse_additive()?;
+                self.expect("and")?;
+                let right = self.parse_additive()?;
+                return Ok(binary(BinOp::BitAnd, left, right));
+            }
+            if self.eat("or") {
+                self.expect("of")?;
+                let left = self.parse_additive()?;
+                self.expect("and")?;
+                let right = self.parse_additive()?;
+                return Ok(binary(BinOp::BitOr, left, right));
+            }
+            if self.eat("inverse") {
+                self.expect("of")?;
+                return Ok(AstExpr::Unary {
+                    op: tc_ir::UnOp::BitNot,
+                    val: Box::new(self.parse_prefix()?),
+                });
+            }
+            return Err(self.context.value_error(
+                self.span,
+                "bitwise expects `and of`, `or of`, or `inverse of`",
+            ));
+        }
+        if self.eat("exclusive") {
+            self.expect("or")?;
+            self.expect("of")?;
+            let left = self.parse_additive()?;
+            self.expect("and")?;
+            let right = self.parse_additive()?;
+            return Ok(binary(BinOp::BitXor, left, right));
+        }
+        if self.eat("shift") {
+            let start = self.position;
+            let mut split = None;
+            let mut depth = 0_i32;
+            for index in start..self.tokens.len() {
+                let token = &self.tokens[index];
+                if token.kind == TokenKind::Symbol {
+                    match token.text.as_str() {
+                        "(" | "[" | "{" => depth += 1,
+                        ")" | "]" | "}" => depth -= 1,
+                        _ => {}
+                    }
+                }
+                if depth == 0
+                    && token.is_word()
+                    && matches!(token.lower.as_str(), "left" | "right")
+                    && self.tokens.get(index + 1).is_some_and(|next| next.is("by"))
+                {
+                    split = Some(index);
+                    break;
+                }
+            }
+            let Some(split) = split else {
+                return Err(self
+                    .context
+                    .value_error(self.span, "shift expects `left by` or `right by`"));
+            };
+            let value_start = self.tokens[start].start;
+            let value_end = self.tokens[split].start;
+            let source = self.text[value_start..value_end].trim().to_string();
+            let value = parse_value(self.context, &source, self.span)?;
+            let right = self.tokens[split].is("right");
+            self.position = split + 2;
+            let amount = self.parse_additive()?;
+            return Ok(binary(
+                if right { BinOp::Shr } else { BinOp::Shl },
+                value,
+                amount,
+            ));
+        }
         if let Some(operation) = self.nary_operation() {
             return self.parse_nary(operation);
         }
