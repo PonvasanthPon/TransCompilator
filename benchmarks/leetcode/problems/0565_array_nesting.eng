@@ -1,0 +1,28 @@
+Keep a shared links as an empty list of whole numbers.
+Place 5 into links.
+Place 4 into links.
+Place 0 into links.
+Place 3 into links.
+Place 1 into links.
+Place 6 into links.
+Place 2 into links.
+The last is the last position of links.
+Keep a shared seen as an empty list of whole numbers.
+Place 0 into seen.
+Place 0 into seen.
+Place 0 into seen.
+Place 0 into seen.
+Place 0 into seen.
+Place 0 into seen.
+Place 0 into seen.
+Keep a shared best as 0.
+To walk from node (a whole number) with depth (a whole number).
+If item node of seen is 1, return.
+Set item node of seen to 1.
+If depth is more than best, set best to depth.
+Walk from item node of links with depth plus 1.
+
+For every start from 0 to last.
+Walk from start with 1.
+
+Show best.

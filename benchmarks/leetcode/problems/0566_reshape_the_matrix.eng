@@ -1,0 +1,21 @@
+The matrix is a list of 1, 2, 3, and 4.
+The rows is 2.
+The columns is 2.
+The targetrows is 1.
+The targetcolumns is 4.
+The last is the last position of matrix.
+The total is last plus 1.
+If targetrows times targetcolumns is not total, set targetrows to rows, set targetcolumns to columns.
+
+The line is empty text.
+Place "[" into line.
+For every spot from 0 to last.
+If spot is more than 0 and spot modulo targetcolumns is 0, Place "," into line.
+If spot modulo targetcolumns is 0, Place "[" into line.
+The value is item spot of matrix.
+Place format whole number value as text into line.
+If spot modulo targetcolumns is less than targetcolumns minus 1, Place "," into line.
+If spot modulo targetcolumns is targetcolumns minus 1, Place "]" into line.
+
+Place "]" into line.
+Show line.

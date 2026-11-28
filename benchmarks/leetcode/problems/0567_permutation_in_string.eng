@@ -1,0 +1,15 @@
+The pattern is "ab".
+The source is "eidbaooo".
+The target is sort characters of pattern.
+The width is the number of characters in pattern.
+The last is the last position of source.
+The final is last minus width plus 1.
+The found is 0.
+For every start from 0 to final.
+The finish is start plus width.
+The piece is the slice of source from start to finish.
+The ordered is sort characters of piece.
+If ordered matches target, set found to 1.
+If found is 1, stop.
+
+If found is 1, show true, otherwise show false.

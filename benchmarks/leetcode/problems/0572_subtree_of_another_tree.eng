@@ -1,0 +1,51 @@
+Keep a shared values as an empty list of whole numbers.
+Place 3 into values.
+Place 4 into values.
+Place 5 into values.
+Place 1 into values.
+Place 2 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared targetvalues as an empty list of whole numbers.
+Place 4 into targetvalues.
+Place 1 into targetvalues.
+Place 2 into targetvalues.
+Keep a shared targetlefts as an empty list of whole numbers.
+Place 1 into targetlefts.
+Place -1 into targetlefts.
+Place -1 into targetlefts.
+Keep a shared targetrights as an empty list of whole numbers.
+Place 2 into targetrights.
+Place -1 into targetrights.
+Place -1 into targetrights.
+Keep a shared alike as 0.
+Keep a shared found as 0.
+To compare from one (a whole number) with two (a whole number).
+If alike is 0, return.
+If one is less than 0 and two is less than 0, return.
+If one is less than 0, set alike to 0, return.
+If two is less than 0, set alike to 0, return.
+If item one of values is not item two of targetvalues, set alike to 0, return.
+Compare from item one of lefts with item two of targetlefts.
+Compare from item one of rights with item two of targetrights.
+
+To seek from node (a whole number).
+If node is less than 0, return.
+Set alike to 1.
+Compare from node with 0.
+If alike is 1, set found to 1, return.
+Seek from item node of lefts.
+Seek from item node of rights.
+
+Seek from 0.
+If found is 1, show true, otherwise show false.

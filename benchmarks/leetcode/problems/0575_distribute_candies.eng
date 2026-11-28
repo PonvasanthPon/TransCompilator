@@ -1,0 +1,12 @@
+The candies is a list of 1, 1, 2, 2, 3, and 3.
+Sort candies.
+The last is the last position of candies.
+The kinds is 1.
+For every spot from 1 to last.
+If item spot of candies is not item (spot minus 1) of candies, add 1 to kinds.
+
+The middle is (last plus 1) divided by 2.
+The answer is kinds.
+If middle is less than kinds, set answer to middle.
+
+Show answer.

@@ -1,0 +1,12 @@
+The numbers is a list of 1, 1, and 1.
+The target is 2.
+The last is the last position of numbers.
+The total is 0.
+For every start from 0 to last.
+The sum is 0.
+For every ending from start to last.
+The value is item ending of numbers.
+Add value to sum.
+If sum is target, add 1 to total.
+
+Show total.

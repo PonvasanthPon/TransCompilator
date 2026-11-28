@@ -1,0 +1,11 @@
+The numbers is a list of 1, 4, 3, and 2.
+Sort numbers.
+The last is the last position of numbers.
+The limit is last divided by 2.
+The total is 0.
+For every pair from 0 to limit.
+The spot is pair times 2.
+The value is item spot of numbers.
+Add value to total.
+
+Show total.

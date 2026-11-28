@@ -1,0 +1,11 @@
+The record is "PPALLP".
+The last is the last position of record.
+Start with absences of 0, a run of 0, and a longest of 0.
+For every spot from 0 to last.
+The mark is character spot of record.
+If mark is "A", add 1 to absences, set run to 0.
+If mark is "L", add 1 to run.
+If mark is not "L", set run to 0.
+If run is more than longest, set longest to run.
+
+If absences is less than 2 and longest is less than 3, show true, otherwise show false.

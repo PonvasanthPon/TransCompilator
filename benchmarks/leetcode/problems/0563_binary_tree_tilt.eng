@@ -1,0 +1,31 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared sums as an empty list of whole numbers.
+Place 0 into sums.
+Place 0 into sums.
+Place 0 into sums.
+Keep a shared totaltilt as 0.
+Keep a shared carry as 0.
+To weigh from node (a whole number).
+If node is less than 0, set carry to 0, return.
+Weigh from item node of lefts.
+Set item node of sums to carry.
+Weigh from item node of rights.
+The gap is item node of sums minus carry.
+If gap is less than 0, set gap to 0 minus gap.
+Add gap to totaltilt.
+Set item node of sums to item node of sums plus carry plus item node of values.
+Set carry to item node of sums.
+
+Weigh from 0.
+Show totaltilt.

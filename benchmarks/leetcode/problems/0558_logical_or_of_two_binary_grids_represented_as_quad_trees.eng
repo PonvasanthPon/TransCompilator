@@ -1,0 +1,116 @@
+The firstgrid is a list of 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, and 0.
+The secondgrid is a list of 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, and 1.
+Keep a shared merged as an empty list of whole numbers.
+For every spot from 0 to 15.
+The firstbit is item spot of firstgrid.
+The secondbit is item spot of secondgrid.
+If firstbit is 1 or secondbit is 1, Place 1 into merged.
+If firstbit is 0 and secondbit is 0, Place 0 into merged.
+
+Keep a shared isleaf as an empty list of whole numbers.
+Keep a shared leafvalue as an empty list of whole numbers.
+Keep a shared kids as an empty list of whole numbers.
+Keep a shared top as 0.
+Keep a shared leftedge as 0.
+Keep a shared width as 0.
+Keep a shared seed as 0.
+Keep a shared allsame as 0.
+Keep a shared made as 0.
+To probe from down (a whole number) with across (a whole number).
+If down is at least top plus width, return.
+If across is at least leftedge plus width, probe from down plus 1 with leftedge, return.
+The spot is down times 4 plus across.
+If item spot of merged is not seed, set allsame to 0.
+Probe from down with across plus 1.
+
+To mark from value (a whole number).
+The lastspot is the last position of isleaf.
+The spot is lastspot plus 1.
+Place 1 into isleaf.
+Place value into leafvalue.
+Place -1 into kids.
+Place -1 into kids.
+Place -1 into kids.
+Place -1 into kids.
+Set made to spot.
+
+To square from down (a whole number) with across (a whole number).
+Set top to down.
+Set leftedge to across.
+Set width to 2.
+Set seed to item (down times 4 plus across) of merged.
+Set allsame to 1.
+Probe from down with across.
+If allsame is 1, mark from seed, return.
+The lastspot is the last position of isleaf.
+The node is lastspot plus 1.
+Place 0 into isleaf.
+Place 0 into leafvalue.
+Place -1 into kids.
+Place -1 into kids.
+Place -1 into kids.
+Place -1 into kids.
+Set seed to item (down times 4 plus across) of merged.
+Mark from seed.
+Set item (node times 4) of kids to made.
+Set seed to item (down times 4 plus across plus 1) of merged.
+Mark from seed.
+Set item (node times 4 plus 1) of kids to made.
+Set seed to item ((down plus 1) times 4 plus across) of merged.
+Mark from seed.
+Set item (node times 4 plus 2) of kids to made.
+Set seed to item ((down plus 1) times 4 plus across plus 1) of merged.
+Mark from seed.
+Set item (node times 4 plus 3) of kids to made.
+Set made to node.
+
+To board from down (a whole number) with across (a whole number).
+Set top to down.
+Set leftedge to across.
+Set width to 4.
+Set seed to item (down times 4 plus across) of merged.
+Set allsame to 1.
+Probe from down with across.
+If allsame is 1, mark from seed, return.
+The lastspot is the last position of isleaf.
+The node is lastspot plus 1.
+Place 0 into isleaf.
+Place 0 into leafvalue.
+Place -1 into kids.
+Place -1 into kids.
+Place -1 into kids.
+Place -1 into kids.
+The middle is 2.
+Square from down with across.
+Set item (node times 4) of kids to made.
+Square from down with across plus middle.
+Set item (node times 4 plus 1) of kids to made.
+Square from down plus middle with across.
+Set item (node times 4 plus 2) of kids to made.
+Square from down plus middle with across plus middle.
+Set item (node times 4 plus 3) of kids to made.
+Set made to node.
+
+Board from 0 with 0.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0.
+The count is 1.
+The line is empty text.
+Place "[" into line.
+Repeat while head is less than count.
+The node is item head of queue.
+If head is more than 0, Place "," into line.
+Place "[" into line.
+Place format whole number item node of isleaf as text into line.
+Place "," into line.
+Place format whole number item node of leafvalue as text into line.
+Place "]" into line.
+If item node of isleaf is 0, Place item (node times 4) of kids into queue, add 1 to count.
+If item node of isleaf is 0, Place item (node times 4 plus 1) of kids into queue, add 1 to count.
+If item node of isleaf is 0, Place item (node times 4 plus 2) of kids into queue, add 1 to count.
+If item node of isleaf is 0, Place item (node times 4 plus 3) of kids into queue, add 1 to count.
+Add 1 to head.
+
+Place "]" into line.
+Show line.

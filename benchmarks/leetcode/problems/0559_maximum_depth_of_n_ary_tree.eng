@@ -1,0 +1,21 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 3 into values.
+Place 2 into values.
+Place 4 into values.
+Place 5 into values.
+Place 6 into values.
+Keep a shared parents as an empty list of whole numbers.
+Place -1 into parents.
+Place 0 into parents.
+Place 0 into parents.
+Place 0 into parents.
+Place 1 into parents.
+Place 1 into parents.
+Keep a shared bestdepth as 0.
+To descend from node (a whole number) with level (a whole number).
+If level is more than bestdepth, set bestdepth to level.
+For every candidate from 0 to 5, if item candidate of parents is node, descend from candidate with level plus 1.
+
+Descend from 0 with 1.
+Show bestdepth.

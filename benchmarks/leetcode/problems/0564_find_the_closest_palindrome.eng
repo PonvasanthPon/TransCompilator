@@ -1,0 +1,61 @@
+Keep a shared source as empty text.
+Place "123" into source.
+Keep a shared sourcevalue as 0.
+Keep a shared length as 0.
+Keep a shared prefix as 0.
+Keep a shared made as 0.
+Keep a shared back as 0.
+Keep a shared best as 0.
+Keep a shared bestgap as 0.
+Keep a shared chosen as 0.
+To peel from value (a whole number).
+If value is 0, return.
+The digit is value modulo 10.
+Set back to back times 10 plus digit.
+Peel from value divided by 10.
+
+To reflect from seed (a whole number) with size (a whole number).
+The local is seed.
+If size modulo 2 is 1, set local to local divided by 10.
+Set back to 0.
+Peel from local.
+The scale is 1.
+The limit is size divided by 2.
+For every step from 1 to limit, set scale to scale times 10.
+Set made to seed times scale plus back.
+
+To score from value (a whole number).
+If value is sourcevalue, return.
+The diff is value minus sourcevalue.
+If diff is less than 0, set diff to 0 minus diff.
+If chosen is 0, set best to value, set bestgap to diff, set chosen to 1, return.
+If diff is less than bestgap, set best to value, set bestgap to diff, return.
+If diff is bestgap and value is less than best, set best to value.
+
+The last is the last position of source.
+Set length to last plus 1.
+The middle is (length plus 1) divided by 2.
+For every spot from 0 to middle minus 1.
+The digit is the digit value of character spot of source.
+Set prefix to prefix times 10 plus digit.
+
+For every spot from 0 to last.
+The digit is the digit value of character spot of source.
+Set sourcevalue to sourcevalue times 10 plus digit.
+
+Reflect from prefix minus 1 with length.
+Score from made.
+Reflect from prefix with length.
+Score from made.
+Reflect from prefix plus 1 with length.
+Score from made.
+The lower is 1.
+For every step from 1 to length minus 1, set lower to lower times 10.
+Subtract 1 from lower.
+Score from lower.
+The upper is 1.
+For every step from 1 to length, set upper to upper times 10.
+Add 1 to upper.
+Score from upper.
+
+Show best.

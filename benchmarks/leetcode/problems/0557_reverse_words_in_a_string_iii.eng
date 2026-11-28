@@ -1,0 +1,21 @@
+The sentence is "Let's take LeetCode contest".
+The last is the last position of sentence.
+Keep a shared word as empty text.
+Keep a shared flipped as empty text.
+The result is empty text.
+To mirror from spot (a whole number).
+If spot is less than 0, return.
+Place character spot of word into flipped.
+Mirror from spot minus 1.
+
+To settle.
+Set flipped to empty text.
+Mirror from the last position of word.
+
+For every spot from 0 to last.
+The piece is character spot of sentence.
+If piece is " ", settle, Place flipped into result, Place " " into result, set word to empty text.
+If piece is not " ", Place piece into word.
+If spot is last, settle, Place flipped into result.
+
+Show result.

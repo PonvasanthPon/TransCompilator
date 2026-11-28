@@ -1,0 +1,36 @@
+The length is 2.
+Keep a shared ways as an empty list of whole numbers.
+Place 0 into ways.
+Place 0 into ways.
+Place 0 into ways.
+Place 0 into ways.
+Place 0 into ways.
+Place 0 into ways.
+Keep a shared fresh as an empty list of whole numbers.
+Place 0 into fresh.
+Place 0 into fresh.
+Place 0 into fresh.
+Place 0 into fresh.
+Place 0 into fresh.
+Place 0 into fresh.
+Set item 0 of ways to 1.
+To spread from state (a whole number).
+The count is item state of ways.
+The absences is state divided by 3.
+The lates is state modulo 3.
+The base is absences times 3.
+The basecount is item base of fresh.
+Set item base of fresh to basecount plus count.
+If lates is less than 2, set item (base plus lates plus 1) of fresh to item (base plus lates plus 1) of fresh plus count.
+If absences is 0, set item 3 of fresh to item 3 of fresh plus count.
+
+For every step from 1 to length.
+For every spot from 0 to 5, set item spot of fresh to 0.
+For every state from 0 to 5, spread from state.
+For every state from 0 to 5, set item state of ways to item state of fresh.
+
+The total is 0.
+For each count in ways.
+Add count to total.
+
+Show total.

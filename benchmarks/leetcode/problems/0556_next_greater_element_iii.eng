@@ -1,0 +1,35 @@
+The value is 12.
+The digits is an empty list of whole numbers.
+Repeat while value is more than 0.
+The digit is value modulo 10.
+Place digit into digits.
+Set value to value divided by 10.
+
+The final is the last position of digits.
+The middle is (final plus 1) divided by 2.
+For every left from 0 to middle minus 1.
+The right is final minus left.
+swap item left of digits and item right of digits.
+
+The pivot is -1.
+For every spot from 0 to final minus 1.
+If item spot of digits is less than item (spot plus 1) of digits, set pivot to spot.
+
+The valid is 0.
+If pivot is at least 0, set valid to 1.
+If pivot is less than 0, set pivot to 0.
+The chosen is pivot plus 1.
+For every spot from pivot plus 1 to final.
+If item spot of digits is more than item pivot of digits, set chosen to spot.
+
+swap item pivot of digits and item chosen of digits.
+The middle is (pivot plus 1 plus final) divided by 2.
+For every left from pivot plus 1 to middle.
+The right is final minus (left minus pivot minus 1).
+If left is less than right, swap item left of digits and item right of digits.
+
+The answer is 0.
+For each digit in digits.
+Set answer to answer times 10 plus digit.
+
+If valid is 1, show answer, otherwise show -1.

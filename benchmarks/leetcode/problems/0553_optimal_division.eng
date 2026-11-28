@@ -1,0 +1,10 @@
+The numbers is a list of 1000, 100, 10, and 2.
+The last is the last position of numbers.
+The result is empty text.
+Place format whole number item 0 of numbers as text into result.
+If last is 1, Place "/" into result, Place format whole number item 1 of numbers as text into result.
+If last is more than 1, Place "/(" into result, Place format whole number item 1 of numbers as text into result.
+For every spot from 2 to last, Place "/" into result, Place format whole number item spot of numbers as text into result.
+If last is more than 1, Place ")" into result.
+
+Show result.
