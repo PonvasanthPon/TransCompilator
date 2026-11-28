@@ -1,0 +1,43 @@
+Keep a shared words as an empty list of text.
+The sentence is "I speak Goat Latin".
+Set words to split sentence by " ".
+Keep a shared first as empty text.
+Keep a shared converted as empty text.
+Keep a shared vowel as 0.
+
+To classify.
+Set vowel to 0.
+If first is "a", set vowel to 1.
+If first is "e", set vowel to 1.
+If first is "i", set vowel to 1.
+If first is "o", set vowel to 1.
+If first is "u", set vowel to 1.
+If first is "A", set vowel to 1.
+If first is "E", set vowel to 1.
+If first is "I", set vowel to 1.
+If first is "O", set vowel to 1.
+If first is "U", set vowel to 1.
+
+To pad from count (a whole number).
+For every step from 0 to count.
+Place "a" into converted.
+
+The answers is an empty list of text.
+The position is 0.
+For every spot from 0 to the last position of words.
+The word is item spot of words.
+Set first to the slice of word from 0 to 1.
+Classify.
+Set converted to empty text.
+The ending is the last position of word.
+The end is ending plus 1.
+The rest is the slice of word from 1 to end.
+If vowel is 1, Place word into converted.
+If vowel is 0, Place rest into converted, Place first into converted.
+Place "ma" into converted.
+Pad from position.
+Place converted into answers.
+Add 1 to position.
+
+The line is join answers with " ".
+Show line.

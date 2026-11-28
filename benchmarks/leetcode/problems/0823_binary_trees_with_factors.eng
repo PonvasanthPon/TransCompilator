@@ -1,0 +1,23 @@
+The numbers is a list of 2, 4, 5, and 10.
+Sort numbers.
+The last is the last position of numbers.
+The ways is an empty list of whole numbers.
+For every spot from 0 to last.
+Place 0 into ways.
+
+For every spot from 0 to last.
+Set item spot of ways to 1.
+For every left from 0 to spot minus 1.
+For every right from left to spot minus 1.
+The product is item left of numbers times item right of numbers.
+If product is item spot of numbers.
+The leftways is item left of ways.
+The rightways is item right of ways.
+If left is right, set item spot of ways to item spot of ways plus leftways times rightways.
+If left is not right, set item spot of ways to item spot of ways plus 2 times leftways times rightways.
+
+The total is 0.
+For each value in ways.
+Add value to total.
+
+Show total.

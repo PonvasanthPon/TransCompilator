@@ -1,0 +1,79 @@
+Keep a shared uppers as empty text.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into uppers.
+Keep a shared lowers as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into lowers.
+Keep a shared source as empty text.
+Place "Bob hit a ball, the hit BALL flew far after it was hit." into source.
+Keep a shared target as empty text.
+Keep a shared lowered as empty text.
+Keep a shared found as 0.
+Keep a shared place as 0.
+Keep a shared targetword as empty text.
+Keep a shared banned as an empty list of text.
+Place "hit" into banned.
+Keep a shared forbid as 0.
+Keep a shared counts as an empty list of whole numbers.
+
+To seek from spot (a whole number).
+If spot is more than 25, return.
+The piece is the slice of uppers from spot to spot plus 1.
+If piece matches target, set found to spot, return.
+Seek from spot plus 1.
+
+To soften from spot (a whole number).
+The symbol is character spot of source.
+Set lowered to the slice of source from spot to spot plus 1.
+The capital is 0.
+If symbol is between "A" and "Z", set capital to 1.
+Set found to 0.
+If capital is 1, set target to the slice of source from spot to spot plus 1.
+If capital is 1, seek from 0.
+If capital is 1, The small is the slice of lowers from found to found plus 1, Set lowered to small.
+
+To forbid.
+Set forbid to 0.
+For every spot from 0 to the last position of banned.
+If item spot of banned matches targetword, set forbid to 1.
+
+To raise from spot (a whole number).
+Set item spot of counts to item spot of counts plus 1.
+
+To locate.
+Set place to -1.
+For every spot from 0 to the last position of seen.
+If item spot of seen matches targetword, set place to spot.
+
+The last is the last position of source.
+The normalized is empty text.
+For every spot from 0 to last.
+Soften from spot.
+Place lowered into normalized.
+
+The washed is a copy of normalized.
+The washedlast is the last position of washed.
+The words is an empty list of text.
+The current is empty text.
+For every spot from 0 to washedlast.
+The symbol is character spot of washed.
+The letter is 0.
+If symbol is between "a" and "z", set letter to 1.
+If letter is 1, Place symbol into current.
+If letter is 0 and the length of current is more than 0, The copy is a copy of current, Place copy into words, Set current to empty text.
+
+If the length of current is more than 0, The tail is a copy of current, Place tail into words.
+Keep a shared seen as an empty list of text.
+For each word in words.
+Set targetword to word.
+Forbid.
+If forbid is 1, skip to the next one.
+Locate.
+The slot is place.
+If place is less than 0, The fresh is a copy of word, Place fresh into seen, Place 1 into counts.
+If place is at least 0, raise from slot.
+
+The best is 0.
+The answer is empty text.
+For every spot from 0 to the last position of counts.
+If item spot of counts is more than best, set best to item spot of counts, set answer to item spot of seen.
+
+Show answer.

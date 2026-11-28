@@ -1,0 +1,16 @@
+The ages is a list of 20, 30, 100, 110, and 120.
+Keep a shared good as 0.
+
+To test from older (a whole number) with younger (a whole number).
+Set good to 0.
+The lowerbound is older divided by 2 plus 7.
+If younger is more than lowerbound and younger is at most older and younger is at most 100, set good to 1.
+If younger is more than lowerbound and younger is at most older and older is at least 100, set good to 1.
+
+The total is 0.
+For every first from 0 to the last position of ages.
+For every second from 0 to the last position of ages.
+Test from item first of ages with item second of ages.
+If first is not second and good is 1, add 1 to total.
+
+Show total.

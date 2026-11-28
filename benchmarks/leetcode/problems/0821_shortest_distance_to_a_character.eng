@@ -1,0 +1,22 @@
+The source is "loveleetcode".
+The target is "e".
+The last is the last position of source.
+The distances is an empty list of whole numbers.
+For every spot from 0 to last.
+Place 1000 into distances.
+
+The nearest is 1000.
+For every spot from 0 to last.
+The symbol is character spot of source.
+If symbol is "e", set nearest to 0, otherwise add 1 to nearest.
+Set item spot of distances to nearest.
+
+Set nearest to 1000.
+For every step from 0 to last.
+The spot is last minus step.
+The symbol is character spot of source.
+If symbol is "e", set nearest to 0, otherwise add 1 to nearest.
+If nearest is less than item spot of distances, set item spot of distances to nearest.
+
+For each value in distances.
+Show value.

@@ -1,0 +1,43 @@
+Keep a shared words as an empty list of text.
+Place "time" into words.
+Place "me" into words.
+Place "bell" into words.
+Keep a shared covered as 0.
+Keep a shared measured as 0.
+Keep a shared total as 0.
+
+To measure from spot (a whole number).
+Set measured to 0.
+The word is item spot of words.
+For every place from 0 to the last position of word.
+Add 1 to measured.
+
+To suffix from other (a whole number) with spot (a whole number).
+The word is item other of words.
+Measure from other.
+The wordsize is measured.
+Measure from spot.
+The heresize is measured.
+The start is wordsize minus heresize.
+The tail is the slice of word from start to wordsize.
+If tail matches item spot of words, set covered to 1.
+
+To cover from spot (a whole number).
+Set covered to 0.
+Measure from spot.
+The heresize is measured.
+For every other from 0 to the last position of words.
+Measure from other.
+The othersize is measured.
+If other is not spot and othersize is more than heresize, suffix from other with spot.
+
+To extend from spot (a whole number).
+Measure from spot.
+The size is measured.
+Add size plus 1 to total.
+
+For every spot from 0 to the last position of words.
+Cover from spot.
+If covered is 0, extend from spot.
+
+Show total.

@@ -1,0 +1,51 @@
+Keep a shared stops as an empty list of whole numbers.
+Place 1 into stops.
+Place 2 into stops.
+Place 7 into stops.
+Place 3 into stops.
+Place 6 into stops.
+Place 7 into stops.
+Keep a shared begins as an empty list of whole numbers.
+Place 0 into begins.
+Place 3 into begins.
+Keep a shared finishes as an empty list of whole numbers.
+Place 2 into finishes.
+Place 5 into finishes.
+Keep a shared links as an empty list of whole numbers.
+For every spot from 0 to 63.
+Place 0 into links.
+
+To connect from first (a whole number) with second (a whole number).
+Set item (first times 8 plus second) of links to 1.
+Set item (second times 8 plus first) of links to 1.
+
+To weave from route (a whole number).
+The start is item route of begins.
+The finish is item route of finishes.
+For every first from start to finish.
+For every second from start to finish.
+The leftstop is item first of stops.
+The rightstop is item second of stops.
+Connect from leftstop with rightstop.
+
+For every route from 0 to 1.
+Weave from route.
+
+The visited is a list of 8 zeros.
+The distances is a list of 8 zeros.
+The queue is an empty list of whole numbers.
+Place 1 into queue.
+Set item 1 of visited to 1.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+For every other from 0 to 7.
+If item (node times 8 plus other) of links is 1 and item other of visited is 0.
+Set item other of visited to 1.
+Set item other of distances to item node of distances plus 1.
+Place other into queue.
+Add 1 to count.
+
+Show item 6 of distances.

@@ -1,0 +1,17 @@
+The fronts is a list of 1, 2, 4, 4, and 7.
+The backs is a list of 1, 3, 4, 1, and 3.
+The last is the last position of fronts.
+The present is a list of 8 zeros.
+The blocked is a list of 8 zeros.
+For every spot from 0 to last.
+The front is item spot of fronts.
+The back is item spot of backs.
+Set item front of present to 1.
+Set item back of present to 1.
+If front is back, set item front of blocked to 1.
+
+The best is 100.
+For every value from 0 to 7.
+If item value of present is 1 and item value of blocked is 0 and value is less than best, set best to value.
+
+If best is 100, show 0, otherwise show best.

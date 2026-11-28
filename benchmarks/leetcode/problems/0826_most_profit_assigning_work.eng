@@ -1,0 +1,26 @@
+Keep a shared difficulty as an empty list of whole numbers.
+Place 2 into difficulty.
+Place 4 into difficulty.
+Place 6 into difficulty.
+Place 8 into difficulty.
+Place 10 into difficulty.
+Keep a shared profit as an empty list of whole numbers.
+Place 10 into profit.
+Place 20 into profit.
+Place 30 into profit.
+Place 40 into profit.
+Place 50 into profit.
+The workers is a list of 4, 5, 6, and 7.
+Keep a shared best as 0.
+
+To score from ability (a whole number).
+Set best to 0.
+For every job from 0 to the last position of difficulty.
+If item job of difficulty is at most ability and item job of profit is more than best, set best to item job of profit.
+
+The total is 0.
+For each worker in workers.
+Score from worker.
+Add best to total.
+
+Show total.

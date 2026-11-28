@@ -1,0 +1,60 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 0 into values.
+Place 0 into values.
+Place 1 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place -1 into lefts.
+Place 2 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 1 into rights.
+Place 3 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared alive as an empty list of whole numbers.
+Place 0 into alive.
+Place 0 into alive.
+Place 0 into alive.
+Place 0 into alive.
+Keep a shared kept as an empty list of whole numbers.
+Place 1 into kept.
+Place 1 into kept.
+Place 1 into kept.
+Place 1 into kept.
+
+To trim from node (a whole number).
+If node is less than 0, return.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, trim from left.
+If right is at least 0, trim from right.
+The present is item node of values.
+If left is at least 0 and item left of alive is 1, set present to 1.
+If right is at least 0 and item right of alive is 1, set present to 1.
+Set item node of alive to present.
+If present is 0, set item node of kept to 0.
+If left is at least 0 and item left of alive is 0, set item node of lefts to -1.
+If right is at least 0 and item right of alive is 0, set item node of rights to -1.
+
+Trim from 0.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0.
+The count is 1.
+The pieces is an empty list of text.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+If node is less than 0, Place "null" into pieces.
+If node is at least 0, The piece is format whole number item node of values as text, Place piece into pieces.
+If node is at least 0 and item node of kept is 1, Place item node of lefts into queue, Place item node of rights into queue, add 2 to count.
+
+Repeat while the last position of pieces is at least 0.
+The tail is the last position of pieces.
+The tailpiece is item tail of pieces.
+If tailpiece matches "null", remove the last item from pieces, otherwise stop.
+
+The line is join pieces with ",".
+Display line.

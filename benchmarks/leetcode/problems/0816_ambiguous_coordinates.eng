@@ -1,0 +1,70 @@
+Keep a shared content as empty text.
+Place "123" into content.
+Keep a shared lefts as an empty list of text.
+Keep a shared rights as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared side as 0.
+
+To resetleft.
+Repeat while the number of items in lefts is more than 0.
+Remove the last item from lefts.
+
+To resetright.
+Repeat while the number of items in rights is more than 0.
+Remove the last item from rights.
+
+To examine from start (a whole number) with finish (a whole number).
+The firstsymbol is the slice of content from start to start plus 1.
+The lastsymbol is the slice of content from finish minus 1 to finish.
+The chosen is empty text.
+The plain is 1.
+The leadzero is 0.
+If firstsymbol is "0", set leadzero to 1.
+The longpart is 0.
+If finish minus start is more than 1, set longpart to 1.
+The invalid is 0.
+If leadzero is 1 and longpart is 1, set invalid to 1.
+If invalid is 1, set plain to 0.
+If plain is 1, set chosen to the slice of content from start to finish.
+If plain is 1 and side is 0, Place chosen into lefts.
+If plain is 1 and side is 1, Place chosen into rights.
+For every dot from start plus 1 to finish minus 1.
+The lead is the slice of content from start to dot.
+The firstpart is the slice of content from start to start plus 1.
+The fraction is the slice of content from dot to finish.
+The decimal is 1.
+The innerzero is 0.
+If firstpart is "0", set innerzero to 1.
+The innerlong is 0.
+If dot minus start is more than 1, set innerlong to 1.
+The innerbad is 0.
+If innerzero is 1 and innerlong is 1, set innerbad to 1.
+If innerbad is 1, set decimal to 0.
+If lastsymbol is "0", set decimal to 0.
+Set chosen to empty text.
+Place lead into chosen.
+Place "." into chosen.
+Place fraction into chosen.
+If decimal is 1 and side is 0, Place chosen into lefts.
+If decimal is 1 and side is 1, Place chosen into rights.
+
+The last is the last position of content.
+For every cut from 1 to last.
+Resetleft.
+Set side to 0.
+Examine from 0 with cut.
+Resetright.
+Set side to 1.
+Examine from cut with last plus 1.
+For each left in lefts.
+For each right in rights.
+The coordinate is empty text.
+Place "(" into coordinate.
+Place left into coordinate.
+Place ", " into coordinate.
+Place right into coordinate.
+Place ")" into coordinate.
+Place coordinate into answers.
+
+For each answer in answers.
+Show answer.

@@ -1,0 +1,45 @@
+Keep a shared powers as an empty list of whole numbers.
+Place 1 into powers.
+Place 2 into powers.
+Place 4 into powers.
+Place 8 into powers.
+Place 16 into powers.
+Place 32 into powers.
+Place 64 into powers.
+Place 128 into powers.
+Keep a shared exponent as 0.
+The target is 3.
+Keep a shared ways as an empty list of whole numbers.
+For every spot from 0 to target.
+Place 0 into ways.
+
+To seek from value (a whole number).
+Set exponent to 0.
+For every place from 0 to 7.
+If item place of powers is at most value, set exponent to place.
+
+To improve from step (a whole number) with power (a whole number).
+The base is item power of powers.
+The won is item (base minus 1) of ways.
+The start is base minus 1.
+For every shorter from 0 to power minus 1.
+The offset is step minus start.
+The addon is item shorter of powers.
+The landing is offset plus addon minus 1.
+The back is item landing of ways.
+The candidate is won plus 1 plus shorter plus 1 plus back.
+If candidate is less than item step of ways, set item step of ways to candidate.
+
+Set item 0 of ways to 0.
+For every step from 1 to target.
+Seek from step.
+The power is exponent.
+The base is item power of powers.
+The high is item (power plus 1) of powers.
+The top is high minus 1.
+The won is item (base minus 1) of ways.
+If step is top, set item step of ways to power plus 1.
+If step is not top, set item step of ways to won plus 1 plus 1 plus item (top minus step) of ways.
+If power is more than 0, improve from step with power.
+
+Show item target of ways.

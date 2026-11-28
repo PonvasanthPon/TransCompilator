@@ -1,0 +1,12 @@
+The chain is a list of 0, 1, 2, and 3.
+The wanted is a list of 0, 1, and 3.
+The last is the last position of chain.
+The total is 0.
+The inside is 0.
+For every spot from 0 to last.
+The value is item spot of chain.
+The prior is inside.
+If wanted contains value and prior is 0, add 1 to total.
+If wanted contains value, set inside to 1, otherwise set inside to 0.
+
+Show total.
