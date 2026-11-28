@@ -1,0 +1,38 @@
+Keep a shared source as empty text.
+Keep a shared smalls as empty text.
+Keep a shared bigs as empty text.
+Keep a shared cleaned as an empty list of text.
+Keep a shared mapped as empty text.
+To seek from spot (a whole number).
+If spot is more than 25, return.
+The piece is the slice of smalls from spot to spot plus 1.
+If piece matches mapped, set mapped to the slice of bigs from spot to spot plus 1, return.
+Seek from spot plus 1.
+
+To convert from spot (a whole number).
+If spot is more than the last position of source, return.
+The piece is the slice of source from spot to spot plus 1.
+Set mapped to piece.
+If piece does not match "-", seek from 0.
+If piece does not match "-", Place mapped into cleaned.
+Convert from spot plus 1.
+
+Place "5F3Z-2e-9-w" into source.
+Place "abcdefghijklmnopqrstuvwxyz" into smalls.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into bigs.
+Convert from 0.
+The width is 4.
+The size is one more than the last position of cleaned.
+The firstsize is size modulo width.
+The limit is width.
+If firstsize is more than 0, set limit to firstsize.
+The formatted is an empty list of text.
+The used is 0.
+The final is the last position of cleaned.
+For every spot from 0 to final.
+If used is limit and used is more than 0, Place "-" into formatted, set used to 0, set limit to width.
+Place item spot of cleaned into formatted.
+Add 1 to used.
+
+The result is join formatted with "".
+Show result.

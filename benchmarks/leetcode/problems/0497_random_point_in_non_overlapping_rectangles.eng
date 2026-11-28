@@ -1,0 +1,46 @@
+The rects is a list of -2, -2, -1, -1, 1, 0, 3, and 0.
+The count is 2.
+The total is 0.
+For every spot from 0 to count minus 1.
+The base is spot times 4.
+The xlow is item base of rects.
+The ylow is item (base plus 1) of rects.
+The xhigh is item (base plus 2) of rects.
+The yhigh is item (base plus 3) of rects.
+The width is xhigh minus xlow plus 1.
+The height is yhigh minus ylow plus 1.
+Add width times height to total.
+
+The seed is 777.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+The pick is seed modulo total.
+The chosen is -1.
+The running is 0.
+For every spot from 0 to count minus 1.
+The base is spot times 4.
+The xlow is item base of rects.
+The ylow is item (base plus 1) of rects.
+The xhigh is item (base plus 2) of rects.
+The yhigh is item (base plus 3) of rects.
+The width is xhigh minus xlow plus 1.
+The height is yhigh minus ylow plus 1.
+The area is width times height.
+If chosen is -1 and pick is less than running plus area, set chosen to spot.
+Add area to running.
+
+The base is chosen times 4.
+The xlow is item base of rects.
+The ylow is item (base plus 1) of rects.
+The xhigh is item (base plus 2) of rects.
+The yhigh is item (base plus 3) of rects.
+The width is xhigh minus xlow plus 1.
+The height is yhigh minus ylow plus 1.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+The east is xlow plus seed modulo width.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+The north is ylow plus seed modulo height.
+Show east.
+Show north.

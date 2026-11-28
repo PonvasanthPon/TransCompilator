@@ -1,0 +1,7 @@
+The value is 5.
+The mask is 1.
+Repeat while mask is at most value.
+Set mask to mask times 2.
+
+The flipped is mask minus 1 minus value.
+Show flipped.

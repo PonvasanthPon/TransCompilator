@@ -1,0 +1,20 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 1 into numbers.
+Place 1 into numbers.
+Place 1 into numbers.
+Place 1 into numbers.
+Keep a shared ways as 0.
+Keep a shared aim as 0.
+Set aim to 3.
+To score with total (a whole number).
+If total is aim, add 1 to ways.
+
+To branch from spot (a whole number) with total (a whole number).
+If spot is at least 5, score with total, return.
+The amount is item spot of numbers.
+Branch from spot plus 1 with total plus amount.
+Branch from spot plus 1 with total minus amount.
+
+Branch from 0 with 0.
+Show ways.

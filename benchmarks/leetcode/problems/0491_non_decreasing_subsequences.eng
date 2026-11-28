@@ -1,0 +1,33 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 4 into numbers.
+Place 6 into numbers.
+Place 7 into numbers.
+Place 7 into numbers.
+Keep a shared seen as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared current as an empty list of whole numbers.
+Keep a shared keyparts as an empty list of text.
+Keep a shared key as empty text.
+Keep a shared count as 0.
+Keep a shared found as 0.
+To look from spot (a whole number).
+If spot is more than the last position of seen, return.
+If item spot of seen matches key, set found to 1, return.
+Look from spot plus 1.
+
+To emit.
+If count is less than 2, return.
+Set key to join keyparts with ",".
+Set found to 0.
+Look from 0.
+If found is 0, Place key into seen, Place key into answers.
+
+To grow from spot (a whole number) with last (a whole number).
+If spot is more than 3, emit, return.
+The amount is item spot of numbers.
+The piece is format whole number amount as text.
+If amount is at least last, Place amount into current, Place piece into keyparts, add 1 to count, Grow from spot plus 1 with amount, remove the last item from current, remove the last item from keyparts, subtract 1 from count.
+Grow from spot plus 1 with last.
+
+Grow from 0 with -100.
+For each line in answers, show line.

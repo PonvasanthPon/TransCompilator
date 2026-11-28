@@ -1,0 +1,13 @@
+The moments is a list of 1, 4.
+The span is 2.
+The last is the last position of moments.
+The total is 0.
+For every spot from 0 to last.
+The here is item spot of moments.
+The total is total plus span.
+If spot is less than last.
+The next is item (spot plus 1) of moments.
+The covered is next minus here.
+If covered is less than span, subtract span from total, add covered to total.
+
+Show total.

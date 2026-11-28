@@ -1,0 +1,8 @@
+The numbers is a list of 1, 3, 2, 3, 1.
+The last is the last position of numbers.
+The count is 0.
+For every first from 0 to last.
+For every second from first plus 1 to last.
+If item first of numbers is more than 2 times item second of numbers, add 1 to count.
+
+Show count.

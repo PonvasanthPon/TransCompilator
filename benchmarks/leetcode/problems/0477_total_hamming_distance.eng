@@ -1,0 +1,19 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 4 into numbers.
+Place 14 into numbers.
+Place 2 into numbers.
+Keep a shared total as 0.
+Keep a shared mixed as 0.
+To score with first (a whole number) with second (a whole number).
+Set mixed to exclusive or of item first of numbers and item second of numbers.
+Repeat while mixed is more than 0.
+The low is bitwise and of mixed and 1.
+If low is 1, add 1 to total.
+Set mixed to shift mixed right by 1.
+
+The last is the last position of numbers.
+For every first from 0 to last.
+For every second from first plus 1 to last.
+Score with first with second.
+
+Show total.

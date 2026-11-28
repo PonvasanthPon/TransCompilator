@@ -1,0 +1,62 @@
+Keep a shared words as an empty list of text.
+Place "Hello" into words.
+Place "Alaska" into words.
+Place "Dad" into words.
+Place "Peace" into words.
+Keep a shared bigs as empty text.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into bigs.
+Keep a shared smalls as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into smalls.
+Keep a shared rowone as empty text.
+Place "qwertyuiop" into rowone.
+Keep a shared rowtwo as empty text.
+Place "asdfghjkl" into rowtwo.
+Keep a shared rowthree as empty text.
+Place "zxcvbnm" into rowthree.
+Keep a shared current as empty text.
+Keep a shared lowered as empty text.
+Keep a shared chosen as 0.
+Keep a shared label as 0.
+Keep a shared bench as empty text.
+Keep a shared word as empty text.
+Keep a shared firstrow as 0.
+Keep a shared fail as 0.
+Keep a shared answers as an empty list of text.
+To lower from spot (a whole number).
+If spot is more than 25, return.
+The bigpiece is the slice of bigs from spot to spot plus 1.
+The smallpiece is the slice of smalls from spot to spot plus 1.
+If bigpiece matches current, set lowered to smallpiece, return.
+If smallpiece matches current, set lowered to current, return.
+Lower from spot plus 1.
+
+To rowcheck from spot (a whole number).
+If spot is more than the last position of bench, return.
+The piece is the slice of bench from spot to spot plus 1.
+If piece matches lowered, set chosen to label, return.
+Rowcheck from spot plus 1.
+
+For each entry in words.
+Set word to entry.
+The lastchar is the last position of word.
+Set firstrow to 0.
+Set fail to 0.
+For every place from 0 to lastchar.
+Set current to the slice of word from place to place plus 1.
+Set lowered to current.
+Lower from 0.
+Set chosen to 0.
+Set bench to rowone.
+Set label to 1.
+Rowcheck from 0.
+If chosen is 0, set bench to rowtwo.
+If chosen is 0, set label to 2.
+If chosen is 0, rowcheck from 0.
+If chosen is 0, set bench to rowthree.
+If chosen is 0, set label to 3.
+If chosen is 0, rowcheck from 0.
+If firstrow is 0, set firstrow to chosen.
+If chosen is not firstrow, set fail to 1.
+If place is lastchar and fail is 0, Place word into answers.
+
+For each line in answers, show line.

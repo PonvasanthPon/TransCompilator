@@ -1,0 +1,34 @@
+Keep a shared matrix as an empty list of whole numbers.
+Place 1 into matrix.
+Place 2 into matrix.
+Place 3 into matrix.
+Place 4 into matrix.
+Place 5 into matrix.
+Place 6 into matrix.
+Place 7 into matrix.
+Place 8 into matrix.
+Place 9 into matrix.
+Keep a shared starts as an empty list of whole numbers.
+Place 0 into starts.
+Place 0 into starts.
+Place 2 into starts.
+Place 1 into starts.
+Place 2 into starts.
+Keep a shared order as an empty list of whole numbers.
+Keep a shared rising as 0.
+To seek from band (a whole number) with column (a whole number).
+If band is less than 0, return.
+If band is more than 2, return.
+If column is less than 0, return.
+If column is more than 2, return.
+Place item (band times 3 plus column) of matrix into order.
+If rising is 1, seek from band minus 1 with column plus 1.
+If rising is 0, seek from band plus 1 with column minus 1.
+
+For every diagonal from 0 to 4.
+The band is item diagonal of starts.
+The column is diagonal minus band.
+Set rising to 1 minus diagonal modulo 2.
+Seek from band with column.
+
+For each value in order, show value.

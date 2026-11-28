@@ -1,0 +1,24 @@
+Keep a shared second as an empty list of whole numbers.
+Place 1 into second.
+Place 3 into second.
+Place 4 into second.
+Place 2 into second.
+Keep a shared atspot as 0.
+Keep a shared greater as 0.
+To locate from spot (a whole number) with value (a whole number).
+If spot is more than the last position of second, return.
+If item spot of second is value, set atspot to spot, return.
+Locate from spot plus 1 with value.
+
+To advance from spot (a whole number) with value (a whole number).
+If spot is more than the last position of second, return.
+If item spot of second is more than value, set greater to item spot of second, return.
+Advance from spot plus 1 with value.
+
+The first is a list of 4, 1, 2.
+For each value in first.
+Set atspot to -1.
+Set greater to -1.
+Locate from 0 with value.
+If atspot is at least 0, advance from atspot plus 1 with value.
+Show greater.

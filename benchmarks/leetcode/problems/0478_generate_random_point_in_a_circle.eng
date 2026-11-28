@@ -1,0 +1,48 @@
+The seed is 2026.
+The east is 0.
+The north is 0.
+The accepted is 0.
+Repeat while accepted is 0.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+Set east to seed modulo 200001 minus 100000.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+Set north to seed modulo 200001 minus 100000.
+The reach is east times east plus north times north.
+If reach is at most 10000000000, set accepted to 1.
+
+The eastparts is an empty list of text.
+The eastsize is the absolute value of east.
+The eastwhole is eastsize divided by 100000.
+The eastfraction is eastsize modulo 100000.
+If east is less than 0, Place "-" into eastparts.
+The easthead is format whole number eastwhole as text.
+Place easthead into eastparts.
+Place "." into eastparts.
+The divisor is 10000.
+For every digit from 0 to 4.
+The part is eastfraction divided by divisor modulo 10.
+The parttext is format whole number part as text.
+Place parttext into eastparts.
+Set divisor to divisor divided by 10.
+
+The easttext is join eastparts with "".
+The northparts is an empty list of text.
+The northsize is the absolute value of north.
+The northwhole is northsize divided by 100000.
+The northfraction is northsize modulo 100000.
+If north is less than 0, Place "-" into northparts.
+The northhead is format whole number northwhole as text.
+Place northhead into northparts.
+Place "." into northparts.
+Set divisor to 10000.
+For every digit from 0 to 4.
+The part is northfraction divided by divisor modulo 10.
+The parttext is format whole number part as text.
+Place parttext into northparts.
+Set divisor to divisor divided by 10.
+
+The northtext is join northparts with "".
+Show easttext.
+Show northtext.

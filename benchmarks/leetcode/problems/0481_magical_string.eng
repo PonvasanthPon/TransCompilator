@@ -1,0 +1,19 @@
+The count is 6.
+The sequence is an empty list of whole numbers.
+Place 1 into sequence.
+Place 2 into sequence.
+Place 2 into sequence.
+The size is 3.
+The spot is 2.
+The value is 1.
+Repeat while size is less than count.
+The run is item spot of sequence.
+For every step from 1 to run, Place value into sequence, add 1 to size.
+If value is 1, set value to 2, otherwise set value to 1.
+Add 1 to spot.
+
+The ones is 0.
+For every place from 0 to count minus 1.
+If item place of sequence is 1, add 1 to ones.
+
+Show ones.

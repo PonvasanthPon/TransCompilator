@@ -1,0 +1,16 @@
+Keep a shared goal as 0.
+Keep a shared answer as 0.
+Set goal to 13.
+To test with base (a whole number).
+The total is 1.
+The term is 1.
+Repeat while term is less than goal.
+Set term to term times base.
+If total plus term is at most goal, add term to total.
+If term is at least goal and total is goal and answer is 0, set answer to base.
+
+For every base from 2 to goal minus 1.
+Test with base.
+
+The result is format whole number answer as text.
+Show result.

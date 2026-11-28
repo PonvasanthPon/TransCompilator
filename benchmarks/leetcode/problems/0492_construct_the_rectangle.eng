@@ -1,0 +1,10 @@
+The area is 4.
+The best is 1.
+For every width from 1 to area.
+If area modulo width is 0.
+The height is area divided by width.
+If width is at most height and width is more than best, set best to width.
+
+The other is area divided by best.
+Show best.
+Show other.

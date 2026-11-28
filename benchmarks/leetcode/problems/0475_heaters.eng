@@ -1,0 +1,18 @@
+Keep a shared heaters as an empty list of whole numbers.
+Place 2 into heaters.
+Keep a shared nearest as 0.
+Keep a shared gap as 0.
+To score with house (a whole number).
+Set nearest to 1000000.
+For each heater in heaters.
+Set gap to house minus heater.
+Set gap to the absolute value of gap.
+If gap is less than nearest, set nearest to gap.
+
+The houses is a list of 1, 2, 3.
+The far is 0.
+For each house in houses.
+Score with house.
+If nearest is more than far, set far to nearest.
+
+Show far.

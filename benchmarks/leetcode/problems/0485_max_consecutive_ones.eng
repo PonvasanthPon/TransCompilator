@@ -1,0 +1,8 @@
+The numbers is a list of 1, 1, 0, 1, 1, 1.
+The best is 0.
+The run is 0.
+For each value in numbers.
+If value is 1, add 1 to run, otherwise set run to 0.
+If run is more than best, set best to run.
+
+Show best.

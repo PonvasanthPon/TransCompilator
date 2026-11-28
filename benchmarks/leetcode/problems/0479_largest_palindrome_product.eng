@@ -1,0 +1,19 @@
+Keep a shared best as 0.
+To check with product (a whole number).
+The rest is product.
+The reversed is 0.
+Repeat while rest is more than 0.
+The digit is rest modulo 10.
+Set reversed to reversed times 10 plus digit.
+Set rest to rest divided by 10.
+If rest is 0 and reversed is product and product is more than best, set best to product.
+
+The low is 10.
+The high is 99.
+For every first from low to high.
+For every second from first to high.
+The product is first times second.
+Check with product.
+
+The answer is best modulo 1337.
+Show answer.
