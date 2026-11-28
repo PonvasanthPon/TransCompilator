@@ -1,0 +1,17 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 2 into numbers.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 2 into numbers.
+Keep a shared occurrences as 0.
+Keep a shared lastindex as 0.
+Set lastindex to 3.
+To count from spot (a whole number) with target (a whole number).
+If spot is more than lastindex, return.
+If item spot of numbers is target, add 1 to occurrences.
+Count from spot plus 1 with target.
+
+For each candidate in numbers.
+Set occurrences to 0.
+Count from 0 with candidate.
+If occurrences is 1, show candidate.

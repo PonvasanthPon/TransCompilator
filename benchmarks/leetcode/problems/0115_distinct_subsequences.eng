@@ -1,0 +1,20 @@
+Keep a shared source as empty text.
+Keep a shared target as empty text.
+Keep a shared dp as an empty list of whole numbers.
+Place "rabbbit" into source.
+Place "rabbit" into target.
+The targetsize is 6.
+For every spot from 0 to 6.
+Place 0 into dp.
+
+Set item 0 of dp to 1.
+To scan from spot (a whole number) with symbol (a whole number).
+If spot is less than 1, return.
+If character (spot minus 1) of target is symbol, set item spot of dp to item spot of dp plus item (spot minus 1) of dp.
+Scan from spot minus 1 with symbol.
+
+The last is the last position of source.
+For every position from 0 to last.
+Scan from targetsize with character position of source.
+
+Show item targetsize of dp.

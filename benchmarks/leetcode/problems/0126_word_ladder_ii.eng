@@ -1,0 +1,63 @@
+Keep a shared words as an empty list of text.
+Place "hit" into words.
+Place "hot" into words.
+Place "dot" into words.
+Place "dog" into words.
+Place "lot" into words.
+Place "log" into words.
+Place "cog" into words.
+Keep a shared firstword as empty text.
+Keep a shared secondword as empty text.
+Keep a shared apart as 0.
+Keep a shared used as an empty list of whole numbers.
+Keep a shared path as an empty list of whole numbers.
+Keep a shared answers as an empty list of text.
+Keep a shared line as empty text.
+Keep a shared depth as 0.
+For every spot from 0 to 6.
+Place 0 into used.
+
+To compare from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If character spot of firstword is not character spot of secondword, add 1 to apart.
+Compare from spot plus 1 with last.
+
+To render from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If spot is more than 0, Place " " into line.
+The node is item spot of path.
+Place item node of words into line.
+Render from spot plus 1 with last.
+
+To store path.
+Set line to empty text.
+The lastpath is the last position of path.
+Render from 0 with lastpath.
+The copy is a copy of line.
+Place copy into answers.
+
+To extend from current (a whole number) with candidate (a whole number).
+Set item candidate of used to 1.
+Place candidate into path.
+Add 1 to depth.
+If candidate is 6 and depth is 4, store path.
+If candidate is not 6 and depth is less than 4, walk from candidate with 0.
+Subtract 1 from depth.
+Remove the last item from path.
+Set item candidate of used to 0.
+
+To walk from current (a whole number) with candidate (a whole number).
+If depth is 4, return.
+If candidate is more than 6, return.
+If item candidate of used is 1, walk from current with candidate plus 1, return.
+Set firstword to item current of words.
+Set secondword to item candidate of words.
+Set apart to 0.
+Compare from 0 with 2.
+If apart is 1, extend from current with candidate.
+Walk from current with candidate plus 1.
+
+Set item 0 of used to 1.
+Place 0 into path.
+Walk from 0 with 0.
+For each answer in answers, show answer.

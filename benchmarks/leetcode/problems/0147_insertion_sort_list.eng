@@ -1,0 +1,17 @@
+Keep a shared values as an empty list of whole numbers.
+Place 4 into values.
+Place 2 into values.
+Place 1 into values.
+Place 3 into values.
+To shift from spot (a whole number) with key (a whole number).
+If spot is less than 0, set item 0 of values to key, return.
+If item spot of values is at most key, set item (spot plus 1) of values to key, return.
+Set item (spot plus 1) of values to item spot of values.
+Shift from spot minus 1 with key.
+
+The last is 3.
+For every spot from 1 to last.
+The key is item spot of values.
+Shift from spot minus 1 with key.
+
+For each value in values, show value.

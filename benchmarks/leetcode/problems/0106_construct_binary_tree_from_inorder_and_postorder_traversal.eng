@@ -1,0 +1,53 @@
+Keep a shared inorder as an empty list of whole numbers.
+Place 9 into inorder.
+Place 3 into inorder.
+Place 15 into inorder.
+Place 20 into inorder.
+Place 7 into inorder.
+Keep a shared postorder as an empty list of whole numbers.
+Place 9 into postorder.
+Place 15 into postorder.
+Place 7 into postorder.
+Place 20 into postorder.
+Place 3 into postorder.
+Keep a shared values as an empty list of whole numbers.
+Keep a shared lefts as an empty list of whole numbers.
+Keep a shared rights as an empty list of whole numbers.
+Keep a shared postindex as 0.
+Keep a shared index as 0.
+Keep a shared parent as 0.
+Set parent to -1.
+Keep a shared side as 0.
+To attach from instart (a whole number) with inend (a whole number).
+If instart is more than inend, return.
+The current is postindex.
+The root is item current of postorder.
+Subtract 1 from postindex.
+The slot is index.
+Add 1 to index.
+Place root into values.
+Place -1 into lefts.
+Place -1 into rights.
+The anchor is parent.
+If anchor is at least 0 and side is 0, set item anchor of lefts to slot.
+If anchor is at least 0 and side is 1, set item anchor of rights to slot.
+The split is instart.
+For every spot from instart to inend, if item spot of inorder is root, set split to spot.
+Set parent to slot.
+Set side to 1.
+Attach from split plus 1 with inend.
+Set parent to slot.
+Set side to 0.
+Attach from instart with split minus 1.
+
+Set postindex to 4.
+Attach from 0 with 4.
+Keep a shared order as an empty list of whole numbers.
+To gather from node (a whole number).
+If node is less than 0, return.
+Place node into order.
+Gather from item node of lefts.
+Gather from item node of rights.
+
+Gather from 0.
+For each node in order, show item node of values.

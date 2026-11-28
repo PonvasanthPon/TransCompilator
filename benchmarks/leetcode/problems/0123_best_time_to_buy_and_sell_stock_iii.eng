@@ -1,0 +1,18 @@
+The prices is a list of 3, 3, 5, 0, 0, 3, 1, and 4.
+The last is the last position of prices.
+The firstbuy is -1000000.
+The firstsell is 0.
+The secondbuy is -1000000.
+The secondsell is 0.
+For every spot from 0 to last.
+The price is item spot of prices.
+The trial is 0 minus price.
+If trial is more than firstbuy, set firstbuy to trial.
+The trial is firstbuy plus price.
+If trial is more than firstsell, set firstsell to trial.
+The trial is firstsell minus price.
+If trial is more than secondbuy, set secondbuy to trial.
+The trial is secondbuy plus price.
+If trial is more than secondsell, set secondsell to trial.
+
+Show secondsell.

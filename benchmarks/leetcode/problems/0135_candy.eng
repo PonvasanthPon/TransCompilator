@@ -1,0 +1,19 @@
+The ratings is a list of 1, 0, and 2.
+The last is the last position of ratings.
+The candies is an empty list of whole numbers.
+For every spot from 0 to last.
+Place 1 into candies.
+
+For every spot from 1 to last.
+If item spot of ratings is more than item (spot minus 1) of ratings, set item spot of candies to item (spot minus 1) of candies plus 1.
+
+For every step from 0 to last.
+The spot is last minus step.
+If spot is less than last and item spot of ratings is more than item (spot plus 1) of ratings.
+If item spot of candies is at most item (spot plus 1) of candies, set item spot of candies to item (spot plus 1) of candies plus 1.
+
+The total is 0.
+For each candy in candies.
+Add candy to total.
+
+Show total.

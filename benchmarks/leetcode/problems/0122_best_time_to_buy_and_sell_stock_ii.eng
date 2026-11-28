@@ -1,0 +1,8 @@
+The prices is a list of 7, 1, 5, 3, 6, and 4.
+The last is the last position of prices.
+The profit is 0.
+For every spot from 1 to last.
+The gain is item spot of prices minus item (spot minus 1) of prices.
+If gain is more than 0, add gain to profit.
+
+Show profit.

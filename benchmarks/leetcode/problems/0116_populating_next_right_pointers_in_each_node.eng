@@ -1,0 +1,50 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 4 into values.
+Place 5 into values.
+Place 6 into values.
+Place 7 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+
+The nexts is an empty list of whole numbers.
+For every spot from 0 to 6, Place -1 into nexts.
+The queue is an empty list of whole numbers.
+Place 0 into queue.
+The head is 0.
+The count is 1.
+The remaining is 1.
+The nextcount is 0.
+The previous is -1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+If previous is at least 0, set item previous of nexts to node.
+Set previous to node.
+If item node of lefts is at least 0, Place item node of lefts into queue, add 1 to count, add 1 to nextcount.
+If item node of rights is at least 0, Place item node of rights into queue, add 1 to count, add 1 to nextcount.
+Subtract 1 from remaining.
+If remaining is 0, set previous to -1, set remaining to nextcount, set nextcount to 0.
+
+For every node from 0 to 6.
+The line is format whole number item node of values as text.
+Place " " into line.
+The next is item node of nexts.
+If next is at least 0, Place format whole number item next of values as text into line, otherwise Place "-1" into line.
+Show line.

@@ -1,0 +1,11 @@
+The values is a list of 1, 2, 3, and 4.
+The left is 0.
+The right is 3.
+The take is 0.
+The result is an empty list of whole numbers.
+Repeat while left is at most right.
+If take is 0, Place item left of values into result, add 1 to left.
+If take is 1, Place item right of values into result, subtract 1 from right.
+Set take to 1 minus take.
+
+For each value in result, show value.

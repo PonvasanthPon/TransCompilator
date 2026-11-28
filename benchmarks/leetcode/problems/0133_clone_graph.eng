@@ -1,0 +1,44 @@
+Keep a shared edges as an empty list of whole numbers.
+Place 1 into edges.
+Place 3 into edges.
+Place 0 into edges.
+Place 2 into edges.
+Place 1 into edges.
+Place 3 into edges.
+Place 0 into edges.
+Place 2 into edges.
+Keep a shared starts as an empty list of whole numbers.
+Place 0 into starts.
+Place 2 into starts.
+Place 4 into starts.
+Place 6 into starts.
+Keep a shared counts as an empty list of whole numbers.
+Place 2 into counts.
+Place 2 into counts.
+Place 2 into counts.
+Place 2 into counts.
+Keep a shared copyedges as an empty list of whole numbers.
+Keep a shared copystarts as an empty list of whole numbers.
+Keep a shared copycounts as an empty list of whole numbers.
+For each edge in edges.
+Place edge into copyedges.
+
+For each start in starts.
+Place start into copystarts.
+
+For each count in counts.
+Place count into copycounts.
+
+Keep a shared line as empty text.
+To list from node (a whole number) with spot (a whole number).
+If spot is more than item node of copycounts, return.
+If spot is more than 0, Place " " into line.
+The base is item node of copystarts.
+The target is item (base plus spot minus 1) of copyedges.
+Place format whole number target plus 1 as text into line.
+List from node with spot plus 1.
+
+For every node from 0 to 3.
+Set line to format whole number node plus 1 as text.
+List from node with 1.
+Show line.

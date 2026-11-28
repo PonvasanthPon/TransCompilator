@@ -1,0 +1,28 @@
+Keep a shared source as empty text.
+Keep a shared words as an empty list of text.
+Keep a shared lengths as an empty list of whole numbers.
+Place "leetcode" into source.
+Place "leet" into words.
+Place "code" into words.
+Place 4 into lengths.
+Place 4 into lengths.
+Keep a shared dp as an empty list of whole numbers.
+For every spot from 0 to 8.
+Place 0 into dp.
+
+Set item 0 of dp to 1.
+To check from finish (a whole number) with spot (a whole number).
+If spot is more than 1, return.
+The size is item spot of lengths.
+If size is more than finish, check from finish with spot plus 1, return.
+The start is finish minus size.
+The piece is the slice of source from start to finish.
+The word is item spot of words.
+If piece does not match word, check from finish with spot plus 1, return.
+If item start of dp is 1, set item finish of dp to 1.
+Check from finish with spot plus 1.
+
+For every finish from 1 to 8.
+Check from finish with 0.
+
+If item 8 of dp is 1, show true, otherwise show false.

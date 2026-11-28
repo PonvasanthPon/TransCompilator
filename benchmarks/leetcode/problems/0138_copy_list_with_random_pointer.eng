@@ -1,0 +1,21 @@
+The values is a list of 7, 13, 11, 10, and 1.
+The nexts is a list of 1, 2, 3, 4, and -1.
+The randoms is a list of -1, 0, 4, 2, and 0.
+The copyvalues is an empty list of whole numbers.
+The copynexts is an empty list of whole numbers.
+The copyrandoms is an empty list of whole numbers.
+For each value in values.
+Place value into copyvalues.
+
+For each next in nexts.
+Place next into copynexts.
+
+For each random in randoms.
+Place random into copyrandoms.
+
+For every node from 0 to 4.
+The line is format whole number item node of copyvalues as text.
+Place " " into line.
+The random is item node of copyrandoms.
+If random is at least 0, Place format whole number item random of copyvalues as text into line, otherwise Place "-1" into line.
+Show line.

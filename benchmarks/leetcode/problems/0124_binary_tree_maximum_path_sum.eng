@@ -1,0 +1,49 @@
+Keep a shared values as an empty list of whole numbers.
+Place -10 into values.
+Place 9 into values.
+Place 20 into values.
+Place -1 into values.
+Place -1 into values.
+Place 15 into values.
+Place 7 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+
+The last is the last position of values.
+The size is last plus 1.
+The gains is a list of size zeros.
+The best is 0.
+For every step from 0 to last.
+The node is last minus step.
+The value is item node of values.
+If value is at least 0.
+The leftgain is 0.
+The rightgain is 0.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, set leftgain to item left of gains.
+If right is at least 0, set rightgain to item right of gains.
+If leftgain is less than 0, set leftgain to 0.
+If rightgain is less than 0, set rightgain to 0.
+The through is value plus leftgain plus rightgain.
+If through is more than best, set best to through.
+The gain is value.
+If leftgain is more than rightgain and leftgain is more than 0, set gain to value plus leftgain.
+If rightgain is at least leftgain and rightgain is more than 0, set gain to value plus rightgain.
+Set item node of gains to gain.
+
+Show best.

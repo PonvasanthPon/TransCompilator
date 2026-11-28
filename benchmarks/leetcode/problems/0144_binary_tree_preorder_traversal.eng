@@ -1,0 +1,21 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 1 into rights.
+Place 2 into rights.
+Place -1 into rights.
+Keep a shared order as an empty list of whole numbers.
+To gather from node (a whole number).
+If node is less than 0, return.
+Place node into order.
+Gather from item node of lefts.
+Gather from item node of rights.
+
+Gather from 0.
+For each node in order, show item node of values.

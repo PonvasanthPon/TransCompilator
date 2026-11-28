@@ -1,0 +1,57 @@
+Keep a shared values as an empty list of whole numbers.
+Place 5 into values.
+Place 4 into values.
+Place 8 into values.
+Place 11 into values.
+Place -1 into values.
+Place 13 into values.
+Place 4 into values.
+Place 7 into values.
+Place 2 into values.
+Place -1 into values.
+Place -1 into values.
+Place -1 into values.
+Place 1 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place 7 into lefts.
+Place 9 into lefts.
+Place 11 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place 8 into rights.
+Place 10 into rights.
+Place 12 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared target as 0.
+Keep a shared found as 0.
+Set target to 22.
+To seek from node (a whole number) with total (a whole number).
+If found is 1, return.
+If node is less than 0, return.
+The sum is total plus item node of values.
+The left is item node of lefts.
+The right is item node of rights.
+If left is -1 and right is -1 and sum is target, set found to 1, return.
+Seek from left with sum.
+Seek from right with sum.
+
+Seek from 0 with 0.
+If found is 1, show true, otherwise show false.

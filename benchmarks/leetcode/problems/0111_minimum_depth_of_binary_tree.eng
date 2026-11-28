@@ -1,0 +1,30 @@
+Keep a shared values as an empty list of whole numbers.
+Place 3 into values.
+Place 9 into values.
+Place 20 into values.
+Place 15 into values.
+Place 7 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared best as 0.
+Set best to 1000000.
+To walk from node (a whole number) with depth (a whole number).
+If node is less than 0, return.
+The left is item node of lefts.
+The right is item node of rights.
+If left is -1 and right is -1, if depth is less than best, set best to depth, return.
+Walk from left with depth plus 1.
+Walk from right with depth plus 1.
+
+Walk from 0 with 1.
+Show best.

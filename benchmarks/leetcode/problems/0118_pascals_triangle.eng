@@ -1,0 +1,26 @@
+Keep a shared previous as an empty list of whole numbers.
+Keep a shared current as an empty list of whole numbers.
+Keep a shared line as empty text.
+For every spot from 0 to 4.
+Place 0 into previous.
+Place 0 into current.
+
+To shape from spot (a whole number) with level (a whole number).
+If spot is more than level, return.
+The value is 1.
+If spot is more than 0 and spot is less than level, set value to item (spot minus 1) of previous plus item spot of previous.
+Set item spot of current to value.
+If spot is more than 0, Place "," into line.
+Place format whole number value as text into line.
+Shape from spot plus 1 with level.
+
+To carry from spot (a whole number) with level (a whole number).
+If spot is more than level, return.
+Set item spot of previous to item spot of current.
+Carry from spot plus 1 with level.
+
+For every level from 0 to 4.
+Set line to empty text.
+Shape from 0 with level.
+Show line.
+Carry from 0 with level.

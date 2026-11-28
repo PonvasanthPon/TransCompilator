@@ -1,0 +1,11 @@
+The prices is a list of 7, 1, 5, 3, 6, and 4.
+The last is the last position of prices.
+The cheapest is item 0 of prices.
+The best is 0.
+For every spot from 1 to last.
+The price is item spot of prices.
+The gain is price minus cheapest.
+If gain is more than best, set best to gain.
+If price is less than cheapest, set cheapest to price.
+
+Show best.

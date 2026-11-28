@@ -1,0 +1,11 @@
+The values is a list of 3, 2, 0, and -4.
+The nexts is a list of 1, 2, 3, and 1.
+The visited is a list of 4 zeros.
+The order is an empty list of whole numbers.
+The node is 0.
+Repeat while node is at least 0 and item node of visited is 0.
+Set item node of visited to 1.
+Place node into order.
+Set node to item node of nexts.
+
+If node is less than 0, show -1, otherwise show node.

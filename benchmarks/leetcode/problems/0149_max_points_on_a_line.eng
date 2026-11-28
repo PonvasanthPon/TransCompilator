@@ -1,0 +1,41 @@
+Keep a shared xs as an empty list of whole numbers.
+Keep a shared ys as an empty list of whole numbers.
+Place 1 into xs.
+Place 2 into xs.
+Place 3 into xs.
+Place 1 into ys.
+Place 2 into ys.
+Place 3 into ys.
+Keep a shared linefirst as 0.
+Keep a shared linesecond as 0.
+Keep a shared linecount as 0.
+Keep a shared best as 0.
+Keep a shared lastpoint as 0.
+Set best to 1.
+Set lastpoint to 2.
+To check point at spot (a whole number).
+The anchor is linefirst.
+The other is linesecond.
+The dx is item other of xs minus item anchor of xs.
+The dy is item other of ys minus item anchor of ys.
+The otherx is item spot of xs minus item anchor of xs.
+The othery is item spot of ys minus item anchor of ys.
+If dx times othery is dy times otherx, add 1 to linecount.
+
+To scan from spot (a whole number).
+If spot is more than lastpoint, return.
+If spot is not linefirst and spot is not linesecond, check point at spot.
+Scan from spot plus 1.
+
+To score from first (a whole number) with second (a whole number).
+Set linefirst to first.
+Set linesecond to second.
+Set linecount to 2.
+Scan from 0.
+If linecount is more than best, set best to linecount.
+
+For every first from 0 to lastpoint.
+For every second from first plus 1 to lastpoint.
+Score from first with second.
+
+Show best.

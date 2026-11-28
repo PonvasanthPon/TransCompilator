@@ -1,0 +1,65 @@
+Keep a shared values as an empty list of whole numbers.
+Place 5 into values.
+Place 4 into values.
+Place 8 into values.
+Place 11 into values.
+Place 6 into values.
+Place 4 into values.
+Place 7 into values.
+Place 2 into values.
+Place 5 into values.
+Place 1 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place 6 into lefts.
+Place -1 into lefts.
+Place 8 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place 7 into rights.
+Place -1 into rights.
+Place 9 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared path as an empty list of whole numbers.
+Keep a shared answers as an empty list of text.
+Keep a shared target as 0.
+Keep a shared line as empty text.
+Set target to 22.
+To render from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If the length of line is more than 0, Place "," into line.
+The piece is format whole number item spot of path as text.
+Place piece into line.
+Render from spot plus 1 with last.
+
+To store answer.
+Set line to empty text.
+The lastpath is the last position of path.
+Render from 0 with lastpath.
+The copy is a copy of line.
+Place copy into answers.
+
+To seek from node (a whole number) with total (a whole number).
+If node is less than 0, return.
+The sum is total plus item node of values.
+Place item node of values into path.
+The left is item node of lefts.
+The right is item node of rights.
+If left is -1 and right is -1 and sum is target, store answer.
+If left is at least 0, seek from left with sum.
+If right is at least 0, seek from right with sum.
+Remove the last item from path.
+
+Seek from 0 with 0.
+For each answer in answers, show answer.

@@ -1,0 +1,31 @@
+Keep a shared word as empty text.
+Place "aab" into word.
+Keep a shared path as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared pal as 0.
+Set pal to 1.
+To test from left (a whole number) with right (a whole number).
+If left is at least right, return.
+If character left of word is not character right of word, set pal to 0, return.
+Test from left plus 1 with right minus 1.
+
+To store answer.
+The line is join path with ",".
+Place line into answers.
+
+To extend from start (a whole number) with finish (a whole number).
+The piece is the slice of word from start to finish plus 1.
+Place piece into path.
+If finish is 2, store answer.
+If finish is less than 2, scan from finish plus 1 with finish plus 1.
+Remove the last item from path.
+
+To scan from start (a whole number) with finish (a whole number).
+If finish is more than 2, return.
+Set pal to 1.
+Test from start with finish.
+If pal is 1, extend from start with finish.
+Scan from start with finish plus 1.
+
+Scan from 0 with 0.
+For each answer in answers, show answer.

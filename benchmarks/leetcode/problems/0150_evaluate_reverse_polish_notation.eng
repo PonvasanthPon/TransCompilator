@@ -1,0 +1,36 @@
+Keep a shared tokens as an empty list of text.
+Place "2" into tokens.
+Place "1" into tokens.
+Place "+" into tokens.
+Place "3" into tokens.
+Place "*" into tokens.
+Keep a shared current as empty text.
+Keep a shared value as 0.
+To read from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+The digit is the digit value of character spot of current.
+Set value to value times 10 plus digit.
+Read from spot plus 1 with last.
+
+The stack is an empty list of whole numbers.
+The depth is 0.
+The left is 0.
+The right is 0.
+The result is 0.
+For each token in tokens.
+Set current to a copy of token.
+The sign is 1.
+The start is 0.
+If character 0 of current is "-", set sign to -1, set start to 1.
+Set value to 0.
+The lastchar is the last position of current.
+Read from start with lastchar.
+Set value to value times sign.
+The symbol is character 0 of current.
+If symbol is "+", set right to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set left to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set result to left plus right, Place result into stack, add 1 to depth.
+If symbol is "-", set right to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set left to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set result to left minus right, Place result into stack, add 1 to depth.
+If symbol is "*", set right to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set left to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set result to left times right, Place result into stack, add 1 to depth.
+If symbol is "/", set right to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set left to item (depth minus 1) of stack, remove the last item from stack, subtract 1 from depth, set result to left divided by right, Place result into stack, add 1 to depth.
+If symbol is between "0" and "9", Place value into stack, add 1 to depth.
+
+Show item 0 of stack.

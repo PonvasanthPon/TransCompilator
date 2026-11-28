@@ -1,0 +1,34 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place -10 into numbers.
+Place -3 into numbers.
+Place 0 into numbers.
+Place 5 into numbers.
+Place 9 into numbers.
+Keep a shared values as an empty list of whole numbers.
+Keep a shared lefts as an empty list of whole numbers.
+Keep a shared rights as an empty list of whole numbers.
+Keep a shared index as 0.
+Keep a shared parent as 0.
+Set parent to -1.
+Keep a shared side as 0.
+To attach from low (a whole number) with high (a whole number).
+If low is more than high, return.
+The middle is the midpoint of low and high.
+The root is item middle of numbers.
+The slot is index.
+Add 1 to index.
+Place root into values.
+Place -1 into lefts.
+Place -1 into rights.
+The anchor is parent.
+If anchor is at least 0 and side is 0, set item anchor of lefts to slot.
+If anchor is at least 0 and side is 1, set item anchor of rights to slot.
+Set parent to slot.
+Set side to 0.
+Attach from low with middle minus 1.
+Set parent to slot.
+Set side to 1.
+Attach from middle plus 1 with high.
+
+Attach from 0 with 4.
+For each value in values, show value.

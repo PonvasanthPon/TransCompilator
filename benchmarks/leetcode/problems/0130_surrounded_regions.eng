@@ -1,0 +1,52 @@
+Keep a shared board as an empty list of whole numbers.
+Place 1 into board.
+Place 1 into board.
+Place 1 into board.
+Place 1 into board.
+Place 1 into board.
+Place 0 into board.
+Place 0 into board.
+Place 1 into board.
+Place 1 into board.
+Place 1 into board.
+Place 0 into board.
+Place 1 into board.
+Place 1 into board.
+Place 0 into board.
+Place 1 into board.
+Place 1 into board.
+Keep a shared safe as an empty list of whole numbers.
+For every spot from 0 to 15.
+Place 0 into safe.
+
+The queue is an empty list of whole numbers.
+The count is 0.
+The head is 0.
+For every spot from 0 to 15.
+The row is spot divided by 4.
+The column is spot modulo 4.
+If row is 0 or row is 3 or column is 0 or column is 3.
+If item spot of board is 0 and item spot of safe is 0, set item spot of safe to 1, Place spot into queue, add 1 to count.
+
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+The row is node divided by 4.
+The column is node modulo 4.
+If row is more than 0 and item (node minus 4) of board is 0 and item (node minus 4) of safe is 0, set item (node minus 4) of safe to 1, Place (node minus 4) into queue, add 1 to count.
+If row is less than 3 and item (node plus 4) of board is 0 and item (node plus 4) of safe is 0, set item (node plus 4) of safe to 1, Place (node plus 4) into queue, add 1 to count.
+If column is more than 0 and item (node minus 1) of board is 0 and item (node minus 1) of safe is 0, set item (node minus 1) of safe to 1, Place (node minus 1) into queue, add 1 to count.
+If column is less than 3 and item (node plus 1) of board is 0 and item (node plus 1) of safe is 0, set item (node plus 1) of safe to 1, Place (node plus 1) into queue, add 1 to count.
+
+Keep a shared line as empty text.
+To render from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of board is 1 or item spot of safe is 0, Place "X" into line, otherwise Place "O" into line.
+Render from spot plus 1 with last.
+
+For every row from 0 to 3.
+Set line to empty text.
+The start is row times 4.
+The finish is start plus 3.
+Render from start with finish.
+Show line.

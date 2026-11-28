@@ -1,0 +1,38 @@
+The values is a list of 2, 3, 4, 6, 5, 7, 4, 1, 8, and 3.
+The starts is a list of 0, 1, 3, and 6.
+The success as an empty list of whole numbers.
+Keep a shared valueslist as an empty list of whole numbers.
+Place 2 into valueslist.
+Place 3 into valueslist.
+Place 4 into valueslist.
+Place 6 into valueslist.
+Place 5 into valueslist.
+Place 7 into valueslist.
+Place 4 into valueslist.
+Place 1 into valueslist.
+Place 8 into valueslist.
+Place 3 into valueslist.
+Keep a shared startslist as an empty list of whole numbers.
+Place 0 into startslist.
+Place 1 into startslist.
+Place 3 into startslist.
+Place 6 into startslist.
+The dp is a list of 10 zeros.
+For every spot from 6 to 9.
+Set item spot of dp to item spot of valueslist.
+
+The rows is a list of 2, 2, 2, 1, 1, and 0.
+The columns is a list of 0, 1, 2, 0, 1, and 0.
+For every step from 0 to 5.
+The row is item step of rows.
+The column is item step of columns.
+The base is item row of startslist.
+The below is item (row plus 1) of startslist.
+The here is item (base plus column) of valueslist.
+The first is item (below plus column) of dp.
+The second is item (below plus column plus 1) of dp.
+The small is first.
+If second is less than small, set small to second.
+Set item (base plus column) of dp to here plus small.
+
+Show item 0 of dp.

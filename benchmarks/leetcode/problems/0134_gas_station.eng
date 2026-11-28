@@ -1,0 +1,13 @@
+The gas is a list of 1, 2, 3, 4, and 5.
+The cost is a list of 3, 4, 5, 1, and 2.
+The last is the last position of gas.
+The total is 0.
+The tank is 0.
+The start is 0.
+For every spot from 0 to last.
+The gain is item spot of gas minus item spot of cost.
+Add gain to total.
+Add gain to tank.
+If tank is less than 0, set start to spot plus 1, set tank to 0.
+
+If total is at least 0, show start, otherwise show -1.

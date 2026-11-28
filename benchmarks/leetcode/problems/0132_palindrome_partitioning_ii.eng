@@ -1,0 +1,28 @@
+Keep a shared word as empty text.
+Place "aab" into word.
+Keep a shared cuts as an empty list of whole numbers.
+For every spot from 0 to 3.
+Place spot into cuts.
+
+Keep a shared pal as 0.
+Set pal to 1.
+To test from left (a whole number) with right (a whole number).
+If left is at least right, return.
+If character left of word is not character right of word, set pal to 0, return.
+Test from left plus 1 with right minus 1.
+
+To improve from finish (a whole number) with start (a whole number).
+The candidate is item start of cuts plus 1.
+If candidate is less than item finish of cuts, set item finish of cuts to candidate.
+
+To relax from finish (a whole number) with start (a whole number).
+If start is less than 0, return.
+Set pal to 1.
+Test from start with finish minus 1.
+If pal is 1, improve from finish with start.
+Relax from finish with start minus 1.
+
+For every finish from 1 to 3.
+Relax from finish with finish minus 1.
+
+Show item 3 of cuts minus 1.

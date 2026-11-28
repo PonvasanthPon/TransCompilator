@@ -1,0 +1,45 @@
+Keep a shared words as an empty list of text.
+Place "hit" into words.
+Place "hot" into words.
+Place "dot" into words.
+Place "dog" into words.
+Place "lot" into words.
+Place "log" into words.
+Place "cog" into words.
+Keep a shared firstword as empty text.
+Keep a shared secondword as empty text.
+Keep a shared apart as 0.
+To compare from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If character spot of firstword is not character spot of secondword, add 1 to apart.
+Compare from spot plus 1 with last.
+
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared distance as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared count as 0.
+For every spot from 0 to 6.
+Place 0 into seen.
+Place 0 into distance.
+
+Place 0 into queue.
+Set item 0 of seen to 1.
+Set item 0 of distance to 1.
+The head is 0.
+Set count to 1.
+To expand from current (a whole number) with candidate (a whole number).
+If candidate is more than 6, return.
+If item candidate of seen is 1, expand from current with candidate plus 1, return.
+Set firstword to item current of words.
+Set secondword to item candidate of words.
+Set apart to 0.
+Compare from 0 with 2.
+If apart is 1, set item candidate of seen to 1, set item candidate of distance to item current of distance plus 1, Place candidate into queue, add 1 to count.
+Expand from current with candidate plus 1.
+
+Repeat while head is less than count.
+The current is item head of queue.
+Add 1 to head.
+Expand from current with 1.
+
+If item 6 of seen is 1, show item 6 of distance, otherwise show 0.

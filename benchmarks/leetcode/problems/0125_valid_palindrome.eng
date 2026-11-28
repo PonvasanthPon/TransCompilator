@@ -1,0 +1,26 @@
+Keep a shared upper as empty text.
+Keep a shared lower as empty text.
+Keep a shared clean as empty text.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into upper.
+Place "abcdefghijklmnopqrstuvwxyz" into lower.
+To filter from spot (a whole number) with symbol (a whole number).
+If symbol is between "0" and "9", Place symbol into clean, return.
+If spot is more than 25, return.
+If symbol is character spot of lower, Place symbol into clean, return.
+If symbol is character spot of upper, Place character spot of lower into clean, return.
+Filter from spot plus 1 with symbol.
+
+The word is "A man, a plan, a canal: Panama".
+The last is the last position of word.
+For every position from 0 to last.
+Filter from 0 with character position of word.
+
+The left is 0.
+The right is the last position of clean.
+The valid is 1.
+Repeat while left is less than right.
+If character left of clean is not character right of clean, set valid to 0.
+Add 1 to left.
+Subtract 1 from right.
+
+If valid is 1, show true, otherwise show false.
