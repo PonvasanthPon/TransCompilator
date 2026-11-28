@@ -1,0 +1,21 @@
+Keep a shared size as 0.
+Set size to 2.
+Keep a shared chosen as an empty list of whole numbers.
+For every spot from 0 to size.
+Place 0 into chosen.
+
+Keep a shared ways as 0.
+
+To offer from spot (a whole number) with value (a whole number).
+If item value of chosen is not 0, return.
+The down is spot modulo value.
+The up is value modulo spot.
+If down is 0 or up is 0, set item value of chosen to 1, place from spot plus 1, set item value of chosen to 0.
+
+To place from spot (a whole number).
+If spot is more than size, add 1 to ways, return.
+For every value from 1 to size.
+Offer from spot with value.
+
+Place from 1.
+Show ways.

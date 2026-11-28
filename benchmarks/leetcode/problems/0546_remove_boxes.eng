@@ -1,0 +1,47 @@
+Keep a shared boxes as an empty list of whole numbers.
+Place 1 into boxes.
+Place 3 into boxes.
+Place 2 into boxes.
+Place 2 into boxes.
+Place 2 into boxes.
+Place 3 into boxes.
+Place 4 into boxes.
+Place 3 into boxes.
+Place 1 into boxes.
+The size is 9.
+Keep a shared span as 0.
+Set span to size plus 1.
+Keep a shared blocksize as 0.
+Set blocksize to size times span.
+The capacity is (size plus 1) times blocksize.
+Keep a shared table as an empty list of whole numbers.
+For every slot from 0 to capacity minus 1.
+Place 0 into table.
+
+Keep a shared best as 0.
+Keep a shared extra as 0.
+
+To improve with start (a whole number) and finish (a whole number).
+For every middle from start plus 1 to finish.
+The firstbox is item start of boxes.
+The otherbox is item middle of boxes.
+If firstbox is otherbox, The gap is start plus 1, The prior is middle minus 1, The emptyspot is gap times blocksize plus prior times span, The rightspot is middle times blocksize plus finish times span plus extra plus 1, The leftpart is item emptyspot of table, The rightpart is item rightspot of table, The candidate is leftpart plus rightpart, If candidate is more than best, set best to candidate.
+
+The states is size times blocksize.
+The spot is 0.
+Repeat while spot is less than states.
+The block is spot divided by blocksize.
+The start is size minus 1 minus block.
+The rest is spot modulo blocksize.
+The finish is rest divided by span.
+The carryindex is rest modulo span.
+The extra is span minus 1 minus carryindex.
+Set best to 0.
+The key is start times blocksize plus finish times span plus extra.
+Set item key of table to 0.
+If start is at most finish, The basekey is (start plus 1) times blocksize plus finish times span, The bonus is extra plus 1, The square is bonus times bonus, Set best to item basekey of table plus square, Improve with start and finish, Set item key of table to best.
+Add 1 to spot.
+
+The answerkey is (size minus 1) times span.
+The answer is item answerkey of table.
+Show answer.

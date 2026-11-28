@@ -1,0 +1,89 @@
+Keep a shared board as an empty list of whole numbers.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 1 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Keep a shared labels as an empty list of text.
+Place "E" into labels.
+Place "M" into labels.
+Place "B" into labels.
+Place "1" into labels.
+Place "2" into labels.
+Place "3" into labels.
+Place "4" into labels.
+Place "5" into labels.
+Place "6" into labels.
+Place "7" into labels.
+Place "8" into labels.
+Keep a shared height as 0.
+Set height to 4.
+Keep a shared width as 0.
+Set width to 5.
+Keep a shared nearby as 0.
+Keep a shared rowsteps as an empty list of whole numbers.
+Place -1 into rowsteps.
+Place -1 into rowsteps.
+Place -1 into rowsteps.
+Place 0 into rowsteps.
+Place 0 into rowsteps.
+Place 1 into rowsteps.
+Place 1 into rowsteps.
+Place 1 into rowsteps.
+Keep a shared colsteps as an empty list of whole numbers.
+Place -1 into colsteps.
+Place 0 into colsteps.
+Place 1 into colsteps.
+Place -1 into colsteps.
+Place 1 into colsteps.
+Place -1 into colsteps.
+Place 0 into colsteps.
+Place 1 into colsteps.
+
+To count from row (a whole number) with column (a whole number).
+Set nearby to 0.
+For every step from 0 to 7.
+The side is row plus item step of rowsteps.
+The depth is column plus item step of colsteps.
+The here is side times width plus depth.
+If side is at least 0 and side is less than height and depth is at least 0 and depth is less than width, If item here of board is 1, add 1 to nearby.
+
+To reveal from row (a whole number) with column (a whole number).
+If row is less than 0 or row is at least height or column is less than 0 or column is at least width, return.
+The cell is row times width plus column.
+If item cell of board is not 0, return.
+Count from row with column.
+If nearby is more than 0, The score is nearby, set item cell of board to score plus 2, return.
+Set item cell of board to 2.
+Reveal from row minus 1 with column minus 1.
+Reveal from row minus 1 with column.
+Reveal from row minus 1 with column plus 1.
+Reveal from row with column minus 1.
+Reveal from row with column plus 1.
+Reveal from row plus 1 with column minus 1.
+Reveal from row plus 1 with column.
+Reveal from row plus 1 with column plus 1.
+
+Reveal from 3 with 0.
+The line is empty text.
+For every cell from 0 to 19.
+The mark is item cell of board.
+The label is item mark of labels.
+Place label into line.
+If cell modulo width is width minus 1, show line, set line to empty text.
+

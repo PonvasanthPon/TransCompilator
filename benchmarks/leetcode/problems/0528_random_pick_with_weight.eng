@@ -1,0 +1,34 @@
+The weights is a list of 1 and 3.
+Keep a shared prefix as an empty list of whole numbers.
+The running is 0.
+For each weight in weights.
+Add weight to running.
+Place running into prefix.
+
+The seed is 2026.
+The picks is 5.
+Keep a shared chosen as 0.
+Keep a shared limit as 0.
+Keep a shared floorat as 0.
+Keep a shared ceiling as 0.
+Keep a shared probe as 0.
+Set limit to the last position of prefix.
+
+To search with aim (a whole number).
+Set floorat to 0.
+Set ceiling to limit.
+Set chosen to 0.
+Repeat while floorat is at most ceiling.
+Set probe to (floorat plus ceiling) divided by 2.
+The here is probe.
+If item here of prefix is more than aim, set ceiling to probe minus 1, otherwise set floorat to probe plus 1.
+Set chosen to floorat.
+If floorat is more than ceiling, stop.
+
+For every draw from 1 to picks.
+Set seed to seed times 1103515245 plus 12345.
+Set seed to seed modulo 2147483648.
+The target is seed modulo running.
+Search with target.
+Show chosen.
+

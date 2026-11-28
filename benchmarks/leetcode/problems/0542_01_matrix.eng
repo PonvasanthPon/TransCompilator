@@ -1,0 +1,25 @@
+The grid is a list of 0, 0, 0, 0, 1, 0, 1, 1, and 1.
+Keep a shared distance as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared count as 0.
+For every cell from 0 to 8.
+If item cell of grid is 0, Place 0 into distance, Place cell into queue, add 1 to count.
+If item cell of grid is 1, Place 1000000 into distance.
+
+To relax with spot (a whole number) and here (a whole number).
+The offered is here plus 1.
+If item spot of distance is more than offered, set item spot of distance to offered, Place spot into queue, add 1 to count.
+
+The head is 0.
+Repeat while head is less than count.
+The cell is item head of queue.
+Add 1 to head.
+The row is cell divided by 3.
+The column is cell modulo 3.
+The here is item cell of distance.
+If row is more than 0, relax with cell minus 3 and here.
+If row is less than 2, relax with cell plus 3 and here.
+If column is more than 0, relax with cell minus 1 and here.
+If column is less than 2, relax with cell plus 1 and here.
+
+For each value in distance, show value.

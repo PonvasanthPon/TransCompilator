@@ -1,0 +1,23 @@
+The source is "abcdefg".
+The span is 2.
+Keep a shared letters as an empty list of text.
+The last is the last position of source.
+For every spot from 0 to last.
+The piece is the slice of source from spot to spot plus 1.
+Place piece into letters.
+
+To mirror from left (a whole number) with right (a whole number).
+Repeat while left is less than right.
+swap item left of letters and item right of letters.
+Add 1 to left.
+Subtract 1 from right.
+
+The start is 0.
+Repeat while start is at most last.
+The finish is start plus span minus 1.
+If finish is more than last, set finish to last.
+Mirror from start with finish.
+Set start to start plus span plus span.
+
+The result is join letters with "".
+Show result.

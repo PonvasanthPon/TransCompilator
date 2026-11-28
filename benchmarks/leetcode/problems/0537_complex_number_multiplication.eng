@@ -1,0 +1,47 @@
+The first is "1+1i".
+The second is "1+1i".
+Keep a shared clean as empty text.
+Keep a shared amount as 0.
+The firstparts is split first by "+".
+The secondparts is split second by "+".
+
+To parse.
+The size is the number of characters in clean.
+The begin is 0.
+The sign is 1.
+The head is the slice of clean from 0 to 1.
+If head matches "-", set begin to 1, set sign to -1.
+Set amount to 0.
+For every spot from begin to size minus 1.
+The digit is the digit value of character spot of clean.
+Set amount to amount times 10 plus sign times digit.
+
+Set clean to empty text.
+Place item 0 of firstparts into clean.
+Parse.
+The firstreal is amount.
+Set clean to empty text.
+Place item 1 of firstparts into clean.
+The firstedge is the last position of clean.
+Set clean to the slice of clean from 0 to firstedge.
+Parse.
+The firstimag is amount.
+Set clean to empty text.
+Place item 0 of secondparts into clean.
+Parse.
+The secondreal is amount.
+Set clean to empty text.
+Place item 1 of secondparts into clean.
+The secondedge is the last position of clean.
+Set clean to the slice of clean from 0 to secondedge.
+Parse.
+The secondimag is amount.
+
+The realpart is firstreal times secondreal minus firstimag times secondimag.
+The imagpart is firstreal times secondimag plus firstimag times secondreal.
+The result is empty text.
+Place format whole number realpart as text into result.
+Place "+" into result.
+Place format whole number imagpart as text into result.
+Place "i" into result.
+Show result.

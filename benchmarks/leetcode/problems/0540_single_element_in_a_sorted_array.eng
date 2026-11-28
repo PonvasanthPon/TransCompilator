@@ -1,0 +1,12 @@
+The entries is a list of 1, 1, 2, 3, 3, 4, 4, 8, and 8.
+The low is 0.
+The high is the last position of entries.
+Repeat while low is less than high.
+The middle is (low plus high) divided by 2.
+If middle modulo 2 is 1, subtract 1 from middle.
+The here is item middle of entries.
+The next is item (middle plus 1) of entries.
+If here is next, set low to middle plus 2, otherwise set high to middle.
+
+The answer is item low of entries.
+Show answer.

@@ -1,0 +1,23 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 3 into numbers.
+Place 1 into numbers.
+Place 4 into numbers.
+Place 1 into numbers.
+Place 5 into numbers.
+Keep a shared gap as 0.
+Set gap to 2.
+Keep a shared last as 0.
+Keep a shared pairs as 0.
+Sort numbers.
+Set last to the last position of numbers.
+
+To seek from start (a whole number).
+The target is item start of numbers plus gap.
+For every later from start plus 1 to last.
+If item later of numbers is target, add 1 to pairs, stop.
+
+For every first from 0 to last.
+If first is 0, seek from first.
+If first is more than 0, If item first of numbers is not item (first minus 1) of numbers, seek from first.
+
+Show pairs.

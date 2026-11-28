@@ -1,0 +1,28 @@
+The moments is a list of "23:59" and "00:00".
+The minutes is an empty list of whole numbers.
+For each moment in moments.
+The hourpiece is the slice of moment from 0 to 2.
+The minutepiece is the slice of moment from 3 to 5.
+The firstdigit is the digit value of character 0 of hourpiece.
+The seconddigit is the digit value of character 1 of hourpiece.
+The hour is firstdigit times 10 plus seconddigit.
+The thirddigit is the digit value of character 0 of minutepiece.
+The fourthdigit is the digit value of character 1 of minutepiece.
+The minute is thirddigit times 10 plus fourthdigit.
+The total is hour times 60 plus minute.
+Place total into minutes.
+
+Sort minutes.
+The last is the last position of minutes.
+The closest is 1000000.
+For every spot from 1 to last.
+The earlier is item (spot minus 1) of minutes.
+The later is item spot of minutes.
+The gap is later minus earlier.
+If gap is less than closest, set closest to gap.
+
+The firsttime is item 0 of minutes.
+The finaltime is item last of minutes.
+The wrapped is firsttime plus 1440 minus finaltime.
+If wrapped is less than closest, set closest to wrapped.
+Show closest.

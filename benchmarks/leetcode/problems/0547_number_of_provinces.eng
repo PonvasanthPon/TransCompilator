@@ -1,0 +1,30 @@
+Keep a shared links as an empty list of whole numbers.
+Place 1 into links.
+Place 1 into links.
+Place 0 into links.
+Place 1 into links.
+Place 1 into links.
+Place 0 into links.
+Place 0 into links.
+Place 0 into links.
+Place 1 into links.
+Keep a shared visited as an empty list of whole numbers.
+For every city from 0 to 2.
+Place 0 into visited.
+
+Keep a shared size as 0.
+Set size to 3.
+
+To walk from city (a whole number).
+If item city of visited is 1, return.
+Set item city of visited to 1.
+For every next from 0 to 2.
+The spot is city times size plus next.
+If item spot of links is 1, walk from next.
+
+The provinces is 0.
+For every city from 0 to 2.
+If item city of visited is 0, add 1 to provinces.
+If item city of visited is 0, walk from city.
+
+Show provinces.
