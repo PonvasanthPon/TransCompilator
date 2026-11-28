@@ -1,0 +1,13 @@
+The numbers is a list of 1, 2, 3, and 1.
+The indexgap is 3.
+The valuegap is 0.
+The last is the last position of numbers.
+The found is 0.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+The gap is right minus left.
+The difference is item left of numbers minus item right of numbers.
+If difference is less than 0, set difference to 0 minus difference.
+If gap is at most indexgap and difference is at most valuegap, set found to 1.
+
+If found is 1, show true, otherwise show false.

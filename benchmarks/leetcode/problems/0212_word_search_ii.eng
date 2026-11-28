@@ -1,0 +1,58 @@
+Keep a shared grid as empty text.
+Keep a shared current as empty text.
+Keep a shared visited as an empty list of whole numbers.
+Keep a shared found as 0.
+Keep a shared limit as 0.
+To wipe from spot (a whole number).
+If spot is more than 15, return.
+Set item spot of visited to 0.
+Wipe from spot plus 1.
+
+To search from row (a whole number) at column (a whole number) with index (a whole number).
+If found is 1, return.
+If row is less than 0 or row is more than 3 or column is less than 0 or column is more than 3, return.
+The node is row times 4 plus column.
+If item node of visited is 1, return.
+If character node of grid is not character index of current, return.
+If index is limit, set found to 1, return.
+Set item node of visited to 1.
+If found is 0, search from row plus 1 at column with index plus 1.
+If found is 0, search from row minus 1 at column with index plus 1.
+If found is 0, search from row at column plus 1 with index plus 1.
+If found is 0, search from row at column minus 1 with index plus 1.
+Set item node of visited to 0.
+
+To seek from node (a whole number).
+If node is more than 15, return.
+If found is 1, return.
+The row is node divided by 4.
+The column is node modulo 4.
+Search from row at column with 0.
+Seek from node plus 1.
+
+The board is "oaanetaeihkriflv".
+The gridcopy is a copy of board.
+Set grid to gridcopy.
+The words is "oath,pea,eat,rain".
+The items is split words by ",".
+The answers is an empty list of text.
+For every spot from 0 to 15.
+Place 0 into visited.
+
+For each word in items.
+The copy is a copy of word.
+Set current to copy.
+The final is the last position of current.
+Set limit to final.
+Set found to 0.
+Wipe from 0.
+Seek from 0.
+If found is 1, Place copy into answers.
+
+The total is the number of items in answers.
+The last is total minus 1.
+For every left from 0 to last.
+For every right from left to last.
+If item right of answers comes before item left of answers, swap item left of answers and item right of answers.
+
+For each answer in answers, show answer.

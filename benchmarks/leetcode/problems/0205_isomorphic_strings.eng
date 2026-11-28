@@ -1,0 +1,29 @@
+Keep a shared source as empty text.
+Keep a shared targetcode as 0.
+Keep a shared located as 0.
+To locate from spot (a whole number).
+If spot is more than the last position of source, return.
+If character spot of source is targetcode, set located to spot, return.
+Locate from spot plus 1.
+
+The first is "egg".
+The second is "add".
+The copyfirst is a copy of first.
+The copysecond is a copy of second.
+The last is the last position of first.
+The valid is 1.
+Set source to copyfirst.
+For every spot from 0 to last.
+Set source to copyfirst.
+Set targetcode to character spot of first.
+Set located to -1.
+Locate from 0.
+The leftindex is located.
+Set source to copysecond.
+Set targetcode to character spot of second.
+Set located to -1.
+Locate from 0.
+The rightindex is located.
+If leftindex is not rightindex, set valid to 0.
+
+If valid is 1, show true, otherwise show false.

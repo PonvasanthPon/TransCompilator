@@ -1,0 +1,7 @@
+The left is 5.
+The right is 7.
+The result is left.
+For every value from left plus 1 to right.
+Set result to bitwise and of result and value.
+
+Show result.

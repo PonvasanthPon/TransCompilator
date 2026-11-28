@@ -1,0 +1,7 @@
+The nodes is a list of 1, 2, 6, 3, 4, 5, and 6.
+The target is 6.
+The kept is an empty list of whole numbers.
+For each value in nodes.
+If value is not target, Place value into kept.
+
+For each value in kept, show value.

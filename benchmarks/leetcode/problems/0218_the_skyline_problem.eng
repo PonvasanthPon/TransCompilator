@@ -1,0 +1,16 @@
+The lefts is a list of 2, 3, 5, 15, and 19.
+The rights is a list of 9, 7, 12, 20, and 24.
+The highs is a list of 10, 15, 12, 10, and 8.
+The sky is a list of 25 zeros.
+The total is 5.
+For every building from 0 to total minus 1.
+The left is item building of lefts.
+The right is item building of rights.
+The high is item building of highs.
+For every spot from left to right minus 1.
+If item spot of sky is less than high, set item spot of sky to high.
+
+The previous is 0.
+For every spot from 0 to 24.
+The current is item spot of sky.
+If current is not previous, Report spot, Report current, Report "---", set previous to current.

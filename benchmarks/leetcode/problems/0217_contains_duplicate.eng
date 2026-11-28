@@ -1,0 +1,8 @@
+The numbers is a list of 1, 2, 3, and 1.
+The last is the last position of numbers.
+The found is 0.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+If item left of numbers is item right of numbers, set found to 1.
+
+If found is 1, show true, otherwise show false.

@@ -1,0 +1,19 @@
+Keep a shared parts as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared choose as 0.
+Keep a shared target as 0.
+Set choose to 3.
+Set target to 7.
+To shape from start (a whole number) at depth (a whole number) with total (a whole number).
+If depth is choose and total is target, The built is join parts with ",", Place built into answers, return.
+If depth is choose, return.
+If total is more than target, return.
+For every value from start to 9.
+If total plus value is at most target.
+The piece is format whole number value as text.
+Place piece into parts.
+Shape from value plus 1 at depth plus 1 with total plus value.
+Remove the last item from parts.
+
+Shape from 1 at 0 with 0.
+For each answer in answers, show answer.

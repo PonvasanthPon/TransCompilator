@@ -1,0 +1,30 @@
+Keep a shared word as empty text.
+Keep a shared pal as 0.
+To test from left (a whole number) with right (a whole number).
+If left is at least right, return.
+If character left of word is not character right of word, set pal to 0, return.
+Test from left plus 1 with right minus 1.
+
+The source is "aacecaaa".
+The copy is a copy of source.
+Set word to copy.
+The last is the last position of source.
+The best is 1.
+For every step from 0 to last.
+The length is last plus 1 minus step.
+The right is length minus 1.
+Set pal to 1.
+Test from 0 with right.
+If pal is 1, set best to length, break.
+
+The front is empty text.
+The count is last plus 1 minus best.
+For every step from 0 to count minus 1.
+The spot is last minus step.
+Place character spot of source into front.
+
+The result is a copy of front.
+For every spot from 0 to last.
+Place character spot of source into result.
+
+Show result.

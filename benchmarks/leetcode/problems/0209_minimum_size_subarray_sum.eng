@@ -1,0 +1,15 @@
+The target is 7.
+The numbers is a list of 2, 3, 1, 2, 4, and 3.
+The last is the last position of numbers.
+The best is 1000000.
+For every start from 0 to last.
+The total is 0.
+For every finish from start to last.
+Set total to total plus item finish of numbers.
+If total is at least target.
+The length is finish minus start plus 1.
+If length is less than best, set best to length.
+Break.
+
+If best is 1000000, set best to 0.
+Show best.

@@ -1,0 +1,5 @@
+The nodes is a list of 1, 2, 3, 4, and 5.
+The last is the last position of nodes.
+For every step from 0 to last.
+The spot is last minus step.
+Show item spot of nodes.

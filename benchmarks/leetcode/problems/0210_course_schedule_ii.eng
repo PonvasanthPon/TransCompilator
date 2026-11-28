@@ -1,0 +1,36 @@
+The size is 4.
+The edges is an empty list of whole numbers.
+Place 1 into edges.
+Place 0 into edges.
+Place 2 into edges.
+Place 0 into edges.
+Place 3 into edges.
+Place 1 into edges.
+Place 3 into edges.
+Place 2 into edges.
+The pairs is 4.
+The adjacency is a list of 16 zeros.
+The indegree is a list of 4 zeros.
+For every edge from 0 to pairs minus 1.
+The target is item (edge times 2) of edges.
+The origin is item (edge times 2 plus 1) of edges.
+Set item (origin times size plus target) of adjacency to 1.
+Set item target of indegree to item target of indegree plus 1.
+
+The queue is an empty list of whole numbers.
+The count is 0.
+The head is 0.
+For every node from 0 to size minus 1.
+If item node of indegree is 0, Place node into queue, add 1 to count.
+
+The order is an empty list of whole numbers.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Place node into order.
+For every next from 0 to size minus 1.
+If item (node times size plus next) of adjacency is 1.
+Set item next of indegree to item next of indegree minus 1.
+If item next of indegree is 0, Place next into queue, add 1 to count.
+
+For each value in order, show value.

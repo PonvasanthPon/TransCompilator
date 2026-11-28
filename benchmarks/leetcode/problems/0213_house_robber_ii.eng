@@ -1,0 +1,28 @@
+The nums is a list of 2, 3, and 2.
+Keep a shared houses as an empty list of whole numbers.
+For each value in nums.
+Place value into houses.
+
+Keep a shared take as 0.
+Keep a shared skip as 0.
+Keep a shared best as 0.
+To rob from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The current is skip.
+The offered is take plus item spot of houses.
+If offered is more than current, set current to offered.
+Set take to skip.
+Set skip to current.
+Rob from spot plus 1 with finish.
+
+Set best to 0.
+Set take to 0.
+Set skip to 0.
+Rob from 0 with 1.
+Set best to skip.
+Set take to 0.
+Set skip to 0.
+Rob from 1 with 2.
+If skip is more than best, set best to skip.
+
+Show best.
