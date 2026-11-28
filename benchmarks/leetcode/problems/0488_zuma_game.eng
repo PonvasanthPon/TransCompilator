@@ -4,9 +4,11 @@ The symbol is character 0 of board.
 The boardlast is the last position of board.
 The count is boardlast plus 1.
 The handlast is the last position of hand.
+The needed is 3 minus count.
 The matching is 0.
 For every spot from 0 to handlast.
 If character spot of hand is symbol, add 1 to matching.
+If matching is at least needed, stop.
 
-The needed is 3 minus count.
+
 If needed is less than 1, show 0, otherwise if matching is at least needed, show needed, otherwise show -1.

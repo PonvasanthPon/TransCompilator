@@ -479,6 +479,7 @@ pub(super) fn starts_action(text: &str) -> bool {
             | "return"
             | "break"
             | "continue"
+            | "stop"
             | "trap"
             | "syscall"
             | "if"

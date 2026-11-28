@@ -66,6 +66,28 @@ Show item 4 of items.\n",
 }
 
 #[test]
+fn inline_stop_breaks_loops_in_multi_action_branches() {
+    assert_program(
+        "writer-inline-stop",
+        "The first is 0. The second is 0.\n\
+For every number from 1 to 5.\n\
+If number is 3, add 10 to first, stop, add 100 to first.\n\
+Otherwise, add 1 to second.\n\
+Add 1 to first.\n\
+\n\
+Set second to 0.\n\
+For every number from 1 to 5.\n\
+If number is 1, add 1 to second.\n\
+Otherwise, add 10 to second, stop, add 100 to second.\n\
+Add 1 to second.\n\
+\n\
+Show first.\n\
+Show second.\n",
+        &["12", "12"],
+    );
+}
+
+#[test]
 fn bitwise_assignment_and_shift_prose() {
     assert_program(
         "writer-bits",

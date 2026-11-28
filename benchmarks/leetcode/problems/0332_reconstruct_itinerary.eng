@@ -28,7 +28,7 @@ If depth is 4, set found to 1.
 If depth is 4, save from 0.
 If depth is 4, return.
 For every spot from 0 to 3.
-If found is 1, break.
+If found is 1, stop.
 The origin is item spot of starts.
 The arrival is item spot of finishes.
 The same is 1.

@@ -3036,7 +3036,8 @@ impl Lowerer<'_> {
         let mut error = None;
         for action in split_actions(&normalized) {
             let trimmed_action = action.trim_start_matches("then ").trim();
-            let action = match trimmed_action.to_ascii_lowercase().as_str() {
+            let bare_action = trimmed_action.trim_end_matches('.').trim();
+            let action = match bare_action.to_ascii_lowercase().as_str() {
                 "stop" | "stop immediately" | "stop the loop" | "stop now" => "break".to_string(),
                 "skip to the next one" | "skip this one" | "skip to the next item" => {
                     "continue".to_string()

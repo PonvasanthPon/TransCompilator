@@ -1630,7 +1630,7 @@ impl Lowerer<'_> {
         }
         if matches!(
             lower.trim_end_matches('.').trim(),
-            "stop immediately" | "stop the loop" | "stop now"
+            "stop" | "stop immediately" | "stop the loop" | "stop now"
         ) {
             return Ok(vec![AstStmt::Break(self.span(span))]);
         }

@@ -92,6 +92,7 @@ fn is_control_anchor(word: &str) -> bool {
             | "loop"
             | "break"
             | "continue"
+            | "stop"
             | "return"
             | "syscall"
             | "copy"
@@ -704,7 +705,7 @@ pub fn classify(text: &str, clause: &ClauseTree, phrase: Option<&PhraseMatch>) -
         };
     }
     let lower = trimmed.to_ascii_lowercase();
-    if lower == "end" || lower == "stop" {
+    if lower == "end" {
         return IntentVerdict::CommentOmitted {
             reason: "explicit block closer".to_string(),
         };
