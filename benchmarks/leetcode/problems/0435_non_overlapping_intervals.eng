@@ -1,0 +1,30 @@
+Keep a shared starts as an empty list of whole numbers.
+Place 1 into starts.
+Place 2 into starts.
+Place 3 into starts.
+Place 1 into starts.
+Keep a shared ends as an empty list of whole numbers.
+Place 2 into ends.
+Place 3 into ends.
+Place 4 into ends.
+Place 3 into ends.
+Keep a shared keystart as 0.
+Keep a shared keyend as 0.
+To shift from spot (a whole number) with marker (a whole number).
+If marker is less than 0, set item 0 of starts to keystart, set item 0 of ends to keyend, return.
+If item marker of ends is at most keyend, set item (spot plus 1) of starts to keystart, set item (spot plus 1) of ends to keyend, return.
+Set item (spot plus 1) of starts to item marker of starts.
+Set item (spot plus 1) of ends to item marker of ends.
+Shift from spot minus 1 with marker minus 1.
+
+For every spot from 1 to 3.
+Set keystart to item spot of starts.
+Set keyend to item spot of ends.
+Shift from spot minus 1 with spot minus 1.
+
+The lastend is item 0 of ends.
+The removals is 0.
+For every spot from 1 to 3.
+If item spot of starts is at least lastend, set lastend to item spot of ends, otherwise add 1 to removals.
+
+Show removals.

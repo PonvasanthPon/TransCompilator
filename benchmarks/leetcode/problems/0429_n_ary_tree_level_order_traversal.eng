@@ -1,0 +1,36 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 3 into values.
+Place 2 into values.
+Place 4 into values.
+Place 5 into values.
+Place 6 into values.
+Keep a shared nodeparents as an empty list of whole numbers.
+Place -1 into nodeparents.
+Place 0 into nodeparents.
+Place 0 into nodeparents.
+Place 0 into nodeparents.
+Place 1 into nodeparents.
+Place 1 into nodeparents.
+Keep a shared queue as an empty list of whole numbers.
+Place 0 into queue.
+Keep a shared count as 0.
+Set count to 1.
+Keep a shared nextcount as 0.
+To expand from node (a whole number) with candidate (a whole number).
+If candidate is more than 5, return.
+If item candidate of nodeparents is node, Place candidate into queue, add 1 to count, add 1 to nextcount.
+Expand from node with candidate plus 1.
+
+The head is 0.
+The remaining is 1.
+The line is empty text.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+The piece is format whole number item node of values as text.
+If the length of line is more than 0, Place "," into line.
+Place piece into line.
+Expand from node with 0.
+Subtract 1 from remaining.
+If remaining is 0, Show line, set line to empty text, set remaining to nextcount, set nextcount to 0.

@@ -1,0 +1,49 @@
+Keep a shared genes as an empty list of text.
+Place "AACCGGTA" into genes.
+Keep a shared firstgene as empty text.
+Keep a shared secondgene as empty text.
+Keep a shared apart as 0.
+Keep a shared seen as an empty list of whole numbers.
+Place 0 into seen.
+Keep a shared distance as an empty list of whole numbers.
+Place 0 into distance.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared count as 0.
+To compare from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If character spot of firstgene is not character spot of secondgene, add 1 to apart.
+Compare from spot plus 1 with last.
+
+To expand from spot (a whole number) with candidate (a whole number).
+If candidate is more than 0, return.
+If item candidate of seen is 1, expand from spot with candidate plus 1, return.
+Set firstgene to item spot of genes.
+Set secondgene to item candidate of genes.
+Set apart to 0.
+Compare from 0 with 7.
+If apart is 1, set item candidate of seen to 1, set item candidate of distance to item spot of distance plus 1, Place candidate into queue, add 1 to count.
+Expand from spot with candidate plus 1.
+
+The startgene is "AACCGGTT".
+The finishgene is "AACCGGTA".
+The answer is -1.
+If finishgene matches startgene, set answer to 0.
+Set count to 0.
+For every spot from 0 to 0.
+Set firstgene to a copy of startgene.
+Set secondgene to item spot of genes.
+Set apart to 0.
+Compare from 0 with 7.
+If apart is 1, set item spot of seen to 1, set item spot of distance to 1, Place spot into queue, add 1 to count.
+
+The head is 0.
+Repeat while head is less than count.
+The spot is item head of queue.
+Add 1 to head.
+The gene is item spot of genes.
+The same is 0.
+If gene matches finishgene, set same to 1.
+If same is 1 and answer is -1, set answer to item spot of distance.
+Expand from spot with 0.
+
+Show answer.

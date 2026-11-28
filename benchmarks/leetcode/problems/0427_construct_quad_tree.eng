@@ -1,0 +1,91 @@
+Keep a shared grid as an empty list of whole numbers.
+Place 0 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Keep a shared width as 0.
+Set width to 2.
+Keep a shared buildsize as 0.
+Keep a shared uniform as 0.
+Keep a shared probevalue as 0.
+To probe from row (a whole number) at column (a whole number) with spot (a whole number).
+The limit is buildsize times buildsize.
+If spot is at least limit, return.
+If uniform is 0, return.
+The down is spot divided by buildsize.
+The across is spot modulo buildsize.
+The actualrow is row plus down.
+The actualcolumn is column plus across.
+The cell is item (actualrow times width plus actualcolumn) of grid.
+If cell is not probevalue, set uniform to 0, return.
+Probe from row at column with spot plus 1.
+
+Keep a shared nodesleaf as an empty list of whole numbers.
+Keep a shared nodesvalue as an empty list of whole numbers.
+Keep a shared firsts as an empty list of whole numbers.
+Keep a shared seconds as an empty list of whole numbers.
+Keep a shared thirds as an empty list of whole numbers.
+Keep a shared fourths as an empty list of whole numbers.
+Keep a shared made as 0.
+Keep a shared parents as an empty list of whole numbers.
+To build from top (a whole number) at left (a whole number) with size (a whole number).
+Set buildsize to size.
+Set uniform to 1.
+Set probevalue to item (top times width plus left) of grid.
+Probe from top at left with 0.
+The slot is made.
+Add 1 to made.
+Place uniform into nodesleaf.
+Place probevalue into nodesvalue.
+Place -1 into firsts.
+Place -1 into seconds.
+Place -1 into thirds.
+Place -1 into fourths.
+If uniform is 0, set item slot of nodesvalue to 1.
+If uniform is 1, return.
+If size is 1, return.
+The half is size divided by 2.
+Place slot into parents.
+The right is left plus half.
+The down is top plus half.
+Build from top at left with half.
+The child is made minus 1.
+The depth is the last position of parents.
+The host is item depth of parents.
+Set item host of firsts to child.
+Remove the last item from parents.
+Place slot into parents.
+Build from top at right with half.
+The child is made minus 1.
+The depth is the last position of parents.
+The host is item depth of parents.
+Set item host of seconds to child.
+Remove the last item from parents.
+Place slot into parents.
+Build from down at left with half.
+The child is made minus 1.
+The depth is the last position of parents.
+The host is item depth of parents.
+Set item host of thirds to child.
+Remove the last item from parents.
+Place slot into parents.
+Build from down at right with half.
+The child is made minus 1.
+The depth is the last position of parents.
+The host is item depth of parents.
+Set item host of fourths to child.
+Remove the last item from parents.
+
+Build from 0 at 0 with 2.
+The line is empty text.
+Place "[" into line.
+For every spot from 0 to made minus 1.
+If spot is more than 0, Place "," into line.
+Place "[" into line.
+Place format whole number item spot of nodesleaf as text into line.
+Place "," into line.
+Place format whole number item spot of nodesvalue as text into line.
+Place "]" into line.
+
+Place "]" into line.
+Show line.

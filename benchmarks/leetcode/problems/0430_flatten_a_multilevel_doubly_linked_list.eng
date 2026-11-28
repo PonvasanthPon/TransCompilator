@@ -1,0 +1,66 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 4 into values.
+Place 5 into values.
+Place 6 into values.
+Place 7 into values.
+Place 8 into values.
+Place 9 into values.
+Place 10 into values.
+Place 11 into values.
+Place 12 into values.
+Keep a shared nexts as an empty list of whole numbers.
+Place 1 into nexts.
+Place 2 into nexts.
+Place 3 into nexts.
+Place 4 into nexts.
+Place 5 into nexts.
+Place -1 into nexts.
+Place 7 into nexts.
+Place 8 into nexts.
+Place 9 into nexts.
+Place -1 into nexts.
+Place 11 into nexts.
+Place -1 into nexts.
+Keep a shared childs as an empty list of whole numbers.
+Place -1 into childs.
+Place -1 into childs.
+Place 6 into childs.
+Place -1 into childs.
+Place -1 into childs.
+Place -1 into childs.
+Place -1 into childs.
+Place 10 into childs.
+Place -1 into childs.
+Place -1 into childs.
+Place -1 into childs.
+Place -1 into childs.
+Keep a shared stack as an empty list of whole numbers.
+Keep a shared cursor as 0.
+To unwind from marker (a whole number).
+If marker is less than 0, return.
+The depth is the last position of stack.
+If depth is less than 0, set cursor to -1, return.
+Set cursor to item depth of stack.
+Remove the last item from stack.
+
+The result is an empty list of whole numbers.
+Set cursor to 0.
+Repeat while cursor is at least 0.
+Place cursor into result.
+The spot is cursor.
+The kid is item spot of childs.
+The follow is item spot of nexts.
+If kid is at least 0 and follow is at least 0, Place follow into stack.
+If kid is at least 0, set cursor to kid.
+If kid is less than 0 and follow is at least 0, set cursor to follow.
+If kid is less than 0 and follow is less than 0, unwind from 0.
+
+The line is empty text.
+For each node in result.
+If the length of line is more than 0, Place "," into line.
+Place format whole number item node of values as text into line.
+
+Show line.

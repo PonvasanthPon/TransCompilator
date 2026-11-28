@@ -1,0 +1,27 @@
+Keep a shared chars as an empty list of text.
+Place "a" into chars.
+Place "a" into chars.
+Place "b" into chars.
+Place "b" into chars.
+Place "c" into chars.
+Place "c" into chars.
+Place "c" into chars.
+Keep a shared symbol as empty text.
+Keep a shared run as 0.
+To count from spot (a whole number) with next (a whole number).
+If next is more than 6, return.
+If item next of chars matches symbol, add 1 to run, count from spot with next plus 1.
+
+The result is empty text.
+The spot is 0.
+Repeat while spot is at most 6.
+Set symbol to item spot of chars.
+Set run to 1.
+Count from spot with spot plus 1.
+Place symbol into result.
+If run is more than 1, Place format whole number run as text into result.
+Add run to spot.
+
+The lastresult is the last position of result.
+The size is lastresult plus 1.
+Show size.

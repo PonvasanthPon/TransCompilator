@@ -1,0 +1,40 @@
+Keep a shared xs as an empty list of whole numbers.
+Place 0 into xs.
+Place 1 into xs.
+Place 2 into xs.
+Keep a shared ys as an empty list of whole numbers.
+Place 0 into ys.
+Place 0 into ys.
+Place 0 into ys.
+Keep a shared dist as 0.
+Keep a shared pairdistance as 0.
+Keep a shared matches as 0.
+Keep a shared total as 0.
+To measure from first (a whole number) with second (a whole number).
+The dx is item first of xs minus item second of xs.
+The dy is item first of ys minus item second of ys.
+Set dist to dx times dx plus dy times dy.
+
+To scan from anchor (a whole number) at other (a whole number) with marker (a whole number).
+If marker is more than 2, return.
+If marker is anchor, scan from anchor at other with marker plus 1, return.
+If marker is other, scan from anchor at other with marker plus 1, return.
+Measure from anchor with marker.
+The d2 is dist.
+If d2 is pairdistance, add 1 to matches.
+Scan from anchor at other with marker plus 1.
+
+To prepare from anchor (a whole number) with other (a whole number).
+If other is more than 2, return.
+If other is anchor, prepare from anchor with other plus 1, return.
+Measure from anchor with other.
+Set pairdistance to dist.
+Set matches to 0.
+Scan from anchor at other with 0.
+Add matches to total.
+Prepare from anchor with other plus 1.
+
+For every anchor from 0 to 2.
+Prepare from anchor with 0.
+
+Show total.

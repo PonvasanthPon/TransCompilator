@@ -1,0 +1,19 @@
+Keep a shared parts as an empty list of text.
+For every number from 1 to 13.
+The piece is format whole number number as text.
+Place piece into parts.
+
+Keep a shared keytext as empty text.
+To shift from spot (a whole number) with marker (a whole number).
+If spot is less than 0, set item 0 of parts to keytext, return.
+The other is item spot of parts.
+If keytext comes before other, set item (spot plus 1) of parts to other, shift from spot minus 1 with marker, return.
+Set item (spot plus 1) of parts to keytext.
+
+For every spot from 1 to 12.
+Set keytext to item spot of parts.
+Shift from spot minus 1 with 0.
+
+The rank is 2.
+The position is rank minus 1.
+Show item position of parts.

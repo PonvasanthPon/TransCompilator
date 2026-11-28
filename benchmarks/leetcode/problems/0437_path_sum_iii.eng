@@ -1,0 +1,44 @@
+Keep a shared values as an empty list of whole numbers.
+Place 10 into values.
+Place 5 into values.
+Place -3 into values.
+Place 3 into values.
+Place 2 into values.
+Place 11 into values.
+Place 3 into values.
+Place -2 into values.
+Place 1 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
+Place 6 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 5 into rights.
+Place 7 into rights.
+Place 8 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared target as 0.
+Keep a shared found as 0.
+To probe from node (a whole number) with total (a whole number).
+If node is less than 0, return.
+The sum is total plus item node of values.
+If sum is target, add 1 to found.
+Probe from item node of lefts with sum.
+Probe from item node of rights with sum.
+
+Set target to 8.
+For every start from 0 to 8.
+Probe from start with 0.
+
+Show found.

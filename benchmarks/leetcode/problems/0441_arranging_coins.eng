@@ -1,0 +1,10 @@
+The coins is 5.
+The remaining is coins.
+The rowcount is 0.
+The need is 1.
+Repeat while remaining is at least need.
+Subtract need from remaining.
+Add 1 to rowcount.
+Add 1 to need.
+
+Show rowcount.

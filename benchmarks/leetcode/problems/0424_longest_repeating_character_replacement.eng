@@ -1,0 +1,27 @@
+The word is "ABAB".
+The limit is 2.
+Keep a shared ordered as empty text.
+Keep a shared streak as 0.
+Keep a shared bestrun as 0.
+To score from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If character spot of ordered is character (spot minus 1) of ordered, add 1 to streak.
+If character spot of ordered is not character (spot minus 1) of ordered, set streak to 1.
+If streak is more than bestrun, set bestrun to streak.
+Score from spot plus 1 with last.
+
+The last is the last position of word.
+The best is 1.
+For every start from 0 to last.
+For every finish from start to last.
+The endpoint is finish plus 1.
+The piece is the slice of word from start to endpoint.
+Set ordered to sort characters of piece.
+The lastletter is the last position of ordered.
+Set streak to 1.
+Set bestrun to 1.
+Score from 1 with lastletter.
+The span is finish minus start plus 1.
+If span minus bestrun is at most limit and span is more than best, set best to span.
+
+Show best.

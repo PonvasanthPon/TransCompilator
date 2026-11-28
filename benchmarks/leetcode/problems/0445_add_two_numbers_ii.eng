@@ -1,0 +1,25 @@
+The firstdigits is a list of 7, 2, 4, and 3.
+The seconddigits is a list of 5, 6, and 4.
+The first is 0.
+For each digit in firstdigits.
+Set first to first times 10 plus digit.
+
+The second is 0.
+For each digit in seconddigits.
+Set second to second times 10 plus digit.
+
+The total is first plus second.
+The digits is an empty list of whole numbers.
+Repeat while total is more than 0.
+The digit is total modulo 10.
+Place digit into digits.
+Set total to total divided by 10.
+
+The last is the last position of digits.
+The line is empty text.
+For every step from 0 to last.
+The spot is last minus step.
+If the length of line is more than 0, Place "," into line.
+Place format whole number item spot of digits as text into line.
+
+Show line.

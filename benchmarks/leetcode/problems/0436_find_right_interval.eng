@@ -1,0 +1,28 @@
+Keep a shared starts as an empty list of whole numbers.
+Place 3 into starts.
+Place 2 into starts.
+Place 1 into starts.
+Keep a shared ends as an empty list of whole numbers.
+Place 4 into ends.
+Place 3 into ends.
+Place 2 into ends.
+Keep a shared beststart as 0.
+Keep a shared bestj as 0.
+To search from spot (a whole number) with candidate (a whole number).
+If candidate is more than 2, return.
+If item candidate of starts is at least item spot of ends and item candidate of starts is less than beststart, set beststart to item candidate of starts, set bestj to candidate.
+Search from spot with candidate plus 1.
+
+The answers is an empty list of whole numbers.
+For every spot from 0 to 2.
+Set beststart to 1000000.
+Set bestj to -1.
+Search from spot with 0.
+Place bestj into answers.
+
+The line is empty text.
+For each answer in answers.
+If the length of line is more than 0, Place "," into line.
+Place format whole number answer as text into line.
+
+Show line.

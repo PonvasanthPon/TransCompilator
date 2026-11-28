@@ -1,0 +1,10 @@
+The sentence is "Hello, my name is John".
+The last is the last position of sentence.
+The count is 0.
+The inside is 0.
+For every spot from 0 to last.
+The symbol is character spot of sentence.
+If symbol is " ", set inside to 0.
+If symbol is not " " and inside is 0, add 1 to count, set inside to 1.
+
+Show count.

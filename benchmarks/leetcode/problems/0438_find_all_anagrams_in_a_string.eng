@@ -1,0 +1,18 @@
+The source is "cbaebabacd".
+The pattern is "abc".
+The target is sort characters of pattern.
+The size is 3.
+The laststart is 7.
+The answers is an empty list of whole numbers.
+For every start from 0 to laststart.
+The finish is start plus size.
+The piece is the slice of source from start to finish.
+The ordered is sort characters of piece.
+If ordered matches target, Place start into answers.
+
+The line is empty text.
+For each answer in answers.
+If the length of line is more than 0, Place "," into line.
+Place format whole number answer as text into line.
+
+Show line.

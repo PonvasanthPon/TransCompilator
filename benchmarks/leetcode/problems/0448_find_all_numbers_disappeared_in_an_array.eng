@@ -1,0 +1,27 @@
+Keep a shared nums as an empty list of whole numbers.
+Place 4 into nums.
+Place 3 into nums.
+Place 2 into nums.
+Place 7 into nums.
+Place 8 into nums.
+Place 2 into nums.
+Place 3 into nums.
+Place 1 into nums.
+Keep a shared tally as 0.
+To seek from spot (a whole number) with value (a whole number).
+If spot is more than 7, return.
+If item spot of nums is value, add 1 to tally.
+Seek from spot plus 1 with value.
+
+The answers is an empty list of whole numbers.
+For every value from 1 to 8.
+Set tally to 0.
+Seek from 0 with value.
+If tally is 0, Place value into answers.
+
+The line is empty text.
+For each answer in answers.
+If the length of line is more than 0, Place "," into line.
+Place format whole number answer as text into line.
+
+Show line.

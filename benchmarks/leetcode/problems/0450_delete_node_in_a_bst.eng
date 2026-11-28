@@ -1,0 +1,92 @@
+Keep a shared values as an empty list of whole numbers.
+Place 5 into values.
+Place 3 into values.
+Place 6 into values.
+Place 2 into values.
+Place 4 into values.
+Place 7 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 5 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared root as 0.
+Keep a shared side as 0.
+Keep a shared spot as 0.
+Keep a shared parent as 0.
+Keep a shared key as 0.
+Keep a shared pieces as an empty list of text.
+Keep a shared successor as 0.
+Keep a shared before as 0.
+To attach from above (a whole number) with child (a whole number).
+If above is less than 0, set root to child, return.
+If side is 0, set item above of lefts to child, return.
+Set item above of rights to child.
+
+To descend from node (a whole number) with candidate (a whole number).
+Set successor to candidate.
+Set before to node.
+If item candidate of lefts is less than 0, return.
+Descend from candidate with item candidate of lefts.
+
+To prune from node (a whole number) with above (a whole number).
+The replacement is 0.
+If item node of lefts is less than 0, set replacement to item node of rights.
+If item node of lefts is less than 0, attach from above with replacement.
+If item node of lefts is less than 0, return.
+If item node of rights is less than 0, set replacement to item node of lefts.
+If item node of rights is less than 0, attach from above with replacement.
+If item node of rights is less than 0, return.
+Set successor to item node of rights.
+Set before to node.
+Descend from node with item node of rights.
+The heirspot is successor.
+Set item node of values to item heirspot of values.
+The heir is item heirspot of rights.
+If before is node, set item node of rights to heir, otherwise set item before of lefts to heir.
+
+To record from node (a whole number).
+The piece is format whole number item node of values as text.
+Place piece into pieces.
+
+Set key to 3.
+Set spot to 0.
+Set parent to -1.
+Set side to 0.
+Repeat while spot is at least 0.
+The here is spot.
+If item here of values is key, break.
+Set parent to spot.
+If key is less than item here of values, set side to 0, set spot to item here of lefts.
+If key is more than item here of values, set side to 1, set spot to item here of rights.
+
+If spot is at least 0, prune from spot with parent.
+The queue is an empty list of whole numbers.
+Place root into queue.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+If node is less than 0, Place "null" into pieces.
+If node is at least 0, record from node.
+If node is at least 0, Place item node of lefts into queue.
+If node is at least 0, Place item node of rights into queue.
+If node is at least 0, add 2 to count.
+
+Repeat while the last position of pieces is at least 0.
+The tail is the last position of pieces.
+The tailpiece is item tail of pieces.
+If tailpiece matches "null", remove the last item from pieces, otherwise break.
+
+The line is join pieces with ",".
+Show line.

@@ -1,0 +1,46 @@
+Keep a shared nums as an empty list of whole numbers.
+Place 2 into nums.
+Place 4 into nums.
+Place 6 into nums.
+Place 8 into nums.
+Place 10 into nums.
+Keep a shared powers as an empty list of whole numbers.
+Place 1 into powers.
+Place 2 into powers.
+Place 4 into powers.
+Place 8 into powers.
+Place 16 into powers.
+Keep a shared chosen as an empty list of whole numbers.
+Place 0 into chosen.
+Place 0 into chosen.
+Place 0 into chosen.
+Place 0 into chosen.
+Place 0 into chosen.
+Keep a shared chosenlen as 0.
+Keep a shared gap as 0.
+Keep a shared good as 0.
+Keep a shared total as 0.
+To collect from mask (a whole number) with spot (a whole number).
+If spot is more than 4, return.
+The flag is bitwise and of mask and item spot of powers.
+If flag is more than 0, The here is chosenlen, set item here of chosen to item spot of nums, add 1 to chosenlen.
+Collect from mask with spot plus 1.
+
+To verify from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+The gapnow is item spot of chosen minus item (spot minus 1) of chosen.
+If gapnow is not gap, set good to 0.
+Verify from spot plus 1 with last.
+
+To evaluate from mask (a whole number).
+Set chosenlen to 0.
+Collect from mask with 0.
+If chosenlen is at least 3, set gap to item 1 of chosen minus item 0 of chosen.
+If chosenlen is at least 3, set good to 1.
+If chosenlen is at least 3, verify from 2 with chosenlen minus 1.
+If chosenlen is at least 3 and good is 1, add 1 to total.
+
+For every mask from 1 to 31.
+Evaluate from mask.
+
+Show total.
