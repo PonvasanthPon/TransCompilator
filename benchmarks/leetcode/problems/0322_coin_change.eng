@@ -1,0 +1,22 @@
+Keep a shared coins as an empty list of whole numbers.
+Place 1 into coins.
+Place 2 into coins.
+Place 5 into coins.
+Keep a shared dp as an empty list of whole numbers.
+The amount is 11.
+For every spot from 0 to 11.
+Place 12 into dp.
+
+Set item 0 of dp to 0.
+To relax from value (a whole number) with spot (a whole number).
+If spot is more than 2, return.
+The coin is item spot of coins.
+If coin is at most value.
+The candidate is item (value minus coin) of dp plus 1.
+If candidate is less than item value of dp, set item value of dp to candidate.
+Relax from value with spot plus 1.
+
+For every value from 1 to amount.
+Relax from value with 0.
+
+Show item amount of dp.

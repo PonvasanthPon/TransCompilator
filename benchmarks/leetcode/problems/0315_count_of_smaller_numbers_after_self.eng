@@ -1,0 +1,24 @@
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared counts as an empty list of whole numbers.
+Place 5 into numbers.
+Place 2 into numbers.
+Place 6 into numbers.
+Place 1 into numbers.
+For every spot from 0 to 3.
+Place 0 into counts.
+
+To scan from outer (a whole number) with inner (a whole number).
+If inner is more than 3, return.
+If item inner of numbers is less than item outer of numbers, set item outer of counts to item outer of counts plus 1.
+Scan from outer with inner plus 1.
+
+For every outer from 0 to 3.
+Scan from outer with outer plus 1.
+
+The line is empty text.
+For every spot from 0 to 3.
+If spot is more than 0, Place "," into line.
+The piece is format whole number item spot of counts as text.
+Place piece into line.
+
+Show line.

@@ -1,0 +1,37 @@
+Keep a shared source as empty text.
+Keep a shared parsed as 0.
+Keep a shared valid as 0.
+Place "112358" into source.
+To parse from spot (a whole number) with finish (a whole number).
+If spot is more than finish, return.
+The digit is the digit value of character spot of source.
+Set parsed to parsed times 10 plus digit.
+Parse from spot plus 1 with finish.
+
+To follow from position (a whole number) with before (a whole number) and previous (a whole number).
+If position is more than the last position of source, set valid to 1, return.
+The sum is before plus previous.
+The piece is format whole number sum as text.
+The size is the last position of piece.
+The finish is position plus size.
+If finish is more than the last position of source, return.
+Set parsed to 0.
+Parse from position with finish.
+The nextvalue is parsed.
+If nextvalue is not sum, return.
+Follow from finish plus 1 with previous and nextvalue.
+
+For every firstsize from 1 to 4.
+For every secondsize from 1 to 4.
+If firstsize plus secondsize is at most 5 and valid is 0.
+Set parsed to 0.
+Parse from 0 with firstsize minus 1.
+The firstnumber is parsed.
+The secondstart is firstsize.
+The secondend is firstsize plus secondsize minus 1.
+Set parsed to 0.
+Parse from secondstart with secondend.
+The secondnumber is parsed.
+Follow from secondend plus 1 with firstnumber and secondnumber.
+
+If valid is 1, show true, otherwise show false.

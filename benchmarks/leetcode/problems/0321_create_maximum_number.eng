@@ -1,0 +1,112 @@
+Keep a shared pool as an empty list of whole numbers.
+Keep a shared candidate as empty text.
+Keep a shared bestsub as empty text.
+Keep a shared lefttext as empty text.
+Keep a shared righttext as empty text.
+Keep a shared mixed as empty text.
+Keep a shared bestmixed as empty text.
+Keep a shared overall as empty text.
+Keep a shared picklo as 0.
+Keep a shared pickhi as 0.
+Keep a shared pickmask as 0.
+Keep a shared started as 0.
+Keep a shared improve as 0.
+Keep a shared bestmask as 0.
+Place 3 into pool.
+Place 4 into pool.
+Place 6 into pool.
+Place 5 into pool.
+Place 9 into pool.
+Place 1 into pool.
+Place 2 into pool.
+Place 5 into pool.
+Place 8 into pool.
+Place 3 into pool.
+To attach from spot (a whole number).
+The digit is item spot of pool.
+The symbol is the character for digit.
+Place symbol into candidate.
+
+To gather from spot (a whole number).
+If spot is more than pickhi, return.
+The offset is spot minus picklo.
+The raised is shift 1 left by offset.
+The bit is bitwise and of pickmask and raised.
+If bit is more than 0, attach from spot.
+Gather from spot plus 1.
+
+To judge from spot (a whole number).
+If bestsub comes before candidate, set improve to 1.
+
+To pick from lo (a whole number) with hi (a whole number) and target (a whole number).
+Set bestsub to empty text.
+Set picklo to lo.
+Set pickhi to hi.
+Set started to 0.
+If target is 0, return.
+For every mask from 0 to 63.
+Set pickmask to mask.
+Set candidate to empty text.
+Gather from picklo.
+The lastp is the last position of candidate.
+The length is lastp plus 1.
+If length is target.
+Set improve to 0.
+If started is 0, set improve to 1.
+If started is 1, judge from 0.
+If improve is 1, Set bestsub to empty text, Place candidate into bestsub, set started to 1.
+
+To leftstep from i (a whole number) with j (a whole number).
+The piece is the slice of lefttext from i to i plus 1.
+Place piece into mixed.
+Blend from i plus 1 with j.
+Remove last character from mixed.
+
+To rightstep from i (a whole number) with j (a whole number).
+The piece is the slice of righttext from j to j plus 1.
+Place piece into mixed.
+Blend from i with j plus 1.
+Remove last character from mixed.
+
+To score from spot (a whole number).
+If started is 0, Set bestmixed to empty text, Place mixed into bestmixed, set started to 1, return.
+If bestmixed comes before mixed, Set bestmixed to empty text, Place mixed into bestmixed.
+
+To judgeover from spot (a whole number).
+If overall comes before bestmixed, set improve to 1.
+
+To blend from i (a whole number) with j (a whole number).
+The leftlast is the last position of lefttext.
+The rightlast is the last position of righttext.
+If i is more than leftlast and j is more than rightlast, score from 0, return.
+If i is at most leftlast, leftstep from i with j.
+If j is at most rightlast, rightstep from i with j.
+
+For every firstcount from 0 to 4.
+The secondcount is 5 minus firstcount.
+If secondcount is at most 6.
+Set bestsub to empty text.
+Pick from 0 with 3 and firstcount.
+Set lefttext to empty text.
+Place bestsub into lefttext.
+Set bestsub to empty text.
+Pick from 4 with 9 and secondcount.
+Set righttext to empty text.
+Place bestsub into righttext.
+Set mixed to empty text.
+Set bestmixed to empty text.
+Set started to 0.
+Blend from 0 with 0.
+The oversize is the last position of overall.
+Set improve to 0.
+If oversize is -1, set improve to 1.
+If improve is 0, judgeover from 0.
+If improve is 1, Set overall to empty text, Place bestmixed into overall.
+
+The line is empty text.
+For every spot from 0 to 4.
+If spot is more than 0, Place "," into line.
+The piece is the slice of overall from spot to spot plus 1.
+Place piece into line.
+
+Show line.

@@ -1,0 +1,23 @@
+Keep a shared sums as an empty list of whole numbers.
+Keep a shared lower as 0.
+Keep a shared upper as 0.
+Keep a shared count as 0.
+The numbers is a list of -2, 5, and -1.
+Set lower to -2.
+Set upper to 2.
+For every spot from 0 to 3.
+Place 0 into sums.
+
+For every spot from 1 to 3.
+Set item spot of sums to item (spot minus 1) of sums plus item (spot minus 1) of numbers.
+
+To scan from right (a whole number) with left (a whole number).
+If left is at least right, return.
+The difference is item right of sums minus item left of sums.
+If difference is at least lower and difference is at most upper, add 1 to count.
+Scan from right with left plus 1.
+
+For every right from 1 to 3.
+Scan from right with 0.
+
+Show count.

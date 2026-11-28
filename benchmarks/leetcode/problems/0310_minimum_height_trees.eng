@@ -1,0 +1,30 @@
+Keep a shared matrix as empty list of whole numbers.
+Keep a shared deepest as 0.
+For every spot from 0 to 15.
+Place 0 into matrix.
+
+Set item 4 of matrix to 1.
+Set item 1 of matrix to 1.
+Set item 6 of matrix to 1.
+Set item 9 of matrix to 1.
+Set item 7 of matrix to 1.
+Set item 13 of matrix to 1.
+The heights is a list of 4 zeros.
+To walk from node (a whole number) with parent (a whole number) and depth (a whole number).
+If depth is more than deepest, set deepest to depth.
+For every other from 0 to 3.
+The at is node times 4 plus other.
+If item at of matrix is 1 and other is not parent.
+Walk from other with node and depth plus 1.
+
+For every root from 0 to 3.
+Set deepest to 0.
+Walk from root with -1 and 0.
+Set item root of heights to deepest.
+
+The best is item 0 of heights.
+For every root from 1 to 3.
+If item root of heights is less than best, set best to item root of heights.
+
+For every root from 0 to 3.
+If item root of heights is best, show root.

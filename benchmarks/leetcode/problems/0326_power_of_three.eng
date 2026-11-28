@@ -1,0 +1,6 @@
+The number is 27.
+The value is number.
+Repeat while value modulo 3 is 0.
+Set value to value divided by 3.
+
+If value is 1, show true, otherwise show false.

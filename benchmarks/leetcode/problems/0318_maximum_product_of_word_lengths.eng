@@ -1,0 +1,53 @@
+Keep a shared words as an empty list of text.
+Keep a shared masks as an empty list of whole numbers.
+Keep a shared sizes as an empty list of whole numbers.
+Keep a shared alphabet as empty text.
+Keep a shared symbol as empty text.
+Keep a shared position as 0.
+Place "abcw" into words.
+Place "baz" into words.
+Place "foo" into words.
+Place "bar" into words.
+Place "xtfn" into words.
+Place "abcdef" into words.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+For every spot from 0 to 5.
+Place 0 into masks.
+Place 0 into sizes.
+
+To locate from spot (a whole number).
+If spot is more than 25, return.
+The letter is the slice of alphabet from spot to spot plus 1.
+If letter matches symbol, set position to spot, return.
+Locate from spot plus 1.
+
+To mark from index (a whole number) with spot (a whole number).
+If spot is at least item index of sizes, return.
+The word is item index of words.
+The piece is the slice of word from spot to spot plus 1.
+Set symbol to empty text.
+Place piece into symbol.
+Locate from 0.
+The raised is shift 1 left by position.
+The mixed is bitwise or of item index of masks and raised.
+Set item index of masks to mixed.
+Mark from index with spot plus 1.
+
+To encode from index (a whole number).
+If index is more than 5, return.
+The word is item index of words.
+The size is the last position of word.
+Set item index of sizes to size plus 1.
+Mark from index with 0.
+Encode from index plus 1.
+
+Encode from 0.
+The best is 0.
+For every left from 0 to 5.
+For every right from left plus 1 to 5.
+The common is bitwise and of item left of masks and item right of masks.
+If common is 0.
+The product is item left of sizes times item right of sizes.
+If product is more than best, set best to product.
+
+Show best.

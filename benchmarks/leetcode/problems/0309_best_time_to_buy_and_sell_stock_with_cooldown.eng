@@ -1,0 +1,16 @@
+The prices is a list of 1, 2, 3, 0, and 2.
+The last is the last position of prices.
+The holding is -1000000.
+The sold is 0.
+The resting is 0.
+For every spot from 0 to last.
+The price is item spot of prices.
+The oldholding is holding.
+The oldsold is sold.
+The oldresting is resting.
+The buying is oldresting minus price.
+If buying is more than oldholding, set holding to buying, otherwise set holding to oldholding.
+Set sold to oldholding plus price.
+If oldsold is more than oldresting, set resting to oldsold, otherwise set resting to oldresting.
+
+If sold is more than resting, show sold, otherwise show resting.

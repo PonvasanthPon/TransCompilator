@@ -1,0 +1,27 @@
+Keep a shared values as an empty list of whole numbers.
+Keep a shared memo as an empty list of whole numbers.
+The numbers is a list of 3, 1, 5, and 8.
+Place 1 into values.
+For every spot from 0 to 3.
+Place item spot of numbers into values.
+
+Place 1 into values.
+For every spot from 0 to 35.
+Place -1 into memo.
+
+To burst from left (a whole number) with right (a whole number).
+The slot is left times 6 plus right.
+If item slot of memo is at least 0, return.
+If right minus left is less than 2, set item slot of memo to 0, return.
+Set item slot of memo to 0.
+For every spot from left plus 1 to right minus 1.
+Burst from left with spot.
+Burst from spot with right.
+The first is item (left times 6 plus spot) of memo.
+The second is item (spot times 6 plus right) of memo.
+The gain is item left of values times item spot of values times item right of values.
+The candidate is gain plus first plus second.
+If candidate is more than item slot of memo, set item slot of memo to candidate.
+
+Burst from 0 with 5.
+Show item 5 of memo.

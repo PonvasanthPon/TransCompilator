@@ -1,0 +1,16 @@
+The numbers is a list of 1, 5, 1, 1, 6, and 4.
+Sort numbers.
+The size is 6.
+The half is 3.
+The result is a list of 6 zeros.
+For every spot from 0 to 2.
+Set item (spot times 2) of result to item (half minus 1 minus spot) of numbers.
+Set item (spot times 2 plus 1) of result to item (size minus 1 minus spot) of numbers.
+
+The line is empty text.
+For every spot from 0 to 5.
+If spot is more than 0, Place "," into line.
+The piece is format whole number item spot of result as text.
+Place piece into line.
+
+Show line.

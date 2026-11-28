@@ -1,0 +1,26 @@
+Keep a shared nexts as an empty list of whole numbers.
+Keep a shared smallest as 0.
+The primes is a list of 2, 7, 13, and 19.
+The ugly is an empty list of whole numbers.
+Place 1 into ugly.
+The markers is a list of 4 zeros.
+For every spot from 0 to 3.
+Place item spot of primes into nexts.
+
+To find from spot (a whole number) with limit (a whole number).
+If spot is more than limit, return.
+If item spot of nexts is less than smallest, set smallest to item spot of nexts.
+Find from spot plus 1 with limit.
+
+For every count from 1 to 11.
+Set smallest to item 0 of nexts.
+Find from 1 with 3.
+Place smallest into ugly.
+For every spot from 0 to 3.
+If item spot of nexts is smallest.
+The marker is item spot of markers.
+Set item spot of markers to marker plus 1.
+The product is item (marker plus 1) of ugly times item spot of primes.
+Set item spot of nexts to product.
+
+Show item 11 of ugly.

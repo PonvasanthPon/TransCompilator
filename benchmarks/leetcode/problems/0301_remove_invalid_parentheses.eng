@@ -1,0 +1,88 @@
+Keep a shared source as empty text.
+Keep a shared candidate as empty text.
+Keep a shared probe as empty text.
+Keep a shared answers as an empty list of text.
+Keep a shared balance as 0.
+Keep a shared good as 0.
+Keep a shared duplicate as 0.
+Keep a shared best as 0.
+Keep a shared bits as 0.
+Keep a shared need as 0.
+Place "()())()" into source.
+Set best to -1.
+To build from mask (a whole number) with spot (a whole number).
+If spot is more than 6, return.
+The raised is shift 1 left by spot.
+The bit is bitwise and of mask and raised.
+If bit is more than 0, appendchar from spot.
+Build from mask with spot plus 1.
+
+To appendchar from spot (a whole number).
+The piece is the slice of source from spot to spot plus 1.
+Place piece into candidate.
+
+To check from spot (a whole number).
+If spot is more than the last position of candidate, return.
+The piece is the slice of candidate from spot to spot plus 1.
+If piece matches "(", add 1 to balance.
+If piece matches ")", subtract 1 from balance.
+If balance is less than 0, set good to 0.
+Check from spot plus 1.
+
+To count from mask (a whole number) with spot (a whole number).
+If spot is more than 6, return.
+The raised is shift 1 left by spot.
+The bit is bitwise and of mask and raised.
+If bit is more than 0, add 1 to bits.
+Count from mask with spot plus 1.
+
+To look from spot (a whole number).
+If spot is more than the last position of answers, return.
+If item spot of answers matches probe, set duplicate to 1, return.
+Look from spot plus 1.
+
+For every spot from 0 to 6.
+The piece is the slice of source from spot to spot plus 1.
+If piece matches "(", add 1 to balance.
+If piece matches ")", subtract 1 from balance.
+If balance is less than 0, set balance to 0, add 1 to need.
+
+Set need to need plus balance.
+The keepcount is 7 minus need.
+For every mask from 0 to 127.
+Set bits to 0.
+Count from mask with 0.
+If bits is keepcount.
+Set candidate to empty text.
+Build from mask with 0.
+Set balance to 0.
+Set good to 1.
+Check from 0.
+If good is 1 and balance is 0.
+The length is the last position of candidate.
+If length is more than best, set best to length.
+
+For every mask from 0 to 127.
+Set bits to 0.
+Count from mask with 0.
+If bits is keepcount.
+Set candidate to empty text.
+Build from mask with 0.
+Set balance to 0.
+Set good to 1.
+Check from 0.
+If good is 1 and balance is 0.
+The length is the last position of candidate.
+If length is best.
+Set duplicate to 0.
+Set probe to empty text.
+Place candidate into probe.
+Look from 0.
+If duplicate is 0, The copy is a copy of candidate, Place copy into answers.
+
+The lastanswer is the last position of answers.
+For every left from 0 to lastanswer.
+For every right from left to lastanswer.
+If item right of answers comes before item left of answers, swap item left of answers and item right of answers.
+
+For each answer in answers, show answer.

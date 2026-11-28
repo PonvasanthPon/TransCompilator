@@ -1,0 +1,10 @@
+The values is a list of 1, 2, 3, 4, and 5.
+The last is the last position of values.
+The odds is an empty list of whole numbers.
+The evens is an empty list of whole numbers.
+For every spot from 0 to last.
+If spot modulo 2 is 0, Place item spot of values into odds.
+If spot modulo 2 is 1, Place item spot of values into evens.
+
+For each value in odds, show value.
+For each value in evens, show value.
