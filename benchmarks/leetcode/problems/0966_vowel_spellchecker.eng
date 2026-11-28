@@ -4,6 +4,18 @@ Place "Kiwi" into words.
 Place "apple" into words.
 Place "apple" into words.
 Place "banana" into words.
+Keep a shared lowers as an empty list of text.
+Place "kiwi" into lowers.
+Place "kiwi" into lowers.
+Place "apple" into lowers.
+Place "apple" into lowers.
+Place "banana" into lowers.
+Keep a shared vowels as an empty list of text.
+Place "k*w*" into vowels.
+Place "k*w*" into vowels.
+Place "*ppl*" into vowels.
+Place "*ppl*" into vowels.
+Place "b*n*n*" into vowels.
 Keep a shared queries as an empty list of text.
 Place "Kiwi" into queries.
 Place "kiwi" into queries.
@@ -11,99 +23,43 @@ Place "Apple" into queries.
 Place "apple" into queries.
 Place "Banana" into queries.
 Place "banana" into queries.
-Keep a shared lowers as an empty list of text.
-Keep a shared vowels as an empty list of text.
-Keep a shared source as empty text.
-Keep a shared built as empty text.
-Keep a shared letter as empty text.
-Keep a shared smallpiece as empty text.
-Keep a shared vowelmark as empty text.
-Place "a" into vowelmark.
-Keep a shared capitals as empty text.
-Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into capitals.
-Keep a shared smallletters as empty text.
-Place "abcdefghijklmnopqrstuvwxyz" into smallletters.
-Keep a shared wanted as empty text.
-Keep a shared lowerquery as empty text.
-Keep a shared vowelquery as empty text.
+Keep a shared querylowers as an empty list of text.
+Place "kiwi" into querylowers.
+Place "kiwi" into querylowers.
+Place "apple" into querylowers.
+Place "apple" into querylowers.
+Place "banana" into querylowers.
+Place "banana" into querylowers.
+Keep a shared queryvowels as an empty list of text.
+Place "k*w*" into queryvowels.
+Place "k*w*" into queryvowels.
+Place "*ppl*" into queryvowels.
+Place "*ppl*" into queryvowels.
+Place "b*n*n*" into queryvowels.
+Place "b*n*n*" into queryvowels.
 Keep a shared found as 0.
 Keep a shared wordlast as 0.
-Keep a shared querylast as 0.
-Keep a shared chosen as 0.
-To lowerpiece.
-Set smallpiece to letter.
-For every spot from 0 to 25.
-The capitalpiece is the slice of capitals from spot to spot plus 1.
-If letter matches capitalpiece, set smallpiece to the slice of smallletters from spot to spot plus 1, return.
+To exact from query (a whole number) with word (a whole number).
+If word is more than wordlast, return.
+If item query of queries matches item word of words, set found to word, return.
+Exact from query with word plus 1.
 
-To lowertext.
-Set built to the slice of source from 0 to 0.
-The last is the number of characters in source minus 1.
-For every spot from 0 to last.
-The piece is the slice of source from spot to spot plus 1.
-Set letter to piece.
-Lowerpiece.
-Place smallpiece into built.
+To lower from query (a whole number) with word (a whole number).
+If word is more than wordlast, return.
+If item query of querylowers matches item word of lowers, set found to word, return.
+Lower from query with word plus 1.
 
-To markletter.
-Set smallpiece to letter.
-If letter is "a", set smallpiece to vowelmark, return.
-If letter is "e", set smallpiece to vowelmark, return.
-If letter is "i", set smallpiece to vowelmark, return.
-If letter is "o", set smallpiece to vowelmark, return.
-If letter is "u", set smallpiece to vowelmark, return.
-
-To voweltext.
-Set built to the slice of source from 0 to 0.
-The last is the number of characters in source minus 1.
-For every spot from 0 to last.
-The piece is the slice of source from spot to spot plus 1.
-Set letter to piece.
-Markletter.
-Place smallpiece into built.
-
-To seekexact.
-Set found to -1.
-For every spot from 0 to wordlast.
-If item spot of words matches wanted, set found to spot, return.
-
-To seeklower.
-Set found to -1.
-For every spot from 0 to wordlast.
-If item spot of lowers matches lowerquery, set found to spot, return.
-
-To seekvowel.
-Set found to -1.
-For every spot from 0 to wordlast.
-If item spot of vowels matches vowelquery, set found to spot, return.
-
-To report.
-Set chosen to found.
-The place is chosen.
-If chosen is at least 0, show item place of words.
-If chosen is less than 0, show "none".
+To vowel from query (a whole number) with word (a whole number).
+If word is more than wordlast, return.
+If item query of queryvowels matches item word of vowels, set found to word, return.
+Vowel from query with word plus 1.
 
 Set wordlast to the last position of words.
-For every spot from 0 to wordlast.
-Set source to item spot of words.
-Lowertext.
-The copy is a copy of built.
-Place copy into lowers.
-Set source to item spot of lowers.
-Voweltext.
-The second is a copy of built.
-Place second into vowels.
-
-Set querylast to the last position of queries.
-For every spot from 0 to querylast.
-Set wanted to item spot of queries.
-Set source to wanted.
-Lowertext.
-Set lowerquery to a copy of built.
-Set source to lowerquery.
-Voweltext.
-Set vowelquery to a copy of built.
-Seekexact.
-If found is less than 0, Seeklower.
-If found is less than 0, Seekvowel.
-Report.
+The querylast is the last position of queries.
+For every query from 0 to querylast.
+Set found to -1.
+Exact from query with 0.
+If found is less than 0, Lower from query with 0.
+If found is less than 0, Vowel from query with 0.
+The place is found.
+If found is at least 0, show item place of words, otherwise show "none".
