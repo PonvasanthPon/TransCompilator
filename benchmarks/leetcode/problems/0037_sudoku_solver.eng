@@ -1,85 +1,85 @@
 Keep a shared board as an empty list of whole numbers.
-Append 5 to board.
-Append 3 to board.
-Append 0 to board.
-Append 0 to board.
-Append 7 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 6 to board.
-Append 0 to board.
-Append 0 to board.
-Append 1 to board.
-Append 9 to board.
-Append 5 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 9 to board.
-Append 8 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 6 to board.
-Append 0 to board.
-Append 8 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 6 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 3 to board.
-Append 4 to board.
-Append 0 to board.
-Append 0 to board.
-Append 8 to board.
-Append 0 to board.
-Append 3 to board.
-Append 0 to board.
-Append 0 to board.
-Append 1 to board.
-Append 7 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 2 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 6 to board.
-Append 0 to board.
-Append 6 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 2 to board.
-Append 8 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 4 to board.
-Append 1 to board.
-Append 9 to board.
-Append 0 to board.
-Append 0 to board.
-Append 5 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 0 to board.
-Append 8 to board.
-Append 0 to board.
-Append 0 to board.
-Append 7 to board.
-Append 9 to board.
+Place 5 into board.
+Place 3 into board.
+Place 0 into board.
+Place 0 into board.
+Place 7 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 6 into board.
+Place 0 into board.
+Place 0 into board.
+Place 1 into board.
+Place 9 into board.
+Place 5 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 9 into board.
+Place 8 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 6 into board.
+Place 0 into board.
+Place 8 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 6 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 3 into board.
+Place 4 into board.
+Place 0 into board.
+Place 0 into board.
+Place 8 into board.
+Place 0 into board.
+Place 3 into board.
+Place 0 into board.
+Place 0 into board.
+Place 1 into board.
+Place 7 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 2 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 6 into board.
+Place 0 into board.
+Place 6 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 2 into board.
+Place 8 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 4 into board.
+Place 1 into board.
+Place 9 into board.
+Place 0 into board.
+Place 0 into board.
+Place 5 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 8 into board.
+Place 0 into board.
+Place 0 into board.
+Place 7 into board.
+Place 9 into board.
 
 Keep a shared solved as 0.
 Keep a shared row safe as 0.
@@ -97,23 +97,23 @@ If item (row times 9 plus column) of board is value, set column safe to 0, break
 
 To check box at box (a whole number) with value (a whole number).
 Set box safe to 1.
-Let start row be (box divided by 3) times 3.
-Let start column be (box modulo 3) times 3.
+The startrow is (box divided by 3) times 3.
+The startcolumn is (box modulo 3) times 3.
 For every inner row from 0 to 2.
 For every inner column from 0 to 2.
-Let row be start row plus inner row.
-Let column be start column plus inner column.
+The row is startrow plus inner row.
+The column is startcolumn plus inner column.
 If item (row times 9 plus column) of board is value, set box safe to 0, break.
 
 To solve from position (a whole number).
 If solved is 1, return.
 If position is 81, set solved to 1, return.
 If item position of board is not 0, solve from position plus 1, return.
-Let row be position divided by 9.
-Let column be position modulo 9.
-Let box be (row divided by 3) times 3 plus column divided by 3.
+The row is position divided by 9.
+The column is position modulo 9.
+The box is (row divided by 3) times 3 plus column divided by 3.
 For every step from 0 to 8.
-Let digit be 9 minus step.
+The digit is 9 minus step.
 Check row at row with digit.
 Check column at column with digit.
 Check box at box with digit.
@@ -124,4 +124,4 @@ If solved is 1, return.
 Set item position of board to 0.
 
 Solve from 0.
-For each value in board, print value.
+For each value in board, display value.

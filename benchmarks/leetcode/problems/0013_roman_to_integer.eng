@@ -1,10 +1,10 @@
-Let word be "MCMXCIV".
-Let final be one less than the number of characters in word.
-Let total be 0.
+The word is "MCMXCIV".
+The final is one less than the number of characters in word.
+The total is 0.
 For every position from 0 to final.
-Let current be 0.
-Let following be 0.
-Let symbol be character position of word.
+The current is 0.
+The following is 0.
+The symbol is character position of word.
 If symbol is 77, set current to 1000.
 If symbol is 68, set current to 500.
 If symbol is 67, set current to 100.
@@ -12,8 +12,8 @@ If symbol is 76, set current to 50.
 If symbol is 88, set current to 10.
 If symbol is 86, set current to 5.
 If symbol is 73, set current to 1.
-Let next position be one more than position.
-If position is less than final, set following to character next position of word.
+The nextposition is one more than position.
+If position is less than final, set following to character nextposition of word.
 If following is 77, set following to 1000.
 If following is 68, set following to 500.
 If following is 67, set following to 100.
@@ -23,4 +23,4 @@ If following is 86, set following to 5.
 If following is 73, set following to 1.
 If current is less than following, set total to total minus current, otherwise set total to total plus current.
 
-Print total.
+Display total.

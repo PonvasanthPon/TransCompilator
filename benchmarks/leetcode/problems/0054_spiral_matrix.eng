@@ -1,26 +1,26 @@
-Let matrix be a list of 1, 2, 3, 4, 5, 6, 7, 8, and 9.
-Let rows be 3.
-Let columns be 3.
-Let size be rows times columns.
-Let visited be a list of size zeros.
-Let spiral be an empty list of whole numbers.
-Let row be 0.
-Let column be 0.
-Let down be 0.
-Let right be 1.
+The matrix is a list of 1, 2, 3, 4, 5, 6, 7, 8, and 9.
+The rows is 3.
+The columns is 3.
+The size is rows times columns.
+The visited is a list of size zeros.
+The spiral is an empty list of whole numbers.
+The row is 0.
+The column is 0.
+The down is 0.
+The right is 1.
 For every step from 0 to one less than size.
-Append item (row times columns plus column) of matrix to spiral.
+Place item (row times columns plus column) of matrix into spiral.
 Set item (row times columns plus column) of visited to 1.
-Let next row be row plus down.
-Let next column be column plus right.
-Let blocked be 0.
-Let old down be 0.
-If next row is less than 0 or next row is at least rows or next column is less than 0 or next column is at least columns, set blocked to 1.
-If blocked is 0 and item (next row times columns plus next column) of visited is 1, set blocked to 1.
-If blocked is 1, set old down to down.
+The nextrow is row plus down.
+The nextcolumn is column plus right.
+The blocked is 0.
+The olddown is 0.
+If nextrow is less than 0 or nextrow is at least rows or nextcolumn is less than 0 or nextcolumn is at least columns, set blocked to 1.
+If blocked is 0 and item (nextrow times columns plus nextcolumn) of visited is 1, set blocked to 1.
+If blocked is 1, set olddown to down.
 If blocked is 1, set down to right.
-If blocked is 1, set right to 0 minus old down.
+If blocked is 1, set right to 0 minus olddown.
 Set row to row plus down.
 Set column to column plus right.
 
-For each value in spiral, print value.
+For each value in spiral, show value.

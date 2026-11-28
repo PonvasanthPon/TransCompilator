@@ -1,36 +1,36 @@
 Keep a shared values as an empty list of whole numbers.
-Append 3 to values.
-Append 1 to values.
-Append 4 to values.
-Append 2 to values.
+Place 3 into values.
+Place 1 into values.
+Place 4 into values.
+Place 2 into values.
 Keep a shared lefts as an empty list of whole numbers.
-Append 1 to lefts.
-Append -1 to lefts.
-Append 3 to lefts.
-Append -1 to lefts.
+Place 1 into lefts.
+Place -1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
 Keep a shared rights as an empty list of whole numbers.
-Append 2 to rights.
-Append -1 to rights.
-Append -1 to rights.
-Append -1 to rights.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
 Keep a shared order as an empty list of whole numbers.
 Keep a shared order count as 0.
 To gather from node (a whole number).
 If node is less than 0, return.
 Gather from item node of lefts.
-Append node to order.
+Place node into order.
 Add 1 to order count.
 Gather from item node of rights.
 
 Gather from 0.
-Let first bad be -1.
-Let second bad be -1.
-Let last be order count minus 1.
+The firstbad is -1.
+The secondbad is -1.
+The last is order count minus 1.
 For every position from 1 to last.
-Let before be item (position minus 1) of order.
-Let current be item position of order.
-If item before of values is more than item current of values and first bad is -1, set first bad to before.
-If item before of values is more than item current of values, set second bad to current.
+The before is item (position minus 1) of order.
+The current is item position of order.
+If item before of values is more than item current of values and firstbad is -1, set firstbad to before.
+If item before of values is more than item current of values, set secondbad to current.
 
-Swap item first bad of values and item second bad of values.
-For each node in order, print item node of values.
+Swap item firstbad of values and item secondbad of values.
+For each node in order, show item node of values.

@@ -1,6 +1,6 @@
-Let values be a list of 1, 2, 3, and 4.
-Let last be the last position of values.
+The values is a list of 1, 2, 3, and 4.
+The last is the last position of values.
 For every position from 0 to last.
 If position modulo 2 is 0 and position plus 1 is at most last, swap item position of values and item (position plus 1) of values.
 
-For each value in values, print value.
+For each value in values, show value.

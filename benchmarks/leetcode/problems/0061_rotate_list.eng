@@ -1,12 +1,12 @@
-Let values be a list of 1, 2, 3, 4, and 5.
-Let last be the last position of values.
-Let size be last plus 1.
-Let target be 2.
-Let offset be target modulo size.
-Let result be an empty list of whole numbers.
+The values is a list of 1, 2, 3, 4, and 5.
+The last is the last position of values.
+The size is last plus 1.
+The target is 2.
+The offset is target modulo size.
+The result is an empty list of whole numbers.
 For every position from 0 to last.
-Let source be position plus size minus offset.
+The source is position plus size minus offset.
 If source is at least size, set source to source minus size.
-Append item source of values to result.
+Place item source of values into result.
 
-For each value in result, print value.
+For each value in result, display value.

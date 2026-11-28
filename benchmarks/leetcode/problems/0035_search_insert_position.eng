@@ -1,8 +1,8 @@
 Start with the list of numbers 1, 3, 5, and 6.
-Let target be 5.
-Let count be the number of items in numbers.
-Let found position be -1.
+The target is 5.
+The count is the number of items in numbers.
+The foundposition is -1.
 For every position from 0 to the last position of numbers.
-If item position of numbers is target or item position of numbers is more than target, set found position to position, print found position, then stop.
+If item position of numbers is target or item position of numbers is more than target, set foundposition to position, report foundposition, then stop.
 
-If found position is -1, print count.
+If foundposition is -1, report count.

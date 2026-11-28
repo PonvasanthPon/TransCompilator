@@ -1,16 +1,16 @@
-Let value be 1994.
-Let result be empty text.
-Repeat while value is at least 1000, append "M" to result, set value to value minus 1000.
-If value is at least 900, append "CM" to result, set value to value minus 900.
-If value is at least 500, append "D" to result, set value to value minus 500.
-If value is at least 400, append "CD" to result, set value to value minus 400.
-Repeat while value is at least 100, append "C" to result, set value to value minus 100.
-If value is at least 90, append "XC" to result, set value to value minus 90.
-If value is at least 50, append "L" to result, set value to value minus 50.
-If value is at least 40, append "XL" to result, set value to value minus 40.
-Repeat while value is at least 10, append "X" to result, set value to value minus 10.
-If value is at least 9, append "IX" to result, set value to value minus 9.
-If value is at least 5, append "V" to result, set value to value minus 5.
-If value is at least 4, append "IV" to result, set value to value minus 4.
-Repeat while value is at least 1, append "I" to result, set value to value minus 1.
-Print result.
+The value is 1994.
+The result is empty text.
+Repeat while value is at least 1000, Place "M" into result, set value to value minus 1000.
+If value is at least 900, Place "CM" into result, set value to value minus 900.
+If value is at least 500, Place "D" into result, set value to value minus 500.
+If value is at least 400, Place "CD" into result, set value to value minus 400.
+Repeat while value is at least 100, Place "C" into result, set value to value minus 100.
+If value is at least 90, Place "XC" into result, set value to value minus 90.
+If value is at least 50, Place "L" into result, set value to value minus 50.
+If value is at least 40, Place "XL" into result, set value to value minus 40.
+Repeat while value is at least 10, Place "X" into result, set value to value minus 10.
+If value is at least 9, Place "IX" into result, set value to value minus 9.
+If value is at least 5, Place "V" into result, set value to value minus 5.
+If value is at least 4, Place "IV" into result, set value to value minus 4.
+Repeat while value is at least 1, Place "I" into result, set value to value minus 1.
+Show result.

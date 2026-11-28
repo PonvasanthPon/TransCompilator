@@ -1,13 +1,13 @@
-Let jumps be a list of 2, 3, 1, 1, and 4.
-Let last be the last position of jumps.
-Let steps be 0.
-Let start be 0.
-Let current end be 0.
-Let farthest be 0.
-Repeat while current end is less than last.
-For every scan from start to current end, let reach be scan plus item scan of jumps, if reach is greater than farthest, set farthest to reach.
-Set start to one more than current end.
-Set current end to farthest.
+The jumps is a list of 2, 3, 1, 1, and 4.
+The last is the last position of jumps.
+The steps is 0.
+The start is 0.
+The currentend is 0.
+The farthest is 0.
+Repeat while currentend is less than last.
+For every scan from start to currentend, The reach is scan plus item scan of jumps, if reach is greater than farthest, set farthest to reach.
+Set start to one more than currentend.
+Set currentend to farthest.
 Add 1 to steps.
 
-Print steps.
+Show steps.

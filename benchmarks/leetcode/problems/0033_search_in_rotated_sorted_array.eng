@@ -1,7 +1,7 @@
 Start with the list of numbers 4, 5, 6, 7, 0, 1, and 2.
-Let target be 0.
-Let answer be -1.
+The target is 0.
+The answer is -1.
 For every position from 0 to the last position of numbers.
 If item position of numbers is target, set answer to position, then stop.
 
-Print answer.
+Show answer.

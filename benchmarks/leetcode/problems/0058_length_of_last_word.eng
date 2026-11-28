@@ -1,7 +1,7 @@
-Let word be "   fly me   to   the moon  ".
-Let final be the last position of word.
-Let position be final.
-Let letters be 0.
+The word is "   fly me   to   the moon  ".
+The final is the last position of word.
+The position is final.
+The letters is 0.
 Repeat while position is at least 0 and character position of word is 32.
 Set position to one less than position.
 
@@ -9,4 +9,4 @@ Repeat while position is at least 0 and character position of word isn't equal t
 Add 1 to letters.
 Set position to one less than position.
 
-Print letters.
+Display letters.

@@ -1,15 +1,15 @@
-Let grid be a list of 0, 0, 0, 0, 1, 0, 0, 0, and 0.
-Let columns be 3.
-Let size be the number of items in grid.
-Let table be a list of size zeros.
+The grid is a list of 0, 0, 0, 0, 1, 0, 0, 0, and 0.
+The columns is 3.
+The size is the number of items in grid.
+The table is a list of size zeros.
 For every position from 0 to one less than size.
-Let row be position divided by columns.
-Let column be position modulo columns.
+The row is position divided by columns.
+The column is position modulo columns.
 If item position of grid is 1, set item position of table to 0.
 If row is 0 and column is 0 and item position of grid is 0, set item position of table to 1.
 If row is 0 and column is more than 0 and item position of grid is 0, set item position of table to item (position minus 1) of table.
 If row is more than 0 and column is 0 and item position of grid is 0, set item position of table to item (position minus columns) of table.
 If row is more than 0 and column is more than 0 and item position of grid is 0, set item position of table to item (position minus 1) of table plus item (position minus columns) of table.
 
-Let last be one less than size.
-Print item last of table.
+The last is one less than size.
+Show item last of table.

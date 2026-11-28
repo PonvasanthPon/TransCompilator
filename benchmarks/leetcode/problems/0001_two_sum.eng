@@ -1,4 +1,4 @@
 Start with the list of numbers 2, 7, 11, and 15.
-Let target be 9.
+The target is 9.
 For every first from 0 to the last position of numbers.
-For every second from one more than first to the last position of numbers, if item first of numbers plus item second of numbers is target, print first, print second, then stop.
+For every second from one more than first to the last position of numbers, if item first of numbers plus item second of numbers is target, display first, display second, then stop.

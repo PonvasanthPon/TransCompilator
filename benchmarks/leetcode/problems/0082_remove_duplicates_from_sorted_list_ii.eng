@@ -1,10 +1,10 @@
-Let values be a list of 1, 2, 3, 3, 4, 4, and 5.
-Let counts be an empty map.
+The values is a list of 1, 2, 3, 3, 4, 4, and 5.
+The counts is an empty map.
 For each value in values.
 Add 1 to entry value of counts.
 
-Let result be an empty list of whole numbers.
+The result is an empty list of whole numbers.
 For each value in values.
-If entry value of counts is 1, append value to result.
+If entry value of counts is 1, Place value into result.
 
-For each value in result, print value.
+For each value in result, display value.

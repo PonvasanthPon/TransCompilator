@@ -1,30 +1,30 @@
-Let source be "ADOBECODEBANC".
-Let target be "ABC".
-Let source last be the last position of source.
-Let target last be the last position of target.
-Let need be an empty map.
-For every position from 0 to target last.
-Let symbol be character position of target.
+The source is "ADOBECODEBANC".
+The target is "ABC".
+The sourcelast is the last position of source.
+The targetlast is the last position of target.
+The need is an empty map.
+For every position from 0 to targetlast.
+The symbol is character position of target.
 Add 1 to entry symbol of need.
 
-Let window be an empty map.
-Let required be the number of entries in need.
-Let formed be 0.
-Let left be 0.
-Let best start be 0.
-Let best length be 1000000.
-For every right from 0 to source last.
-Let symbol be character right of source.
+The window is an empty map.
+The required is the number of entries in need.
+The formed is 0.
+The left is 0.
+The beststart is 0.
+The bestlength is 1000000.
+For every right from 0 to sourcelast.
+The symbol is character right of source.
 Add 1 to entry symbol of window.
 If need has entry symbol and entry symbol of window is entry symbol of need, add 1 to formed.
 Repeat while formed is required.
-Let width be right minus left plus 1.
-If width is less than best length, set best start to left, set best length to width.
-Let mark be character left of source.
+The width is right minus left plus 1.
+If width is less than bestlength, set beststart to left, set bestlength to width.
+The mark is character left of source.
 Subtract 1 from entry mark of window.
 If need has entry mark and entry mark of window is less than entry mark of need, subtract 1 from formed.
 Add 1 to left.
 
-Let finish be best start plus best length.
-Let answer be the slice of source from best start to finish.
-Print answer.
+The finish is beststart plus bestlength.
+The answer is the slice of source from beststart to finish.
+Display answer.

@@ -1,7 +1,7 @@
-Let first be a list of 1, 2, and 3.
-Let second be a list of 2, 5, and 6.
-Let combined be an empty list of whole numbers.
-For each number in first, append number to combined.
-For each number in second, append number to combined.
+The first is a list of 1, 2, and 3.
+The second is a list of 2, 5, and 6.
+The combined is an empty list of whole numbers.
+For each number in first, Place number into combined.
+For each number in second, Place number into combined.
 Sort combined.
-For each number in combined, print number.
+For each number in combined, display number.

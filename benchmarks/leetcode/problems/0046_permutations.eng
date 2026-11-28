@@ -1,20 +1,20 @@
 Keep a shared nums as an empty list of whole numbers.
-Append 1 to nums.
-Append 2 to nums.
-Append 3 to nums.
+Place 1 into nums.
+Place 2 into nums.
+Place 3 into nums.
 Keep a shared used as an empty list of whole numbers.
 Keep a shared parts as an empty list of text.
 Keep a shared answers as an empty list of text.
 To permute from depth (a whole number).
-If depth is 3, let built be join parts with "", append built to answers, then return.
+If depth is 3, The built is join parts with "", Place built into answers, then return.
 For every position from 0 to 2.
 If used contains position, skip to the next one.
-Append position to used.
-Let piece be format whole number item position of nums as text.
-Append piece to parts.
+Place position into used.
+The piece is format whole number item position of nums as text.
+Place piece into parts.
 Permute from depth plus 1.
 Remove the last item from used.
 Remove the last item from parts.
 
 Permute from 0.
-For each answer in answers, print answer.
+For each answer in answers, display answer.

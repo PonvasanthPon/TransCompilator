@@ -1,7 +1,7 @@
-Let matrix be a list of 1, 3, 5, 7, 10, 11, 16, 20, 23, 30, 34, 50.
-Let target be 3.
-Let found be -1.
+The matrix is a list of 1, 3, 5, 7, 10, 11, 16, 20, 23, 30, 34, 50.
+The target is 3.
+The found is -1.
 For every position from 0 to the last position of matrix.
 If item position of matrix is target, set found to position, then stop.
 
-If found is not equal to -1, print true, otherwise print false.
+If found is not equal to -1, report true, otherwise report false.

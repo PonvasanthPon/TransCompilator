@@ -4,18 +4,18 @@ Keep a shared total as 0.
 To check square at column (a whole number) for row (a whole number).
 Set safe to 1.
 For every prior from 0 to row minus 1.
-Let other be item prior of queens.
+The other is item prior of queens.
 If other is column, set safe to 0.
-Let difference be column minus other.
+The difference is column minus other.
 If difference is less than 0, set difference to 0 minus difference.
-Let distance be row minus prior.
+The distance is row minus prior.
 If difference is distance, set safe to 0.
 
 To place from level (a whole number).
 If level is 4, add 1 to total, then return.
 For every candidate from 0 to 3.
 Check square at candidate for level.
-If safe is 1, append candidate to queens, place from level plus 1, remove the last item from queens.
+If safe is 1, Place candidate into queens, place from level plus 1, remove the last item from queens.
 
 Place from 0.
-Print total.
+Display total.

@@ -1,20 +1,25 @@
 Keep a shared nums as an empty list of whole numbers.
-Append 1 to nums.
-Append 2 to nums.
-Append 3 to nums.
+Place 1 into nums.
+Place 2 into nums.
+Place 3 into nums.
 Keep a shared parts as an empty list of text.
 Keep a shared answers as an empty list of text.
+Keep a shared marker as empty text.
+Keep a shared built as empty text.
+Keep a shared piece as empty text.
+Keep a shared partcount as 0.
+Place "()" into marker.
 To collect from index (a whole number).
-Let marker be empty text.
-Append "()" to marker.
-Let built be join parts with ",".
-If parts's len is 0, set built to marker.
-Append built to answers.
+Set built to join parts with ",".
+If partcount is 0, set built to marker.
+Place built into answers.
 For every position from index to 2.
-Let piece be format whole number item position of nums as text.
-Append piece to parts.
+Set piece to format whole number item position of nums as text.
+Place piece into parts.
+Add 1 to partcount.
 Collect from position plus 1.
 Remove the last item from parts.
+Subtract 1 from partcount.
 
 Collect from 0.
-For each answer in answers, print answer.
+For each answer in answers, show answer.

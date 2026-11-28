@@ -5,13 +5,13 @@ Set choose to 2.
 Keep a shared parts as an empty list of text.
 Keep a shared answers as an empty list of text.
 To combine from index (a whole number) with depth (a whole number).
-If depth is choose, let built be join parts with ",", append built to answers, then return.
+If depth is choose, The built is join parts with ",", Place built into answers, then return.
 If index is more than size, return.
 For every value from index to size.
-Let piece be format whole number value as text.
-Append piece to parts.
+The piece is format whole number value as text.
+Place piece into parts.
 Combine from value plus 1 with depth plus 1.
 Remove the last item from parts.
 
 Combine from 1 with 0.
-For each answer in answers, print answer.
+For each answer in answers, report answer.

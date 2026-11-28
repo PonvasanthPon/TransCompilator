@@ -1,27 +1,27 @@
 Keep a shared valuesone as an empty list of whole numbers.
-Append 1 to valuesone.
-Append 2 to valuesone.
-Append 3 to valuesone.
+Place 1 into valuesone.
+Place 2 into valuesone.
+Place 3 into valuesone.
 Keep a shared leftone as an empty list of whole numbers.
-Append 1 to leftone.
-Append -1 to leftone.
-Append -1 to leftone.
+Place 1 into leftone.
+Place -1 into leftone.
+Place -1 into leftone.
 Keep a shared rightone as an empty list of whole numbers.
-Append 2 to rightone.
-Append -1 to rightone.
-Append -1 to rightone.
+Place 2 into rightone.
+Place -1 into rightone.
+Place -1 into rightone.
 Keep a shared valuestwo as an empty list of whole numbers.
-Append 1 to valuestwo.
-Append 2 to valuestwo.
-Append 3 to valuestwo.
+Place 1 into valuestwo.
+Place 2 into valuestwo.
+Place 3 into valuestwo.
 Keep a shared lefttwo as an empty list of whole numbers.
-Append 1 to lefttwo.
-Append -1 to lefttwo.
-Append -1 to lefttwo.
+Place 1 into lefttwo.
+Place -1 into lefttwo.
+Place -1 into lefttwo.
 Keep a shared righttwo as an empty list of whole numbers.
-Append 2 to righttwo.
-Append -1 to righttwo.
-Append -1 to righttwo.
+Place 2 into righttwo.
+Place -1 into righttwo.
+Place -1 into righttwo.
 Keep a shared same as 0.
 Set same to 1.
 To compare at first (a whole number) with second (a whole number).
@@ -34,5 +34,5 @@ Compare at item first of leftone with item second of lefttwo.
 Compare at item first of rightone with item second of righttwo.
 
 Compare at 0 with 0.
-If same is 1, print true.
-Otherwise, print false.
+If same is 1, display true.
+Otherwise, display false.

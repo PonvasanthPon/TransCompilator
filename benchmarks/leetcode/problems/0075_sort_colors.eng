@@ -1,3 +1,3 @@
-Let colors be a list of 2, 0, 2, 1, 1, and 0.
+The colors is a list of 2, 0, 2, 1, 1, and 0.
 Sort colors.
-For each color in colors, print color.
+For each color in colors, show color.

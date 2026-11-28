@@ -1,24 +1,25 @@
 Keep a shared used as an empty list of whole numbers.
 Keep a shared prefix as empty text.
 Keep a shared answers as an empty list of text.
+Keep a shared copy as empty text.
 To check permutation.
-Let root be character 0 of prefix minus 48.
-Let second be character 1 of prefix minus 48.
-Let third be character 2 of prefix minus 48.
-Let okay be 1.
+The root is the digit value of character 0 of prefix.
+The second is the digit value of character 1 of prefix.
+The third is the digit value of character 2 of prefix.
+The okay is 1.
 If second is more than root and third is less than root, set okay to 0.
-If okay is 1, let copy be create text from prefix's data of length prefix's len, append copy to answers.
+If okay is 1, Set copy to a copy of prefix, Place copy into answers.
 
 To permute from depth (a whole number).
 If depth is 3, check permutation, then return.
 For every value from 1 to 3.
 If used contains value, skip to the next one.
-Append value to used.
-Append 48 plus value to prefix.
+Place value into used.
+Place the character for value into prefix.
 Permute from depth plus 1.
 Remove the last item from used.
 Remove last character from prefix.
 
 Permute from 0.
-Print answers's len.
-For each answer in answers, print answer.
+Report the length of answers.
+For each answer in answers, report answer.

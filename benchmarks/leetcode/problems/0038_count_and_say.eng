@@ -1,19 +1,19 @@
-Let current be empty text.
-Append "1" to current.
+The current is empty text.
+Place "1" into current.
 
-Let built be empty text.
-Let position be 0.
-Let limit be the last position of current.
-Let previous be character 0 of current.
-Let run be 0.
+The built is empty text.
+The position is 0.
+The limit is the last position of current.
+The previous is character 0 of current.
+The run is 0.
 Repeat while position is at most limit.
-Let symbol be character position of current.
+The symbol is character position of current.
 If symbol is previous, add 1 to run.
-If symbol is not previous, append 48 plus run to built, append previous to built, set run to 1, set previous to symbol.
+If symbol is not previous, Place the character for run into built, Place previous into built, set run to 1, set previous to symbol.
 Add 1 to position.
 
-Append 48 plus run to built.
-Append previous to built.
+Place the character for run into built.
+Place previous into built.
 Set current to built.
 
 Set built to empty text.
@@ -22,13 +22,13 @@ Set limit to the last position of current.
 Set previous to character 0 of current.
 Set run to 0.
 Repeat while position is at most limit.
-Let symbol be character position of current.
+The symbol is character position of current.
 If symbol is previous, add 1 to run.
-If symbol is not previous, append 48 plus run to built, append previous to built, set run to 1, set previous to symbol.
+If symbol is not previous, Place the character for run into built, Place previous into built, set run to 1, set previous to symbol.
 Add 1 to position.
 
-Append 48 plus run to built.
-Append previous to built.
+Place the character for run into built.
+Place previous into built.
 Set current to built.
 
 Set built to empty text.
@@ -37,13 +37,13 @@ Set limit to the last position of current.
 Set previous to character 0 of current.
 Set run to 0.
 Repeat while position is at most limit.
-Let symbol be character position of current.
+The symbol is character position of current.
 If symbol is previous, add 1 to run.
-If symbol is not previous, append 48 plus run to built, append previous to built, set run to 1, set previous to symbol.
+If symbol is not previous, Place the character for run into built, Place previous into built, set run to 1, set previous to symbol.
 Add 1 to position.
 
-Append 48 plus run to built.
-Append previous to built.
+Place the character for run into built.
+Place previous into built.
 Set current to built.
 
-Print current.
+Report current.

@@ -1,25 +1,27 @@
-Let text be "eat,tea,tan,ate,nat,bat".
-Let words be split text by ",".
-Let last be the last position of words.
-Let signatures be an empty list of text.
+The text is "eat,tea,tan,ate,nat,bat". The words is split text by ",".
+The last is the last position of words.
+The signatures is an empty list of text.
 For each word in words.
-Let signature be sort characters of word.
-Append signature to signatures.
+The signature is sort characters of word.
+Place signature into signatures.
 
 For every left from 0 to last.
 For every right from left to last.
-If compare text item right of signatures with text item left of signatures is less than 0, swap item left of signatures and item right of signatures, swap item left of words and item right of words.
+If item right of signatures comes before item left of signatures, swap item left of signatures and item right of signatures, swap item left of words and item right of words.
 
-Let group be empty text.
-Let current be empty text.
-Let answers be an empty list of text.
+The group is empty text.
+The groupcount is 0.
+The current is empty text.
+The answers is an empty list of text.
 For every position from 0 to last.
-Let signature be item position of signatures.
-Let word be item position of words.
-If position is 0, set current to signature, append word to group.
-Let same be compare text signature with text current.
-If position is more than 0 and same is 0 and group's len is more than 0, append "," to group, append word to group.
-If position is more than 0 and same is not 0, append group to answers, set group to empty text, set current to signature, append word to group.
+The signature is item position of signatures.
+The word is item position of words.
+If position is 0, set current to signature, Place word into group, add 1 to groupcount.
+The same is 1.
+If signature comes before current, set same to 0.
+If current comes before signature, set same to 0.
+If position is more than 0 and same is 1 and groupcount is more than 0, Place "," into group, Place word into group, add 1 to groupcount.
+If position is more than 0 and same is 0, Place group into answers, set group to empty text, set groupcount to 0, set current to signature, Place word into group, add 1 to groupcount.
 
-Append group to answers.
-For each answer in answers, print answer.
+Place group into answers.
+For each answer in answers, display answer.

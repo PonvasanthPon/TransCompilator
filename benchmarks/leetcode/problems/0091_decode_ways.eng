@@ -1,14 +1,14 @@
-Let word be "226".
-Let size be the number of characters in word.
-Let ways be a list of size plus 1 zeros.
+The word is "226".
+The size is the number of characters in word.
+The ways is a list of size plus 1 zeros.
 Set item 0 of ways to 1.
 For every position from 1 to size.
-Let previous be one less than position.
-Let first digit be character previous of word minus 48.
-If first digit is more than 0, set item position of ways to item previous of ways.
-Let second digit be 0.
-If position is more than 1, set second digit to character (position minus 2) of word minus 48.
-Let pair be second digit times 10 plus first digit.
+The previous is one less than position.
+The firstdigit is the digit value of character previous of word.
+If firstdigit is more than 0, set item position of ways to item previous of ways.
+The seconddigit is 0.
+If position is more than 1, set seconddigit to the digit value of character (position minus 2) of word.
+The pair is seconddigit times 10 plus firstdigit.
 If position is more than 1 and pair is at least 10 and pair is at most 26, set item position of ways to item position of ways plus item (position minus 2) of ways.
 
-Print item size of ways.
+Display item size of ways.

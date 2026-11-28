@@ -1,13 +1,13 @@
-Let heights be a list of 0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, and 1.
-Let water be 0.
+The heights is a list of 0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, and 1.
+The water is 0.
 For every position from 0 to the last position of heights.
-Let current be item position of heights.
-Let left highest be 0.
-For every earlier from 0 to position, if item earlier of heights is greater than left highest, set left highest to item earlier of heights.
-Let right highest be 0.
-For every later from position to the last position of heights, if item later of heights is greater than right highest, set right highest to item later of heights.
-Let boundary be the smaller of left highest and right highest.
-Let depth be boundary minus current.
+The current is item position of heights.
+The lefthighest is 0.
+For every earlier from 0 to position, if item earlier of heights is greater than lefthighest, set lefthighest to item earlier of heights.
+The righthighest is 0.
+For every later from position to the last position of heights, if item later of heights is greater than righthighest, set righthighest to item later of heights.
+The boundary is the smaller of lefthighest and righthighest.
+The depth is boundary minus current.
 If depth is more than 0, add depth to water.
 
-Print water.
+Show water.

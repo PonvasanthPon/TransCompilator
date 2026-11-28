@@ -50,6 +50,19 @@ PURE_ENGLISH_PATTERNS = [
     (re.compile(r"(?im)\bitem\s+[a-z]\s+of\b"), "single-letter index"),
     (re.compile(r"(?im)\b(?:let|set)\s+found\s+(?:be|to)\s+(?:true|false)\b"), "boolean flag boilerplate"),
     (re.compile(r"(?im)\bis\s+(?:true|false)\b"), "boolean literal comparison"),
+    (re.compile(r"(?i)\blet\b"), "Let declaration"),
+    (re.compile(r"(?i)\bappend\b"), "Append jargon"),
+    (re.compile(r"(?i)'s\s+(?:len|data)\b"), "internal struct leak"),
+    (re.compile(r"(?i)\bcreate text from\b"), "text construction leak"),
+    (re.compile(r"(?i)\bcompare text\b"), "compare text jargon"),
+    (re.compile(r"\b(?:48|57)\b"), "raw ASCII conversion code"),
+    (
+        re.compile(
+            r"(?im)^.*\b(?:character|symbol|letter|code|byte|digit|ch)\b.*\b(?:40|41|65|90|91|93|97|122|123|125)\b.*$"
+        ),
+        "raw ASCII character code",
+    ),
+    (re.compile(r"\(\([^)]*\("), "deeply nested index formula"),
 ]
 
 
@@ -88,6 +101,9 @@ def check_pure_english(path: Path, text: str) -> list[str]:
         for match in pattern.finditer(visible):
             line = visible.count("\n", 0, match.start()) + 1
             violations.append(f"{path.name}:{line}: {label} `{match.group(0).strip()}`")
+    for match in re.finditer(r"\"[ ]{8,}\"", text):
+        line = text.count("\n", 0, match.start()) + 1
+        violations.append(f"{path.name}:{line}: hardcoded space padding")
     return violations
 
 

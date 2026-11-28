@@ -1,8 +1,8 @@
 Keep a shared text as empty text.
-Append "barfoothefoobarman" to text.
+Place "barfoothefoobarman" into text.
 Keep a shared words as an empty list of text.
-Append "foo" to words.
-Append "bar" to words.
+Place "foo" into words.
+Place "bar" into words.
 Keep a shared word length as 0.
 Set word length to 3.
 Keep a shared word count as 0.
@@ -13,13 +13,12 @@ To verify from start (a whole number) at part (a whole number).
 If match is 1, return.
 If part is word count, set match to 1, return.
 For every index from 0 to word count minus 1.
-Let offset be start plus part times word length.
-Let piece be the slice of text from offset to offset plus word length.
-Let same be compare text piece with text item index of words.
+The offset is start plus part times word length.
+The piece is the slice of text from offset to offset plus word length.
 If used contains index, skip to the next one.
-If same is 0, append index to used, verify from start at part plus 1, remove the last item from used, if match is 1, return.
+If piece matches item index of words, Place index into used, verify from start at part plus 1, remove the last item from used, if match is 1, return.
 
 For every start from 0 to 12.
 Set match to 0.
 Verify from start at 0.
-If match is 1, print start.
+If match is 1, show start.

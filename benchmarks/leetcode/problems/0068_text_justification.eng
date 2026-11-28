@@ -1,8 +1,8 @@
-Let source be "This,is,an,example,of,text,justification.".
-Let pieces be split source by ",".
+The source is "This,is,an,example,of,text,justification.".
+The pieces is split source by ",".
 Keep a shared words as an empty list of text.
 For each piece in pieces.
-Append piece to words.
+Place piece into words.
 
 Keep a shared count as 0.
 Set count to 7.
@@ -11,41 +11,43 @@ Set width to 16.
 Keep a shared finish as 0.
 Keep a shared usedwidth as 0.
 Keep a shared padding as empty text.
-Append "                                                                " to padding.
+Keep a shared piece as empty text.
+Keep a shared padpiece as empty text.
+Set padding to 32 spaces.
 
 To search from position (a whole number) with occupied (a whole number).
 If position is count, set finish to position, return.
-Let word be item position of words.
-Let word last be the last position of word.
-Let next usedwidth be occupied plus 2 plus word last.
-Let previous used be occupied.
-Set usedwidth to next usedwidth.
-If next usedwidth is at most width, search from position plus 1 with next usedwidth, return.
-Set usedwidth to previous used.
+The word is item position of words.
+The wordlast is the last position of word.
+The nextusedwidth is occupied plus 2 plus wordlast.
+The previousused is occupied.
+Set usedwidth to nextusedwidth.
+If nextusedwidth is at most width, search from position plus 1 with nextusedwidth, return.
+Set usedwidth to previousused.
 Set finish to position.
 
 To build line from start (a whole number).
 Set finish to 0.
-Let first word be item start of words.
-Let first last be the last position of first word.
-Set usedwidth to first last plus 1.
+The firstword is item start of words.
+The firstlast is the last position of firstword.
+Set usedwidth to firstlast plus 1.
 Search from start plus 1 with usedwidth.
-Let line words be finish minus start.
-Let gaps be line words minus 1.
-Let base be 0.
-Let extra be 0.
+The linewords is finish minus start.
+The gaps is linewords minus 1.
+The base is 0.
+The extra is 0.
 If finish is less than count and gaps is more than 0, set base to (width minus usedwidth plus gaps) divided by gaps, set extra to (width minus usedwidth plus gaps) modulo gaps.
-Let line be empty text.
+The line is empty text.
 For every index from start to finish minus 1.
-Let word be item index of words.
-Append word to line.
-Let gap be index minus start.
-Let amount be base.
+The word is item index of words.
+Place word into line.
+The gap is index minus start.
+The amount is base.
 If gap is less than extra, add 1 to amount.
-Let piece be the slice of padding from 0 to amount.
-If index is less than finish minus 1 and finish is count, append " " to line.
-If index is less than finish minus 1 and finish is less than count, append piece to line.
-If index is finish minus 1 and finish is count, let pad piece be the slice of padding from 0 to width minus usedwidth plus gaps, append pad piece to line, print line.
-If index is finish minus 1 and finish is less than count, print line, build line from finish.
+Set piece to the slice of padding from 0 to amount.
+If index is less than finish minus 1 and finish is count, Place " " into line.
+If index is less than finish minus 1 and finish is less than count, Place piece into line.
+If index is finish minus 1 and finish is count, set padpiece to the slice of padding from 0 to width minus usedwidth plus gaps, Place padpiece into line, report line.
+If index is finish minus 1 and finish is less than count, report line, build line from finish.
 
 Build line from 0.

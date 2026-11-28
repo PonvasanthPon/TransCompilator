@@ -1,14 +1,14 @@
-Let first be "horse".
-Let second be "ros".
-Let last first be the last position of first.
-Let last second be the last position of second.
-Let rows be last first plus 1.
-Let columns be last second plus 1.
-Let width be columns plus 1.
-Let height be rows plus 1.
-Let size be width times height.
-Let table be a list of size zeros.
-For every column from 0 to last second.
+The first is "horse".
+The second is "ros".
+The lastfirst is the last position of first.
+The lastsecond is the last position of second.
+The rows is lastfirst plus 1.
+The columns is lastsecond plus 1.
+The width is columns plus 1.
+The height is rows plus 1.
+The size is width times height.
+The table is a list of size zeros.
+For every column from 0 to lastsecond.
 Set item column of table to column.
 
 For every row from 1 to rows.
@@ -16,9 +16,9 @@ Set item (row times width) of table to row.
 
 For every row from 1 to rows.
 For every column from 1 to columns.
-Let index be row times width plus column.
+The index is row times width plus column.
 If character (row minus 1) of first is character (column minus 1) of second, set item index of table to item (index minus width minus 1) of table.
-Otherwise, let removal be item (index minus width) of table, let insertion be item (index minus 1) of table, let replacement be item (index minus width minus 1) of table, let best be the smaller of removal and insertion, let final best be the smaller of best and replacement, set item index of table to final best plus 1.
+Otherwise, The removal is item (index minus width) of table, The insertion is item (index minus 1) of table, The replacement is item (index minus width minus 1) of table, The best is the smaller of removal and insertion, The final best is the smaller of best and replacement, set item index of table to final best plus 1.
 
-Let last be one less than size.
-Print item last of table.
+The last is one less than size.
+Show item last of table.

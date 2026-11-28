@@ -1,9 +1,9 @@
-Let result be 1.0.
-Let factor be 2.0.
-Let power be 10.
+The result is 1.0.
+The factor is 2.0.
+The power is 10.
 Repeat while power is more than 0.
 If power modulo 2 is 1, set result to result times factor.
 Set factor to factor times factor.
 Set power to power divided by 2.
 
-Print result.
+Report result.

@@ -1,10 +1,10 @@
-Let heights be a list of 1, 8, 6, 2, 5, 4, 8, 3, and 7.
-Let best area be 0.
+The heights is a list of 1, 8, 6, 2, 5, 4, 8, 3, and 7.
+The bestarea is 0.
 For every first from 0 to the last position of heights.
 For every second from one more than first to the last position of heights.
-Let width be second minus first.
-Let low height be the smaller of item first of heights and item second of heights.
-Let area be the product of width and low height.
-If area is greater than best area, set best area to area.
+The width is second minus first.
+The lowheight is the smaller of item first of heights and item second of heights.
+The area is the product of width and lowheight.
+If area is greater than bestarea, set bestarea to area.
 
-Print best area.
+Report bestarea.

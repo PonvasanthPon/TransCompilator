@@ -1,7 +1,7 @@
-Let nums be a list of 2, 5, 6, 0, 0, 1, and 2.
-Let target be 0.
-Let found be -1.
+The nums is a list of 2, 5, 6, 0, 0, 1, and 2.
+The target is 0.
+The found is -1.
 For every position from 0 to the last position of nums.
 If item position of nums is target, set found to position, then stop.
 
-If found is not equal to -1, print true, otherwise print false.
+If found is not equal to -1, show true, otherwise show false.

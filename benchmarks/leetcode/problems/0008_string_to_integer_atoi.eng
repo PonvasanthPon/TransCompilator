@@ -1,18 +1,19 @@
-Let word be "   -42".
-Let final be one less than the number of characters in word.
-Let position be 0.
-Let value be 0.
-Let sign be 1.
+The word is "   -42".
+The final is one less than the number of characters in word.
+The position is 0.
+The value is 0.
+The sign is 1.
 Repeat while position is at most final and character position of word is 32.
 Add 1 to position.
 
 If position is at most final and character position of word is 45, set sign to -1, add 1 to position.
 If position is at most final and character position of word is 43, add 1 to position.
-Repeat while position is at most final and character position of word is at least 48 and character position of word is at most 57.
-Set value to value times 10 plus character position of word minus 48.
+Repeat while position is at most final and character position of word is between "0" and "9".
+The digit is the digit value of character position of word.
+Set value to value times 10 plus digit.
 Add 1 to position.
 
 If sign is -1, set value to 0 minus value.
 If value is more than 2147483647, set value to 2147483647.
 If value is less than -2147483648, set value to -2147483648.
-Print value.
+Report value.

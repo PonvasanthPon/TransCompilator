@@ -1,11 +1,11 @@
-Let nums be a list of -1, 0, 1, and 2.
+The nums is a list of -1, 0, 1, and 2.
 Sort nums.
-Let last be the last position of nums.
+The last is the last position of nums.
 For every first from 0 to last.
-Let second be one more than first.
-Let third be last.
+The second is one more than first.
+The third is last.
 Repeat while second is less than third.
-Let total be item first of nums plus item second of nums plus item third of nums.
+The total is item first of nums plus item second of nums plus item third of nums.
 If total is less than 0, add 1 to second.
 If total is more than 0, subtract 1 from third.
-If total is 0, print item first of nums, print item second of nums, print item third of nums, print "---", add 1 to second, subtract 1 from third.
+If total is 0, show item first of nums, show item second of nums, show item third of nums, show "---", add 1 to second, subtract 1 from third.

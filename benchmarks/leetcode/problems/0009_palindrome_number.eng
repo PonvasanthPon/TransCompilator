@@ -1,10 +1,10 @@
-Let value be 121.
-Let reversed be 0.
-Let magnitude be value.
+The value is 121.
+The reversed is 0.
+The magnitude is value.
 Repeat while magnitude is more than 0.
 Set digit to magnitude modulo 10.
 Set reversed to reversed times 10 plus digit.
 Set magnitude to magnitude divided by 10.
 
-If value is less than 0, print false.
-Otherwise, print reversed is value.
+If value is less than 0, show false.
+Otherwise, show reversed is value.

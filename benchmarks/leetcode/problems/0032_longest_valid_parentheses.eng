@@ -1,12 +1,12 @@
-Let text be "(()".
-Let last be the last position of text.
-Let best be 0.
+The text is "(()".
+The last is the last position of text.
+The best is 0.
 For every start from 0 to last.
-Let balance be 0.
+The balance is 0.
 For every end from start to last.
-If character end of text is 40, add 1 to balance.
-If character end of text is 41, subtract 1 from balance.
+If character end of text is "(", add 1 to balance.
+If character end of text is ")", subtract 1 from balance.
 If balance is less than 0, break.
-If balance is 0, let width be end minus start plus 1, if width is more than best, set best to width.
+If balance is 0, The width is end minus start plus 1, if width is more than best, set best to width.
 
-Print best.
+Report best.

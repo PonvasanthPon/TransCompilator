@@ -1,11 +1,11 @@
-Let heights be a list of 2, 1, 5, 6, 2, and 3.
-Let last be the last position of heights.
-Let best be 0.
+The heights is a list of 2, 1, 5, 6, 2, and 3.
+The last is the last position of heights.
+The best is 0.
 For every left from 0 to last.
-Let minimum be item left of heights.
+The minimum is item left of heights.
 For every right from left to last.
 If item right of heights is less than minimum, set minimum to item right of heights.
-Let area be minimum times (right minus left plus 1).
+The area is minimum times (right minus left plus 1).
 If area is more than best, set best to area.
 
-Print best.
+Show best.

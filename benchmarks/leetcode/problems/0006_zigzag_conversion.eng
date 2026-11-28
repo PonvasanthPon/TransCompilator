@@ -1,18 +1,18 @@
-Let source be "PAYPALISHIRING".
-Let rows be 3.
-Let last row be rows minus 1.
-Let store be an empty list of text.
-For every row from 0 to last row.
-Append "" to store.
+The source is "PAYPALISHIRING".
+The rows is 3.
+The lastrow is rows minus 1.
+The store is an empty list of text.
+For every row from 0 to lastrow.
+Place "" into store.
 
-Let row be 0.
-Let step be 1.
-Let source last be the last position of source.
-For every position from 0 to source last.
-Append character position of source to item row of store.
-If row is 0 and last row is more than 0, set step to 1.
-If row is last row and last row is more than 0, set step to 0 minus 1.
+The row is 0.
+The step is 1.
+The sourcelast is the last position of source.
+For every position from 0 to sourcelast.
+Place character position of source into item row of store.
+If row is 0 and lastrow is more than 0, set step to 1.
+If row is lastrow and lastrow is more than 0, set step to 0 minus 1.
 Set row to row plus step.
 
-Let result be join store with "".
-Print result.
+The result is join store with "".
+Show result.

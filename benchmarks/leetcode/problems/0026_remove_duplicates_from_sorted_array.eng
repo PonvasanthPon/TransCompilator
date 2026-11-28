@@ -1,5 +1,5 @@
 Start with the list of numbers 0, 0, 1, 1, 1, 2, 2, 3, 3, and 4.
-Let unique be an empty list of whole numbers.
-For each number in the list, if unique does not contain the number, append number to unique.
-Print the number of items in unique.
-For each number in unique, print number.
+The unique is an empty list of whole numbers.
+For each number in the list, if unique does not contain the number, Place number into unique.
+Report the number of items in unique.
+For each number in unique, report number.

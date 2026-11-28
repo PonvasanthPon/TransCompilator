@@ -1,31 +1,31 @@
 Keep a shared values as an empty list of whole numbers.
-Append 2 to values.
-Append 1 to values.
-Append 3 to values.
+Place 2 into values.
+Place 1 into values.
+Place 3 into values.
 Keep a shared lefts as an empty list of whole numbers.
-Append 1 to lefts.
-Append -1 to lefts.
-Append -1 to lefts.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
 Keep a shared rights as an empty list of whole numbers.
-Append 2 to rights.
-Append -1 to rights.
-Append -1 to rights.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
 Keep a shared order as an empty list of whole numbers.
 Keep a shared order count as 0.
 To gather from node (a whole number).
 If node is less than 0, return.
 Gather from item node of lefts.
-Append node to order.
+Place node into order.
 Add 1 to order count.
 Gather from item node of rights.
 
 Gather from 0.
-Let valid be 1.
-Let last be order count minus 1.
+The valid is 1.
+The last is order count minus 1.
 For every position from 1 to last.
-Let before be item (position minus 1) of order.
-Let current be item position of order.
+The before is item (position minus 1) of order.
+The current is item position of order.
 If item before of values is at least item current of values, set valid to 0.
 
-If valid is 1, print true.
-Otherwise, print false.
+If valid is 1, report true.
+Otherwise, report false.

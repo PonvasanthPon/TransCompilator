@@ -1,8 +1,8 @@
-Let count be 4.
-Let codes be an empty list of whole numbers.
+The count is 4.
+The codes is an empty list of whole numbers.
 For every value from 0 to one less than count.
-Let shifted be shift value right by 1.
-Let code be exclusive or of value and shifted.
-Append code to codes.
+The shifted is shift value right by 1.
+The code is exclusive or of value and shifted.
+Place code into codes.
 
-For each code in codes, print code.
+For each code in codes, report code.

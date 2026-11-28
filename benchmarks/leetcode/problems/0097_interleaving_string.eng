@@ -1,26 +1,26 @@
-Let first be "aabcc".
-Let second be "dbbca".
-Let third be "aadbbcbcac".
-Let first size be the number of characters in first.
-Let second size be the number of characters in second.
-Let width be second size plus 1.
-Let height be first size plus 1.
-Let size be width times height.
-Let table be a list of size zeros.
+The first is "aabcc".
+The second is "dbbca".
+The third is "aadbbcbcac".
+The firstsize is the number of characters in first.
+The secondsize is the number of characters in second.
+The width is secondsize plus 1.
+The height is firstsize plus 1.
+The size is width times height.
+The table is a list of size zeros.
 Set item 0 of table to 1.
-For every row from 1 to first size.
+For every row from 1 to firstsize.
 If character (row minus 1) of first is character (row minus 1) of third and item ((row minus 1) times width) of table is 1, set item (row times width) of table to 1.
 
-For every column from 1 to second size.
+For every column from 1 to secondsize.
 If character (column minus 1) of second is character (column minus 1) of third and item (column minus 1) of table is 1, set item column of table to 1.
 
-For every row from 1 to first size.
-For every column from 1 to second size.
-Let index be row times width plus column.
-Let spot be row plus column minus 1.
+For every row from 1 to firstsize.
+For every column from 1 to secondsize.
+The index is row times width plus column.
+The spot is row plus column minus 1.
 If character (row minus 1) of first is character spot of third and item (index minus width) of table is 1, set item index of table to 1.
 If character (column minus 1) of second is character spot of third and item (index minus 1) of table is 1, set item index of table to 1.
 
-Let last be one less than size.
-If item last of table is 1, print true.
-Otherwise, print false.
+The last is one less than size.
+If item last of table is 1, display true.
+Otherwise, display false.

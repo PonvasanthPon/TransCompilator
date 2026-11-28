@@ -1,4 +1,4 @@
 Start with the list of numbers 3, 2, 2, and 3.
 Remove every 3 from the list.
-Print the number of items in the list.
-For each item in the list, print item.
+Show the number of items in the list.
+For each item in the list, show item.
