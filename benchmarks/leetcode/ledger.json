@@ -4390,7 +4390,7 @@
       "path": "problems/0200_number_of_islands.eng",
       "expected": "expected/0200_number_of_islands.out",
       "skip_reason": null,
-      "ir_steps": 15520,
+      "ir_steps": 19557,
       "ir_runtime_honesty": true,
       "elf_parity": true,
       "wasm_parity": true,
