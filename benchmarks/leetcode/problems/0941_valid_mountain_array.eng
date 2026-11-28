@@ -1,0 +1,11 @@
+The heights is a list of 0, 3, 2, and 1.
+The last is the last position of heights.
+The crest is 0.
+Repeat while crest is less than last and item crest of heights is less than item (crest plus 1) of heights.
+Add 1 to crest.
+
+The base is crest.
+Repeat while base is less than last and item base of heights is more than item (base plus 1) of heights.
+Add 1 to base.
+
+If crest is more than 0 and crest is less than last and base is last, show true, otherwise show false.

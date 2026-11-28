@@ -1,0 +1,48 @@
+Keep a shared columns as an empty list of whole numbers.
+Place 0 into columns.
+Place 0 into columns.
+Place 1 into columns.
+Place 1 into columns.
+Place 2 into columns.
+Place 2 into columns.
+Keep a shared rows as an empty list of whole numbers.
+Place 0 into rows.
+Place 1 into rows.
+Place 0 into rows.
+Place 2 into rows.
+Place 1 into rows.
+Place 2 into rows.
+Keep a shared parents as an empty list of whole numbers.
+Keep a shared chief as 0.
+
+To locate from stone (a whole number).
+If item stone of parents is stone, set chief to stone, return.
+The up is item stone of parents.
+Locate from up.
+Set item stone of parents to item up of parents.
+
+To attach from first (a whole number) with second (a whole number).
+Locate from first.
+The one is chief.
+Locate from second.
+The two is chief.
+If one is not two, set item one of parents to two.
+
+To pair from first (a whole number).
+For every second from first plus 1 to the last position of parents.
+If item first of columns is item second of columns or item first of rows is item second of rows, attach from first with second.
+
+For every stone from 0 to the last position of columns.
+Place stone into parents.
+
+For every first from 0 to the last position of parents.
+Pair from first.
+
+The roots is 0.
+For every stone from 0 to the last position of parents.
+If item stone of parents is stone, add 1 to roots.
+
+The final stone is the last position of columns.
+The total is final stone plus 1.
+The answer is total minus roots.
+Show answer.

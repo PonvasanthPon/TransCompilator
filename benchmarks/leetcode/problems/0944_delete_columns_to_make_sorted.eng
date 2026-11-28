@@ -1,0 +1,21 @@
+Keep a shared board as an empty list of text.
+Place "cba" into board.
+Place "daf" into board.
+Place "ghi" into board.
+Keep a shared removed as 0.
+The opening is item 0 of board.
+The last column is the last position of opening.
+
+To inspect with column (a whole number).
+The top is item 0 of board.
+The earlier is the slice of top from column to column plus 1.
+For every row from 1 to the last position of board.
+The line is item row of board.
+The letter is the slice of line from column to column plus 1.
+If letter comes before earlier, set removed to removed plus 1, stop.
+Set earlier to letter.
+
+For every column from 0 to last column.
+Inspect with column.
+
+Show removed.

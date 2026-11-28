@@ -1,0 +1,11 @@
+The numbers is a list of 3, 2, 1, 2, 1, and 7.
+The last is the last position of numbers.
+Sort numbers.
+The raised is 0.
+For every spot from 1 to last.
+If item spot of numbers is at most item (spot minus 1) of numbers.
+The gap is item (spot minus 1) of numbers minus item spot of numbers plus 1.
+Add gap to raised.
+Set item spot of numbers to item (spot minus 1) of numbers plus 1.
+
+Show raised.

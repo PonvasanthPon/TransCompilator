@@ -1,0 +1,70 @@
+Keep a shared words as an empty list of text.
+Keep a shared order as an empty list of whole numbers.
+Keep a shared used as an empty list of whole numbers.
+Place "catg" into words.
+Place "ctaagt" into words.
+Place "gcta" into words.
+Place 0 into used.
+Place 0 into used.
+Place 0 into used.
+Keep a shared current as empty text.
+Keep a shared answer as empty text.
+Keep a shared shortest as 0.
+Keep a shared word as empty text.
+Keep a shared overlap as 0.
+Keep a shared agree as 0.
+
+To check from span (a whole number).
+Set agree to 1.
+The last is the last position of current.
+The width is last plus 1.
+The begin is width minus span.
+For every offset from 0 to span minus 1.
+The actual is character (begin plus offset) of current.
+The wanted is character offset of word.
+If actual is not wanted, set agree to 0, stop.
+
+To match.
+The last is the last position of current.
+The width is last plus 1.
+The final is the last position of word.
+The reach is final plus 1.
+The limit is the smaller of width and reach.
+Set overlap to 0.
+For every span from 1 to limit.
+Check from span.
+If agree is 1, set overlap to span.
+
+To join from place (a whole number).
+The chosen is item place of order.
+The next is item chosen of words.
+Set word to next.
+Match.
+The last is the last position of word.
+The reach is last plus 1.
+The tail is the slice of word from overlap to reach.
+Place tail into current.
+
+To assess.
+The first is item 0 of order.
+The seed is item first of words.
+Set current to seed.
+For every place from 1 to 2, Join from place.
+The close is the last position of current.
+The width is close plus 1.
+The copy is a copy of current.
+If shortest is 0 or width is less than shortest, set shortest to width, set answer to copy.
+
+To take from spot (a whole number) with depth (a whole number).
+Place spot into order.
+Set item spot of used to 1.
+Arrange from depth plus 1.
+Remove the last item from order.
+Set item spot of used to 0.
+
+To arrange from depth (a whole number).
+If depth is 3, Assess, return.
+For every spot from 0 to 2, if item spot of used is 0, Take from spot with depth.
+
+Arrange from 0.
+Show answer.

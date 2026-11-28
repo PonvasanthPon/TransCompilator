@@ -1,0 +1,13 @@
+The tokens is a list of 100, 200, 300, and 400.
+The power is 200.
+Sort tokens.
+The low is 0.
+The high is the last position of tokens.
+The coins is 0.
+The best is 0.
+Repeat while low is at most high.
+If power is at least item low of tokens, set power to power minus item low of tokens, add 1 to coins, add 1 to low, set best to coins.
+If low is at most high and power is less than item low of tokens and coins is more than 0, set power to power plus item high of tokens, set high to high minus 1, set coins to coins minus 1.
+If low is at most high and power is less than item low of tokens and coins is 0, stop.
+
+Show best.

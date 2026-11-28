@@ -1,0 +1,11 @@
+The pattern is "IDID".
+The size is the number of characters in pattern.
+The low is 0.
+The high is size.
+The answers is an empty list of whole numbers.
+For every spot from 0 to size minus 1.
+If character spot of pattern is "I", place low into answers, add 1 to low.
+If character spot of pattern is "D", place high into answers, set high to high minus 1.
+
+Place low into answers.
+For each answer in answers, show answer.

@@ -1,0 +1,22 @@
+The deck is a list of 17, 13, 11, 2, 3, 5, and 7.
+The last is the last position of deck.
+Sort deck.
+Keep a shared places as an empty list of whole numbers.
+Keep a shared head as 0.
+For every spot from 0 to last, place spot into places.
+The result is a list of 7 zeros.
+
+To cycle.
+The local is head.
+Place item local of places into places.
+Add 1 to head.
+
+For each card in deck.
+The local is head.
+The spot is item local of places.
+Set item spot of result to card.
+Add 1 to head.
+The final is the last position of places.
+If head is at most final, Cycle.
+
+For each card in result, show card.

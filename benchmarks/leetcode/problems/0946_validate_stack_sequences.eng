@@ -1,0 +1,26 @@
+Keep a shared popped as an empty list of whole numbers.
+Place 4 into popped.
+Place 5 into popped.
+Place 3 into popped.
+Place 2 into popped.
+Place 1 into popped.
+Keep a shared stack as an empty list of whole numbers.
+Keep a shared next as 0.
+The pushed is a list of 1, 2, 3, 4, and 5.
+
+To drain.
+The final is the last position of popped.
+Repeat while the number of items in stack is more than 0 and next is at most final.
+The local is next.
+The size is the number of items in stack.
+The top is item (size minus 1) of stack.
+If top is not item local of popped, stop.
+remove the last item from stack.
+Add 1 to next.
+
+For each value in pushed.
+Place value into stack.
+Drain.
+
+The final is the last position of popped.
+If next is more than final, show true, otherwise show false.
