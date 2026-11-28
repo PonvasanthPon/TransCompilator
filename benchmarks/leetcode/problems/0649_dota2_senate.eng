@@ -1,0 +1,45 @@
+Keep a shared redqueue as an empty list of whole numbers.
+Keep a shared bluequeue as an empty list of whole numbers.
+Keep a shared redstart as 0.
+Keep a shared redend as 0.
+Keep a shared bluestart as 0.
+Keep a shared blueend as 0.
+Keep a shared size as 0.
+Keep a shared redpick as 0.
+Keep a shared bluepick as 0.
+The reds is a list of 20 zeros.
+The blues is a list of 20 zeros.
+Set redqueue to reds.
+Set bluequeue to blues.
+To brighten from pick (a whole number).
+The endspot is redend.
+Set item endspot of redqueue to pick plus size.
+Add 1 to redend.
+Add 1 to redstart.
+Add 1 to bluestart.
+
+To darken from pick (a whole number).
+The endspot is blueend.
+Set item endspot of bluequeue to pick plus size.
+Add 1 to blueend.
+Add 1 to redstart.
+Add 1 to bluestart.
+
+The source is "RD".
+Set size to the number of characters in source.
+For every seat from 0 to size minus 1.
+The symbol is character seat of source.
+The redslot is redend.
+The blueslot is blueend.
+If symbol is "R", set item redslot of redqueue to seat, add 1 to redend.
+If symbol is "D", set item blueslot of bluequeue to seat, add 1 to blueend.
+
+Repeat while redstart is less than redend and bluestart is less than blueend.
+The redslot is redstart.
+The blueslot is bluestart.
+Set redpick to item redslot of redqueue.
+Set bluepick to item blueslot of bluequeue.
+If redpick is less than bluepick, brighten from redpick, otherwise darken from bluepick.
+
+If redstart is less than redend, show "Radiant".
+If bluestart is less than blueend, show "Dire".

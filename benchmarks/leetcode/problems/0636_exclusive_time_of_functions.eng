@@ -1,0 +1,56 @@
+Keep a shared logs as an empty list of text.
+Place "0:start:0" into logs.
+Place "1:start:2" into logs.
+Place "1:end:5" into logs.
+Place "0:end:6" into logs.
+Keep a shared stack as an empty list of whole numbers.
+Keep a shared elapsed as an empty list of whole numbers.
+Place 0 into elapsed.
+Place 0 into elapsed.
+Keep a shared field as empty text.
+Keep a shared tally as 0.
+Keep a shared parsed as 0.
+Keep a shared prior as 0.
+To read from spot (a whole number).
+If spot is more than the last position of field, set parsed to tally, return.
+The symbol is character spot of field.
+If symbol is between "0" and "9".
+The digit is the digit value of symbol.
+Set tally to tally times 10 plus digit.
+Read from spot plus 1.
+
+To save from spot (a whole number) with amount (a whole number).
+Set item spot of elapsed to item spot of elapsed plus amount.
+
+To enter from worker (a whole number) with moment (a whole number).
+The top is the last position of stack.
+If top is at least 0, save from top with moment minus prior.
+Place worker into stack.
+Set prior to moment.
+
+To exit from worker (a whole number) with moment (a whole number).
+Set item worker of elapsed to item worker of elapsed plus moment minus prior plus 1.
+Remove the last item from stack.
+Set prior to moment plus 1.
+
+For each entry in logs.
+The fields is split entry by ":".
+The event is item 1 of fields.
+Set field to item 0 of fields.
+Set tally to 0.
+Read from 0.
+The worker is parsed.
+Set field to item 2 of fields.
+Set tally to 0.
+Read from 0.
+The moment is parsed.
+If event matches "start", enter from worker with moment.
+If event matches "end", exit from worker with moment.
+
+The firsttime is item 0 of elapsed.
+The secondtime is item 1 of elapsed.
+The report is empty text.
+Place format whole number firsttime as text into report.
+Place "," into report.
+Place format whole number secondtime as text into report.
+Show report.

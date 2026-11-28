@@ -1,0 +1,68 @@
+Keep a shared prices as an empty list of whole numbers.
+Place 2 into prices.
+Place 5 into prices.
+Keep a shared wants as an empty list of whole numbers.
+Place 3 into wants.
+Place 2 into wants.
+Keep a shared bundles as an empty list of whole numbers.
+Place 3 into bundles.
+Place 0 into bundles.
+Place 5 into bundles.
+Place 1 into bundles.
+Place 2 into bundles.
+Place 10 into bundles.
+Keep a shared width as 0.
+Set width to 3.
+Keep a shared deals as 0.
+Set deals to 2.
+Keep a shared best as 0.
+Set best to 1000000.
+Keep a shared kinds as 0.
+Set kinds to 2.
+Keep a shared costspot as 0.
+Set costspot to width minus 1.
+Keep a shared fits as 0.
+Keep a shared regular as 0.
+To measure from bundle (a whole number) with spot (a whole number).
+If spot is at least kinds, return.
+The amount is item (bundle times width plus spot) of bundles.
+If amount is more than item spot of wants, set fits to 0.
+Measure from bundle with spot plus 1.
+
+To charge with spot (a whole number).
+If spot is at least kinds, return.
+The amount is item spot of wants times item spot of prices.
+Add amount to regular.
+Charge with spot plus 1.
+
+To take from bundle (a whole number) with spot (a whole number).
+If spot is at least kinds, return.
+The amount is item (bundle times width plus spot) of bundles.
+Set item spot of wants to item spot of wants minus amount.
+Take from bundle with spot plus 1.
+
+To carry from bundle (a whole number) with spot (a whole number).
+If spot is at least kinds, return.
+The amount is item (bundle times width plus spot) of bundles.
+Set item spot of wants to item spot of wants plus amount.
+Carry from bundle with spot plus 1.
+
+To settle with spent (a whole number).
+Set regular to 0.
+Charge with 0.
+The total is spent plus regular.
+If total is less than best, set best to total.
+
+To explore from bundle (a whole number) with spent (a whole number).
+If spent is at least best, return.
+If bundle is at least deals, settle with spent, return.
+Explore from bundle plus 1 with spent.
+Set fits to 1.
+Measure from bundle with 0.
+If fits is 1.
+Take from bundle with 0.
+Explore from bundle with spent plus item (bundle times width plus costspot) of bundles.
+Carry from bundle with 0.
+
+Explore from 0 with 0.
+Show best.

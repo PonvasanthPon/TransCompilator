@@ -1,0 +1,19 @@
+The size is 3.
+The pairs is 1.
+The rows is size plus 1.
+The columns is pairs plus 1.
+The total is rows times columns.
+The table is a list of total zeros.
+Set item 0 of table to 1.
+For every length from 1 to size.
+For every inversions from 0 to pairs.
+The cell is length times columns plus inversions.
+The reach is inversions.
+If length minus 1 is less than reach, set reach to length minus 1.
+The base is (length minus 1) times columns.
+For every used from 0 to reach.
+The source is base plus inversions minus used.
+Set item cell of table to (item cell of table plus item source of table) modulo 1000000007.
+
+The answer is item (size times columns plus pairs) of table.
+Show answer.

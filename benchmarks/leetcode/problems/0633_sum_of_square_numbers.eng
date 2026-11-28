@@ -1,0 +1,15 @@
+The target is 5.
+The right is 0.
+Repeat while right times right is at most target.
+Add 1 to right.
+
+Set right to right minus 1.
+The left is 0.
+The found is 0.
+Repeat while left is at most right.
+The total is left times left plus right times right.
+If total is target, set found to 1, stop.
+If total is less than target, add 1 to left.
+If total is more than target, subtract 1 from right.
+
+If found is 1, show true, otherwise show false.

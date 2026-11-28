@@ -1,0 +1,70 @@
+Keep a shared side as empty text.
+Keep a shared coefficient as 0.
+Keep a shared constant as 0.
+Keep a shared collected as 0.
+Keep a shared after as 0.
+Keep a shared xnext as 0.
+To finish from spot (a whole number) with total (a whole number).
+Set collected to total.
+Set after to spot.
+
+To collect from spot (a whole number) with total (a whole number).
+If spot is more than the last position of side, finish from spot with total, return.
+The symbol is character spot of side.
+If symbol is not between "0" and "9", finish from spot with total, return.
+The digit is the digit value of symbol.
+Collect from spot plus 1 with total times 10 plus digit.
+
+To peek from spot (a whole number).
+If spot is more than the last position of side, set xnext to 0, return.
+If character spot of side is "x", set xnext to 1, return.
+Set xnext to 0.
+
+To score from mark (a whole number) with amount (a whole number).
+The folded is mark times amount.
+Set coefficient to coefficient plus folded times xnext.
+The other is 1 minus xnext.
+Set constant to constant plus folded times other.
+
+To advance from spot (a whole number) with mark (a whole number).
+Set xnext to 1.
+Score from mark with 1.
+Inspect from spot plus 1 with mark.
+
+To inspect from spot (a whole number) with mark (a whole number).
+If spot is more than the last position of side, return.
+The symbol is character spot of side.
+If symbol is "+", inspect from spot plus 1 with 1.
+If symbol is "-", inspect from spot plus 1 with -1.
+If symbol is "x", advance from spot with mark.
+If symbol is between "0" and "9".
+Set collected to 0.
+Set xnext to 0.
+Collect from spot with 0.
+Peek from after.
+Score from mark with collected.
+Inspect from after plus xnext with mark.
+
+The equation is "x+5-3+x=6+x-2".
+The sides is split equation by "=".
+Set side to item 0 of sides.
+Set coefficient to 0.
+Set constant to 0.
+Inspect from 0 with 1.
+The leftcoefficient is coefficient.
+The leftconstant is constant.
+Set side to item 1 of sides.
+Set coefficient to 0.
+Set constant to 0.
+Inspect from 0 with 1.
+The slope is leftcoefficient minus coefficient.
+The offset is constant minus leftconstant.
+If slope is 0 and offset is 0, show "Infinite solutions".
+If slope is 0 and offset is not 0, show "No solution".
+If slope is not 0.
+The value is offset divided by slope.
+The answer is empty text.
+Place "x=" into answer.
+The piece is format whole number value as text.
+Place piece into answer.
+Show answer.

@@ -1,0 +1,15 @@
+Keep a shared source as empty text.
+Place "abc" into source.
+Keep a shared total as 0.
+To spread from left (a whole number) with right (a whole number).
+If left is less than 0, return.
+If right is more than the last position of source, return.
+If character left of source is not character right of source, return.
+Add 1 to total.
+Spread from left minus 1 with right plus 1.
+
+For every center from 0 to the last position of source.
+Spread from center with center.
+Spread from center with center plus 1.
+
+Show total.

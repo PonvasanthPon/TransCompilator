@@ -1,0 +1,38 @@
+Keep a shared roots as an empty list of text.
+Place "cat" into roots.
+Place "bat" into roots.
+Place "rat" into roots.
+Keep a shared word as empty text.
+Keep a shared chosen as empty text.
+Keep a shared bestlen as 0.
+Keep a shared root as empty text.
+Keep a shared rootlast as 0.
+To settle with limit (a whole number).
+The extent is rootlast plus 1.
+If extent is less than limit, set chosen to root, set bestlen to extent.
+
+To examine.
+The wordlast is the last position of word.
+If rootlast is more than wordlast, return.
+The prefix is the slice of word from 0 to rootlast plus 1.
+If prefix matches root, settle with bestlen.
+
+To scan from spot (a whole number).
+If spot is more than the last position of roots, return.
+Set root to item spot of roots.
+Set rootlast to the last position of root.
+Examine.
+Scan from spot plus 1.
+
+The words is a list of "the", "cattle", "was", "rattled", "by", "the", and "battery".
+The answers is an empty list of text.
+For each entry in words.
+Set word to entry.
+Set chosen to entry.
+Set bestlen to 1000.
+Scan from 0.
+The kept is a copy of chosen.
+Place kept into answers.
+
+The line is join answers with " ".
+Show line.

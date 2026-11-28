@@ -1,0 +1,58 @@
+Keep a shared values as an empty list of whole numbers.
+Place 4 into values.
+Place 10 into values.
+Place 15 into values.
+Place 24 into values.
+Place 26 into values.
+Place 0 into values.
+Place 9 into values.
+Place 12 into values.
+Place 20 into values.
+Place 5 into values.
+Place 18 into values.
+Place 22 into values.
+Place 30 into values.
+Keep a shared begins as an empty list of whole numbers.
+Place 0 into begins.
+Place 5 into begins.
+Place 9 into begins.
+Keep a shared sizes as an empty list of whole numbers.
+Place 5 into sizes.
+Place 4 into sizes.
+Place 4 into sizes.
+Keep a shared target as 0.
+Keep a shared smallest as 0.
+Keep a shared foundone as 0.
+Keep a shared complete as 0.
+Keep a shared highest as 0.
+Keep a shared bestlow as 0.
+Keep a shared besthigh as 0.
+Keep a shared bestwidth as 0.
+Set bestwidth to 1000000000.
+To find from group (a whole number) with spot (a whole number).
+The base is item group of begins.
+The size is item group of sizes.
+If spot is at least size, set foundone to 0, return.
+The value is item (base plus spot) of values.
+If value is at least target, set smallest to value, set foundone to 1, return.
+Find from group with spot plus 1.
+
+To test from spot (a whole number).
+Set target to item spot of values.
+Set highest to -1000000000.
+Set complete to 1.
+For every group from 0 to 2.
+Set foundone to 0.
+Find from group with 0.
+If foundone is 0, set complete to 0.
+If smallest is more than highest, set highest to smallest.
+If group is 2 and complete is 1 and highest minus target is less than bestwidth, set bestwidth to highest minus target, set bestlow to target, set besthigh to highest.
+
+For every spot from 0 to 12.
+Test from spot.
+
+The report is empty text.
+Place format whole number bestlow as text into report.
+Place "," into report.
+Place format whole number besthigh as text into report.
+Show report.

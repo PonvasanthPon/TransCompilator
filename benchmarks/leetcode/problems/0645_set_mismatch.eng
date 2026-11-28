@@ -1,0 +1,17 @@
+The numbers is a list of 1, 2, 2, and 4.
+The count is the number of items in numbers.
+The tally is a list of count plus 1 zeros.
+For each value in numbers.
+Set item value of tally to item value of tally plus 1.
+
+The repeated is 0.
+The absent is 0.
+For every candidate from 1 to count.
+If item candidate of tally is 2, set repeated to candidate.
+If item candidate of tally is 0, set absent to candidate.
+
+The report is empty text.
+Place format whole number repeated as text into report.
+Place "," into report.
+Place format whole number absent as text into report.
+Show report.

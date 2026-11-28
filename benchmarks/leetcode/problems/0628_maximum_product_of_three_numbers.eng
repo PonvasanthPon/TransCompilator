@@ -1,0 +1,15 @@
+The numbers is a list of 1, 2, and 3.
+Sort numbers.
+The last is the last position of numbers.
+The high is 1.
+For every spot from last minus 2 to last.
+Set high to high times item spot of numbers.
+
+The low is 1.
+For every spot from 0 to 1.
+Set low to low times item spot of numbers.
+
+Set low to low times item last of numbers.
+If low is more than high, set high to low.
+
+Show high.

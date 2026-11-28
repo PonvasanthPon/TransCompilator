@@ -1,0 +1,8 @@
+The cells is 3.
+The moves is 0.
+The divisor is 2.
+Repeat while cells is more than 1.
+If cells modulo divisor is 0, add divisor to moves, set cells to cells divided by divisor.
+If cells modulo divisor is not 0, add 1 to divisor.
+
+Show moves.

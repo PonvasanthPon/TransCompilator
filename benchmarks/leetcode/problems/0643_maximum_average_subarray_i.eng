@@ -1,0 +1,28 @@
+The numbers is a list of 1, 12, -5, -6, 50, and 3.
+The width is 4.
+The last is the last position of numbers.
+The window is 0.
+For every spot from 0 to width minus 1.
+Set window to window plus item spot of numbers.
+
+The best is window.
+For every start from 1 to last minus width plus 1.
+Set window to window minus item (start minus 1) of numbers.
+Set window to window plus item (start plus width minus 1) of numbers.
+If window is more than best, set best to window.
+
+The integer is best divided by width.
+The rest is best modulo width.
+The parts is an empty list of text.
+The headtext is format whole number integer as text.
+Place headtext into parts.
+Place "." into parts.
+For every digit from 0 to 4.
+Set rest to rest times 10.
+The piece is rest divided by width.
+The pad is format whole number piece as text.
+Place pad into parts.
+Set rest to rest modulo width.
+
+The line is join parts with "".
+Show line.

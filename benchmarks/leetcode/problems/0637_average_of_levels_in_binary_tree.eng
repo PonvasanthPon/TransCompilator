@@ -1,0 +1,41 @@
+The values is a list of 3, 9, 20, 15, and 7.
+The lefts is a list of 1, -1, 3, -1, and -1.
+The rights is a list of 2, -1, 4, -1, and -1.
+The queue is a list of 20 zeros.
+Keep a shared averages as an empty list of text.
+To render with total (a whole number) with count (a whole number).
+The integer is total divided by count.
+The rest is total modulo count.
+The parts is an empty list of text.
+The headtext is format whole number integer as text.
+Place headtext into parts.
+Place "." into parts.
+For every digit from 0 to 4.
+Set rest to rest times 10.
+The piece is rest divided by count.
+The pad is format whole number piece as text.
+Place pad into parts.
+Set rest to rest modulo count.
+If digit is 4, The built is join parts with "", Place built into averages.
+
+Set item 0 of queue to 0.
+The head is 0.
+The tail is 1.
+The remaining is 1.
+The nextcount is 0.
+The total is 0.
+The count is 0.
+Repeat while remaining is more than 0.
+The node is item head of queue.
+Add 1 to head.
+Subtract 1 from remaining.
+Set total to total plus item node of values.
+Add 1 to count.
+The left is item node of lefts.
+If left is at least 0, set item tail of queue to left, add 1 to tail, add 1 to nextcount.
+The right is item node of rights.
+If right is at least 0, set item tail of queue to right, add 1 to tail, add 1 to nextcount.
+If remaining is 0, render with total with count, set total to 0, set count to 0, set remaining to nextcount, set nextcount to 0.
+
+The line is join averages with ",".
+Show line.

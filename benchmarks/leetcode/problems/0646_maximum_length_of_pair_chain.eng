@@ -1,0 +1,30 @@
+Keep a shared begins as an empty list of whole numbers.
+Place 1 into begins.
+Place 2 into begins.
+Place 3 into begins.
+Keep a shared finishes as an empty list of whole numbers.
+Place 2 into finishes.
+Place 3 into finishes.
+Place 4 into finishes.
+Keep a shared last as 0.
+Set last to 2.
+Keep a shared picked as 0.
+To seek from candidate (a whole number) with chosen (a whole number).
+If candidate is more than last, set picked to chosen, return.
+If item candidate of finishes is less than item chosen of finishes, set chosen to candidate.
+Seek from candidate plus 1 with chosen.
+
+To place from spot (a whole number).
+The pick is spot.
+Seek from spot plus 1 with pick.
+If picked is not spot, swap item spot of finishes and item picked of finishes, swap item spot of begins and item picked of begins.
+
+For every spot from 0 to last minus 1.
+Place from spot.
+
+The count is 0.
+The lastend is -1000000000.
+For every spot from 0 to last.
+If item spot of begins is more than lastend, add 1 to count, set lastend to item spot of finishes.
+
+Show count.

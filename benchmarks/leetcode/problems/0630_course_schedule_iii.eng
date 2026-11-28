@@ -1,0 +1,45 @@
+Keep a shared durations as an empty list of whole numbers.
+Place 100 into durations.
+Place 200 into durations.
+Place 1000 into durations.
+Place 2000 into durations.
+Keep a shared deadlines as an empty list of whole numbers.
+Place 200 into deadlines.
+Place 1300 into deadlines.
+Place 1250 into deadlines.
+Place 3200 into deadlines.
+Keep a shared last as 0.
+Set last to 3.
+Keep a shared picked as 0.
+Keep a shared best as 0.
+Keep a shared taken as 0.
+Keep a shared route as an empty list of whole numbers.
+To seek from candidate (a whole number) with chosen (a whole number).
+If candidate is more than last, set picked to chosen, return.
+If item candidate of deadlines is less than item chosen of deadlines, set chosen to candidate.
+Seek from candidate plus 1 with chosen.
+
+To place from spot (a whole number).
+The pick is spot.
+Seek from spot plus 1 with pick.
+If picked is not spot, swap item spot of deadlines and item picked of deadlines, swap item spot of durations and item picked of durations.
+
+To record.
+If taken is more than best, set best to taken.
+
+To explore from spot (a whole number) with total (a whole number).
+If spot is more than last, record, return.
+Explore from spot plus 1 with total.
+The finish is total plus item spot of durations.
+If finish is at most item spot of deadlines.
+Place spot into route.
+Add 1 to taken.
+Explore from spot plus 1 with finish.
+Subtract 1 from taken.
+Remove the last item from route.
+
+For every spot from 0 to last minus 1.
+Place from spot.
+
+Explore from 0 with 0.
+Show best.
