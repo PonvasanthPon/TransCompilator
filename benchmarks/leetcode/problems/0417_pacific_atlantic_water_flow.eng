@@ -1,0 +1,70 @@
+Keep a shared heights as an empty list of whole numbers.
+Place 1 into heights.
+Place 2 into heights.
+Place 2 into heights.
+Place 3 into heights.
+Place 5 into heights.
+Place 3 into heights.
+Place 2 into heights.
+Place 3 into heights.
+Place 4 into heights.
+Place 4 into heights.
+Place 2 into heights.
+Place 4 into heights.
+Place 5 into heights.
+Place 3 into heights.
+Place 1 into heights.
+Place 6 into heights.
+Place 7 into heights.
+Place 1 into heights.
+Place 4 into heights.
+Place 5 into heights.
+Place 5 into heights.
+Place 1 into heights.
+Place 1 into heights.
+Place 2 into heights.
+Place 4 into heights.
+Keep a shared pacific as an empty list of whole numbers.
+Keep a shared atlantic as an empty list of whole numbers.
+For every spot from 0 to 24.
+Place 0 into pacific.
+Place 0 into atlantic.
+
+To climb from node (a whole number).
+If item node of pacific is 1, return.
+Set item node of pacific to 1.
+The row is node divided by 5.
+The column is node modulo 5.
+The height is item node of heights.
+If row is more than 0 and item (node minus 5) of heights is at least height, climb from node minus 5.
+If row is less than 4 and item (node plus 5) of heights is at least height, climb from node plus 5.
+If column is more than 0 and item (node minus 1) of heights is at least height, climb from node minus 1.
+If column is less than 4 and item (node plus 1) of heights is at least height, climb from node plus 1.
+
+To wave from node (a whole number).
+If item node of atlantic is 1, return.
+Set item node of atlantic to 1.
+The row is node divided by 5.
+The column is node modulo 5.
+The height is item node of heights.
+If row is more than 0 and item (node minus 5) of heights is at least height, wave from node minus 5.
+If row is less than 4 and item (node plus 5) of heights is at least height, wave from node plus 5.
+If column is more than 0 and item (node minus 1) of heights is at least height, wave from node minus 1.
+If column is less than 4 and item (node plus 1) of heights is at least height, wave from node plus 1.
+
+For every spot from 0 to 4.
+Climb from spot.
+Wave from 20 plus spot.
+
+For every spot from 0 to 4.
+Climb from spot times 5.
+Wave from spot times 5 plus 4.
+
+For every spot from 0 to 24.
+The row is spot divided by 5.
+The column is spot modulo 5.
+If item spot of pacific is 1 and item spot of atlantic is 1.
+The line is format whole number row as text.
+Place "," into line.
+Place format whole number column as text into line.
+Show line.

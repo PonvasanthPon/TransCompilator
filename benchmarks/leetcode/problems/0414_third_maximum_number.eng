@@ -1,0 +1,10 @@
+The nums is a list of 3, 2, and 1.
+The first is -2000000000.
+The second is -2000000000.
+The third is -2000000000.
+For each value in nums.
+If value is more than first, set third to second, set second to first, set first to value.
+If value is less than first and value is more than second, set third to second, set second to value.
+If value is less than second and value is more than third, set third to value.
+
+If third is -2000000000, show first, otherwise show third.

@@ -1,0 +1,26 @@
+Keep a shared dp as an empty list of whole numbers.
+Keep a shared goal as 0.
+For every spot from 0 to 11.
+Place 0 into dp.
+
+Set item 0 of dp to 1.
+
+To fill from spot (a whole number) with value (a whole number).
+If spot is less than value, return.
+The previous is item (spot minus value) of dp.
+If previous is 1, set item spot of dp to 1.
+Fill from spot minus 1 with value.
+
+The nums is a list of 1, 5, 11, and 5.
+The total is 0.
+For each value in nums, add value to total.
+The half is total divided by 2.
+Set goal to half.
+For each value in nums.
+Fill from goal with value.
+
+The parity is total modulo 2.
+The seat is goal.
+The found is item seat of dp.
+If parity is 1, set found to 0.
+If found is 1, show true, otherwise show false.

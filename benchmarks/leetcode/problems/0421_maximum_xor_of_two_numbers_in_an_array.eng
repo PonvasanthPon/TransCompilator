@@ -1,0 +1,9 @@
+The nums is a list of 3, 10, 5, 25, 2, and 8.
+The last is the last position of nums.
+The best is 0.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+The mixed is exclusive or of item left of nums and item right of nums.
+If mixed is more than best, set best to mixed.
+
+Show best.

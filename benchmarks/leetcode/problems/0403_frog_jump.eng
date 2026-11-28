@@ -1,0 +1,45 @@
+Keep a shared stones as an empty list of whole numbers.
+Place 0 into stones.
+Place 1 into stones.
+Place 3 into stones.
+Place 5 into stones.
+Place 6 into stones.
+Place 8 into stones.
+Place 12 into stones.
+Place 17 into stones.
+Keep a shared seen as an empty list of whole numbers.
+For every spot from 0 to 63.
+Place 0 into seen.
+
+Keep a shared found as 0.
+Keep a shared good as 0.
+To locate from target (a whole number) with spot (a whole number).
+If spot is more than 7, return.
+If item spot of stones is target, set found to spot, return.
+Locate from target with spot plus 1.
+
+To walk from spot (a whole number) with jump (a whole number).
+If good is 1, return.
+If spot is 7, set good to 1, return.
+The mark is spot times 8 plus jump.
+If item mark of seen is 1, return.
+Set item mark of seen to 1.
+Expand from spot with jump.
+
+To expand from spot (a whole number) with jump (a whole number).
+If good is 1, return.
+The low is jump minus 1.
+If low is more than 0, set found to -1.
+If low is more than 0, locate from item spot of stones plus low with 0.
+If low is more than 0 and found is at least 0, walk from found with low.
+The same is jump.
+Set found to -1.
+Locate from item spot of stones plus same with 0.
+If found is at least 0, walk from found with same.
+The high is jump plus 1.
+Set found to -1.
+Locate from item spot of stones plus high with 0.
+If found is at least 0, walk from found with high.
+
+Walk from 0 with 1.
+If good is 1, show true, otherwise show false.

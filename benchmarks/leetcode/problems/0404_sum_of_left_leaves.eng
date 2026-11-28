@@ -1,0 +1,37 @@
+Keep a shared values as an empty list of whole numbers.
+Place 3 into values.
+Place 9 into values.
+Place 20 into values.
+Place 0 into values.
+Place 0 into values.
+Place 15 into values.
+Place 7 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+
+Keep a shared total as 0.
+To visit from node (a whole number) with side (a whole number).
+If node is less than 0, return.
+The leftnode is item node of lefts.
+The rightnode is item node of rights.
+The amount is item node of values.
+If leftnode is -1 and rightnode is -1 and side is 1, add amount to total.
+Visit from leftnode with 1.
+Visit from rightnode with 0.
+
+Visit from 0 with 0.
+Show total.

@@ -1,0 +1,35 @@
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared target as empty text.
+Keep a shared found as 0.
+To search from spot (a whole number).
+If spot is more than 25, return.
+The piece is the slice of alphabet from spot to spot plus 1.
+If piece is target, set found to spot, return.
+Search from spot plus 1.
+
+The word is "abccccdd".
+The last is the last position of word.
+The counts is a list of 26 zeros.
+For every spot from 0 to last.
+The symbol is the slice of word from spot to spot plus 1.
+Set target to symbol.
+Set found to -1.
+Search from 0.
+The letter is found.
+Set item letter of counts to item letter of counts plus 1.
+
+The answer is 0.
+For every spot from 0 to 25.
+The amount is item spot of counts.
+The pairs is amount divided by 2.
+Add pairs times 2 to answer.
+
+The extra is 0.
+For every spot from 0 to 25.
+The amount is item spot of counts.
+If amount modulo 2 is 1, set extra to 1.
+
+Add extra to answer.
+
+Show answer.

@@ -1,0 +1,22 @@
+Keep a shared leftword as empty text.
+Place "11" into leftword.
+Keep a shared rightword as empty text.
+Place "123" into rightword.
+Keep a shared result as empty text.
+Keep a shared carry as 0.
+To combine from first (a whole number) with second (a whole number).
+If first is less than 0 and second is less than 0 and carry is 0, return.
+The left is 0.
+The right is 0.
+If first is at least 0, set left to the digit value of character first of leftword.
+If second is at least 0, set right to the digit value of character second of rightword.
+The sum is left plus right plus carry.
+The digit is sum modulo 10.
+Set carry to sum divided by 10.
+Combine from first minus 1 with second minus 1.
+Place character digit of "0123456789" into result.
+
+The firstlast is the last position of leftword.
+The secondlast is the last position of rightword.
+Combine from firstlast with secondlast.
+Show result.

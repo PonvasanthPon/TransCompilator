@@ -1,0 +1,15 @@
+The board is a list of 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, and 1.
+The last is the last position of board.
+The ships is 0.
+For every spot from 0 to last.
+The row is spot divided by 4.
+The column is spot modulo 4.
+The top is 0.
+If row is 0, set top to 1.
+If row is more than 0 and item (spot minus 4) of board is 0, set top to 1.
+The left is 0.
+If column is 0, set left to 1.
+If column is more than 0 and item (spot minus 1) of board is 0, set left to 1.
+If item spot of board is 1 and top is 1 and left is 1, add 1 to ships.
+
+Show ships.

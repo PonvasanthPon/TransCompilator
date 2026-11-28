@@ -1,0 +1,11 @@
+The nums is a list of 1, 2, 3, and 4.
+The last is the last position of nums.
+The run is 0.
+The total is 0.
+For every spot from 2 to last.
+The first is item (spot minus 1) of nums minus item (spot minus 2) of nums.
+The second is item spot of nums minus item (spot minus 1) of nums.
+If first is second, add 1 to run, otherwise set run to 0.
+Add run to total.
+
+Show total.

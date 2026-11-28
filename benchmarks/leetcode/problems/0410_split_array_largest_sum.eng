@@ -1,0 +1,40 @@
+Keep a shared nums as an empty list of whole numbers.
+Place 7 into nums.
+Place 2 into nums.
+Place 5 into nums.
+Place 10 into nums.
+Place 8 into nums.
+Keep a shared limit as 0.
+Keep a shared need as 0.
+Keep a shared used as 0.
+Keep a shared parts as 0.
+To weigh from spot (a whole number).
+If spot is more than 4, set need to parts, return.
+The value is item spot of nums.
+The filled is used plus value.
+If filled is at most limit, set used to filled.
+If filled is at most limit, weigh from spot plus 1, return.
+Add 1 to parts.
+Set used to value.
+Weigh from spot plus 1.
+
+The last is the last position of nums.
+The allowed is 2.
+The low is 0.
+The total is 0.
+For every spot from 0 to last.
+The value is item spot of nums.
+Add value to total.
+If value is more than low, set low to value.
+
+The high is total.
+Repeat while low is less than high.
+The middle is (low plus high) divided by 2.
+Set limit to middle.
+Set need to 0.
+Set used to 0.
+Set parts to 1.
+Weigh from 0.
+If need is at most allowed, set high to middle, otherwise set low to middle plus 1.
+
+Show low.

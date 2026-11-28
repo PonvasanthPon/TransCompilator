@@ -1,0 +1,6 @@
+The count is 15.
+For every number from 1 to count.
+If number modulo 15 is 0, show "FizzBuzz".
+If number modulo 15 is not 0 and number modulo 3 is 0, show "Fizz".
+If number modulo 15 is not 0 and number modulo 5 is 0, show "Buzz".
+If number modulo 15 is not 0 and number modulo 3 is not 0 and number modulo 5 is not 0, show format whole number number as text.

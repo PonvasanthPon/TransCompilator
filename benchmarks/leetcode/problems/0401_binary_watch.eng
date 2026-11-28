@@ -1,0 +1,22 @@
+Keep a shared bits as 0.
+To score from value (a whole number).
+If value is 0, return.
+The low is value modulo 2.
+Add low to bits.
+Score from value divided by 2.
+
+The turned is 1.
+For every hour from 0 to 11.
+For every minute from 0 to 59.
+Set bits to 0.
+Score from hour.
+Score from minute.
+If bits is turned.
+The tens is minute divided by 10.
+The ones is minute modulo 10.
+The mins is format whole number tens as text.
+Place format whole number ones as text into mins.
+The line is format whole number hour as text.
+Place ":" into line.
+Place mins into line.
+Show line.

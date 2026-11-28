@@ -1,0 +1,19 @@
+The value is 26.
+The alphabet is "0123456789abcdef".
+The reversed is empty text.
+Repeat while value is more than 0.
+The digit is value modulo 16.
+The piece is the slice of alphabet from digit to digit plus 1.
+Place piece into reversed.
+Set value to value divided by 16.
+
+The size is the number of characters in reversed.
+If size is 0, Place "0" into reversed.
+The last is the last position of reversed.
+The result is empty text.
+For every step from 0 to last.
+The source is last minus step.
+The piece is the slice of reversed from source to source plus 1.
+Place piece into result.
+
+Show result.

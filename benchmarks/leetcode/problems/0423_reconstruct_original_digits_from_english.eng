@@ -1,0 +1,60 @@
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared target as empty text.
+Keep a shared found as 0.
+Keep a shared result as empty text.
+To search from spot (a whole number).
+If spot is more than 25, return.
+The piece is the slice of alphabet from spot to spot plus 1.
+If piece is target, set found to spot, return.
+Search from spot plus 1.
+
+To emit from digit (a whole number) with times (a whole number).
+If times is 0, return.
+Place format whole number digit as text into result.
+Emit from digit with times minus 1.
+
+The source is "owoztneoer".
+The counts is a list of 26 zeros.
+The last is the last position of source.
+For every spot from 0 to last.
+The symbol is the slice of source from spot to spot plus 1.
+Set target to symbol.
+Set found to -1.
+Search from 0.
+The letter is found.
+Set item letter of counts to item letter of counts plus 1.
+
+The zcount is item 25 of counts.
+The wcount is item 22 of counts.
+The ucount is item 20 of counts.
+The xcount is item 23 of counts.
+The gcount is item 6 of counts.
+The ocount is item 14 of counts.
+The hcount is item 7 of counts.
+The fcount is item 5 of counts.
+The scount is item 18 of counts.
+The icount is item 8 of counts.
+
+The countzero is zcount.
+The counttwo is wcount.
+The countfour is ucount.
+The countsix is xcount.
+The counteight is gcount.
+The countone is ocount minus countzero minus counttwo minus countfour.
+The countthree is hcount minus counteight.
+The countfive is fcount minus countfour.
+The countseven is scount minus countsix.
+The countnine is icount minus countfive minus countsix minus counteight.
+
+Emit from 0 with countzero.
+Emit from 1 with countone.
+Emit from 2 with counttwo.
+Emit from 3 with countthree.
+Emit from 4 with countfour.
+Emit from 5 with countfive.
+Emit from 6 with countsix.
+Emit from 7 with countseven.
+Emit from 8 with counteight.
+Emit from 9 with countnine.
+Show result.

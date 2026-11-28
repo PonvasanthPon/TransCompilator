@@ -1,0 +1,57 @@
+Keep a shared heights as an empty list of whole numbers.
+Place 1 into heights.
+Place 4 into heights.
+Place 3 into heights.
+Place 1 into heights.
+Place 3 into heights.
+Place 2 into heights.
+Place 3 into heights.
+Place 2 into heights.
+Place 1 into heights.
+Place 3 into heights.
+Place 2 into heights.
+Place 4 into heights.
+Place 2 into heights.
+Place 3 into heights.
+Place 3 into heights.
+Place 2 into heights.
+Place 3 into heights.
+Place 1 into heights.
+Keep a shared levels as an empty list of whole numbers.
+Keep a shared changed as 0.
+For every spot from 0 to 17.
+Place 0 into levels.
+
+To relax from spot (a whole number).
+The low is 100.
+The row is spot divided by 6.
+The column is spot modulo 6.
+If row is more than 0 and item (spot minus 6) of levels is less than low, set low to item (spot minus 6) of levels.
+If row is less than 2 and item (spot plus 6) of levels is less than low, set low to item (spot plus 6) of levels.
+If column is more than 0 and item (spot minus 1) of levels is less than low, set low to item (spot minus 1) of levels.
+If column is less than 5 and item (spot plus 1) of levels is less than low, set low to item (spot plus 1) of levels.
+If item spot of heights is more than low, set low to item spot of heights.
+If low is less than item spot of levels, set item spot of levels to low, set changed to 1.
+
+For every spot from 0 to 17.
+Set item spot of levels to 100.
+The row is spot divided by 6.
+The column is spot modulo 6.
+If row is 0 or row is 2 or column is 0 or column is 5, set item spot of levels to item spot of heights.
+
+Set changed to 1.
+Repeat while changed is 1.
+Set changed to 0.
+For every spot from 0 to 17.
+The row is spot divided by 6.
+The column is spot modulo 6.
+The edge is 0.
+If row is 0 or row is 2 or column is 0 or column is 5, set edge to 1.
+If edge is 0, relax from spot.
+
+The total is 0.
+For every spot from 0 to 17.
+The extra is item spot of levels minus item spot of heights.
+Add extra to total.
+
+Show total.

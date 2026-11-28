@@ -1,0 +1,39 @@
+Keep a shared number as empty text.
+Place "1432219" into number.
+Keep a shared removes as 0.
+Set removes to 3.
+Keep a shared chosen as 0.
+To choose.
+Set chosen to -1.
+The last is the last position of number.
+The limit is last minus 1.
+For every spot from 0 to limit.
+The leftdigit is the digit value of character spot of number.
+The rightdigit is the digit value of character (spot plus 1) of number.
+If chosen is -1 and leftdigit is more than rightdigit, set chosen to spot.
+
+To carve.
+Choose.
+The last is the last position of number.
+If chosen is -1, set chosen to last.
+The head is the slice of number from 0 to chosen.
+The tail is the slice of number from chosen plus 1 to last plus 1.
+The joined is empty text.
+Place head into joined.
+Place tail into joined.
+Set number to joined.
+
+For every step from 1 to removes.
+Carve.
+
+The size is the number of characters in number.
+The zero is character 0 of "0".
+Repeat while size is more than 1.
+The first is character 0 of number.
+If first is not zero, break.
+The last is the last position of number.
+The joined is the slice of number from 1 to last plus 1.
+Set number to joined.
+Set size to the number of characters in number.
+
+Show number.

@@ -1,0 +1,37 @@
+The heights is a list of 7, 4, 7, 5, 6, and 5.
+The ranks is a list of 0, 4, 1, 0, 1, and 2.
+The last is the last position of heights.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+The taller is 0.
+If item right of heights is more than item left of heights, set taller to 1.
+If item right of heights is item left of heights and item right of ranks is less than item left of ranks, set taller to 1.
+If taller is 1, swap item left of heights and item right of heights, swap item left of ranks and item right of ranks.
+
+Keep a shared outheights as an empty list of whole numbers.
+Keep a shared outranks as an empty list of whole numbers.
+For every spot from 0 to 5.
+Place 0 into outheights.
+Place 0 into outranks.
+
+To shift from spot (a whole number) with target (a whole number).
+If spot is at most target, return.
+Set item spot of outheights to item (spot minus 1) of outheights.
+Set item spot of outranks to item (spot minus 1) of outranks.
+Shift from spot minus 1 with target.
+
+The placed is 0.
+For every spot from 0 to last.
+The seat is item spot of ranks.
+Shift from placed with seat.
+Set item seat of outheights to item spot of heights.
+Set item seat of outranks to item spot of ranks.
+Add 1 to placed.
+
+For every spot from 0 to last.
+The height is item spot of outheights.
+The rank is item spot of outranks.
+The line is format whole number height as text.
+Place "," into line.
+Place format whole number rank as text into line.
+Show line.
