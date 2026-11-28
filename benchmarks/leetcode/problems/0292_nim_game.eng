@@ -1,0 +1,6 @@
+The stones is 4.
+The value is stones.
+Repeat while value is more than 0.
+Set value to value minus 4.
+
+If value is 0, show false, otherwise show true.

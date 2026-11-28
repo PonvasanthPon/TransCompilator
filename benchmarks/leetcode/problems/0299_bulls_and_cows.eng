@@ -1,0 +1,39 @@
+Keep a shared secret as empty text.
+Place "1807" into secret.
+Keep a shared guess as empty text.
+Place "7810" into guess.
+Keep a shared usedsecret as an empty list of whole numbers.
+Keep a shared usedguess as an empty list of whole numbers.
+For every spot from 0 to 3.
+Place 0 into usedsecret.
+Place 0 into usedguess.
+
+Keep a shared bulls as 0.
+Keep a shared cows as 0.
+Keep a shared targetchar as 0.
+Keep a shared cowfound as 0.
+
+For every spot from 0 to 3.
+If character spot of secret is character spot of guess, add 1 to bulls, set item spot of usedsecret to 1, set item spot of usedguess to 1.
+
+To find from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of usedguess is 1, find from spot plus 1 with last, return.
+If character spot of guess is targetchar, set item spot of usedguess to 1, set cowfound to 1, return.
+Find from spot plus 1 with last.
+
+For every spot from 0 to 3.
+If item spot of usedsecret is 0.
+Set targetchar to character spot of secret.
+Set cowfound to 0.
+Find from 0 with 3.
+If cowfound is 1, add 1 to cows, set item spot of usedsecret to 1.
+
+The firstpart is format whole number bulls as text.
+The secondpart is format whole number cows as text.
+The result is empty text.
+Place firstpart into result.
+Place "A" into result.
+Place secondpart into result.
+Place "B" into result.
+Show result.

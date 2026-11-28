@@ -1,0 +1,30 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 10 into numbers.
+Place 9 into numbers.
+Place 2 into numbers.
+Place 5 into numbers.
+Place 3 into numbers.
+Place 7 into numbers.
+Place 101 into numbers.
+Place 18 into numbers.
+Keep a shared dp as an empty list of whole numbers.
+For every spot from 0 to 7.
+Place 1 into dp.
+
+Keep a shared best as 0.
+
+To extend from spot (a whole number) with before (a whole number).
+If before is at least spot, return.
+If item before of numbers is less than item spot of numbers and item before of dp plus 1 is more than best, set best to item before of dp plus 1.
+Extend from spot with before plus 1.
+
+For every spot from 1 to 7.
+Set best to 1.
+Extend from spot with 0.
+Set item spot of dp to best.
+
+The answer is 1.
+For each value in dp.
+If value is more than answer, set answer to value.
+
+Show answer.

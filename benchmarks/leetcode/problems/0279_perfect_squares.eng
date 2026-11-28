@@ -1,0 +1,20 @@
+Keep a shared dp as an empty list of whole numbers.
+For every spot from 0 to 12.
+Place 0 into dp.
+
+Keep a shared best as 0.
+
+To test from value (a whole number) with step (a whole number).
+The square is step times step.
+If square is more than value, return.
+The trial is item (value minus square) of dp plus 1.
+If trial is less than best, set best to trial.
+Test from value with step plus 1.
+
+The number is 12.
+For every value from 1 to 12.
+Set best to 1000000.
+Test from value with 1.
+Set item value of dp to best.
+
+Show item 12 of dp.

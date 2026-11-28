@@ -1,0 +1,45 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 5 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 3 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared path as an empty list of whole numbers.
+Keep a shared answers as an empty list of text.
+Keep a shared line as empty text.
+
+To render from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If spot is more than 0, Place "->" into line.
+The piece is format whole number item spot of path as text.
+Place piece into line.
+Render from spot plus 1 with last.
+
+To store answer.
+Set line to empty text.
+The lastpath is the last position of path.
+Render from 0 with lastpath.
+The copy is a copy of line.
+Place copy into answers.
+
+To walk from node (a whole number).
+If node is less than 0, return.
+Place item node of values into path.
+The left is item node of lefts.
+The right is item node of rights.
+If left is -1 and right is -1, store answer.
+If left is at least 0, walk from left.
+If right is at least 0, walk from right.
+Remove the last item from path.
+
+Walk from 0.
+For each answer in answers, show answer.

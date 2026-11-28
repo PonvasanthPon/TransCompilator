@@ -1,0 +1,51 @@
+The pattern is "abba".
+The source is "dog cat cat dog".
+The pieces is split source by " ".
+Keep a shared words as an empty list of text.
+For each piece in pieces.
+Place piece into words.
+
+Keep a shared keys as an empty list of text.
+Keep a shared values as an empty list of text.
+Keep a shared seek as empty text.
+Keep a shared found as 0.
+Keep a shared used as 0.
+Keep a shared same as 0.
+Keep a shared letter as empty text.
+
+To locate from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of keys matches letter, set found to spot, return.
+Locate from spot plus 1 with last.
+
+To check from spot (a whole number).
+If item spot of values does not match seek, set same to 0.
+
+To search from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of values matches seek, set used to 1, return.
+Search from spot plus 1 with last.
+
+The length is the number of characters in pattern.
+The count is the number of items in words.
+The good is 1.
+If length is not count, set good to 0.
+If length is count.
+For every spot from 0 to 3.
+The symbol is character spot of pattern.
+Set letter to empty text.
+Place symbol into letter.
+Set seek to item spot of words.
+Set found to -1.
+The keylast is the last position of keys.
+Locate from 0 with keylast.
+Set same to 1.
+If found is at least 0, check from found.
+If found is at least 0 and same is 0, set good to 0.
+If found is -1, set used to 0.
+The valuelast is the last position of values.
+If found is -1, search from 0 with valuelast.
+If found is -1 and used is 1, set good to 0.
+If found is -1 and used is 0, Place letter into keys, Place seek into values.
+
+If good is 1, show true, otherwise show false.

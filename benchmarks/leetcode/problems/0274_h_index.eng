@@ -1,0 +1,22 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 3 into numbers.
+Place 0 into numbers.
+Place 6 into numbers.
+Place 1 into numbers.
+Place 5 into numbers.
+Keep a shared seek as 0.
+Keep a shared tally as 0.
+
+To gather from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of numbers is at least seek, add 1 to tally.
+Gather from spot plus 1 with last.
+
+The best is 0.
+For every level from 0 to 5.
+Set seek to level.
+Set tally to 0.
+Gather from 0 with 4.
+If tally is at least level, set best to level.
+
+Show best.

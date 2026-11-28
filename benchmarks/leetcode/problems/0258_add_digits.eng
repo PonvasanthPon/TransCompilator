@@ -1,0 +1,13 @@
+Keep a shared result as 0.
+
+To gather from value (a whole number) with total (a whole number).
+If value is 0, set result to total, return.
+Gather from value divided by 10 with total plus value modulo 10.
+
+The number is 38.
+The value is number.
+Repeat while value is at least 10.
+Gather from value with 0.
+Set value to result.
+
+Show value.

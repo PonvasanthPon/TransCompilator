@@ -1,0 +1,59 @@
+Keep a shared ones as an empty list of text.
+Place "Zero" into ones.
+Place "One" into ones.
+Place "Two" into ones.
+Place "Three" into ones.
+Place "Four" into ones.
+Place "Five" into ones.
+Place "Six" into ones.
+Place "Seven" into ones.
+Place "Eight" into ones.
+Place "Nine" into ones.
+Place "Ten" into ones.
+Place "Eleven" into ones.
+Place "Twelve" into ones.
+Place "Thirteen" into ones.
+Place "Fourteen" into ones.
+Place "Fifteen" into ones.
+Place "Sixteen" into ones.
+Place "Seventeen" into ones.
+Place "Eighteen" into ones.
+Place "Nineteen" into ones.
+Keep a shared tens as an empty list of text.
+Place "Twenty" into tens.
+Place "Thirty" into tens.
+Place "Forty" into tens.
+Place "Fifty" into tens.
+Place "Sixty" into tens.
+Place "Seventy" into tens.
+Place "Eighty" into tens.
+Place "Ninety" into tens.
+Keep a shared part as empty text.
+
+To render from value (a whole number).
+The hundreds is value divided by 100.
+If value is at least 100, Place item hundreds of ones into part, Place " Hundred" into part.
+Set value to value modulo 100.
+If value is 0, return.
+If value is more than 0 and hundreds is more than 0, Place " " into part.
+If value is less than 20, Place item value of ones into part, return.
+The tensdigit is value divided by 10.
+Place item (tensdigit minus 2) of tens into part.
+The digit is value modulo 10.
+If digit is more than 0, Place " " into part, Place item digit of ones into part.
+
+The number is 123.
+The value is number.
+The billions is value divided by 1000000000.
+If value is at least 1000000000, render from billions, Place " Billion" into part, set value to value modulo 1000000000.
+The millions is value divided by 1000000.
+If value is at least 1000000 and the length of part is more than 0, Place " " into part.
+If value is at least 1000000, render from millions, Place " Million" into part, set value to value modulo 1000000.
+The thousands is value divided by 1000.
+If value is at least 1000 and the length of part is more than 0, Place " " into part.
+If value is at least 1000, render from thousands, Place " Thousand" into part, set value to value modulo 1000.
+If value is more than 0 and the length of part is more than 0, Place " " into part.
+If value is more than 0, render from value.
+If number is 0, Place "Zero" into part.
+
+Show part.

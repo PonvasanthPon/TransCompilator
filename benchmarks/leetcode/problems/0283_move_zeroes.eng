@@ -1,0 +1,12 @@
+The numbers is a list of 0, 1, 0, 3, and 12.
+The result is an empty list of whole numbers.
+The zeros is 0.
+For each value in numbers.
+If value is not 0, Place value into result.
+If value is 0, add 1 to zeros.
+
+Repeat while zeros is more than 0.
+Place 0 into result.
+Subtract 1 from zeros.
+
+For each value in result, show value.

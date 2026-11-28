@@ -1,0 +1,65 @@
+Keep a shared source as empty text.
+Place "123" into source.
+Keep a shared parts as an empty list of text.
+Keep a shared answers as an empty list of text.
+Keep a shared target as 0.
+Keep a shared lastposition as 0.
+Keep a shared currenttotal as 0.
+Keep a shared lastoperand as 0.
+Keep a shared operand as 0.
+Keep a shared part as empty text.
+
+To store answer.
+If currenttotal is not target, return.
+The expression is join parts with "".
+The copy is a copy of expression.
+Place copy into answers.
+
+To extend from end (a whole number) with code (a whole number).
+The value is operand.
+The savetotal is currenttotal.
+The savelast is lastoperand.
+Set part to empty text.
+If code is 0, Place "+" into part.
+If code is 1, Place "-" into part.
+If code is 2, Place "*" into part.
+Place format whole number value as text into part.
+Place part into parts.
+If code is 0, set currenttotal to currenttotal plus value.
+If code is 1, set currenttotal to currenttotal minus value.
+If code is 2, set lastoperand to lastoperand times value.
+If code is 2, set currenttotal to currenttotal minus savelast plus lastoperand.
+Search from end.
+Set currenttotal to savetotal.
+Set lastoperand to savelast.
+Remove the last item from parts.
+
+To search from start (a whole number).
+If start is more than lastposition, store answer, return.
+The value is 0.
+For every end from start to lastposition.
+The digit is the digit value of character end of source.
+Set value to value times 10 plus digit.
+If start is less than end and character start of source is "0", break.
+Set operand to value.
+If start is 0, carry from end.
+If start is not 0, set operand to value.
+If start is not 0, extend from end plus 1 with 0.
+If start is not 0, set operand to value.
+If start is not 0, extend from end plus 1 with 1.
+If start is not 0, set operand to value.
+If start is not 0, extend from end plus 1 with 2.
+
+To carry from end (a whole number).
+The value is operand.
+The piece is format whole number value as text.
+Place piece into parts.
+Set currenttotal to value.
+Set lastoperand to value.
+Search from end plus 1.
+Remove the last item from parts.
+
+Set target to 6.
+Set lastposition to 2.
+Search from 0.
+For each answer in answers, show answer.

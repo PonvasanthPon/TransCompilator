@@ -1,0 +1,22 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 3 into numbers.
+Place 4 into numbers.
+Place 2 into numbers.
+Place 2 into numbers.
+Keep a shared seek as 0.
+Keep a shared tally as 0.
+
+To gather from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of numbers is seek, add 1 to tally.
+Gather from spot plus 1 with last.
+
+The duplicate is 0.
+For every spot from 0 to 4.
+Set seek to item spot of numbers.
+Set tally to 0.
+Gather from 0 with spot minus 1.
+If tally is more than 0, set duplicate to seek.
+
+Show duplicate.

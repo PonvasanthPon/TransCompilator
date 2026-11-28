@@ -1,0 +1,24 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 2 into numbers.
+Place 1 into numbers.
+Place 3 into numbers.
+Place 2 into numbers.
+Place 5 into numbers.
+Keep a shared seek as 0.
+Keep a shared tally as 0.
+Keep a shared answers as an empty list of whole numbers.
+
+To gather from spot (a whole number) with last (a whole number).
+If spot is more than last, return.
+If item spot of numbers is seek, add 1 to tally.
+Gather from spot plus 1 with last.
+
+For every spot from 0 to 5.
+Set seek to item spot of numbers.
+Set tally to 0.
+Gather from 0 with 5.
+If tally is 1, Place seek into answers.
+
+Sort answers.
+For each value in answers, show value.

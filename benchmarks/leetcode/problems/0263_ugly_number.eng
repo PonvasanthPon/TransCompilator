@@ -1,0 +1,12 @@
+The number is 6.
+The value is number.
+Repeat while value modulo 2 is 0.
+Set value to value divided by 2.
+
+Repeat while value modulo 3 is 0.
+Set value to value divided by 3.
+
+Repeat while value modulo 5 is 0.
+Set value to value divided by 5.
+
+If value is 1, show true, otherwise show false.
