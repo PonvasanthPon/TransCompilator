@@ -1,0 +1,47 @@
+Keep a shared board as an empty list of whole numbers.
+Place 1 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 0 into board.
+Place 2 into board.
+Place -1 into board.
+Keep a shared visited as an empty list of whole numbers.
+For every place from 0 to 11, Place 0 into visited.
+Keep a shared height as 0.
+Set height to 3.
+Keep a shared width as 0.
+Set width to 4.
+Keep a shared target as 0.
+Set target to 10.
+Keep a shared walkable as 0.
+Set walkable to 11.
+Keep a shared paths as 0.
+Set item 0 of visited to 1.
+
+To seek from other (a whole number) with seen (a whole number).
+If other is less than 0, return.
+If other is at least 12, return.
+If item other of board is -1, return.
+If item other of visited is 1, return.
+Set item other of visited to 1.
+Explore from other with seen plus 1.
+Set item other of visited to 0.
+
+To explore from place (a whole number) with seen (a whole number).
+If place is target and seen is walkable, add 1 to paths.
+If place is target, return.
+The band is place divided by width.
+The file is place modulo width.
+If file is more than 0, seek from (place minus 1) with seen.
+If file is less than width minus 1, seek from (place plus 1) with seen.
+If band is more than 0, seek from (place minus width) with seen.
+If band is less than height minus 1, seek from (place plus width) with seen.
+
+Explore from 0 with 1.
+Show paths.

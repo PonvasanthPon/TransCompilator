@@ -1,0 +1,14 @@
+The numbers is a list of 9, 4, 2, 10, 7, 8, 8, 1, and 9.
+The rising is 0.
+The falling is 0.
+The best is 1.
+For every spot from 1 to the last position of numbers.
+The before is item (spot minus 1) of numbers.
+The here is item spot of numbers.
+If here is more than before, set rising to falling plus 1, set falling to 0.
+If here is less than before, set falling to rising plus 1, set rising to 0.
+If here is before, set rising to 0, set falling to 0.
+If rising plus 1 is more than best, set best to rising plus 1.
+If falling plus 1 is more than best, set best to falling plus 1.
+
+Show best.

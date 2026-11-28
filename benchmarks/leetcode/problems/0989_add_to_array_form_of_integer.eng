@@ -1,0 +1,14 @@
+The digits is a list of 1, 2, 0, and 0.
+The extra is 34.
+The answers is an empty list of whole numbers.
+The spot is the last position of digits.
+The carry is extra.
+Repeat while spot is at least 0 or carry is more than 0.
+If spot is at least 0, The sum is item spot of digits plus carry, Place (sum modulo 10) into answers, set carry to sum divided by 10.
+If spot is less than 0, Place (carry modulo 10) into answers, set carry to carry divided by 10.
+Subtract 1 from spot.
+
+The spot is the last position of answers.
+Repeat while spot is at least 0.
+Show item spot of answers.
+Subtract 1 from spot.

@@ -1,0 +1,52 @@
+Keep a shared labels as an empty list of whole numbers.
+Place 3 into labels.
+Place 9 into labels.
+Place 20 into labels.
+Place 15 into labels.
+Place 7 into labels.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place 3 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared order as an empty list of whole numbers.
+Keep a shared keys as an empty list of whole numbers.
+Keep a shared shown as 0.
+Keep a shared seen as 0.
+
+To gather from node (a whole number) with code (a whole number).
+If node is less than 0, return.
+The column is code divided by 10000 minus 1000.
+The depth is code modulo 10000.
+Place item node of labels into order.
+The key is (column plus 1000) times 100000000 plus depth times 10000 plus item node of labels.
+Place key into keys.
+Gather from item node of lefts with (code minus 10000).
+Gather from item node of rights with (code plus 10000).
+
+Gather from 0 with 10000000.
+For every spot from 1 to the last position of keys.
+The hold is item spot of keys.
+The keep is item spot of order.
+The prior is spot minus 1.
+Repeat while prior is at least 0 and item prior of keys is more than hold.
+Set item (prior plus 1) of keys to item prior of keys.
+Set item (prior plus 1) of order to item prior of order.
+Subtract 1 from prior.
+Set item (prior plus 1) of keys to hold.
+Set item (prior plus 1) of order to keep.
+
+For every spot from 0 to the last position of keys.
+The packed is item spot of keys.
+The column is packed divided by 100000000 minus 1000.
+If seen is more than 0 and column is not shown, show "---".
+Show item spot of order.
+Set shown to column.
+Add 1 to seen.

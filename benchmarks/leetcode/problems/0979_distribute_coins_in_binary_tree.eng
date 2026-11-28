@@ -1,0 +1,28 @@
+Keep a shared values as an empty list of whole numbers.
+Place 0 into values.
+Place 3 into values.
+Place 0 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared moves as 0.
+Keep a shared flow as 0.
+
+To settle from node (a whole number).
+If node is less than 0, set flow to 0, return.
+Settle from item node of lefts.
+The leftshare is flow.
+Settle from item node of rights.
+The rightshare is flow.
+The surplus is item node of values plus leftshare plus rightshare minus 1.
+Set flow to surplus.
+The gap is the absolute value of surplus.
+Set moves to moves plus gap.
+
+Settle from 0.
+Show moves.

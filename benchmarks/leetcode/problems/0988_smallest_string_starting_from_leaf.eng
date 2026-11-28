@@ -1,0 +1,81 @@
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared labels as an empty list of whole numbers.
+Place 0 into labels.
+Place 1 into labels.
+Place 2 into labels.
+Place 3 into labels.
+Place 4 into labels.
+Place 3 into labels.
+Place 4 into labels.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared trail as an empty list of text.
+Keep a shared bestpath as an empty list of text.
+Keep a shared final as empty text.
+Keep a shared have as 0.
+Keep a shared smaller as 0.
+
+To drain.
+The count is the number of items in bestpath.
+Repeat while count is more than 0.
+remove the last item from bestpath.
+Subtract 1 from count.
+
+To record.
+For each piece in trail, The saved is a copy of piece, Place saved into bestpath.
+
+To store.
+Drain.
+Record.
+
+To compare.
+Set smaller to 0.
+The spot is the last position of trail.
+The other is the last position of bestpath.
+Repeat while spot is at least 0 and other is at least 0.
+The left is item spot of trail.
+The right is item other of bestpath.
+If left comes before right, set smaller to 1, return.
+If right comes before left, return.
+Subtract 1 from spot.
+Subtract 1 from other.
+
+To visit.
+If have is 0, store, set have to 1, return.
+Compare.
+If smaller is 1, store.
+
+To report.
+The spot is the last position of bestpath.
+Repeat while spot is at least 0.
+Place item spot of bestpath into final.
+Subtract 1 from spot.
+
+To look from node (a whole number).
+If node is less than 0, return.
+The piece is the slice of alphabet from item node of labels to item node of labels plus 1.
+The held is a copy of piece.
+Place held into trail.
+If item node of lefts is less than 0 and item node of rights is less than 0, visit.
+Look from item node of lefts.
+Look from item node of rights.
+Remove the last item from trail.
+
+Look from 0.
+Report.
+Show final.

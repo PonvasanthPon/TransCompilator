@@ -1,0 +1,13 @@
+The numbers is a list of 1, 2, 3, and 4.
+The values is a list of 1, -3, -4, and 2.
+The spots is a list of 0, 1, 0, and 3.
+The total is 0.
+For each number in numbers, if number modulo 2 is 0, add number to total.
+For every which from 0 to the last position of values.
+The spot is item which of spots.
+The oldvalue is item spot of numbers.
+If oldvalue modulo 2 is 0, subtract oldvalue from total.
+Set item spot of numbers to oldvalue plus item which of values.
+The fresh is item spot of numbers.
+If fresh modulo 2 is 0, add fresh to total.
+Show total.

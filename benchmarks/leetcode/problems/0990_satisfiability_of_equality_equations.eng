@@ -1,0 +1,64 @@
+Keep a shared rules as an empty list of text.
+Place "a==b" into rules.
+Place "b!=c" into rules.
+Place "c==a" into rules.
+Keep a shared parent as an empty list of whole numbers.
+For every slot from 0 to 25, Place slot into parent.
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared letter as empty text.
+Keep a shared leftpairs as an empty list of whole numbers.
+Keep a shared rightpairs as an empty list of whole numbers.
+Keep a shared slot as 0.
+Keep a shared ancestor as 0.
+Keep a shared valid as 0.
+Set valid to 1.
+
+To locate.
+Set slot to 0.
+The current is slot.
+Repeat while current is less than 26.
+The symbol is the slice of alphabet from current to current plus 1.
+If symbol matches letter, set slot to current, stop.
+Add 1 to current.
+
+To find from place (a whole number).
+Set ancestor to place.
+The current is ancestor.
+Repeat while item current of parent is not current.
+The next is item current of parent.
+Set current to next.
+Set ancestor to next.
+
+To connect from first (a whole number) with second (a whole number).
+Find from first.
+The leftroot is ancestor.
+Find from second.
+The rightroot is ancestor.
+If leftroot is not rightroot, set item leftroot of parent to rightroot.
+
+To check from first (a whole number) with second (a whole number).
+Find from first.
+The leftroot is ancestor.
+Find from second.
+The rightroot is ancestor.
+If leftroot is rightroot, set valid to 0.
+
+For each rule in rules.
+The leftletter is the slice of rule from 0 to 1.
+The mark is the slice of rule from 1 to 2.
+The rightletter is the slice of rule from 3 to 4.
+Set letter to leftletter.
+Locate.
+The leftslot is slot.
+Set letter to rightletter.
+Locate.
+The rightslot is slot.
+If mark matches "=", connect from leftslot with rightslot, otherwise Place leftslot into leftpairs, Place rightslot into rightpairs.
+
+For every which from 0 to the last position of leftpairs.
+The one is item which of leftpairs.
+The two is item which of rightpairs.
+Check from one with two.
+
+If valid is 1, show true, otherwise show false.

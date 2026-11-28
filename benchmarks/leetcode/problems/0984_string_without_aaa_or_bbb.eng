@@ -1,0 +1,15 @@
+The acount is 4.
+The bcount is 1.
+The text is empty text.
+The prior is 0.
+The streak is 0.
+Repeat while acount plus bcount is more than 0.
+The side is 1.
+If acount is less than bcount, set side to 2.
+If side is prior and streak is 2, if side is 1, set side to 2, otherwise set side to 1.
+If side is 1, subtract 1 from acount.
+If side is 2, subtract 1 from bcount.
+If side is prior, add 1 to streak, otherwise set prior to side, set streak to 1.
+If side is 1, Place "a" into text, otherwise Place "b" into text.
+
+Show text.

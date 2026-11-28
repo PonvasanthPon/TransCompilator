@@ -1,0 +1,20 @@
+The firststarts is a list of 0, 5, 13, and 24.
+The firstends is a list of 2, 10, 23, and 25.
+The secondstarts is a list of 1, 8, 15, and 25.
+The secondends is a list of 5, 12, 24, and 26.
+The first is 0.
+The second is 0.
+The found is 0.
+Repeat while first is at most the last position of firststarts and second is at most the last position of secondstarts.
+The low is item first of firststarts.
+If item second of secondstarts is more than low, set low to item second of secondstarts.
+The high is item first of firstends.
+If item second of secondends is less than high, set high to item second of secondends.
+The firstend is item first of firstends.
+The secondend is item second of secondends.
+If firstend is less than secondend, add 1 to first, otherwise add 1 to second.
+If low is at most high.
+If found is more than 0, show "---".
+Show low.
+Show high.
+Add 1 to found.

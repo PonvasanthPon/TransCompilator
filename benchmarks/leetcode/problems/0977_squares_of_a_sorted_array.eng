@@ -1,0 +1,12 @@
+The numbers is a list of -4, -1, 0, 3, and 10.
+The answers is a list of 5 zeros.
+The left is 0.
+The right is the last position of numbers.
+The spot is the last position of answers.
+Repeat while left is at most right.
+The low is item left of numbers.
+The high is item right of numbers.
+If low times low is more than high times high, set item spot of answers to low times low, add 1 to left, otherwise set item spot of answers to high times high, subtract 1 from right.
+Subtract 1 from spot.
+
+For each value in answers, show value.

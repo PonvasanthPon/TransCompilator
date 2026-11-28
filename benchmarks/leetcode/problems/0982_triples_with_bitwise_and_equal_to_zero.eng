@@ -1,0 +1,10 @@
+The numbers is a list of 2, 1, and 3.
+The total is 0.
+For every first from 0 to the last position of numbers.
+For every second from 0 to the last position of numbers.
+For every third from 0 to the last position of numbers.
+The pair is bitwise and of item first of numbers and item second of numbers.
+The whole is bitwise and of pair and item third of numbers.
+If whole is 0, add 1 to total.
+
+Show total.

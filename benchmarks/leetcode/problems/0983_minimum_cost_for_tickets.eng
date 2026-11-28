@@ -1,0 +1,32 @@
+Keep a shared days as an empty list of whole numbers.
+Place 1 into days.
+Place 4 into days.
+Place 6 into days.
+Place 7 into days.
+Place 8 into days.
+Place 20 into days.
+Keep a shared prices as an empty list of whole numbers.
+Place 2 into prices.
+Place 7 into prices.
+Place 15 into prices.
+Keep a shared travel as an empty list of whole numbers.
+Keep a shared table as an empty list of whole numbers.
+For every slot from 0 to 30, Place 0 into travel.
+For every slot from 0 to 30, Place 0 into table.
+For each day in days, set item day of travel to 1.
+
+To fill from date (a whole number).
+If item date of travel is 0, set item date of table to item (date minus 1) of table, return.
+The week is date minus 7.
+If week is less than 0, set week to 0.
+The month is date minus 30.
+If month is less than 0, set month to 0.
+The single is item (date minus 1) of table plus item 0 of prices.
+The span is item week of table plus item 1 of prices.
+The longspan is item month of table plus item 2 of prices.
+The best is the smaller of single and span.
+The finest is the smaller of best and longspan.
+Set item date of table to finest.
+
+For every date from 1 to 20, fill from date.
+Show item 20 of table.
