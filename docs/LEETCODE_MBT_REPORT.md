@@ -172,3 +172,18 @@ Output: `1`.
 
 No eligible algorithmic problem in `1–200` is skipped. The remaining catalog
 skips are paywalled, SQL, shell, interactive, concurrency, or OOP class design.
+
+---
+
+# Batch 4 Progress (`201–500`)
+
+| Checkpoint | Range | Solved | Non-algorithmic skips | Status |
+|---|---|---:|---:|---|
+| 4A | 201–250 | **38** | 12 | **complete** |
+| 4B | 251–300 | 0 | 32 | pending |
+| 4C | 301–350 | 0 | 18 | pending |
+| 4D | 351–400 | 0 | 19 | pending |
+| 4E | 401–450 | 0 | 12 | pending |
+| 4F | 451–500 | 0 | 9 | pending |
+
+**Global after 4A:** **211 solved**, 1,002 skipped, 2,911 pending.
