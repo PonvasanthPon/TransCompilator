@@ -1,0 +1,31 @@
+Keep a shared alphabet as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+Keep a shared symbol as empty text.
+Keep a shared found as 0.
+
+To locate from look (a whole number).
+The piece is the slice of alphabet from look to look plus 1.
+If piece matches symbol, set found to look, return.
+Locate from look plus 1.
+
+The word is "abc".
+The shifts is a list of 3, 5, 9.
+The last is 2.
+The suffix is a list of 3 zeros.
+The running is 0.
+The spot is last.
+Repeat while spot is at least 0.
+Set running to running plus item spot of shifts.
+Set item spot of suffix to running.
+Subtract 1 from spot.
+
+The result is empty text.
+For every spot from 0 to last.
+Set symbol to the slice of word from spot to spot plus 1.
+Set found to 0.
+Locate from 0.
+The moved is (found plus item spot of suffix) modulo 26.
+The letter is the slice of alphabet from moved to moved plus 1.
+Place letter into result.
+
+Show result.

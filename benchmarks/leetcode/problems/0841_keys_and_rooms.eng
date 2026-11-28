@@ -1,0 +1,38 @@
+Keep a shared edges as an empty list of whole numbers.
+Place 1 into edges.
+Place 2 into edges.
+Place 3 into edges.
+Keep a shared starts as an empty list of whole numbers.
+Place 0 into starts.
+Place 1 into starts.
+Place 2 into starts.
+Place 3 into starts.
+Keep a shared counts as an empty list of whole numbers.
+Place 1 into counts.
+Place 1 into counts.
+Place 1 into counts.
+Place 0 into counts.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared seen as an empty list of whole numbers.
+For every room from 0 to 3.
+Place 0 into seen.
+
+Place 0 into queue.
+Set item 0 of seen to 1.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+For every offset from 0 to item node of counts minus 1.
+The target is item (item node of starts plus offset) of edges.
+If item target of seen is 0.
+Set item target of seen to 1.
+Place target into queue.
+Add 1 to count.
+
+The reached is 0.
+For every room from 0 to 3.
+If item room of seen is 1, add 1 to reached.
+
+If reached is 4, show true, otherwise show false.

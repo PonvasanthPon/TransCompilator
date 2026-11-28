@@ -1,0 +1,77 @@
+Keep a shared grid as an empty list of whole numbers.
+Keep a shared rows as 0.
+Keep a shared columns as 0.
+Keep a shared total as 0.
+Keep a shared valid as 0.
+Keep a shared marks as an empty list of whole numbers.
+Place 4 into grid.
+Place 3 into grid.
+Place 8 into grid.
+Place 4 into grid.
+Place 9 into grid.
+Place 5 into grid.
+Place 1 into grid.
+Place 9 into grid.
+Place 2 into grid.
+Place 7 into grid.
+Place 6 into grid.
+Place 2 into grid.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+Place 0 into marks.
+
+To inspect from top (a whole number) with column (a whole number).
+Set valid to 1.
+The base is top times columns plus column.
+The stamp is top times columns plus column plus 1.
+The northwest is item base of grid.
+The north is item (base plus 1) of grid.
+The northeast is item (base plus 2) of grid.
+The west is item (base plus columns) of grid.
+The middle is item (base plus columns plus 1) of grid.
+The east is item (base plus columns plus 2) of grid.
+The southwest is item (base plus columns plus columns) of grid.
+The south is item (base plus columns plus columns plus 1) of grid.
+The southeast is item (base plus columns plus columns plus 2) of grid.
+If northwest is less than 1 or northwest is more than 9, return.
+If north is less than 1 or north is more than 9, return.
+If northeast is less than 1 or northeast is more than 9, return.
+If west is less than 1 or west is more than 9, return.
+If middle is less than 1 or middle is more than 9, return.
+If east is less than 1 or east is more than 9, return.
+If southwest is less than 1 or southwest is more than 9, return.
+If south is less than 1 or south is more than 9, return.
+If southeast is less than 1 or southeast is more than 9, return.
+If item northwest of marks is stamp, set valid to 0, otherwise set item northwest of marks to stamp.
+If item north of marks is stamp, set valid to 0, otherwise set item north of marks to stamp.
+If item northeast of marks is stamp, set valid to 0, otherwise set item northeast of marks to stamp.
+If item west of marks is stamp, set valid to 0, otherwise set item west of marks to stamp.
+If item middle of marks is stamp, set valid to 0, otherwise set item middle of marks to stamp.
+If item east of marks is stamp, set valid to 0, otherwise set item east of marks to stamp.
+If item southwest of marks is stamp, set valid to 0, otherwise set item southwest of marks to stamp.
+If item south of marks is stamp, set valid to 0, otherwise set item south of marks to stamp.
+If item southeast of marks is stamp, set valid to 0, otherwise set item southeast of marks to stamp.
+The firstrow is northwest plus north plus northeast.
+The secondrow is west plus middle plus east.
+The thirdrow is southwest plus south plus southeast.
+The firstcolumn is northwest plus west plus southwest.
+The secondcolumn is north plus middle plus south.
+The thirdcolumn is northeast plus east plus southeast.
+The diagonal is northwest plus middle plus southeast.
+The cross is northeast plus middle plus southwest.
+If valid is 1 and firstrow is 15 and secondrow is 15 and thirdrow is 15 and firstcolumn is 15 and secondcolumn is 15 and thirdcolumn is 15 and diagonal is 15 and cross is 15, add 1 to total.
+
+Set rows to 3.
+Set columns to 4.
+For every top from 0 to rows minus 3.
+For every column from 0 to columns minus 3.
+Inspect from top with column.
+
+Show total.

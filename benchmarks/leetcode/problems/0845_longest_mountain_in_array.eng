@@ -1,0 +1,21 @@
+The heights is a list of 2, 1, 4, 7, 3, 2, 5.
+The last is 6.
+The climbing is a list of 7 zeros.
+Set item 0 of climbing to 1.
+For every spot from 1 to last.
+If item spot of heights is more than item (spot minus 1) of heights, set item spot of climbing to item (spot minus 1) of climbing plus 1, otherwise set item spot of climbing to 1.
+
+The falling is a list of 7 zeros.
+Set item last of falling to 1.
+The spot is last minus 1.
+Repeat while spot is at least 0.
+If item spot of heights is more than item (spot plus 1) of heights, set item spot of falling to item (spot plus 1) of falling plus 1, otherwise set item spot of falling to 1.
+Subtract 1 from spot.
+
+The best is 0.
+For every spot from 0 to last.
+If item spot of climbing is more than 1 and item spot of falling is more than 1.
+The span is item spot of climbing plus item spot of falling minus 1.
+If span is more than best, set best to span.
+
+Show best.

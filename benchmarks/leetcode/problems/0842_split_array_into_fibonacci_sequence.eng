@@ -1,0 +1,46 @@
+Keep a shared digits as empty text.
+Keep a shared chosen as an empty list of whole numbers.
+Keep a shared answer as an empty list of whole numbers.
+Keep a shared parsed as 0.
+Keep a shared found as 0.
+Keep a shared size as 0.
+
+To parse from start (a whole number) with finish (a whole number).
+Set parsed to 0.
+For every spot from start to finish.
+The number is the digit value of character spot of digits.
+Set parsed to parsed times 10 plus number.
+
+To collect from spot (a whole number) with limit (a whole number).
+If spot is at least limit, return.
+Place item spot of chosen into answer.
+Collect from spot plus 1 with limit.
+
+To extend from start (a whole number) with depth (a whole number).
+If found is 1, return.
+If start is size and depth is at least 3, Collect from 0 with depth, set found to 1.
+If start is size, return.
+For every finish from start to size minus 1.
+The lead is the digit value of character start of digits.
+If finish is more than start and lead is 0, stop.
+Parse from start with finish.
+If parsed is more than 2147483647, stop.
+The valid is 0.
+If depth is less than 2, set valid to 1.
+If depth is at least 2 and parsed is item (depth minus 1) of chosen plus item (depth minus 2) of chosen, set valid to 1.
+If valid is 1.
+Place parsed into chosen.
+Extend from finish plus 1 with depth plus 1.
+Remove the last item from chosen.
+
+Place "123456579" into digits.
+Set size to 9.
+Extend from 0 with 0.
+The rendered is empty text.
+If found is 1.
+For every spot from 0 to the last position of answer.
+If spot is more than 0, place "," into rendered.
+Place format whole number item spot of answer as text into rendered.
+
+If found is 1, show rendered.
+If found is 0, show "[]".

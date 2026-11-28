@@ -1,0 +1,35 @@
+The rects is a list of 0, 0, 2, 2, 1, 0, 2, 3, 1, 0, 3, 1.
+The rawx is a list of 0, 2, 1, 2, 1, 3.
+The rawy is a list of 0, 2, 0, 3, 0, 1.
+Sort rawx.
+Sort rawy.
+The xedges is an empty list of whole numbers.
+The yedges is an empty list of whole numbers.
+The recent is -1.
+For each value in rawx.
+If value is not recent, place value into xedges, set recent to value.
+
+Set recent to -1.
+For each value in rawy.
+If value is not recent, place value into yedges, set recent to value.
+
+The lastx is the last position of xedges.
+The lasty is the last position of yedges.
+The lastrect is the last position of rects.
+The entrycount is (lastrect plus 1) divided by 4.
+The cover is a list of 8 zeros.
+The area is 0.
+For every xi from 0 to lastx minus 1.
+The xleft is item xi of xedges.
+The xright is item (xi plus 1) of xedges.
+The width is xright minus xleft.
+The stamp is xi plus 1.
+For every entry from 0 to entrycount minus 1.
+The base is entry times 4.
+For every yi from 0 to lasty minus 1.
+If item base of rects is at most xleft and item (base plus 2) of rects is at least xright and item (base plus 1) of rects is at most item yi of yedges and item (base plus 3) of rects is at least item (yi plus 1) of yedges and item yi of cover is not stamp.
+Set item yi of cover to stamp.
+The height is item (yi plus 1) of yedges minus item yi of yedges.
+Set area to area plus width times height.
+
+Show area.

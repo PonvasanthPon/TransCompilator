@@ -1,0 +1,35 @@
+The edges is a list of 1, 2, 3, 0, 0, 0.
+The starts is a list of 0, 3, 4, 5.
+The counts is a list of 3, 1, 1, 1.
+The seen is a list of 64 zeros.
+The queue is an empty list of whole numbers.
+The depths is an empty list of whole numbers.
+For every node from 0 to 3.
+The startmask is shift 1 left by node.
+The code is node times 16 plus startmask.
+Set item code of seen to 1.
+Place code into queue.
+Place 0 into depths.
+
+The head is 0.
+The count is 4.
+The answer is -1.
+Repeat while head is less than count and answer is less than 0.
+The state is item head of queue.
+The distance is item head of depths.
+Add 1 to head.
+The node is state divided by 16.
+The mask is state modulo 16.
+For every offset from 0 to item node of counts minus 1.
+The target is item (item node of starts plus offset) of edges.
+The bit is shift 1 left by target.
+The merged is bitwise or of mask and bit.
+If merged is 15, set answer to distance plus 1, stop.
+The code is target times 16 plus merged.
+If item code of seen is 0.
+Set item code of seen to 1.
+Place code into queue.
+Place distance plus 1 into depths.
+Add 1 to count.
+
+Show answer.

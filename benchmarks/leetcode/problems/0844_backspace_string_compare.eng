@@ -1,0 +1,19 @@
+The source is "ab#c", while the other is "ad#c".
+The cleaned is empty text.
+The trimmed is empty text.
+The kept is 0, while the spared is 0.
+For every spot from 0 to 3.
+The symbol is the slice of source from spot to spot plus 1.
+The retreat is 0.
+If symbol matches "#", set retreat to 1.
+If retreat is 1 and kept is more than 0, remove last character from cleaned, subtract 1 from kept.
+If retreat is 0, place symbol into cleaned, add 1 to kept.
+
+For every spot from 0 to 3.
+The symbol is the slice of other from spot to spot plus 1.
+The retreat is 0.
+If symbol matches "#", set retreat to 1.
+If retreat is 1 and spared is more than 0, remove last character from trimmed, subtract 1 from spared.
+If retreat is 0, place symbol into trimmed, add 1 to spared.
+
+If cleaned matches trimmed, show true, otherwise show false.

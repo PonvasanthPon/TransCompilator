@@ -1,0 +1,20 @@
+The seats is a list of 1, 0, 0, 0, 1, 0, 1, while the last is 6.
+The nearest is a list of 7 zeros.
+The lastfilled is -100.
+For every spot from 0 to last.
+If item spot of seats is 1, set lastfilled to spot.
+Set item spot of nearest to spot minus lastfilled.
+
+Set lastfilled to 100.
+The spot is last.
+Repeat while spot is at least 0.
+If item spot of seats is 1, set lastfilled to spot.
+The distance is lastfilled minus spot.
+If distance is less than item spot of nearest, set item spot of nearest to distance.
+Subtract 1 from spot.
+
+The best is 0.
+For every spot from 0 to last.
+If item spot of seats is 0 and item spot of nearest is more than best, set best to item spot of nearest.
+
+Show best.
