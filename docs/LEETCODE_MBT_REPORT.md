@@ -346,3 +346,22 @@ Output: `true`.
 - Wasm runs: `#0207` → `true`, `#0322` → `3`, `#0412` → full FizzBuzz
   sequence through `FizzBuzz`.
 - Screenshots captured at exact `1440×900` and `375×812`.
+
+---
+
+# Batch 5 Progress (`501–1000`)
+
+| Checkpoint | Range | Solved | Non-algorithmic skips | Status |
+|---|---|---:|---:|---|
+| 5A | 501–550 | **35** | 15 | **complete** |
+| 5B | 551–600 | 0 | 20 | pending |
+| 5C | 601–650 | 0 | 25 | pending |
+| 5D | 651–700 | 0 | 10 | pending |
+| 5E | 701–750 | 0 | 19 | pending |
+| 5F | 751–800 | 0 | 9 | pending |
+| 5G | 801–850 | 0 | 1 | pending |
+| 5H | 851–900 | 0 | 3 | pending |
+| 5I | 901–950 | 0 | 4 | pending |
+| 5J | 951–1000 | 0 | 1 | pending |
+
+**Global after 5A:** **406 solved**, 1,002 skipped, 2,716 pending.
