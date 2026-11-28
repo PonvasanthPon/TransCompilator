@@ -1,0 +1,22 @@
+Keep a shared depth as an empty list of whole numbers.
+For every spot from 0 to 10.
+Place 0 into depth.
+
+Keep a shared best as 0.
+
+To search from value (a whole number) with cut (a whole number).
+If cut is more than value minus 1, return.
+The other is value minus cut.
+The left is the larger of cut and item cut of depth.
+The right is the larger of other and item other of depth.
+The product is left times right.
+If product is more than best, set best to product.
+Search from value with cut plus 1.
+
+Set item 1 of depth to 1.
+For every value from 2 to 10.
+Set best to 1.
+Search from value with 1.
+Set item value of depth to best.
+
+Show item 10 of depth.

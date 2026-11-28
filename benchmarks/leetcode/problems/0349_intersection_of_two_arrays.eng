@@ -1,0 +1,9 @@
+The first is a list of 1, 2, 2, and 1.
+The second is a list of 2 and 2.
+The answers is an empty list of whole numbers.
+For each value in first.
+If answers contains value, skip to the next one.
+If second contains value, Place value into answers.
+
+Sort answers.
+For each value in answers, show value.

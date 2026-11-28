@@ -1,0 +1,10 @@
+The limit is 5.
+The bits is a list of 6 zeros.
+Set item 0 of bits to 0.
+For every value from 1 to limit.
+The half is value divided by 2.
+The rest is value modulo 2.
+Set item value of bits to item half of bits plus rest.
+
+For every value from 0 to limit.
+Show item value of bits.

@@ -1,0 +1,22 @@
+The numbers is a list of 1, 1, 1, 2, 2, and 3.
+The wanted is 2.
+The counts is an empty map.
+For each value in numbers.
+Add 1 to entry value of counts.
+
+The distinct is an empty list of whole numbers.
+For each value in numbers.
+If distinct contains value, skip to the next one.
+Place value into distinct.
+
+The last is the last position of distinct.
+For every left from 0 to last.
+For every right from left to last.
+The leftvalue is item left of distinct.
+The rightvalue is item right of distinct.
+The leftcount is entry leftvalue of counts.
+The rightcount is entry rightvalue of counts.
+If rightcount is more than leftcount, swap item left of distinct and item right of distinct.
+
+For every spot from 0 to wanted minus 1.
+Show item spot of distinct.

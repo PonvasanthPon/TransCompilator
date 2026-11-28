@@ -1,0 +1,11 @@
+The serial is "9,3,4,#,#,1,#,#,2,#,6,#,#".
+The tokens is split serial by ",".
+The slots is 1.
+The valid is 1.
+For each token in tokens.
+Subtract 1 from slots.
+If slots is less than 0, set valid to 0.
+If slots is less than 0, stop.
+If token does not match "#", add 2 to slots.
+
+If valid is 1 and slots is 0, show true, otherwise show false.

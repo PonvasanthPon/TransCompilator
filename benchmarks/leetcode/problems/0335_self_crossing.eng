@@ -1,0 +1,31 @@
+The distances is a list of 2, 1, 1, and 2.
+The xs is an empty list of whole numbers.
+The ys is an empty list of whole numbers.
+Place 0 into xs.
+Place 0 into ys.
+The horiz is 0.
+The vert is 0.
+The crossed is 0.
+For every step from 0 to 3.
+The direction is step modulo 4.
+The length is item step of distances.
+If direction is 0, set vert to vert plus length.
+If direction is 1, set horiz to horiz minus length.
+If direction is 2, set vert to vert minus length.
+If direction is 3, set horiz to horiz plus length.
+Place horiz into xs.
+Place vert into ys.
+The here is step plus 1.
+The alox is the smaller of item step of xs and item here of xs.
+The ahix is the larger of item step of xs and item here of xs.
+The aloy is the smaller of item step of ys and item here of ys.
+The ahiy is the larger of item step of ys and item here of ys.
+For every other from 0 to step.
+If other is less than step minus 1 and crossed is 0.
+The blox is the smaller of item other of xs and item (other plus 1) of xs.
+The bhix is the larger of item other of xs and item (other plus 1) of xs.
+The bloy is the smaller of item other of ys and item (other plus 1) of ys.
+The bhiy is the larger of item other of ys and item (other plus 1) of ys.
+If ahix is at least blox and bhix is at least alox and ahiy is at least bloy and bhiy is at least aloy, set crossed to 1.
+
+If crossed is 1, show true, otherwise show false.

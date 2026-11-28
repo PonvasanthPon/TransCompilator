@@ -1,0 +1,12 @@
+The letters is a list of "h", "e", "l", "l", and "o".
+The left is 0.
+The right is 4.
+Repeat while left is less than right.
+The saved is empty text.
+Set saved to item left of letters.
+Set item left of letters to item right of letters.
+Set item right of letters to saved.
+Add 1 to left.
+Subtract 1 from right.
+
+For each letter in letters, show letter.

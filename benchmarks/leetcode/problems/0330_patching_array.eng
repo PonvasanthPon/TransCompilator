@@ -1,0 +1,12 @@
+The coins is a list of 1 and 3.
+The target is 6.
+The last is the last position of coins.
+The miss is 1.
+The spot is 0.
+The patches is 0.
+Repeat while miss is at most target.
+The took is 0.
+If spot is at most last and item spot of coins is at most miss, set miss to miss plus item spot of coins, add 1 to spot, set took to 1.
+If took is 0, add 1 to patches, set miss to miss plus miss.
+
+Show patches.

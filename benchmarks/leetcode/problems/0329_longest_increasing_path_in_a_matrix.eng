@@ -1,0 +1,38 @@
+The cells is a list of 9, 9, 4, 6, 6, 8, 2, 1, and 1.
+The order is an empty list of whole numbers.
+For every spot from 0 to 8.
+Place spot into order.
+
+For every left from 0 to 8.
+For every right from left to 8.
+The lcell is item left of order.
+The rcell is item right of order.
+If item rcell of cells is less than item lcell of cells, swap item left of order and item right of order.
+
+The depth is a list of 1, 1, 1, 1, 1, 1, 1, 1, and 1.
+For every rank from 0 to 8.
+The spot is 8 minus rank.
+The cell is item spot of order.
+The row is cell divided by 3.
+The column is cell modulo 3.
+The here is item cell of cells.
+The best is 1.
+The up is 0.
+The down is 0.
+The west is 0.
+The east is 0.
+If row is more than 0, set up to item (cell minus 3) of depth.
+If row is less than 2, set down to item (cell plus 3) of depth.
+If column is more than 0, set west to item (cell minus 1) of depth.
+If column is less than 2, set east to item (cell plus 1) of depth.
+If row is more than 0 and item (cell minus 3) of cells is more than here and up plus 1 is more than best, set best to up plus 1.
+If row is less than 2 and item (cell plus 3) of cells is more than here and down plus 1 is more than best, set best to down plus 1.
+If column is more than 0 and item (cell minus 1) of cells is more than here and west plus 1 is more than best, set best to west plus 1.
+If column is less than 2 and item (cell plus 1) of cells is more than here and east plus 1 is more than best, set best to east plus 1.
+Set item cell of depth to best.
+
+The answer is 0.
+For every spot from 0 to 8.
+If item spot of depth is more than answer, set answer to item spot of depth.
+
+Show answer.

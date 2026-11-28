@@ -1,0 +1,36 @@
+Keep a shared words as an empty list of text.
+Place "abcd" into words.
+Place "dcba" into words.
+Place "lls" into words.
+Place "s" into words.
+Place "sssll" into words.
+Keep a shared combined as empty text.
+Keep a shared okay as 0.
+
+To check from left (a whole number) with right (a whole number).
+If left is at least right, set okay to 1, return.
+If character left of combined is not character right of combined, set okay to 0, return.
+Check from left plus 1 with right minus 1.
+
+For every first from 0 to 4.
+For every second from 0 to 4.
+If first is not second.
+Set combined to empty text.
+The one is item first of words.
+Place one into combined.
+The two is item second of words.
+Place two into combined.
+Set okay to 0.
+The last is the last position of combined.
+Check from 0 with last.
+If okay is 1.
+The lefttext is format whole number first as text.
+The righttext is format whole number second as text.
+The line is empty text.
+Place "[" into line.
+Place lefttext into line.
+Place ", " into line.
+Place righttext into line.
+Place "]" into line.
+Display line.
+

@@ -1,0 +1,55 @@
+Keep a shared values as an empty list of whole numbers.
+Place 3 into values.
+Place 2 into values.
+Place 3 into values.
+Place -1 into values.
+Place 3 into values.
+Place -1 into values.
+Place 1 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared robbed as an empty list of whole numbers.
+For every spot from 0 to 6.
+Place 0 into robbed.
+
+Keep a shared aside as an empty list of whole numbers.
+For every spot from 0 to 6.
+Place 0 into aside.
+
+To score from node (a whole number).
+If node is less than 0, return.
+The left is item node of lefts.
+The right is item node of rights.
+If left is at least 0, score from left.
+If right is at least 0, score from right.
+The here is item node of values.
+The leftaside is 0.
+The lefttake is 0.
+The rightaside is 0.
+The righttake is 0.
+If left is at least 0, set leftaside to item left of aside.
+If left is at least 0, set lefttake to item left of robbed.
+If right is at least 0, set rightaside to item right of aside.
+If right is at least 0, set righttake to item right of robbed.
+The bestleft is the larger of leftaside and lefttake.
+The bestright is the larger of rightaside and righttake.
+Set item node of robbed to here plus leftaside plus rightaside.
+Set item node of aside to bestleft plus bestright.
+
+Score from 0.
+The answer is the larger of item 0 of robbed and item 0 of aside.
+Show answer.

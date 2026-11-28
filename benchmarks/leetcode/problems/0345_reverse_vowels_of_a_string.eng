@@ -1,0 +1,32 @@
+Keep a shared source as empty text.
+Place "hello" into source.
+Keep a shared vowel as 0.
+Keep a shared vowels as empty text.
+
+To classify from spot (a whole number).
+Set vowel to 0.
+The symbol is character spot of source.
+If symbol is character 0 of "aeiou" or symbol is character 1 of "aeiou" or symbol is character 2 of "aeiou" or symbol is character 3 of "aeiou" or symbol is character 4 of "aeiou" or symbol is character 0 of "AEIOU" or symbol is character 1 of "AEIOU" or symbol is character 2 of "AEIOU" or symbol is character 3 of "AEIOU" or symbol is character 4 of "AEIOU", set vowel to 1.
+
+To gather from spot (a whole number).
+If spot is more than 4, return.
+Classify from spot.
+If vowel is 1, The symbol is character spot of source, Place symbol into vowels.
+Gather from spot plus 1.
+
+Gather from 0.
+The backwards is empty text.
+The last is the last position of vowels.
+For every rank from 0 to last.
+The spot is last minus rank.
+The symbol is character spot of vowels.
+Place symbol into backwards.
+
+The result is empty text.
+The used is 0.
+For every spot from 0 to 4.
+Classify from spot.
+If vowel is 1, The symbol is character used of backwards, Place symbol into result, add 1 to used.
+If vowel is 0, The symbol is character spot of source, Place symbol into result.
+
+Show result.

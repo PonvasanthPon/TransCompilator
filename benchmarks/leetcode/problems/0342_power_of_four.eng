@@ -1,0 +1,8 @@
+The number is 16.
+The value is number.
+The failed is 0.
+Repeat while value is more than 1 and failed is 0.
+If value modulo 4 is not 0, set failed to 1.
+If value modulo 4 is 0, set value to value divided by 4.
+
+If failed is 0 and value is 1, show true, otherwise show false.
