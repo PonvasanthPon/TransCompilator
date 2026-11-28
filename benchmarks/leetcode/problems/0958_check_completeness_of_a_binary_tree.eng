@@ -1,0 +1,42 @@
+Keep a shared values as an empty list of whole numbers.
+Keep a shared lefts as an empty list of whole numbers.
+Keep a shared rights as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared emptyseen as 0.
+Keep a shared complete as 0.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 4 into values.
+Place 5 into values.
+Place 6 into values.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place 2 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Set complete to 1.
+
+The last is the last position of values.
+The head is 0, while the count is 1.
+Place 0 into queue.
+Repeat while head is less than count and complete is 1.
+The node is item head of queue.
+Add 1 to head.
+If item node of values is less than 0, set emptyseen to 1.
+If item node of values is at least 0.
+If emptyseen is 1, set complete to 0.
+If emptyseen is 0.
+The leftindex is node times 2 plus 1.
+The rightindex is node times 2 plus 2.
+If leftindex is at most last, Place leftindex into queue, add 1 to count.
+If rightindex is at most last, Place rightindex into queue, add 1 to count.
+
+If complete is 1, show true, otherwise show false.

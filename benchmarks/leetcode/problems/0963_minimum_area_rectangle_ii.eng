@@ -1,0 +1,59 @@
+Keep a shared xs as an empty list of whole numbers.
+Keep a shared ys as an empty list of whole numbers.
+Keep a shared otherone as 0.
+Keep a shared othertwo as 0.
+Keep a shared doubled as 0.
+Place 1 into xs.
+Place 2 into xs.
+Place 1 into xs.
+Place 0 into xs.
+Place 2 into ys.
+Place 1 into ys.
+Place 0 into ys.
+Place 1 into ys.
+Set doubled to 1000000.
+
+To examine with cornerone (a whole number) with cornertwo (a whole number).
+The thirdspot is otherone.
+The fourthspot is othertwo.
+The firstx is item cornerone of xs.
+The firsty is item cornerone of ys.
+The secondx is item cornertwo of xs.
+The secondy is item cornertwo of ys.
+The thirdx is item thirdspot of xs.
+The thirdy is item thirdspot of ys.
+The fourthx is item fourthspot of xs.
+The fourthy is item fourthspot of ys.
+If firstx plus thirdx is secondx plus fourthx.
+If firsty plus thirdy is secondy plus fourthy.
+The firstdx is thirdx minus firstx.
+The firstdy is thirdy minus firsty.
+The seconddx is fourthx minus secondx.
+The seconddy is fourthy minus secondy.
+The firstspan is firstdx times firstdx plus firstdy times firstdy.
+The secondspan is seconddx times seconddx plus seconddy times seconddy.
+If firstspan is secondspan.
+The cross is firstdx times seconddy minus firstdy times seconddx.
+The area is the absolute value of cross.
+If area is less than doubled, set doubled to area.
+
+The last is the last position of xs.
+The finalfirst is last minus 3.
+The finalsecond is last minus 2.
+The finalthird is last minus 1.
+For every cornerone from 0 to finalfirst.
+For every cornertwo from cornerone plus 1 to finalsecond.
+For every cornerthree from cornertwo plus 1 to finalthird.
+For every cornerfour from cornerthree plus 1 to last.
+Set otherone to cornertwo, set othertwo to cornerfour.
+Examine with cornerone with cornerthree.
+Set otherone to cornerthree, set othertwo to cornerfour.
+Examine with cornerone with cornertwo.
+Set otherone to cornertwo, set othertwo to cornerthree.
+Examine with cornerone with cornerfour.
+
+The whole is doubled divided by 2.
+The line is format whole number whole as text.
+Place "." into line.
+Place "0" into line.
+Show line.

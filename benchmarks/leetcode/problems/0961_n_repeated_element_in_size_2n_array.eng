@@ -1,0 +1,16 @@
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared repeated as 0.
+Place 5 into numbers.
+Place 1 into numbers.
+Place 5 into numbers.
+Place 2 into numbers.
+Place 5 into numbers.
+Place 3 into numbers.
+Place 5 into numbers.
+Place 4 into numbers.
+For each value in numbers.
+If seen contains value, set repeated to value, stop.
+Place value into seen.
+
+Show repeated.

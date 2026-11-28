@@ -1,0 +1,106 @@
+Keep a shared agreement as 0.
+Keep a shared first values as an empty list of whole numbers.
+Keep a shared first lefts as an empty list of whole numbers.
+Keep a shared first rights as an empty list of whole numbers.
+Keep a shared second values as an empty list of whole numbers.
+Keep a shared second lefts as an empty list of whole numbers.
+Keep a shared second rights as an empty list of whole numbers.
+Place 1 into first values.
+Place 2 into first values.
+Place 3 into first values.
+Place 4 into first values.
+Place 5 into first values.
+Place 6 into first values.
+Place -1 into first values.
+Place -1 into first values.
+Place -1 into first values.
+Place 7 into first values.
+Place 8 into first values.
+Place 1 into first lefts.
+Place 3 into first lefts.
+Place 5 into first lefts.
+Place -1 into first lefts.
+Place 9 into first lefts.
+Place -1 into first lefts.
+Place -1 into first lefts.
+Place -1 into first lefts.
+Place -1 into first lefts.
+Place -1 into first lefts.
+Place -1 into first lefts.
+Place 2 into first rights.
+Place 4 into first rights.
+Place -1 into first rights.
+Place -1 into first rights.
+Place 10 into first rights.
+Place -1 into first rights.
+Place -1 into first rights.
+Place -1 into first rights.
+Place -1 into first rights.
+Place -1 into first rights.
+Place -1 into first rights.
+Place 1 into second values.
+Place 3 into second values.
+Place 2 into second values.
+Place -1 into second values.
+Place 6 into second values.
+Place 4 into second values.
+Place 5 into second values.
+Place -1 into second values.
+Place -1 into second values.
+Place -1 into second values.
+Place -1 into second values.
+Place 8 into second values.
+Place 7 into second values.
+Place 1 into second lefts.
+Place -1 into second lefts.
+Place 5 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place 11 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place -1 into second lefts.
+Place 2 into second rights.
+Place 4 into second rights.
+Place 6 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+Place 12 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+Place -1 into second rights.
+
+Set agreement to 1.
+
+To compare from first (a whole number) with second (a whole number).
+If agreement is 0, return.
+If first is less than 0 and second is less than 0, return.
+If first is less than 0, set agreement to 0, return.
+If second is less than 0, set agreement to 0, return.
+If item first of first values is not item second of second values, set agreement to 0, return.
+The firstleft is item first of first lefts.
+The firstright is item first of first rights.
+The secondleft is item second of second lefts.
+The secondright is item second of second rights.
+Set agreement to 1.
+Compare from firstleft with secondleft.
+Compare from firstright with secondright.
+The straight is agreement.
+Set agreement to 1.
+Compare from firstleft with secondright.
+Compare from firstright with secondleft.
+The crossed is agreement.
+Set agreement to 0.
+If straight is 1, set agreement to 1.
+If crossed is 1, set agreement to 1.
+
+Compare from 0 with 0.
+If agreement is 1, show true, otherwise show false.

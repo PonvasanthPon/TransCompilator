@@ -1,0 +1,16 @@
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared best as 0.
+Place 6 into numbers.
+Place 0 into numbers.
+Place 8 into numbers.
+Place 2 into numbers.
+Place 1 into numbers.
+Place 5 into numbers.
+The last is the last position of numbers.
+For every left from 0 to last minus 1.
+For every right from left plus 1 to last.
+If item right of numbers is at least item left of numbers.
+The width is right minus left.
+If width is more than best, set best to width.
+
+Show best.

@@ -1,0 +1,59 @@
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared values as an empty list of whole numbers.
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared foundat as 0.
+Keep a shared possible as 0.
+Keep a shared bestsize as 0.
+Keep a shared bestspot as 0.
+Keep a shared bestvalue as 0.
+Place 4 into numbers.
+Place -2 into numbers.
+Place 2 into numbers.
+Place -4 into numbers.
+
+To locate from spot (a whole number) with target (a whole number).
+Set foundat to -1.
+If spot is more than the last position of values, return.
+If item spot of values is target, set foundat to spot, return.
+Locate from spot plus 1 with target.
+
+For each number in numbers.
+Locate from 0 with number.
+If foundat is less than 0, Place number into values, Place 1 into counts.
+The here is foundat.
+If foundat is at least 0, set item here of counts to item here of counts plus 1.
+
+Set possible to 1.
+The last is the last position of numbers.
+The remaining is last plus 1.
+Locate from 0 with 0.
+If foundat is at least 0.
+The zerospot is foundat.
+If item zerospot of counts modulo 2 is not 0, set possible to 0.
+Set remaining to remaining minus item zerospot of counts.
+Set item zerospot of counts to 0.
+
+To choose.
+Set bestsize to -1.
+Set bestspot to -1.
+Set bestvalue to 0.
+For every spot from 0 to the last position of values.
+If item spot of counts is more than 0.
+The size is the absolute value of item spot of values.
+If bestsize is less than 0 or size is less than bestsize, set bestsize to size, set bestspot to spot, set bestvalue to item spot of values.
+
+Repeat while remaining is more than 0 and possible is 1.
+Choose.
+If bestspot is less than 0, set possible to 0, stop.
+The wanted is bestvalue times 2.
+Locate from 0 with wanted.
+If foundat is less than 0, set possible to 0, stop.
+The chosen is bestspot.
+The here is foundat.
+The needed is item chosen of counts.
+If item here of counts is less than needed, set possible to 0, stop.
+Set item chosen of counts to item chosen of counts minus needed.
+Set item here of counts to item here of counts minus needed.
+Set remaining to remaining minus needed times 2.
+
+If possible is 1, show true, otherwise show false.

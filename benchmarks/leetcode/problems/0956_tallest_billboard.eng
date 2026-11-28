@@ -1,0 +1,49 @@
+Keep a shared rods as an empty list of whole numbers.
+Keep a shared current as an empty list of whole numbers.
+Keep a shared following as an empty list of whole numbers.
+Keep a shared total as 0.
+Keep a shared size as 0.
+Keep a shared center as 0.
+Place 1 into rods.
+Place 2 into rods.
+Place 3 into rods.
+Place 6 into rods.
+
+For each rod in rods.
+Set total to total plus rod.
+
+Set size to total times 2 plus 1.
+Set center to total.
+For every slot from 0 to size minus 1.
+Place -1 into current.
+
+For every slot from 0 to size minus 1.
+Place -1 into following.
+
+Set item center of current to 0.
+
+To extend with rod (a whole number).
+For every slot from 0 to size minus 1.
+If item slot of current is at least 0.
+The height is item slot of current.
+If height is more than item slot of following, set item slot of following to height.
+The upper is slot plus rod.
+If upper is less than size.
+The raised is height plus rod.
+If raised is more than item upper of following, set item upper of following to raised.
+The diff is slot minus center.
+The raw is diff minus rod.
+The gap is the absolute value of raw.
+The lower is gap plus center.
+The shifted is height.
+If rod is more than diff, set shifted to height plus rod minus diff.
+If shifted is more than item lower of following, set item lower of following to shifted.
+
+For each rod in rods.
+Extend with rod.
+For every slot from 0 to size minus 1.
+Set item slot of current to item slot of following.
+Set item slot of following to -1.
+
+The middle is center.
+Show item middle of current.

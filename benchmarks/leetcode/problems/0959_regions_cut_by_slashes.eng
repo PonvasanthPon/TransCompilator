@@ -1,0 +1,41 @@
+Keep a shared grid as an empty list of text.
+Keep a shared field as an empty list of whole numbers.
+Keep a shared visited as an empty list of whole numbers.
+Keep a shared regions as 0.
+Place "/\\" into grid.
+Place "\\/" into grid.
+For every spot from 0 to 35.
+Place 0 into field.
+Place 0 into visited.
+
+For every row from 0 to 1.
+The line is item row of grid.
+For every column from 0 to 1.
+The piece is the slice of line from column to column plus 1.
+The baserow is row times 3.
+The basecol is column times 3.
+The top is baserow times 6 plus basecol.
+If piece matches "/", Set item (top plus 2) of field to 1, Set item (top plus 7) of field to 1, Set item (top plus 12) of field to 1.
+If piece matches "\\", Set item top of field to 1, Set item (top plus 7) of field to 1, Set item (top plus 14) of field to 1.
+
+To flood from start (a whole number).
+The queue is an empty list of whole numbers.
+Place start into queue.
+Set item start of visited to 1.
+The head is 0, while the count is 1.
+Repeat while head is less than count.
+The cell is item head of queue.
+Add 1 to head.
+The row is cell divided by 6.
+The column is cell modulo 6.
+If row is more than 0 and item (cell minus 6) of field is 0 and item (cell minus 6) of visited is 0, set item (cell minus 6) of visited to 1, Place (cell minus 6) into queue, add 1 to count.
+If row is less than 5 and item (cell plus 6) of field is 0 and item (cell plus 6) of visited is 0, set item (cell plus 6) of visited to 1, Place (cell plus 6) into queue, add 1 to count.
+If column is more than 0 and item (cell minus 1) of field is 0 and item (cell minus 1) of visited is 0, set item (cell minus 1) of visited to 1, Place (cell minus 1) into queue, add 1 to count.
+If column is less than 5 and item (cell plus 1) of field is 0 and item (cell plus 1) of visited is 0, set item (cell plus 1) of visited to 1, Place (cell plus 1) into queue, add 1 to count.
+
+For every start from 0 to 35.
+If item start of field is 0 and item start of visited is 0.
+Add 1 to regions.
+Flood from start.
+
+Show regions.

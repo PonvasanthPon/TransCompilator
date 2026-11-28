@@ -1,0 +1,51 @@
+Keep a shared order as empty text.
+Keep a shared words as an empty list of text.
+Keep a shared wanted as empty text.
+Keep a shared rankanswer as 0.
+Keep a shared sorted as 0.
+Keep a shared lengths as an empty list of whole numbers.
+Keep a shared offsets as an empty list of whole numbers.
+Keep a shared ranks as an empty list of whole numbers.
+Place "hlabcdefgijkmnopqrstuvwxyz" into order.
+Place "hello" into words.
+Place "leetcode" into words.
+Set sorted to 1.
+
+To rank from place (a whole number).
+If place is more than 25, return.
+The piece is the slice of order from place to place plus 1.
+If piece matches wanted, set rankanswer to place, return.
+Rank from place plus 1.
+
+The at is 0.
+For each entry in words.
+Place at into offsets.
+The end is the last position of entry.
+The size is end plus 1.
+Place size into lengths.
+For every spot from 0 to size minus 1.
+Set wanted to the slice of entry from spot to spot plus 1.
+Rank from 0.
+Place rankanswer into ranks.
+Add 1 to at.
+
+To verify with pair (a whole number).
+The firststart is item pair of offsets.
+The secondstart is item (pair plus 1) of offsets.
+The limit is item pair of lengths.
+If item (pair plus 1) of lengths is less than limit, set limit to item (pair plus 1) of lengths.
+The decided is 0.
+For every spot from 0 to limit minus 1.
+The leftrank is item (firststart plus spot) of ranks.
+The rightrank is item (secondstart plus spot) of ranks.
+If leftrank is less than rightrank, set decided to 1.
+If leftrank is more than rightrank, set decided to 2, set sorted to 0.
+If decided is not 0, stop.
+If decided is 0 and item pair of lengths is more than item (pair plus 1) of lengths, set sorted to 0.
+
+The last is the last position of words.
+The finalpair is last minus 1.
+For every pair from 0 to finalpair.
+Verify with pair.
+
+If sorted is 1, show true, otherwise show false.

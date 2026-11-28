@@ -1,0 +1,57 @@
+Keep a shared numbers as an empty list of whole numbers.
+Keep a shared parent as an empty list of whole numbers.
+Keep a shared divisor as 0.
+Keep a shared rootanswer as 0.
+Place 2 into numbers.
+Place 3 into numbers.
+Place 6 into numbers.
+Place 7 into numbers.
+Place 4 into numbers.
+Place 12 into numbers.
+Place 21 into numbers.
+Place 39 into numbers.
+Place 0 into parent.
+Place 1 into parent.
+Place 2 into parent.
+Place 3 into parent.
+Place 4 into parent.
+Place 5 into parent.
+Place 6 into parent.
+Place 7 into parent.
+
+To measure from first (a whole number) with second (a whole number).
+If second is 0, set divisor to first, return.
+Measure from second with first modulo second.
+
+To root from node (a whole number).
+Set rootanswer to node.
+The walker is rootanswer.
+Repeat while item walker of parent is not walker.
+Set rootanswer to item walker of parent.
+Set walker to rootanswer.
+
+The last is the last position of numbers.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+Measure from item left of numbers with item right of numbers.
+If divisor is more than 1.
+Root from left.
+The firstroot is rootanswer.
+Root from right.
+The secondroot is rootanswer.
+If firstroot is not secondroot, set item firstroot of parent to secondroot.
+
+The roots is an empty list of whole numbers.
+For every spot from 0 to last.
+Root from spot.
+Place rootanswer into roots.
+
+The largest is 0.
+For every spot from 0 to last.
+The base is item spot of roots.
+The count is 0.
+For every check from 0 to last.
+If item check of roots is base, add 1 to count.
+If count is more than largest, set largest to count.
+
+Show largest.

@@ -1,0 +1,36 @@
+Keep a shared words as an empty list of text.
+Keep a shared keep as an empty list of whole numbers.
+Keep a shared rows as 0.
+Keep a shared cols as 0.
+Keep a shared fits as 0.
+Place "babca" into words.
+Place "bbazb" into words.
+Place 1 into keep.
+Place 1 into keep.
+Place 1 into keep.
+Place 1 into keep.
+Place 1 into keep.
+The last is the last position of words.
+Set rows to last plus 1.
+The sample is item 0 of words.
+The width is the last position of sample.
+Set cols to width plus 1.
+
+To check with left (a whole number) with right (a whole number).
+Set fits to 1.
+For every row from 0 to rows minus 1.
+The word is item row of words.
+The before is the slice of word from left to left plus 1.
+The after is the slice of word from right to right plus 1.
+If after comes before before, set fits to 0.
+
+For every right from 0 to cols minus 1.
+For every left from 0 to right minus 1.
+Check with left with right.
+If fits is 1 and item left of keep plus 1 is more than item right of keep, set item right of keep to item left of keep plus 1.
+
+The most is 0.
+For each value in keep.
+If value is more than most, set most to value.
+
+Show cols minus most.

@@ -1,0 +1,45 @@
+Keep a shared cells as an empty list of whole numbers.
+Place 0 into cells.
+Place 1 into cells.
+Place 0 into cells.
+Place 1 into cells.
+Place 1 into cells.
+Place 0 into cells.
+Place 0 into cells.
+Place 1 into cells.
+
+To advance.
+The oldcells is an empty list of whole numbers.
+Place item 0 of cells into oldcells.
+Place item 1 of cells into oldcells.
+Place item 2 of cells into oldcells.
+Place item 3 of cells into oldcells.
+Place item 4 of cells into oldcells.
+Place item 5 of cells into oldcells.
+Place item 6 of cells into oldcells.
+Place item 7 of cells into oldcells.
+Set item 0 of cells to 0.
+Set item 7 of cells to 0.
+For every place from 1 to 6.
+The before is item (place minus 1) of oldcells.
+The after is item (place plus 1) of oldcells.
+If before is after, set item place of cells to 1.
+If before is not after, set item place of cells to 0.
+
+The day is 0.
+The days is 7.
+Repeat while day is less than days.
+Advance.
+Add 1 to day.
+
+The parts is an empty list of text.
+For each value in cells.
+The word is format whole number value as text.
+Place word into parts.
+
+The joined is join parts with ",".
+The line is empty text.
+Place "[" into line.
+Place joined into line.
+Place "]" into line.
+Show line.

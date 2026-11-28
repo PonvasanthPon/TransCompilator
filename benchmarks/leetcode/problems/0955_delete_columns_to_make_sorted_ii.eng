@@ -1,0 +1,42 @@
+Keep a shared words as an empty list of text.
+Keep a shared resolved as an empty list of whole numbers.
+Keep a shared rows as 0.
+Keep a shared columns as 0.
+Keep a shared valid as 0.
+Keep a shared deleted as 0.
+Place "ca" into words.
+Place "bb" into words.
+Place "ac" into words.
+Place 0 into resolved.
+Place 0 into resolved.
+The last is the last position of words.
+Set rows to last plus 1.
+The leftword is item 0 of words.
+The width is the last position of leftword.
+Set columns to width plus 1.
+
+To test with column (a whole number).
+For every pair from 0 to rows minus 2.
+If item pair of resolved is 0 and valid is 1.
+The leftword is item pair of words.
+The rightword is item (pair plus 1) of words.
+The left is the slice of leftword from column to column plus 1.
+The right is the slice of rightword from column to column plus 1.
+If right comes before left, set valid to 0.
+
+To settle with column (a whole number).
+For every pair from 0 to rows minus 2.
+If item pair of resolved is 0.
+The leftword is item pair of words.
+The rightword is item (pair plus 1) of words.
+The left is the slice of leftword from column to column plus 1.
+The right is the slice of rightword from column to column plus 1.
+If left comes before right, set item pair of resolved to 1.
+
+For every column from 0 to columns minus 1.
+Set valid to 1.
+Test with column.
+If valid is 0, add 1 to deleted.
+If valid is 1, Settle with column.
+
+Show deleted.
