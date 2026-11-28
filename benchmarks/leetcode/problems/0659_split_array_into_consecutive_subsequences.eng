@@ -1,0 +1,32 @@
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared ends as an empty list of whole numbers.
+Keep a shared possible as 0.
+To lengthen from value (a whole number).
+Repeat while item value of counts is more than 0.
+The onward is 0.
+If value is more than 0 and item (value minus 1) of ends is more than 0, set onward to 1.
+If onward is 1, set item (value minus 1) of ends to item (value minus 1) of ends minus 1.
+If onward is 1, set item value of ends to item value of ends plus 1.
+If onward is 1, set item value of counts to item value of counts minus 1.
+The fresh is 0.
+If onward is 0 and value is at most 7 and item (value plus 1) of counts is more than 0 and item (value plus 2) of counts is more than 0, set fresh to 1.
+If fresh is 1, set item value of counts to item value of counts minus 1.
+If fresh is 1, set item (value plus 1) of counts to item (value plus 1) of counts minus 1.
+If fresh is 1, set item (value plus 2) of counts to item (value plus 2) of counts minus 1.
+If fresh is 1, set item (value plus 2) of ends to item (value plus 2) of ends plus 1.
+If onward is 0 and fresh is 0, set possible to 0, set item value of counts to 0.
+
+The numbers is a list of 1, 2, 3, 3, 4, and 5.
+For every value from 0 to 9.
+Place 0 into counts.
+Place 0 into ends.
+
+For each value in numbers.
+Set item value of counts to item value of counts plus 1.
+
+Set possible to 1.
+For every value from 0 to 9.
+Lengthen from value.
+If possible is 0, stop.
+
+If possible is 1, show true, otherwise show false.

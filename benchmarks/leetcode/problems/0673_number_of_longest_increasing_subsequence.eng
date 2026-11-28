@@ -1,0 +1,25 @@
+The numbers is a list of 1, 3, 5, 4, and 7.
+The last is the last position of numbers.
+The lengths is a list of 5 zeros.
+The counts is a list of 5 zeros.
+For every spot from 0 to last.
+Set item spot of lengths to 1.
+Set item spot of counts to 1.
+For every prior from 0 to spot minus 1.
+The candidate is item prior of lengths plus 1.
+The lower is 0.
+If item prior of numbers is less than item spot of numbers, set lower to 1.
+The raised is 0.
+If lower is 1 and candidate is more than item spot of lengths, set raised to 1.
+If raised is 1, set item spot of lengths to candidate, set item spot of counts to item prior of counts.
+If lower is 1 and raised is 0 and candidate is item spot of lengths, set item spot of counts to item spot of counts plus item prior of counts.
+
+The best is 0.
+For every spot from 0 to last.
+If item spot of lengths is more than best, set best to item spot of lengths.
+
+The total is 0.
+For every spot from 0 to last.
+If item spot of lengths is best, set total to total plus item spot of counts.
+
+Show total.

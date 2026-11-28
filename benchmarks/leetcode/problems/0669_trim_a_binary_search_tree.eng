@@ -1,0 +1,58 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 0 into values.
+Place 2 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared pieces as an empty list of text.
+Keep a shared count as 0.
+Keep a shared low as 0.
+Keep a shared high as 0.
+Keep a shared trimmed as 0.
+To trim from node (a whole number).
+If node is less than 0, set trimmed to -1, return.
+The here is node.
+If item here of values is less than low, trim from item here of rights, return.
+If item here of values is more than high, trim from item here of lefts, return.
+Trim from item here of lefts.
+Set item here of lefts to trimmed.
+Trim from item here of rights.
+Set item here of rights to trimmed.
+Set trimmed to here.
+
+To emit from node (a whole number).
+If node is less than 0, Place "null" into pieces, return.
+The piece is format whole number item node of values as text.
+Place piece into pieces.
+Place item node of lefts into queue.
+Place item node of rights into queue.
+Add 2 to count.
+
+Set low to 1.
+Set high to 2.
+Trim from 0.
+Place trimmed into queue.
+Set count to 1.
+The head is 0.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Emit from node.
+
+Repeat while the last position of pieces is at least 0.
+The tail is the last position of pieces.
+The tailpiece is item tail of pieces.
+The isnull is 0.
+If tailpiece matches "null", set isnull to 1.
+If isnull is 1, remove the last item from pieces.
+If isnull is 0, stop.
+
+The line is join pieces with ",".
+Show line.

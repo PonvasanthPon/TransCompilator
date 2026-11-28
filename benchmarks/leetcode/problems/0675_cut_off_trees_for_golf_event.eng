@@ -1,0 +1,100 @@
+Keep a shared grid as an empty list of whole numbers.
+Place 1 into grid.
+Place 2 into grid.
+Place 3 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 4 into grid.
+Place 7 into grid.
+Place 6 into grid.
+Place 5 into grid.
+Keep a shared rows as 0.
+Keep a shared columns as 0.
+Keep a shared currentrow as 0.
+Keep a shared currentcolumn as 0.
+Keep a shared travelled as 0.
+Set rows to 3.
+Set columns to 3.
+To walk to targetrow (a whole number) with targetcolumn (a whole number).
+The queue is an empty list of whole numbers.
+The steps is an empty list of whole numbers.
+The seen is a list of 9 zeros.
+The start is currentrow times columns plus currentcolumn.
+Place start into queue.
+Place 0 into steps.
+Set item start of seen to 1.
+Set travelled to 0.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The cell is item head of queue.
+The depth is item head of steps.
+Add 1 to head.
+The row is cell divided by columns.
+The column is cell modulo columns.
+The hit is 0.
+If row is targetrow and column is targetcolumn, set hit to 1.
+If hit is 1, set travelled to depth.
+If hit is 1, stop.
+The uprow is row minus 1.
+The upcolumn is column.
+The upinside is 0.
+If uprow is at least 0 and uprow is less than rows and upcolumn is at least 0 and upcolumn is less than columns, set upinside to 1.
+The upblocked is 0.
+If upinside is 1 and item (uprow times columns plus upcolumn) of grid is 0, set upblocked to 1.
+The upseen is 0.
+If upinside is 1 and item (uprow times columns plus upcolumn) of seen is 1, set upseen to 1.
+If upinside is 1 and upblocked is 0 and upseen is 0, set item (uprow times columns plus upcolumn) of seen to 1, Place (uprow times columns plus upcolumn) into queue, Place depth plus 1 into steps, add 1 to count.
+The downrow is row plus 1.
+The downcolumn is column.
+The downinside is 0.
+If downrow is at least 0 and downrow is less than rows and downcolumn is at least 0 and downcolumn is less than columns, set downinside to 1.
+The downblocked is 0.
+If downinside is 1 and item (downrow times columns plus downcolumn) of grid is 0, set downblocked to 1.
+The downseen is 0.
+If downinside is 1 and item (downrow times columns plus downcolumn) of seen is 1, set downseen to 1.
+If downinside is 1 and downblocked is 0 and downseen is 0, set item (downrow times columns plus downcolumn) of seen to 1, Place (downrow times columns plus downcolumn) into queue, Place depth plus 1 into steps, add 1 to count.
+The leftrow is row.
+The leftcolumn is column minus 1.
+The leftinside is 0.
+If leftrow is at least 0 and leftrow is less than rows and leftcolumn is at least 0 and leftcolumn is less than columns, set leftinside to 1.
+The leftblocked is 0.
+If leftinside is 1 and item (leftrow times columns plus leftcolumn) of grid is 0, set leftblocked to 1.
+The leftseen is 0.
+If leftinside is 1 and item (leftrow times columns plus leftcolumn) of seen is 1, set leftseen to 1.
+If leftinside is 1 and leftblocked is 0 and leftseen is 0, set item (leftrow times columns plus leftcolumn) of seen to 1, Place (leftrow times columns plus leftcolumn) into queue, Place depth plus 1 into steps, add 1 to count.
+The rightrow is row.
+The rightcolumn is column plus 1.
+The rightinside is 0.
+If rightrow is at least 0 and rightrow is less than rows and rightcolumn is at least 0 and rightcolumn is less than columns, set rightinside to 1.
+The rightblocked is 0.
+If rightinside is 1 and item (rightrow times columns plus rightcolumn) of grid is 0, set rightblocked to 1.
+The rightseen is 0.
+If rightinside is 1 and item (rightrow times columns plus rightcolumn) of seen is 1, set rightseen to 1.
+If rightinside is 1 and rightblocked is 0 and rightseen is 0, set item (rightrow times columns plus rightcolumn) of seen to 1, Place (rightrow times columns plus rightcolumn) into queue, Place depth plus 1 into steps, add 1 to count.
+
+The heights is an empty list of whole numbers.
+The treerows is an empty list of whole numbers.
+The treecolumns is an empty list of whole numbers.
+For every spot from 0 to 8.
+The height is item spot of grid.
+If height is more than 1.
+The treerow is spot divided by columns.
+The treecolumn is spot modulo columns.
+Place height into heights.
+Place treerow into treerows.
+Place treecolumn into treecolumns.
+
+The treelast is the last position of heights.
+For every left from 0 to treelast.
+For every right from left plus 1 to treelast.
+If item right of heights is less than item left of heights, swap item left of heights and item right of heights, swap item left of treerows and item right of treerows, swap item left of treecolumns and item right of treecolumns.
+
+The total is 0.
+For every tree from 0 to treelast.
+Walk to item tree of treerows with item tree of treecolumns.
+Set total to total plus travelled.
+Set currentrow to item tree of treerows.
+Set currentcolumn to item tree of treecolumns.
+
+Show total.

@@ -1,0 +1,18 @@
+The values is a list of 1, 2, 3, 4, and 5.
+The want is 4.
+The aim is 3.
+The left is 0.
+The right is the last position of values.
+Repeat while right minus left plus 1 is more than want.
+The lowgap is item left of values minus aim.
+Set lowgap to the absolute value of lowgap.
+The highgap is item right of values minus aim.
+Set highgap to the absolute value of highgap.
+If lowgap is at most highgap, subtract 1 from right, otherwise add 1 to left.
+
+The line is empty text.
+For every spot from left to right.
+If the length of line is more than 0, Place "," into line.
+Place format whole number item spot of values as text into line.
+
+Show line.

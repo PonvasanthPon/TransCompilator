@@ -1,0 +1,27 @@
+Keep a shared digits as an empty list of whole numbers.
+Keep a shared total as 0.
+To fold.
+Set total to 0.
+For each digit in digits.
+Set total to total times 10 plus digit.
+
+The number is 2736.
+The rest is number.
+Repeat while rest is more than 0.
+Place rest modulo 10 into digits.
+Set rest to rest divided by 10.
+
+The last is the last position of digits.
+The half is last divided by 2.
+For every left from 0 to half.
+Swap item left of digits and item (last minus left) of digits.
+
+The best is number.
+For every first from 0 to last.
+For every second from first plus 1 to last.
+Swap item first of digits and item second of digits.
+Fold.
+If total is more than best, set best to total.
+Swap item first of digits and item second of digits.
+
+Show best.

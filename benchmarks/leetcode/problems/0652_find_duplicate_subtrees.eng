@@ -1,0 +1,114 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 4 into values.
+Place 2 into values.
+Place 4 into values.
+Place 4 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 4 into lefts.
+Place -1 into lefts.
+Place 6 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place -1 into rights.
+Place 5 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared serial as empty text.
+Keep a shared keys as an empty list of text.
+Keep a shared found as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared pieces as an empty list of text.
+Keep a shared count as 0.
+Keep a shared tally as 0.
+Keep a shared earlier as 0.
+Keep a shared drawn as empty text.
+To encode from node (a whole number).
+If node is less than 0, Place "#" into serial, return.
+Place format whole number item node of values as text into serial.
+Place "(" into serial.
+Encode from item node of lefts.
+Place "," into serial.
+Encode from item node of rights.
+Place ")" into serial.
+
+To tally from node (a whole number).
+The amount is 0.
+For every other from 0 to the last position of keys.
+If item other of keys matches item node of keys, add 1 to amount.
+Set tally to amount.
+
+To inspect from node (a whole number) with limit (a whole number).
+The seenbefore is 0.
+For every prior from 0 to limit minus 1.
+If item prior of keys matches item node of keys, set seenbefore to 1.
+Set earlier to seenbefore.
+
+To emit from node (a whole number).
+If node is less than 0, Place "null" into pieces, return.
+The piece is format whole number item node of values as text.
+Place piece into pieces.
+Place item node of lefts into queue.
+Place item node of rights into queue.
+Add 2 to count.
+
+To drain.
+Repeat while the number of items in queue is more than 0.
+Remove the last item from queue.
+
+To reset.
+Repeat while the number of items in pieces is more than 0.
+Remove the last item from pieces.
+
+To trim trailing.
+Repeat while the last position of pieces is at least 0.
+The tail is the last position of pieces.
+The tailpiece is item tail of pieces.
+The isnull is 0.
+If tailpiece matches "null", set isnull to 1.
+If isnull is 1, remove the last item from pieces.
+If isnull is 0, stop.
+
+To render from root (a whole number).
+Drain.
+Reset.
+Place root into queue.
+Set count to 1.
+The head is 0.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Emit from node.
+
+For every node from 0 to the last position of values.
+Set serial to empty text.
+Encode from node.
+The copy is a copy of serial.
+Place copy into keys.
+
+For every node from 0 to the last position of keys.
+Tally from node.
+Inspect from node with node.
+If tally is more than 1 and earlier is 0, Place node into found.
+
+The output is empty text.
+Place "[" into output.
+For each root in found.
+If the length of output is more than 1, Place "," into output.
+Render from root.
+Trim trailing.
+Set drawn to join pieces with ",".
+Place "[" into output.
+Place drawn into output.
+Place "]" into output.
+
+Place "]" into output.
+Show output.

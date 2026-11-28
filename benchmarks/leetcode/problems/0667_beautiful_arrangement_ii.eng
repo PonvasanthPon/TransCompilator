@@ -1,0 +1,25 @@
+The size is 3.
+The spread is 2.
+The low is 1.
+The high is size.
+The answer is an empty list of whole numbers.
+For every step from 0 to spread minus 1.
+If step modulo 2 is 0, Place low into answer, add 1 to low.
+If step modulo 2 is 1, Place high into answer, subtract 1 from high.
+
+If spread modulo 2 is 0.
+Repeat while low is at most high.
+Place low into answer.
+Add 1 to low.
+
+If spread modulo 2 is 1.
+Repeat while low is at most high.
+Place high into answer.
+Subtract 1 from high.
+
+The line is empty text.
+For each value in answer.
+If the length of line is more than 0, Place "," into line.
+Place format whole number value as text into line.
+
+Show line.

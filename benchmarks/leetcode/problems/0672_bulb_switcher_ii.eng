@@ -1,0 +1,51 @@
+The size is 1.
+The presses is 1.
+The patterns is 1.
+For every step from 1 to size.
+Set patterns to patterns times 2.
+
+The allmask is patterns minus 1.
+The evenmask is 0.
+The oddmask is 0.
+The triplemask is 0.
+For every spot from 0 to size minus 1.
+The bit is shift 1 left by spot.
+If spot modulo 2 is 0, set evenmask to bitwise or of evenmask and bit.
+If spot modulo 2 is 1, set oddmask to bitwise or of oddmask and bit.
+If spot modulo 3 is 0, set triplemask to bitwise or of triplemask and bit.
+
+The rounds is presses plus 1.
+The limit is rounds times patterns.
+The seen is an empty list of whole numbers.
+For every spot from 0 to limit minus 1.
+Place 0 into seen.
+
+The queue is an empty list of whole numbers.
+The depths is an empty list of whole numbers.
+Place 0 into queue.
+Place 0 into depths.
+Set item 0 of seen to 1.
+The head is 0.
+The count is 1.
+Repeat while head is less than count.
+The state is item head of queue.
+The round is item head of depths.
+Add 1 to head.
+The flipped is exclusive or of state and allmask.
+The flipspot is (round plus 1) times patterns plus flipped.
+If round is less than presses and item flipspot of seen is 0, set item flipspot of seen to 1, Place flipped into queue, Place round plus 1 into depths, add 1 to count.
+The evenstate is exclusive or of state and evenmask.
+The evenspot is (round plus 1) times patterns plus evenstate.
+If round is less than presses and item evenspot of seen is 0, set item evenspot of seen to 1, Place evenstate into queue, Place round plus 1 into depths, add 1 to count.
+The oddstate is exclusive or of state and oddmask.
+The oddspot is (round plus 1) times patterns plus oddstate.
+If round is less than presses and item oddspot of seen is 0, set item oddspot of seen to 1, Place oddstate into queue, Place round plus 1 into depths, add 1 to count.
+The triplestate is exclusive or of state and triplemask.
+The triplespot is (round plus 1) times patterns plus triplestate.
+If round is less than presses and item triplespot of seen is 0, set item triplespot of seen to 1, Place triplestate into queue, Place round plus 1 into depths, add 1 to count.
+
+The answer is 0.
+For every state from 0 to patterns minus 1.
+If item (presses times patterns plus state) of seen is 1, add 1 to answer.
+
+Show answer.

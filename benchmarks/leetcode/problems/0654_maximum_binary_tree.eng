@@ -1,0 +1,72 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 3 into numbers.
+Place 2 into numbers.
+Place 1 into numbers.
+Place 6 into numbers.
+Place 0 into numbers.
+Place 5 into numbers.
+Keep a shared values as an empty list of whole numbers.
+Keep a shared lefts as an empty list of whole numbers.
+Keep a shared rights as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared pieces as an empty list of text.
+Keep a shared count as 0.
+Keep a shared made as 0.
+Keep a shared parent as 0.
+Keep a shared side as 0.
+Keep a shared chosen as 0.
+To locate from low (a whole number) with high (a whole number).
+The pick is low.
+For every look from low to high.
+The value is item look of numbers.
+The current is item pick of numbers.
+If value is more than current, set pick to look.
+Set chosen to pick.
+
+To build from low (a whole number) with high (a whole number).
+If low is more than high, return.
+Locate from low with high.
+The place is chosen.
+The slot is made.
+Add 1 to made.
+Place item place of numbers into values.
+Place -1 into lefts.
+Place -1 into rights.
+The holder is parent.
+If holder is at least 0 and side is 0, set item holder of lefts to slot.
+If holder is at least 0 and side is 1, set item holder of rights to slot.
+Set parent to slot.
+Set side to 0.
+Build from low with place minus 1.
+Set parent to slot.
+Set side to 1.
+Build from place plus 1 with high.
+
+To emit from node (a whole number).
+If node is less than 0, Place "null" into pieces, return.
+The piece is format whole number item node of values as text.
+Place piece into pieces.
+Place item node of lefts into queue.
+Place item node of rights into queue.
+Add 2 to count.
+
+Set parent to -1.
+Build from 0 with 5.
+Place 0 into queue.
+Set count to 1.
+The head is 0.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Emit from node.
+
+Repeat while the last position of pieces is at least 0.
+The tail is the last position of pieces.
+The tailpiece is item tail of pieces.
+The isnull is 0.
+If tailpiece matches "null", set isnull to 1.
+If isnull is 1, remove the last item from pieces.
+If isnull is 0, stop.
+
+The line is join pieces with ",".
+Show line.

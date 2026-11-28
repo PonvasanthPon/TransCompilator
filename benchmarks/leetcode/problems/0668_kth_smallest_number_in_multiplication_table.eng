@@ -1,0 +1,23 @@
+Keep a shared total as 0.
+Keep a shared rows as 0.
+Keep a shared columns as 0.
+To count up to bound (a whole number).
+Set total to 0.
+For every row from 1 to rows.
+The full is bound divided by row.
+The take is full.
+If take is more than columns, set take to columns.
+Set total to total plus take.
+
+Set rows to 3.
+Set columns to 3.
+The target is 5.
+The low is 1.
+The high is rows times columns.
+Repeat while low is less than high.
+The middle is low plus high.
+Set middle to middle divided by 2.
+Count up to middle.
+If total is at least target, set high to middle, otherwise set low to middle plus 1.
+
+Show low.

@@ -1,0 +1,30 @@
+Keep a shared grid as an empty list of whole numbers.
+Keep a shared average as 0.
+To smooth at row (a whole number) with column (a whole number).
+The total is 0.
+The count is 0.
+For every offset from 0 to 8.
+The down is offset divided by 3 minus 1.
+The across is offset modulo 3 minus 1.
+The actualrow is row plus down.
+The actualcolumn is column plus across.
+The inside is 0.
+If actualrow is at least 0 and actualrow is less than 3 and actualcolumn is at least 0 and actualcolumn is less than 3, set inside to 1.
+If inside is 1, set total to total plus item (actualrow times 3 plus actualcolumn) of grid.
+If inside is 1, add 1 to count.
+If offset is 8, set average to total divided by count.
+
+The grid is a list of 1, 1, 1, 1, 0, 1, 1, 1, and 1.
+The line is empty text.
+Place "[" into line.
+For every row from 0 to 2.
+If row is more than 0, Place "," into line.
+Place "[" into line.
+For every column from 0 to 2.
+If column is more than 0, Place "," into line.
+Smooth at row with column.
+Place format whole number average as text into line.
+If column is 2, Place "]" into line.
+
+Place "]" into line.
+Show line.

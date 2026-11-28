@@ -1,0 +1,22 @@
+The word is "aaabbb".
+The size is the length of word.
+The table is a list of 36 zeros.
+For every spot from 0 to size minus 1.
+Set item (spot times size plus spot) of table to 1.
+
+For every span from 2 to size.
+For every start from 0 to size minus span.
+The finish is start plus span minus 1.
+The opener is item ((start plus 1) times size plus finish) of table plus 1.
+For every split from start plus 1 to finish.
+The firstletter is the slice of word from start to start plus 1.
+The otherletter is the slice of word from split to split plus 1.
+The same is 0.
+If firstletter matches otherletter, set same to 1.
+The leftpart is 0.
+If split is more than start plus 1, set leftpart to item ((start plus 1) times size plus split minus 1) of table.
+The option is leftpart plus item (split times size plus finish) of table.
+If same is 1 and option is less than opener, set opener to option.
+If split is finish, set item (start times size plus finish) of table to opener.
+
+Show item (size minus 1) of table.

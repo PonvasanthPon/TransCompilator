@@ -1,0 +1,12 @@
+The moves is "UD".
+The sideways is 0.
+The upward is 0.
+The last is the last position of moves.
+For every spot from 0 to last.
+The step is the slice of moves from spot to spot plus 1.
+If step matches "U", add 1 to upward.
+If step matches "D", subtract 1 from upward.
+If step matches "L", subtract 1 from sideways.
+If step matches "R", add 1 to sideways.
+
+If sideways is 0 and upward is 0, show true, otherwise show false.

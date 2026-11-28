@@ -1,0 +1,16 @@
+The numbers is a list of 4, 2, and 3.
+The last is the last position of numbers.
+The changes is 0.
+For every spot from 1 to last.
+The previous is item (spot minus 1) of numbers.
+The current is item spot of numbers.
+The drop is 0.
+If current is less than previous, set drop to 1.
+If drop is 1, add 1 to changes.
+The lowerok is 0.
+If spot is 1, set lowerok to 1.
+If spot is more than 1 and item (spot minus 2) of numbers is at most current, set lowerok to 1.
+If drop is 1 and lowerok is 1, set item (spot minus 1) of numbers to current.
+If drop is 1 and lowerok is 0, set item spot of numbers to previous.
+
+If changes is at most 1, show true, otherwise show false.

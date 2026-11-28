@@ -1,0 +1,83 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 2 into values.
+Place 3 into values.
+Place 4 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 3 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared depths as an empty list of whole numbers.
+Keep a shared places as an empty list of whole numbers.
+Keep a shared height as 0.
+Keep a shared tall as 0.
+Keep a shared foundnode as 0.
+Keep a shared celltext as empty text.
+To measure from node (a whole number) with depth (a whole number).
+If node is less than 0, return.
+If depth is more than height, set height to depth.
+Measure from item node of lefts with depth plus 1.
+Measure from item node of rights with depth plus 1.
+
+To mark from node (a whole number) with level (a whole number) and place (a whole number).
+If node is less than 0, return.
+Set item node of depths to level.
+Set item node of places to place.
+The steps is tall minus 2 minus level.
+The gap is shift 1 left by steps.
+The leftplace is place minus gap.
+The rightplace is place plus gap.
+Mark from item node of lefts with level plus 1 and leftplace.
+Mark from item node of rights with level plus 1 and rightplace.
+
+To find at row (a whole number) with column (a whole number).
+The pick is -1.
+For every node from 0 to the last position of values.
+If item node of depths is row and item node of places is column, set pick to node.
+Set foundnode to pick.
+
+To describe from node (a whole number).
+The piece is format whole number item node of values as text.
+Set celltext to piece.
+
+Measure from 0 with 1.
+Set tall to height.
+The wide is 1.
+The steps is 0.
+Repeat while steps is less than tall.
+Set wide to wide times 2.
+Add 1 to steps.
+
+Set wide to wide minus 1.
+The middle is wide minus 1.
+Set middle to middle divided by 2.
+The gap is wide plus 1.
+Set gap to gap divided by 4.
+For every node from 0 to 3.
+Place 0 into depths.
+Place 0 into places.
+
+Mark from 0 with 0 and middle.
+The line is empty text.
+Place "[" into line.
+For every row from 0 to tall minus 1.
+If row is more than 0, Place "," into line.
+Place "[" into line.
+For every column from 0 to wide minus 1.
+If column is more than 0, Place "," into line.
+Place "\"" into line.
+Find at row with column.
+The celltext is empty text.
+If foundnode is at least 0, describe from foundnode.
+Place celltext into line.
+Place "\"" into line.
+If column is wide minus 1, Place "]" into line.
+
+Place "]" into line.
+Show line.

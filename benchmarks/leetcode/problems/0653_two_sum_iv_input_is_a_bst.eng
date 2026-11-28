@@ -1,0 +1,40 @@
+Keep a shared values as an empty list of whole numbers.
+Place 5 into values.
+Place 3 into values.
+Place 6 into values.
+Place 2 into values.
+Place 4 into values.
+Place 7 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared order as an empty list of whole numbers.
+To gather from node (a whole number).
+If node is less than 0, return.
+Gather from item node of lefts.
+Place item node of values into order.
+Gather from item node of rights.
+
+Gather from 0.
+The wanted is 9.
+The left is 0.
+The right is the last position of order.
+The found is 0.
+Repeat while left is less than right.
+The pair is item left of order plus item right of order.
+If pair is wanted, set found to 1, stop.
+If pair is less than wanted, add 1 to left.
+If pair is more than wanted, subtract 1 from right.
+
+If found is 1, show true, otherwise show false.
