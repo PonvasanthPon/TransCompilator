@@ -60,6 +60,7 @@ mod tests;
 
 pub(crate) use decls::*;
 pub(crate) use helpers::*;
+pub(crate) use stmts::is_writer_declaration_text;
 
 const MAX_DEPTH: usize = 32;
 
@@ -1106,6 +1107,12 @@ impl ValueContext for Lowerer<'_> {
             return Ok(None);
         }
         match &value {
+            AstExpr::Load(inner) if matches!(inner.as_ref(), AstExpr::GlobalAddr { .. }) => {
+                Ok(Some(AstExpr::Load(Box::new(AstExpr::FieldAddr {
+                    base_ptr: inner.clone(),
+                    field: "len".to_string(),
+                }))))
+            }
             AstExpr::Var(name) => {
                 if self.globals.contains_key(name) && !self.current_scope_contains(name) {
                     let base_ptr = AstExpr::GlobalAddr {

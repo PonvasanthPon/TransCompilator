@@ -15,6 +15,175 @@ use super::{
 
 use crate::value::ValueContext;
 
+fn writer_starts_declaration(text: &str) -> bool {
+    let text = text.trim_start();
+    text.starts_with("a ")
+        || text.starts_with("an ")
+        || text.starts_with("the ")
+        || text.starts_with("empty ")
+}
+
+fn writer_clause_split(text: &str) -> Vec<String> {
+    let mut pieces = Vec::new();
+    let mut start = 0;
+    let mut depth = 0_i32;
+    let chars = text.char_indices().collect::<Vec<_>>();
+    let mut index = 0;
+    while index < chars.len() {
+        let (offset, character) = chars[index];
+        match character {
+            '(' | '[' | '{' => depth += 1,
+            ')' | ']' | '}' => depth -= 1,
+            ',' if depth == 0 => {
+                let after = text[offset + 1..].trim_start();
+                let after = after.strip_prefix("and ").unwrap_or(after).trim_start();
+                if writer_starts_declaration(after) {
+                    let piece = text[start..offset].trim();
+                    if !piece.is_empty() {
+                        pieces.push(piece.to_string());
+                    }
+                    start = offset + 1;
+                }
+            }
+            ' ' | 'a'..='z' | 'A'..='Z' if depth == 0 && text[offset..].starts_with(" and ") => {
+                let after = text[offset + 5..].trim_start();
+                if writer_starts_declaration(after) {
+                    let piece = text[start..offset].trim();
+                    if !piece.is_empty() {
+                        pieces.push(piece.to_string());
+                    }
+                    start = offset + 5;
+                }
+            }
+            _ => {}
+        }
+        index += 1;
+    }
+    let tail = text[start..].trim();
+    if !tail.is_empty() {
+        pieces.push(tail.to_string());
+    }
+    pieces
+}
+
+fn writer_declaration_clause(clause: &str) -> Option<(String, String)> {
+    let clause = clause
+        .trim()
+        .trim_end_matches('.')
+        .trim()
+        .strip_prefix("and ")
+        .unwrap_or(clause.trim())
+        .trim();
+    let lower = clause.to_ascii_lowercase();
+    if let Some(rest) = lower.strip_prefix("the numbers ") {
+        let original = &clause[clause.len() - rest.len()..];
+        if let Some(at) = original.to_ascii_lowercase().rfind(" in ") {
+            let values = original[..at].trim();
+            let name = original[at + 4..].trim();
+            return Some((name.to_string(), format!("a list of {values}")));
+        }
+    }
+    for marker in [
+        " starts as ",
+        " start as ",
+        " begins as ",
+        " begin as ",
+        " is ",
+        " holds ",
+        " has ",
+    ] {
+        if let Some((before, value_start)) = find_top_level_phrase(clause, marker) {
+            let name = before.trim();
+            let value = clause[value_start..].trim();
+            if !name.is_empty() && !value.is_empty() {
+                let name = name
+                    .strip_prefix("the ")
+                    .or_else(|| name.strip_prefix("The "))
+                    .unwrap_or(name);
+                if value.contains(',')
+                    && value
+                        .chars()
+                        .next()
+                        .is_some_and(|ch| ch.is_ascii_digit() || ch == '-')
+                    && !value.to_ascii_lowercase().starts_with("a list of ")
+                    && !value.to_ascii_lowercase().starts_with("an empty list")
+                    && !value.to_ascii_lowercase().starts_with("the list of ")
+                {
+                    return Some((name.to_string(), format!("a list of {value}")));
+                }
+                return Some((name.to_string(), value.to_string()));
+            }
+        }
+    }
+    if let Some(rest) = lower.strip_prefix("empty text for ") {
+        let name = &clause[clause.len() - rest.len()..];
+        let name = name.trim();
+        let name = name.strip_prefix("the ").unwrap_or(name);
+        return Some((name.to_string(), "empty text".to_string()));
+    }
+    if let Some(rest) = lower.strip_prefix("an empty list for ") {
+        let name = &clause[clause.len() - rest.len()..];
+        let name = name.trim();
+        let name = name.strip_prefix("the ").unwrap_or(name);
+        return Some((
+            name.to_string(),
+            "an empty list of whole numbers".to_string(),
+        ));
+    }
+    if let Some((of_start, of_end)) = find_top_level_word(clause, "of") {
+        let name = clause[..of_start].trim();
+        let value = clause[of_end..].trim();
+        if !name.is_empty() && !value.is_empty() {
+            let name = name
+                .strip_prefix("a ")
+                .or_else(|| name.strip_prefix("an "))
+                .or_else(|| name.strip_prefix("the "))
+                .unwrap_or(name);
+            return Some((name.to_string(), value.to_string()));
+        }
+    }
+    if let Some((as_start, as_end)) = find_top_level_word(clause, "as") {
+        let name = clause[..as_start].trim();
+        let value = clause[as_end..].trim();
+        if !name.is_empty() && !value.is_empty() {
+            return Some((name.to_string(), value.to_string()));
+        }
+    }
+    None
+}
+
+pub(crate) fn is_writer_declaration_text(text: &str) -> bool {
+    let trimmed = text.trim();
+    let lower = trimmed.to_ascii_lowercase();
+    if lower.starts_with("start with ") || lower.starts_with("begin with ") {
+        return true;
+    }
+    if (lower.starts_with("place ") && lower.contains(" into "))
+        || (lower.starts_with("put ") && lower.contains(" into "))
+        || (lower.starts_with("record ") && lower.contains(" in "))
+        || (lower.starts_with("collect ") && lower.contains(" in "))
+        || (lower.starts_with("add ") && lower.contains(" onto "))
+    {
+        return true;
+    }
+    if lower.starts_with("keep ") && lower.contains(" for ") {
+        return true;
+    }
+    if lower.starts_with("the ")
+        && (lower.contains(", while ")
+            || lower.contains(" holds ")
+            || lower.contains(" starts as ")
+            || lower.contains(" start as ")
+            || lower.contains(" begins as ")
+            || lower.contains(" begin as ")
+            || lower.contains(" has ")
+            || lower.contains(" is "))
+    {
+        return true;
+    }
+    false
+}
+
 impl Lowerer<'_> {
     pub(super) fn rewrite_number_words(&self, text: &str) -> String {
         let tokens = tokenize(text);
@@ -254,6 +423,103 @@ impl Lowerer<'_> {
                     type_args: Vec::new(),
                     args: vec![pieces, delimiter_expr],
                 });
+            }
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the digit value of ")
+            .or_else(|| lower.strip_prefix("digit value of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let character = self.parse_value(rest, span)?;
+            return Ok(AstExpr::Binary {
+                op: tc_ir::BinOp::Sub,
+                lhs: Box::new(character),
+                rhs: Box::new(AstExpr::ConstInt(48, None)),
+            });
+        }
+        if let Some(rest) = lower
+            .strip_prefix("the character for ")
+            .or_else(|| lower.strip_prefix("character for "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let digit = self.parse_value(rest, span)?;
+            return Ok(AstExpr::Binary {
+                op: tc_ir::BinOp::Add,
+                lhs: Box::new(AstExpr::ConstInt(48, None)),
+                rhs: Box::new(digit),
+            });
+        }
+        if let Some(rest) = lower
+            .strip_prefix("a copy of ")
+            .or_else(|| lower.strip_prefix("copy of "))
+        {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            let value = self.parse_value(rest, span)?;
+            let text_value = matches!(
+                self.shallow_type_opt(&value),
+                Some(AstType::Named { ref name, .. }) if name.eq_ignore_ascii_case("tcstring")
+            ) || matches!(
+                self.shallow_type_opt(&value),
+                Some(AstType::Ptr(ref inner))
+                    if matches!(inner.as_ref(), AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring"))
+            );
+            if text_value {
+                let pointer = self.text_pointer(value, span)?;
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_clone".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![pointer],
+                });
+            }
+            return self.as_text_value(value, span);
+        }
+        if lower.ends_with(" spaces") {
+            let count_text = trimmed[..trimmed.len() - " spaces".len()].trim();
+            let numeric_count = count_text.parse::<i64>().is_ok()
+                || (is_simple_name(count_text)
+                    && self.lookup(&lower_name(count_text)).is_some_and(|ty| {
+                        matches!(
+                            ty,
+                            AstType::I8
+                                | AstType::I16
+                                | AstType::I32
+                                | AstType::I64
+                                | AstType::U8
+                                | AstType::U16
+                                | AstType::U32
+                                | AstType::U64
+                        )
+                    }));
+            if numeric_count {
+                let count = self.parse_value(count_text, span)?;
+                return Ok(AstExpr::Call {
+                    module: None,
+                    name: "str_spaces".to_string(),
+                    type_args: Vec::new(),
+                    args: vec![count],
+                });
+            }
+        }
+        if let Some(rest) = lower.strip_prefix("repeat text ") {
+            let rest = trimmed[trimmed.len() - rest.len()..].trim();
+            if let Some((text_start, text_end)) = rest.find('"').and_then(|start| {
+                rest[start + 1..]
+                    .find('"')
+                    .map(|end| (start, start + 1 + end))
+            }) {
+                let literal = &rest[text_start + 1..text_end];
+                let after = rest[text_end + 1..].trim();
+                if literal == " " && after.ends_with(" times") {
+                    let count_text = after[..after.len() - " times".len()].trim();
+                    let count = self.parse_value(count_text, span)?;
+                    return Ok(AstExpr::Call {
+                        module: None,
+                        name: "str_spaces".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![count],
+                    });
+                }
             }
         }
         if let Some(rest) = lower
@@ -965,6 +1231,82 @@ impl Lowerer<'_> {
         })
     }
 
+    fn try_writer_declaration(
+        &mut self,
+        text: &str,
+        span: Span,
+        depth: usize,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+        if let Some(while_start) = lower.find(", while ") {
+            let first = trimmed[..while_start].trim();
+            let second = trimmed[while_start + ", while ".len()..].trim();
+            let first = if first.to_ascii_lowercase().starts_with("the ") {
+                first.to_string()
+            } else {
+                format!("The {first}")
+            };
+            let second = if second.to_ascii_lowercase().starts_with("the ") {
+                second.to_string()
+            } else {
+                format!("The {second}")
+            };
+            let mut statements = Vec::new();
+            if let Some(mut first) = self.try_writer_declaration(&first, span, depth)? {
+                statements.append(&mut first);
+            } else {
+                return Ok(None);
+            }
+            if let Some(mut second) = self.try_writer_declaration(&second, span, depth)? {
+                statements.append(&mut second);
+            } else {
+                return Ok(None);
+            }
+            return Ok(Some(statements));
+        }
+        if let Some(rest) = lower
+            .strip_prefix("start with the list of numbers ")
+            .or_else(|| lower.strip_prefix("start with the numbers "))
+            .or_else(|| lower.strip_prefix("start with the list of values "))
+            .or_else(|| lower.strip_prefix("start with the values "))
+            .or_else(|| lower.strip_prefix("begin with the list of numbers "))
+            .or_else(|| lower.strip_prefix("begin with the numbers "))
+        {
+            if !rest.contains(" in ") {
+                let values = &trimmed[trimmed.len() - rest.len()..];
+                let declaration = format!("Let numbers be a list of {values}");
+                let statements = self.lower_core(&declaration, span, None, None, depth + 1)?;
+                self.last_list = Some("numbers".to_string());
+                return Ok(Some(statements));
+            }
+        }
+        let mut clauses = Vec::new();
+        if let Some(rest) = lower
+            .strip_prefix("start with ")
+            .or_else(|| lower.strip_prefix("begin with "))
+        {
+            let original = &trimmed[trimmed.len() - rest.len()..];
+            clauses = writer_clause_split(original);
+        } else if let Some(rest) = lower.strip_prefix("the ") {
+            let original = &trimmed[trimmed.len() - rest.len()..];
+            let candidate = format!("the {original}");
+            clauses.push(candidate);
+        }
+        if clauses.is_empty() {
+            return Ok(None);
+        }
+        let mut statements = Vec::new();
+        for clause in clauses {
+            let Some((name, value)) = writer_declaration_clause(&clause) else {
+                return Ok(None);
+            };
+            let declaration = format!("Let {name} be {value}");
+            statements.extend(self.lower_core(&declaration, span, None, None, depth + 1)?);
+        }
+        Ok(Some(statements))
+    }
+
     pub(super) fn lower_stmt(
         &mut self,
         sentence: &RawSentence,
@@ -979,11 +1321,20 @@ impl Lowerer<'_> {
                 "statement nesting exceeded the 32-level guard",
             ));
         }
-        if let Some(statement) = self.try_list_operation(&sentence.text, sentence.span)? {
-            return Ok(vec![statement]);
-        }
-        if let Some(graph) = clause_graph::decompose(&sentence.text) {
-            return self.lower_clause_graph(graph, sentence.span, depth, then_items, else_items);
+        let writer_declaration = is_writer_declaration_text(&sentence.text);
+        if !writer_declaration {
+            if let Some(statement) = self.try_list_operation(&sentence.text, sentence.span)? {
+                return Ok(vec![statement]);
+            }
+            if let Some(graph) = clause_graph::decompose(&sentence.text) {
+                return self.lower_clause_graph(
+                    graph,
+                    sentence.span,
+                    depth,
+                    then_items,
+                    else_items,
+                );
+            }
         }
         let (core, where_clause) = split_where(&sentence.text);
         if let Some(bindings) = where_clause {
@@ -1056,6 +1407,67 @@ impl Lowerer<'_> {
         self.lower_core(&core, sentence.span, then_items, else_items, depth + 1)
     }
 
+    fn try_writer_placement(
+        &mut self,
+        text: &str,
+        span: Span,
+    ) -> Result<Option<Vec<AstStmt>>, SemanticError> {
+        let trimmed = text.trim().trim_end_matches('.').trim();
+        let lower = trimmed.to_ascii_lowercase();
+        for (verb, preposition) in [
+            ("place ", "into"),
+            ("put ", "into"),
+            ("record ", "in"),
+            ("collect ", "in"),
+            ("add ", "onto"),
+        ] {
+            if !lower.starts_with(verb) {
+                continue;
+            }
+            let rest = &trimmed[verb.len()..];
+            let Some((from_start, from_end)) = find_top_level_word(rest, preposition) else {
+                continue;
+            };
+            let value_text = rest[..from_start].trim();
+            let target_text = rest[from_end..].trim();
+            if target_text.to_ascii_lowercase().starts_with("item ") {
+                if let Some(statement) =
+                    self.try_list_operation(&format!("append {value_text} to {target_text}"), span)?
+                {
+                    return Ok(Some(vec![statement]));
+                }
+                continue;
+            }
+            if !is_simple_name(target_text) {
+                continue;
+            }
+            let target = lower_name(target_text);
+            let Some(ty) = self.lookup(&target) else {
+                continue;
+            };
+            if matches!(
+                ty,
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring")
+            ) || matches!(ty, AstType::Ptr(inner) if matches!(inner.as_ref(), AstType::Named { name, .. } if name.eq_ignore_ascii_case("tcstring")))
+            {
+                return self
+                    .try_string_operation(&format!("append {value_text} to {target}"), span);
+            }
+            if matches!(
+                ty,
+                AstType::Named { name, .. } if name.eq_ignore_ascii_case("list")
+            ) || matches!(ty, AstType::Ptr(inner) if matches!(inner.as_ref(), AstType::Named { name, .. } if name.eq_ignore_ascii_case("list")))
+            {
+                if let Some(statement) =
+                    self.try_list_operation(&format!("append {value_text} to {target}"), span)?
+                {
+                    return Ok(Some(vec![statement]));
+                }
+            }
+        }
+        Ok(None)
+    }
+
     pub(super) fn lower_core(
         &mut self,
         text: &str,
@@ -1070,6 +1482,9 @@ impl Lowerer<'_> {
             return Ok(Vec::new());
         }
         let original_lower = original.to_ascii_lowercase();
+        if let Some(statements) = self.try_writer_declaration(original, span, depth)? {
+            return Ok(statements);
+        }
         if original_lower == "end" {
             return Ok(Vec::new());
         }
@@ -1172,6 +1587,9 @@ impl Lowerer<'_> {
                     statements.extend(self.lower_emit_value(&part, span)?);
                 }
             }
+            return Ok(statements);
+        }
+        if let Some(statements) = self.try_writer_placement(trimmed, span)? {
             return Ok(statements);
         }
         if let Some(statements) = self.try_map_operation(trimmed, span)? {

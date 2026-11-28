@@ -276,3 +276,12 @@ End the loop.
 If first's len is less than second's len, give back -1.
 If first's len is more than second's len, give back 1.
 Give back 0.
+
+Publicly, to make spaces for count (a whole number), named str_spaces, giving TcString.
+Let result be create an empty text.
+Let position start at 0 as a whole number.
+Repeat while position is less than count.
+append to address of result text " " of length 1.
+Add 1 to position.
+End the loop.
+Give back result.

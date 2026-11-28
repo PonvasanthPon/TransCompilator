@@ -8,13 +8,14 @@ use super::{
     apply_loop_filters, canonical_assignment_target, canonicalize_statement, classify,
     classify_verb, clause_graph, closer_needs_last_number, continuation_rest,
     extract_largest_trackers, find_top_level_phrase, find_top_level_symbol, find_top_level_word,
-    first_word, is_lvalue_text, lower_name, parse_adjacent_pass, parse_check, parse_condition,
-    parse_loop_introduction, parse_named_list_start, parse_pass_cleanup, parse_sequence_generation,
-    parse_sequence_iteration, parse_sequence_seed, parse_state_declaration, parse_type_text,
-    post_loop_rest, prepare_loop_rules, raw_item_end_line, raw_item_start_line,
-    render_cond_child_text, render_expr, rewrite_bound_names, semantic_error, split_actions,
-    split_condition_comparison, split_header_condition, split_top_level, split_where,
-    starts_control, starts_with_word, strip_leading_word, strip_outer_parentheses, tokenize,
+    first_word, is_lvalue_text, is_writer_declaration_text, lower_name, parse_adjacent_pass,
+    parse_check, parse_condition, parse_loop_introduction, parse_named_list_start,
+    parse_pass_cleanup, parse_sequence_generation, parse_sequence_iteration, parse_sequence_seed,
+    parse_state_declaration, parse_type_text, post_loop_rest, prepare_loop_rules,
+    raw_item_end_line, raw_item_start_line, render_cond_child_text, render_expr,
+    rewrite_bound_names, semantic_error, split_actions, split_condition_comparison,
+    split_header_condition, split_top_level, split_where, starts_control, starts_with_word,
+    strip_leading_word, strip_outer_parentheses, tokenize,
 };
 
 fn deepest_else_tail(statement: &mut AstStmt) -> Option<&mut Vec<AstStmt>> {
@@ -296,6 +297,16 @@ impl Lowerer<'_> {
                 }
             }
             if let RawItem::Sentence(sentence) = &items[index]
+                && !(sentence
+                    .text
+                    .to_ascii_lowercase()
+                    .starts_with("start with the numbers ")
+                    && sentence.text.to_ascii_lowercase().contains(" in "))
+                && !(sentence
+                    .text
+                    .to_ascii_lowercase()
+                    .starts_with("begin with the numbers ")
+                    && sentence.text.to_ascii_lowercase().contains(" in "))
                 && let Some(start) = parse_named_list_start(&sentence.text)
             {
                 let declaration = format!("Let {} be a list of {}.", start.name, start.elements);
@@ -670,22 +681,29 @@ impl Lowerer<'_> {
                         continue;
                     }
                     let clause = analyze_clause(self.parser, sentence);
-                    let phrase = self
-                        .match_phrase_typed(&sentence.text, sentence.span)?
-                        .filter(|phrase| !self.emit_phrase_defers(phrase, &sentence.text));
-                    let graph = if phrase.is_none() {
+                    let writer_declaration = is_writer_declaration_text(&sentence.text);
+                    let phrase = if writer_declaration {
+                        None
+                    } else {
+                        self.match_phrase_typed(&sentence.text, sentence.span)?
+                            .filter(|phrase| !self.emit_phrase_defers(phrase, &sentence.text))
+                    };
+                    let graph = if phrase.is_none() && !writer_declaration {
                         clause_graph::decompose(&sentence.text)
                     } else {
                         None
                     };
                     let base = classify(&sentence.text, &clause, phrase.as_ref());
-                    let mut verdict = match self.discourse_intent_override(sentence, &clause, base)
-                    {
-                        Ok(verdict) => verdict,
-                        Err(error) => {
-                            self.errors.push(error);
-                            index += 1;
-                            continue;
+                    let mut verdict = if writer_declaration {
+                        IntentVerdict::Exec
+                    } else {
+                        match self.discourse_intent_override(sentence, &clause, base) {
+                            Ok(verdict) => verdict,
+                            Err(error) => {
+                                self.errors.push(error);
+                                index += 1;
+                                continue;
+                            }
                         }
                     };
                     let first_text = tokenize(&sentence.text)
@@ -1250,9 +1268,15 @@ impl Lowerer<'_> {
     fn promote_char_literal(&self, left: AstExpr, right: AstExpr) -> (AstExpr, AstExpr, bool) {
         let left_ty = self.shallow_type_opt(&left);
         let right_ty = self.shallow_type_opt(&right);
-        if let (Some(left_ty), AstExpr::BytesLit(bytes)) = (&left_ty, &right) {
-            if Self::is_integer_expr_type(left_ty) && bytes.len() == 1 {
-                return (left, AstExpr::ConstInt(i64::from(bytes[0]), None), true);
+        if let AstExpr::BytesLit(bytes) = &right {
+            if bytes.len() == 1 {
+                let integer_left = left_ty.as_ref().is_some_and(Self::is_integer_expr_type)
+                    || (left_ty.is_none()
+                        && matches!(&left, AstExpr::Var(name)
+                            if self.lookup(name).is_some_and(Self::is_integer_expr_type)));
+                if integer_left {
+                    return (left, AstExpr::ConstInt(i64::from(bytes[0]), None), true);
+                }
             }
         }
         if let (AstExpr::BytesLit(bytes), Some(right_ty)) = (&left, &right_ty) {
@@ -1360,6 +1384,76 @@ impl Lowerer<'_> {
         let condition = condition
             .strip_prefix(',')
             .map_or(condition.as_str(), str::trim);
+        for (phrase, operator) in [
+            (" comes before ", tc_ir::BinOp::Lt),
+            (" comes after ", tc_ir::BinOp::Gt),
+            (" does not come before ", tc_ir::BinOp::Ge),
+            (" does not come after ", tc_ir::BinOp::Le),
+            (" matches ", tc_ir::BinOp::Eq),
+            (" does not match ", tc_ir::BinOp::Ne),
+        ] {
+            if let Some((left_start, end)) =
+                crate::textutil::find_top_level_phrase(condition, phrase)
+            {
+                let right = condition[end..].trim();
+                let left = condition[..left_start].trim();
+                if !left.is_empty() && !right.is_empty() {
+                    let left_value = self.parse_value(left, span)?;
+                    let right_value = self.parse_value(right, span)?;
+                    let left_value = self.as_text_value(left_value, span)?;
+                    let right_value = self.as_text_value(right_value, span)?;
+                    let order = AstExpr::Call {
+                        module: None,
+                        name: "str_compare".to_string(),
+                        type_args: Vec::new(),
+                        args: vec![left_value, right_value],
+                    };
+                    let expr = AstExpr::Binary {
+                        op: operator,
+                        lhs: Box::new(order),
+                        rhs: Box::new(AstExpr::ConstInt(0, None)),
+                    };
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
+            }
+        }
+        for (phrase, negated) in [(" is not ", true), (" isn't ", true), (" is ", false)] {
+            if let Some((before, end)) = find_top_level_phrase(condition, phrase) {
+                let left_text = before.trim();
+                let right_text = condition[end..].trim();
+                if let (Ok(left_value), Ok(right_value)) = (
+                    self.parse_value(left_text, span),
+                    self.parse_value(right_text, span),
+                ) && let AstExpr::BytesLit(bytes) = &right_value
+                    && bytes.len() == 1
+                    && self
+                        .shallow_type_opt(&left_value)
+                        .as_ref()
+                        .is_some_and(Self::is_integer_expr_type)
+                {
+                    let expr = AstExpr::Binary {
+                        op: if negated {
+                            tc_ir::BinOp::Ne
+                        } else {
+                            tc_ir::BinOp::Eq
+                        },
+                        lhs: Box::new(left_value),
+                        rhs: Box::new(AstExpr::ConstInt(i64::from(bytes[0]), None)),
+                    };
+                    let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                    return Ok(LoweredCond {
+                        prelude: Vec::new(),
+                        expr,
+                        paraphrase,
+                    });
+                }
+            }
+        }
         if let Some((left, operator, right)) = split_condition_comparison(condition) {
             let lhs = self.parse_value(&left, span);
             let rhs = self.parse_value(&right, span);
@@ -1781,6 +1875,40 @@ impl Lowerer<'_> {
                 }
                 if let Some(condition) = self.parse_map_contains(text, span)? {
                     return Ok(condition);
+                }
+                for (phrase, negated) in [(" is not ", true), (" isn't ", true), (" is ", false)] {
+                    if let Some((left_start, end)) =
+                        crate::textutil::find_top_level_phrase(text, phrase)
+                    {
+                        let left_text = text[..left_start].trim();
+                        let right_text = text[end..].trim();
+                        if let (Ok(left_value), Ok(right_value)) = (
+                            self.parse_value(left_text, span),
+                            self.parse_value(right_text, span),
+                        ) && let AstExpr::BytesLit(bytes) = &right_value
+                            && bytes.len() == 1
+                            && self
+                                .shallow_type_opt(&left_value)
+                                .as_ref()
+                                .is_some_and(Self::is_integer_expr_type)
+                        {
+                            let expr = AstExpr::Binary {
+                                op: if negated {
+                                    tc_ir::BinOp::Ne
+                                } else {
+                                    tc_ir::BinOp::Eq
+                                },
+                                lhs: Box::new(left_value),
+                                rhs: Box::new(AstExpr::ConstInt(i64::from(bytes[0]), None)),
+                            };
+                            let paraphrase = strip_outer_parentheses(&render_expr(&expr));
+                            return Ok(LoweredCond {
+                                prelude: Vec::new(),
+                                expr,
+                                paraphrase,
+                            });
+                        }
+                    }
                 }
                 if let Some((left, operator, right)) = split_condition_comparison(text)
                     && (left.to_ascii_lowercase().starts_with("entry ")
@@ -2900,7 +3028,9 @@ impl Lowerer<'_> {
             .replace(", and stop", ", break")
             .replace(" then stop the loop", " break")
             .replace(" then stop", " break")
-            .replace(" and stop", " break");
+            .replace(" and stop", " break")
+            .replace(", then return", ", return")
+            .replace(" then return", " return");
         let mut statements = Vec::new();
         let mut canonical = Vec::new();
         let mut error = None;
@@ -3000,6 +3130,22 @@ impl Lowerer<'_> {
                     let value = self.parse_value(left.trim(), span)?;
                     let low = self.parse_value(low, span)?;
                     let high = self.parse_value(high, span)?;
+                    let integer_value = self
+                        .shallow_type_opt(&value)
+                        .as_ref()
+                        .is_some_and(Self::is_integer_expr_type);
+                    let low = match &low {
+                        AstExpr::BytesLit(bytes) if integer_value && bytes.len() == 1 => {
+                            AstExpr::ConstInt(i64::from(bytes[0]), None)
+                        }
+                        _ => low,
+                    };
+                    let high = match &high {
+                        AstExpr::BytesLit(bytes) if integer_value && bytes.len() == 1 => {
+                            AstExpr::ConstInt(i64::from(bytes[0]), None)
+                        }
+                        _ => high,
+                    };
                     let lower = AstExpr::Binary {
                         op: tc_ir::BinOp::Ge,
                         lhs: Box::new(value.clone()),
