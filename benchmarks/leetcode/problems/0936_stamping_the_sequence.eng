@@ -1,0 +1,36 @@
+The stamp is "abc", while the target is "ababc".
+The state is an empty list of text.
+The marks is an empty list of text.
+The blanks is an empty list of text.
+Place "?" into blanks.
+The lasttarget is the last position of target.
+The laststamp is the last position of stamp.
+For every spot from 0 to lasttarget.
+The piece is the slice of target from spot to spot plus 1.
+Place piece into state.
+For every spot from 0 to laststamp.
+The piece is the slice of stamp from spot to spot plus 1.
+Place piece into marks.
+
+The found is an empty list of whole numbers.
+The match is 1, while the unknown is 0, while the blank is 0, while the same is 0.
+For every round from 0 to lasttarget.
+For every start from 0 to lasttarget minus laststamp.
+Set match to 1.
+Set unknown to 0.
+For every offset from 0 to laststamp.
+The spot is start plus offset.
+The here is item spot of state.
+The wanted is item offset of marks.
+Set blank to 0.
+Set same to 0.
+If here matches "?", set blank to 1.
+If here matches wanted, set same to 1.
+If blank is 0 and same is 0, set match to 0.
+If blank is 0, add 1 to unknown.
+If offset is laststamp and match is 1 and unknown is more than 0, set item start of state to item 0 of blanks, set item (start plus 1) of state to item 0 of blanks, set item (start plus 2) of state to item 0 of blanks, Place start into found.
+
+The last is the last position of found.
+For every spot from 0 to last.
+The back is last minus spot.
+Show item back of found.

@@ -1,0 +1,55 @@
+Keep a shared land as an empty list of whole numbers.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 1 into land.
+Place 0 into land.
+Place 0 into land.
+Place 1 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Place 0 into land.
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+For every spot from 0 to 15.
+Place 0 into seen.
+
+To mark from node (a whole number).
+If node is less than 0, return.
+If node is more than 15, return.
+If item node of land is 0, return.
+If item node of seen is 1, return.
+Set item node of seen to 1.
+Place node into queue.
+Mark from node minus 4.
+Mark from node plus 4.
+Mark from node minus 1.
+Mark from node plus 1.
+
+Mark from 6.
+The distance is an empty list of whole numbers.
+For every spot from 0 to 15.
+Place 100 into distance.
+
+For every spot from 0 to 15.
+If item spot of seen is 1, set item spot of distance to 0.
+
+Repeat 20 times.
+For every node from 0 to 15.
+The here is item node of distance.
+If node is at least 4 and here is less than 100 and item (node minus 4) of distance is more than here plus 1, set item (node minus 4) of distance to here plus 1.
+If node is at most 11 and here is less than 100 and item (node plus 4) of distance is more than here plus 1, set item (node plus 4) of distance to here plus 1.
+If node modulo 4 is more than 0 and here is less than 100 and item (node minus 1) of distance is more than here plus 1, set item (node minus 1) of distance to here plus 1.
+If node modulo 4 is less than 3 and here is less than 100 and item (node plus 1) of distance is more than here plus 1, set item (node plus 1) of distance to here plus 1.
+
+The answer is 100.
+For every node from 0 to 15.
+If item node of land is 1 and item node of seen is 0 and item node of distance is less than answer, set answer to item node of distance.
+
+Show answer minus 1.

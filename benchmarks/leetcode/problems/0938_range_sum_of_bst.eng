@@ -1,0 +1,39 @@
+Keep a shared values as an empty list of whole numbers.
+Place 10 into values.
+Place 5 into values.
+Place 15 into values.
+Place 3 into values.
+Place 7 into values.
+Place -1 into values.
+Place 18 into values.
+Keep a shared lefts as an empty list of whole numbers.
+Place 1 into lefts.
+Place 3 into lefts.
+Place 5 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Place -1 into lefts.
+Keep a shared rights as an empty list of whole numbers.
+Place 2 into rights.
+Place 4 into rights.
+Place 6 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Place -1 into rights.
+Keep a shared low as 0.
+Keep a shared high as 0.
+Keep a shared total as 0.
+Set low to 7.
+Set high to 15.
+
+To gather from node (a whole number).
+If node is less than 0, return.
+The value is item node of values.
+If value is at least low and value is at most high, add value to total.
+If value is more than low, Gather from item node of lefts.
+If value is less than high, Gather from item node of rights.
+
+Gather from 0.
+Show total.

@@ -1,0 +1,17 @@
+The xs is a list of 1, 1, 3, and 3.
+The ys is a list of 1, 3, 1, and 3.
+The last is the last position of xs.
+The best is 1000000.
+For every first from 0 to last.
+For every second from first plus 1 to last.
+The xone is item first of xs, while the yone is item first of ys.
+The xtwo is item second of xs, while the ytwo is item second of ys.
+If xone is not xtwo and yone is not ytwo.
+The haveone is 0, while the havetwo is 0.
+For every third from 0 to last.
+The xhere is item third of xs, while the yhere is item third of ys.
+If xhere is xone and yhere is ytwo, set haveone to 1.
+If xhere is xtwo and yhere is yone, set havetwo to 1.
+If third is last and haveone is 1 and havetwo is 1, The wide is the absolute value of (xone minus xtwo), The tall is the absolute value of (yone minus ytwo), The area is wide times tall, If area is less than best, set best to area.
+
+Show best.

@@ -1,0 +1,63 @@
+The steps is 2.
+The origins is an empty list of whole numbers.
+The targets is an empty list of whole numbers.
+Place 0 into origins.
+Place 4 into targets.
+Place 0 into origins.
+Place 6 into targets.
+Place 1 into origins.
+Place 6 into targets.
+Place 1 into origins.
+Place 8 into targets.
+Place 2 into origins.
+Place 7 into targets.
+Place 2 into origins.
+Place 9 into targets.
+Place 3 into origins.
+Place 4 into targets.
+Place 3 into origins.
+Place 8 into targets.
+Place 4 into origins.
+Place 0 into targets.
+Place 4 into origins.
+Place 3 into targets.
+Place 4 into origins.
+Place 9 into targets.
+Place 6 into origins.
+Place 0 into targets.
+Place 6 into origins.
+Place 1 into targets.
+Place 6 into origins.
+Place 7 into targets.
+Place 7 into origins.
+Place 2 into targets.
+Place 7 into origins.
+Place 6 into targets.
+Place 8 into origins.
+Place 1 into targets.
+Place 8 into origins.
+Place 3 into targets.
+Place 9 into origins.
+Place 2 into targets.
+Place 9 into origins.
+Place 4 into targets.
+The current is an empty list of whole numbers.
+For every digit from 0 to 9.
+Place 1 into current.
+
+The next is an empty list of whole numbers.
+For every digit from 0 to 9.
+Place 0 into next.
+
+Repeat while steps is more than 1.
+For every step from 0 to 29.
+If step is less than 10, set item step of next to 0.
+If step is at least 10, The edge is step minus 10, The source is item edge of origins, The target is item edge of targets, The contribution is item source of current, set item target of next to (item target of next plus contribution) modulo 1000000007.
+If step is 29, set current to next.
+Subtract 1 from steps.
+
+The total is 0.
+For every digit from 0 to 9.
+Set total to total plus item digit of current.
+
+Show total.

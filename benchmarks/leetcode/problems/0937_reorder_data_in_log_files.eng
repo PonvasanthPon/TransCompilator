@@ -1,0 +1,72 @@
+Keep a shared logs as an empty list of text.
+Place "dig1 8 1 5 1" into logs.
+Place "let1 art can" into logs.
+Place "let2 own kit dig" into logs.
+Place "let3 art zero" into logs.
+Keep a shared content as empty text.
+Keep a shared letterflag as 0.
+Keep a shared digitwords as an empty list of text.
+Place "0" into digitwords.
+Place "1" into digitwords.
+Place "2" into digitwords.
+Place "3" into digitwords.
+Place "4" into digitwords.
+Place "5" into digitwords.
+Place "6" into digitwords.
+Place "7" into digitwords.
+Place "8" into digitwords.
+Place "9" into digitwords.
+
+To extract from position (a whole number).
+The log is item position of logs.
+The parts is split log by " ".
+The last is the last position of parts.
+Set content to empty text.
+For every index from 1 to last.
+Place item index of parts into content.
+If index is less than last, Place " " into content.
+
+To classify from position (a whole number).
+The log is item position of logs.
+The parts is split log by " ".
+The word is item 1 of parts.
+The lead is the slice of word from 0 to 1.
+For every digit from 0 to 9.
+The digittext is item digit of digitwords.
+If lead matches digittext, set letterflag to 0.
+
+The ids is an empty list of text.
+The contents is an empty list of text.
+The kinds is an empty list of whole numbers.
+For every position from 0 to the last position of logs.
+The log is item position of logs.
+The parts is split log by " ".
+Place item 0 of parts into ids.
+Extract from position.
+Place content into contents.
+Set letterflag to 1.
+Classify from position.
+Place letterflag into kinds.
+
+The last is the last position of logs.
+For every left from 0 to last.
+For every right from left to last.
+The should is 0.
+The leftcontent is item left of contents.
+The rightcontent is item right of contents.
+The leftid is item left of ids.
+The rightid is item right of ids.
+The ahead is 0.
+If rightcontent comes before leftcontent, set ahead to 1.
+If rightcontent matches leftcontent, set ahead to 0.
+If rightcontent matches leftcontent, If rightid comes before leftid, set ahead to 1.
+If item left of kinds is 0 and item right of kinds is 1, set should to 1.
+If item left of kinds is 1 and item right of kinds is 1 and ahead is 1, set should to 1.
+If should is 1, swap item left of ids and item right of ids, swap item left of contents and item right of contents, swap item left of kinds and item right of kinds.
+
+For every position from 0 to last.
+The line is empty text.
+Place item position of ids into line.
+Place " " into line.
+Place item position of contents into line.
+Show line.

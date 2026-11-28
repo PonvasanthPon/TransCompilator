@@ -1,0 +1,49 @@
+Keep a shared emails as an empty list of text.
+Place "test.email+alex@leetcode.com" into emails.
+Place "test.e.mail+bob.cathy@leetcode.com" into emails.
+Place "testemail+david@lee.tcode.com" into emails.
+Keep a shared ordered as an empty list of text.
+Keep a shared built as empty text.
+
+To normalize from position (a whole number).
+The email is item position of emails.
+The size is the number of characters in email.
+Set built to empty text.
+The at is 0, while the skipping is 0, while the keep is 0, while the dot is 0, while the plus is 0, while the sign is 0.
+For every spot from 0 to size minus 1.
+Set keep to 0.
+Set dot to 0.
+Set plus to 0.
+Set sign to 0.
+The here is the slice of email from spot to spot plus 1.
+If here matches ".", set dot to 1.
+If here matches "+", set plus to 1.
+If here matches "@", set sign to 1.
+If at is 0 and skipping is 0, set keep to 1.
+If at is 1, set keep to 1.
+If at is 0 and dot is 1, set keep to 0.
+If sign is 1, set keep to 0.
+If at is 0 and plus is 1, set keep to 0.
+If plus is 1, set skipping to 1.
+If keep is 1, Place here into built.
+If sign is 1 and at is 0, Place "@" into built.
+If sign is 1, set at to 1.
+
+For every position from 0 to the last position of emails.
+Normalize from position.
+Place built into ordered.
+
+The last is the last position of ordered.
+For every left from 0 to last.
+For every right from left to last.
+The rightword is item right of ordered.
+The leftword is item left of ordered.
+If rightword comes before leftword, swap item left of ordered and item right of ordered.
+
+The count is 1.
+For every position from 1 to last.
+The here is item position of ordered.
+The prior is item (position minus 1) of ordered.
+If here does not match prior, add 1 to count.
+
+Show count.

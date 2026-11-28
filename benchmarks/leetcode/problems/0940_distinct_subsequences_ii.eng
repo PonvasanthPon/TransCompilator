@@ -1,0 +1,17 @@
+The word is "abc".
+The size is the number of characters in word.
+The ways is an empty list of whole numbers.
+For every spot from 0 to size.
+Place 0 into ways.
+
+Set item 0 of ways to 1.
+For every finish from 1 to size.
+Set item finish of ways to (item (finish minus 1) of ways times 2) modulo 1000000007.
+The piece is the slice of word from (finish minus 1) to finish.
+The previous is 0 minus 1.
+For every back from 0 to finish minus 2.
+The otherpiece is the slice of word from back to back plus 1.
+If otherpiece matches piece, set previous to back.
+If back is finish minus 2 and previous is at least 0, set item finish of ways to (item finish of ways minus item previous of ways) modulo 1000000007.
+
+Show item size of ways minus 1.

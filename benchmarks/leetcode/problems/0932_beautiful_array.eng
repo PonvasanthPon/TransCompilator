@@ -1,0 +1,21 @@
+The target is 5.
+The working is a list of 1.
+The size is 1, while the nextsize is 0.
+Keep a shared next as an empty list of whole numbers.
+To prune from position (a whole number).
+Repeat while the number of items in next is more than 0.
+Remove the last item from next.
+
+Repeat while size is less than target.
+Prune from 0.
+Set nextsize to 0.
+For every step from 0 to (size times 2) minus 1.
+The source is step modulo size.
+The value is item source of working.
+The doubled is value times 2.
+The candidate is doubled.
+If step is less than size, set candidate to doubled minus 1.
+If candidate is at most target, Place candidate into next, add 1 to nextsize.
+If step is (size times 2) minus 1, set working to next, set size to nextsize.
+
+For each value in working, show value.
