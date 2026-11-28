@@ -1,0 +1,13 @@
+The target is 3.
+The distance is the absolute value of target.
+The total is 0.
+The steps is 0.
+Repeat while total is less than distance.
+Add 1 to steps.
+Add steps to total.
+
+Repeat while (total minus distance) modulo 2 is not 0.
+Add 1 to steps.
+Add steps to total.
+
+Show steps.

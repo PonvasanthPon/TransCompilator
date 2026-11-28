@@ -1,0 +1,60 @@
+Keep a shared source as empty text.
+Keep a shared rendered as empty text.
+Keep a shared closer as 0.
+Keep a shared capacity as 0.
+Keep a shared level as 0.
+Keep a shared used as an empty list of whole numbers.
+Keep a shared collection as an empty list of text.
+Place "11011000" into source.
+Set capacity to 32.
+For every slot from 0 to 31, Place 0 into used.
+For every slot from 0 to 511.
+Place "" into collection.
+
+To locate from start (a whole number) with finish (a whole number).
+The depth is 0.
+The probe is start.
+Set closer to finish.
+Repeat while probe is at most finish.
+The symbol is the slice of source from probe to probe plus 1.
+If symbol matches "1", add 1 to depth.
+If symbol matches "0", set depth to depth minus 1.
+If depth is 0, set closer to probe, return.
+Add 1 to probe.
+
+To arrange with base (a whole number) with count (a whole number).
+The lastindex is base plus count minus 1.
+For every left from base to lastindex.
+For every right from left plus 1 to lastindex, if item left of collection comes before item right of collection, swap item left of collection and item right of collection.
+
+To finishframe.
+The base is level times capacity.
+The spot is level.
+The count is item spot of used.
+Arrange with base with count.
+The built is empty text.
+Place "1" into built.
+For every slot from base to base plus count minus 1, Place item slot of collection into built.
+Place "0" into built.
+Set rendered to built.
+
+To shape from cursor (a whole number) with limit (a whole number).
+If cursor is more than limit, finishframe, return.
+Locate from cursor with limit.
+The childend is closer.
+Set item (level plus 1) of used to 0.
+Set level to level plus 1.
+Shape from cursor plus 1 with childend minus 1.
+Set level to level minus 1.
+The child is a copy of rendered.
+The base is level times capacity.
+The spot is level.
+The slot is base plus item spot of used.
+Set item slot of collection to child.
+Set item spot of used to item spot of used plus 1.
+Shape from childend plus 1 with limit.
+
+The end is the last position of source.
+Set item 0 of used to 0.
+Shape from 1 with end minus 1.
+Show rendered.

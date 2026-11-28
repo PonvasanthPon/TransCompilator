@@ -1,0 +1,9 @@
+The cells is a list of 1, 2, 3, 4, 5, 1, 2, 3, 9, 5, 1, and 2.
+The good is 1.
+For every band from 0 to 1.
+For every column from 0 to 2.
+The here is item (band times 4 plus column) of cells.
+The below is item ((band plus 1) times 4 plus column plus 1) of cells.
+If here is not below, set good to 0.
+
+If good is 1, show true, otherwise show false.

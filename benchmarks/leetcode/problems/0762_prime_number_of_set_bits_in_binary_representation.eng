@@ -1,0 +1,20 @@
+Keep a shared current as 0.
+Keep a shared bits as 0.
+To tally.
+Repeat while current is more than 0.
+The low is bitwise and of current and 1.
+Add low to bits.
+Set current to shift current right by 1.
+
+The left is 6.
+The right is 10.
+The primes is a list of 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, and 0.
+The total is 0.
+For every value from left to right.
+Set current to value.
+Set bits to 0.
+Tally.
+The count is bits.
+If item count of primes is 1, add 1 to total.
+
+Show total.

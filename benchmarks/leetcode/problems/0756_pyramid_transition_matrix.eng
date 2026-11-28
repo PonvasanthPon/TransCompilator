@@ -1,0 +1,54 @@
+Keep a shared current as empty text.
+Keep a shared nextrow as empty text.
+Keep a shared patterns as an empty list of text.
+Keep a shared patternlast as 0.
+Keep a shared solved as 0.
+Place "BCD" into current.
+Place "BCG" into patterns.
+Place "CDE" into patterns.
+Place "GEA" into patterns.
+The patternend is the last position of patterns.
+Set patternlast to patternend.
+To search.
+If solved is 1, return.
+The width is the last position of current.
+If width is 0, set solved to 1, return.
+Set nextrow to empty text.
+Grow from 0.
+
+To trynext.
+The width is the last position of current.
+The extent is the number of characters in nextrow.
+If extent is not width, return.
+The parent is a copy of current.
+The built is a copy of nextrow.
+Set current to a copy of built.
+Search.
+Set current to a copy of parent.
+Set nextrow to a copy of built.
+
+To grow from spot (a whole number).
+If solved is 1, return.
+The width is the last position of current.
+The limit is width minus 1.
+If spot is more than limit, trynext, return.
+Attempt from spot with 0.
+
+To attempt from spot (a whole number) with which (a whole number).
+If solved is 1, return.
+If which is more than patternlast, return.
+The pattern is item which of patterns.
+The left is the slice of current from spot to spot plus 1.
+The right is the slice of current from spot plus 1 to spot plus 2.
+The first is the slice of pattern from 0 to 1.
+The second is the slice of pattern from 1 to 2.
+The top is the slice of pattern from 2 to 3.
+If first does not match left, Attempt from spot with which plus 1, return.
+If second does not match right, Attempt from spot with which plus 1, return.
+Place top into nextrow.
+Grow from spot plus 1.
+remove last character from nextrow.
+Attempt from spot with which plus 1.
+
+Search.
+If solved is 1, show true, otherwise show false.

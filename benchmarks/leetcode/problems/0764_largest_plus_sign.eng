@@ -1,0 +1,29 @@
+Keep a shared size as 0.
+Keep a shared cells as an empty list of whole numbers.
+Keep a shared best as 0.
+Set size to 5.
+For every spot from 0 to 24, Place 1 into cells.
+Set item 22 of cells to 0.
+To test with center (a whole number).
+The band is center divided by size.
+The column is center modulo size.
+If item center of cells is 0, return.
+The arm is 0.
+The open is 1.
+Repeat while open is 1.
+The reach is arm plus 1.
+If band is less than reach or band plus reach is at least size or column is less than reach or column plus reach is at least size, set open to 0.
+If band is at least reach and band plus reach is less than size and column is at least reach and column plus reach is less than size.
+The above is item ((band minus reach) times size plus column) of cells.
+The below is item ((band plus reach) times size plus column) of cells.
+The leftcell is item (band times size plus column minus reach) of cells.
+The rightcell is item (band times size plus column plus reach) of cells.
+If above is 1 and below is 1 and leftcell is 1 and rightcell is 1, set arm to reach.
+If arm is more than best, set best to arm.
+If above is not 1 or below is not 1 or leftcell is not 1 or rightcell is not 1, set open to 0.
+
+For every center from 0 to 24.
+Test with center.
+
+The answer is best plus 1.
+Show answer.

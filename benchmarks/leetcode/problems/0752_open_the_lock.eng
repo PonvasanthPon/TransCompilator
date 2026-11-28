@@ -1,0 +1,69 @@
+Keep a shared blocked as an empty list of whole numbers.
+Keep a shared distance as an empty list of whole numbers.
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared weights as an empty list of whole numbers.
+Keep a shared digittext as empty text.
+Keep a shared decoded as 0.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared count as 0.
+For every cell from 0 to 9999, Place 0 into blocked.
+For every cell from 0 to 9999, Place 0 into distance.
+For every cell from 0 to 9999, Place 0 into seen.
+For every cell from 0 to 9999, Place 0 into queue.
+Place 1 into weights.
+Place 10 into weights.
+Place 100 into weights.
+Place 1000 into weights.
+
+To extract from spot (a whole number).
+If spot is more than 3, return.
+The symbol is the slice of digittext from spot to spot plus 1.
+The digit is the digit value of character spot of digittext.
+Set decoded to decoded times 10 plus digit.
+Extract from spot plus 1.
+
+To spread from here (a whole number).
+For every slot from 0 to 3.
+The weight is item slot of weights.
+The digit is (here divided by weight) modulo 10.
+The higher is digit plus 1.
+If higher is 10, set higher to 0.
+The lower is digit minus 1.
+If lower is less than 0, set lower to 9.
+The upstate is here plus (higher minus digit) times weight.
+The downstate is here plus (lower minus digit) times weight.
+If item upstate of blocked is 0 and item upstate of seen is 0, set item upstate of seen to 1, set item upstate of distance to item here of distance plus 1, Set item count of queue to upstate, add 1 to count.
+If item downstate of blocked is 0 and item downstate of seen is 0, set item downstate of seen to 1, set item downstate of distance to item here of distance plus 1, Set item count of queue to downstate, add 1 to count.
+
+Keep a shared deadends as an empty list of text.
+Place "0201" into deadends.
+Place "0101" into deadends.
+Place "0102" into deadends.
+Place "1212" into deadends.
+Place "2002" into deadends.
+For each note in deadends.
+Set digittext to note.
+Set decoded to 0.
+Extract from 0.
+The state is decoded.
+Set item state of blocked to 1.
+
+Set digittext to empty text.
+Place "0202" into digittext.
+Set decoded to 0.
+Extract from 0.
+The goal is decoded.
+Set item 0 of queue to 0.
+Set item 0 of seen to 1.
+The head is 0.
+Set count to 1.
+The answer is -1.
+If item goal of blocked is 1, set answer to -1.
+If item goal of blocked is 0 and item 0 of blocked is 0.
+Repeat while head is less than count and answer is less than 0.
+The here is item head of queue.
+Add 1 to head.
+If here is goal, set answer to item here of distance.
+If here is not goal, spread from here.
+
+Show answer.

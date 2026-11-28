@@ -1,0 +1,18 @@
+The starts is a list of 1, 3, and 8.
+The ends is a list of 3, 7, and 9.
+The last is the last position of starts.
+For every left from 0 to last.
+For every right from left plus 1 to last.
+If item right of ends is less than item left of ends, swap item left of ends and item right of ends, swap item left of starts and item right of starts.
+If item right of ends is item left of ends and item right of starts is more than item left of starts, swap item left of ends and item right of ends, swap item left of starts and item right of starts.
+
+The chosenlow is -1000000000.
+The chosenhigh is -1000000000.
+The total is 0.
+For every interval from 0 to last.
+The low is item interval of starts.
+The high is item interval of ends.
+If chosenlow is less than low and chosenhigh is at least low, set chosenlow to chosenhigh, set chosenhigh to high, add 1 to total.
+If chosenhigh is less than low, set chosenlow to high minus 1, set chosenhigh to high, add 2 to total.
+
+Show total.

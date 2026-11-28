@@ -1,0 +1,31 @@
+The source is "aab".
+The last is the last position of source.
+The letters is an empty list of text.
+The counts is an empty list of whole numbers.
+For every spot from 0 to last.
+The symbol is the slice of source from spot to spot plus 1.
+The found is -1.
+For every which from 0 to the last position of letters, if item which of letters matches symbol, set found to which.
+If found is less than 0, Place symbol into letters, Place 1 into counts.
+If found is at least 0, set item found of counts to item found of counts plus 1.
+
+The result is empty text.
+The earlier is empty text.
+The built is 0.
+The impossible is 0.
+Repeat while built is less than last plus 1 and impossible is 0.
+The pick is -1.
+The best is -1.
+For every which from 0 to the last position of letters.
+The amount is item which of counts.
+The letter is item which of letters.
+If amount is less than 1, skip to the next one.
+If letter matches earlier, skip to the next one.
+If amount is at most best, skip to the next one.
+Set pick to which.
+Set best to amount.
+If pick is less than 0, set impossible to 1.
+If pick is at least 0, Place item pick of letters into result, set item pick of counts to item pick of counts minus 1, set earlier to item pick of letters, add 1 to built.
+
+If impossible is 1, Show "".
+If impossible is 0, Show result.

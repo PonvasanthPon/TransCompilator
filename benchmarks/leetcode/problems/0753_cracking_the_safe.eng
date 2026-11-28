@@ -1,0 +1,21 @@
+Keep a shared seen as an empty list of whole numbers.
+Keep a shared base as 0.
+Keep a shared span as 0.
+Keep a shared digits as empty text.
+Keep a shared result as empty text.
+Set base to 2.
+Set span to 1.
+Place "0123456789" into digits.
+For every slot from 0 to 9999, Place 0 into seen.
+To explore from node (a whole number).
+For every digit from 0 to base minus 1.
+The edge is node times base plus digit.
+If item edge of seen is 0.
+Set item edge of seen to 1.
+The nextnode is edge modulo span.
+Explore from nextnode.
+The piece is the slice of digits from digit to digit plus 1.
+Place piece into result.
+
+Explore from 0.
+Show result.

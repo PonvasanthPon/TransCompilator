@@ -1,0 +1,9 @@
+The numbers is a list of 1, 0, 2, 3, and 4.
+The last is the last position of numbers.
+The chunks is 0.
+The high is 0.
+For every spot from 0 to last.
+If item spot of numbers is more than high, set high to item spot of numbers.
+If high is spot, add 1 to chunks.
+
+Show chunks.

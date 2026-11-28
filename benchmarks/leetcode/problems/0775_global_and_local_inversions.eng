@@ -1,0 +1,10 @@
+The numbers is a list of 1, 0, and 2.
+The last is the last position of numbers.
+The overall is 0.
+The nearby is 0.
+For every first from 0 to last.
+For every second from first plus 1 to last, if item first of numbers is more than item second of numbers, add 1 to overall.
+
+For every spot from 0 to last minus 1, if item spot of numbers is more than item (spot plus 1) of numbers, add 1 to nearby.
+
+If overall is nearby, show true, otherwise show false.

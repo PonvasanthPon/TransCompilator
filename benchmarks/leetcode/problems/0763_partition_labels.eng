@@ -1,0 +1,26 @@
+Keep a shared word as empty text.
+Place "ababcbacadefegdehijhklij" into word.
+Keep a shared last as 0.
+Keep a shared finish as 0.
+Keep a shared cursor as 0.
+To extend.
+Repeat while cursor is at most finish.
+The symbol is the slice of word from cursor to cursor plus 1.
+The far is cursor.
+For every probe from cursor to last, if the slice of word from probe to probe plus 1 matches symbol, set far to probe.
+If far is more than finish, set finish to far.
+Add 1 to cursor.
+
+The end is the last position of word.
+Set last to end.
+The answers is an empty list of whole numbers.
+The begin is 0.
+Repeat while begin is at most last.
+Set finish to begin.
+Set cursor to begin.
+Extend.
+The width is finish minus begin plus 1.
+Place width into answers.
+Set begin to finish plus 1.
+
+For each width in answers, show width.

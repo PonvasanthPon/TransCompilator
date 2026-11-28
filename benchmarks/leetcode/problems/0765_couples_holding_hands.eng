@@ -1,0 +1,24 @@
+Keep a shared seats as an empty list of whole numbers.
+Place 0 into seats.
+Place 2 into seats.
+Place 1 into seats.
+Place 3 into seats.
+Keep a shared last as 0.
+The end is the last position of seats.
+Set last to end.
+Keep a shared swaps as 0.
+To pairseat with seat (a whole number).
+The first is item seat of seats.
+The mate is first plus 1.
+If first modulo 2 is 1, set mate to first minus 1.
+The second is item (seat plus 1) of seats.
+If second is mate, return.
+The found is seat plus 1.
+For every probe from seat plus 2 to last, if item probe of seats is mate, set found to probe.
+swap item (seat plus 1) of seats and item found of seats.
+Add 1 to swaps.
+
+For every seat from 0 to last by 2.
+Pairseat with seat.
+
+Show swaps.

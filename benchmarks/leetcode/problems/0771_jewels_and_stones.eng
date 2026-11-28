@@ -1,0 +1,12 @@
+The gems is "aA".
+The stones is "aAAbbbb".
+The lastgem is the last position of gems.
+The laststone is the last position of stones.
+The total is 0.
+For every spot from 0 to laststone.
+The piece is the slice of stones from spot to spot plus 1.
+For every probe from 0 to lastgem.
+The jewelpiece is the slice of gems from probe to probe plus 1.
+If jewelpiece matches piece, add 1 to total.
+
+Show total.

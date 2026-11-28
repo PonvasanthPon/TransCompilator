@@ -1,0 +1,17 @@
+The numbers is a list of 2, 1, 3, 4, and 4.
+The last is the last position of numbers.
+The prefixes is a list of 5 zeros.
+The suffixes is a list of 5 zeros.
+Set item 0 of prefixes to item 0 of numbers.
+For every spot from 1 to last.
+Set item spot of prefixes to item (spot minus 1) of prefixes.
+If item spot of numbers is more than item spot of prefixes, set item spot of prefixes to item spot of numbers.
+
+Set item last of suffixes to item last of numbers.
+For every spot from last minus 1 to 0 by -1.
+Set item spot of suffixes to item (spot plus 1) of suffixes.
+If item spot of numbers is less than item spot of suffixes, set item spot of suffixes to item spot of numbers.
+
+The chunks is 1.
+For every split from 0 to last minus 1, if item split of prefixes is at most item (split plus 1) of suffixes, add 1 to chunks.
+Show chunks.

@@ -1,0 +1,66 @@
+Keep a shared board as an empty list of whole numbers.
+Place 1 into board.
+Place 2 into board.
+Place 3 into board.
+Place 4 into board.
+Place 0 into board.
+Place 5 into board.
+Keep a shared weights as an empty list of whole numbers.
+Place 117649 into weights.
+Place 16807 into weights.
+Place 2401 into weights.
+Place 343 into weights.
+Place 49 into weights.
+Place 7 into weights.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared reached as an empty list of whole numbers.
+Keep a shared distances as an empty list of whole numbers.
+Keep a shared head as 0.
+Keep a shared count as 0.
+Keep a shared known as 0.
+Keep a shared blank as 0.
+For every slot from 0 to 4095, Place 0 into queue.
+To locate from candidate (a whole number).
+Set known to -1.
+For every which from 0 to the last position of reached, if item which of reached is candidate, set known to which, return.
+
+To findblank from here (a whole number).
+Set blank to 0.
+For every spot from 0 to 5.
+The piece is (here divided by item spot of weights) modulo 7.
+If piece is 1, set blank to spot.
+
+To spread from here (a whole number).
+Findblank from here.
+The empty is blank.
+The blankband is empty divided by 3.
+The blankcolumn is empty modulo 3.
+For every other from 0 to 5.
+The otherband is other divided by 3.
+The othercolumn is other modulo 3.
+The bandgap is the absolute value of (otherband minus blankband).
+The columngap is the absolute value of (othercolumn minus blankcolumn).
+If bandgap plus columngap is 1.
+The moving is (here divided by item other of weights) modulo 7.
+The next is here plus (moving minus 1) times item empty of weights plus (1 minus moving) times item other of weights.
+Locate from next.
+If known is less than 0, The tail is count, The depth is head, Set item tail of queue to next, Place next into reached, Place (item depth of distances plus 1) into distances, add 1 to count.
+
+The start is 0.
+For every spot from 0 to 5, set start to start plus (item spot of board plus 1) times item spot of weights.
+The goal is 0.
+For every spot from 0 to 4, set goal to goal plus (spot plus 2) times item spot of weights.
+Set goal to goal plus item 5 of weights.
+Set item 0 of queue to start.
+Place start into reached.
+Place 0 into distances.
+Set count to 1.
+The answer is -1.
+Repeat while head is less than count.
+The front is head.
+The here is item front of queue.
+If here is goal, The progress is head, set answer to item progress of distances, stop.
+Spread from here.
+Add 1 to head.
+
+Show answer.
