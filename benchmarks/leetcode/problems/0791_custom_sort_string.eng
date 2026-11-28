@@ -1,0 +1,17 @@
+The ranking is "cba", while the source is "abcd".
+The result is empty text.
+For every rank from 0 to 2.
+The wanted is the slice of ranking from rank to rank plus 1.
+For every spot from 0 to 3.
+The here is the slice of source from spot to spot plus 1.
+If wanted matches here, Place here into result.
+
+For every spot from 0 to 3.
+The here is the slice of source from spot to spot plus 1.
+The present is 0.
+For every place from 0 to 2.
+The wanted is the slice of ranking from place to place plus 1.
+If wanted matches here, set present to 1.
+If place is 2 and present is 0, Place here into result.
+
+Show result.

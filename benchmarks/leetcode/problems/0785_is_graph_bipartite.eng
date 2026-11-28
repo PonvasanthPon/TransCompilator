@@ -1,0 +1,42 @@
+Keep a shared edges as an empty list of whole numbers.
+Place 1 into edges.
+Place 2 into edges.
+Place 3 into edges.
+Place 0 into edges.
+Place 2 into edges.
+Place 0 into edges.
+Place 1 into edges.
+Place 3 into edges.
+Place 0 into edges.
+Place 2 into edges.
+Keep a shared starts as an empty list of whole numbers.
+Place 0 into starts.
+Place 3 into starts.
+Place 5 into starts.
+Place 8 into starts.
+Keep a shared counts as an empty list of whole numbers.
+Place 3 into counts.
+Place 2 into counts.
+Place 3 into counts.
+Place 2 into counts.
+Keep a shared colors as an empty list of whole numbers.
+For every spot from 0 to 3.
+Place 0 into colors.
+
+Keep a shared spare as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+The valid is 0, while the found is 0.
+Set valid to 1.
+For every source from 0 to 3.
+Set queue to spare.
+The head is 0, while the count is 0.
+If item source of colors is 0, set item source of colors to 1, Place source into queue, add 1 to count.
+Repeat while head is less than count and valid is 1.
+The node is item head of queue.
+Add 1 to head.
+For every offset from 0 to item node of counts minus 1.
+The target is item (item node of starts plus offset) of edges.
+If item target of colors is 0, set item target of colors to 3 minus item node of colors, Place target into queue, add 1 to count.
+If item target of colors is item node of colors, set valid to 0.
+
+If valid is 1, show true, otherwise show false.

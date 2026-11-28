@@ -1,0 +1,10 @@
+The source is "abcde", while the words is a list of "a", "bb", "acd", and "ace".
+The lastsource is 4, while the count is 0.
+For each word in words.
+The lastword is the last position of word.
+The cursor is 0.
+For every spot from 0 to lastsource.
+If cursor is at most lastword and character spot of source is character cursor of word, add 1 to cursor.
+If spot is lastsource and cursor is more than lastword, add 1 to count.
+
+Show count.

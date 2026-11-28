@@ -1,0 +1,15 @@
+The startx is 1, while the starty is 1.
+The targetx is 3, while the targety is 5.
+The reachable is 0.
+Repeat while targetx is more than startx and targety is more than starty.
+If targetx is more than targety, set targetx to targetx modulo targety, otherwise set targety to targety modulo targetx.
+
+If targetx is startx and targety is at least starty.
+The gap is targety minus starty.
+If gap modulo startx is 0, set reachable to 1.
+
+If targety is starty and targetx is at least startx.
+The gap is targetx minus startx.
+If gap modulo starty is 0, set reachable to 1.
+
+If reachable is 1, show true, otherwise show false.

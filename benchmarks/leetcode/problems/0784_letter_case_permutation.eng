@@ -1,0 +1,34 @@
+Keep a shared lowers as empty text.
+Place "abcdefghijklmnopqrstuvwxyz" into lowers.
+Keep a shared uppers as empty text.
+Place "ABCDEFGHIJKLMNOPQRSTUVWXYZ" into uppers.
+Keep a shared word as empty text.
+Place "a1b2" into word.
+Keep a shared current as empty text.
+Keep a shared answers as an empty list of text.
+Keep a shared piece as empty text.
+Keep a shared found as 0.
+Keep a shared letterindex as 0.
+
+To seek from spot (a whole number).
+If spot is more than 25, return.
+The lowpiece is the slice of lowers from spot to spot plus 1.
+If lowpiece matches piece, set found to 1, set letterindex to spot, return.
+The uppiece is the slice of uppers from spot to spot plus 1.
+If uppiece matches piece, set found to 1, set letterindex to spot, return.
+Seek from spot plus 1.
+
+To build from spot (a whole number).
+If spot is 4, The copy is a copy of current, Place copy into answers, then return.
+The symbol is the slice of word from spot to spot plus 1.
+Set piece to symbol.
+Set found to 0.
+Seek from 0.
+The here is found.
+The holdindex is letterindex.
+If here is 0, Place symbol into current, build from spot plus 1, remove last character from current.
+If here is 1, The little is the slice of lowers from holdindex to holdindex plus 1, Place little into current, build from spot plus 1, remove last character from current.
+If here is 1, The big is the slice of uppers from holdindex to holdindex plus 1, Place big into current, build from spot plus 1, remove last character from current.
+
+Build from 0.
+For each answer in answers, show answer.

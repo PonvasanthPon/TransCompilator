@@ -1,0 +1,9 @@
+Keep a shared symbol as 0.
+
+To expand from rows (a whole number) with place (a whole number).
+If rows is 1, set symbol to 0, return.
+If place modulo 2 is 1, expand from rows minus 1 with (place plus 1) divided by 2.
+If place modulo 2 is 0, expand from rows minus 1 with place divided by 2, set symbol to 1 minus symbol.
+
+Expand from 4 with 5.
+Show symbol.

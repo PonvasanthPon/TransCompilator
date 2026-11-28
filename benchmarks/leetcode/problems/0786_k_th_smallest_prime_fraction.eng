@@ -1,0 +1,20 @@
+The numbers is a list of 1, 2, 3, and 5, while the rank is 3.
+The numerators is an empty list of whole numbers.
+The denominators is an empty list of whole numbers.
+For every left from 0 to 3.
+For every right from left plus 1 to 3.
+Place item left of numbers into numerators.
+Place item right of numbers into denominators.
+
+The count is the number of items in numerators.
+The final is count minus 1.
+For every pass from 0 to final.
+For every spot from 0 to count minus 2.
+The next is spot plus 1.
+The lowproduct is item spot of numerators times item next of denominators.
+The highproduct is item next of numerators times item spot of denominators.
+If lowproduct is more than highproduct, swap item spot of numerators and item next of numerators, swap item spot of denominators and item next of denominators.
+
+The chosen is rank minus 1.
+Show item chosen of numerators.
+Show item chosen of denominators.

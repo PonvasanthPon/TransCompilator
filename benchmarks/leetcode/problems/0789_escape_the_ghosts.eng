@@ -1,0 +1,16 @@
+The ghosts is a list of 1, 0, 0, and 3.
+The targetx is 0, while the targety is 1.
+The pairs is 2, while the escape is 0.
+Set escape to 1.
+The mydistance is targetx plus targety.
+For every ghost from 0 to pairs minus 1.
+The ghostx is item (ghost times 2) of ghosts.
+The ghosty is item (ghost times 2 plus 1) of ghosts.
+The gapx is ghostx minus targetx.
+If gapx is less than 0, set gapx to 0 minus gapx.
+The gapy is ghosty minus targety.
+If gapy is less than 0, set gapy to 0 minus gapy.
+The theirdistance is gapx plus gapy.
+If theirdistance is at most mydistance, set escape to 0.
+
+If escape is 1, show true, otherwise show false.

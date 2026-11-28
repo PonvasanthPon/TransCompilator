@@ -1,0 +1,29 @@
+The board is a list of 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, and 1.
+The side is 4.
+The valid is 0, while the mixed is 0.
+Set valid to 1.
+For every row from 0 to 3.
+For every column from 0 to 3.
+Set mixed to exclusive or of item 0 of board and item (row times side) of board.
+Set mixed to exclusive or of mixed and item column of board.
+Set mixed to exclusive or of mixed and item (row times side plus column) of board.
+If mixed is 1, set valid to 0.
+
+The rowsum is 0, while the colsum is 0.
+The rowswap is 0, while the colswap is 0.
+For every spot from 0 to 3.
+Set rowsum to rowsum plus item spot of board.
+Set colsum to colsum plus item (spot times side) of board.
+The rowparity is spot modulo 2.
+If item (spot times side) of board is rowparity, add 1 to rowswap.
+If item spot of board is rowparity, add 1 to colswap.
+
+The half is side divided by 2, while the otherhalf is (side plus 1) divided by 2.
+If rowsum is not half and rowsum is not otherhalf, set valid to 0.
+If colsum is not half and colsum is not otherhalf, set valid to 0.
+If rowswap is more than side minus rowswap, set rowswap to side minus rowswap.
+If colswap is more than side minus colswap, set colswap to side minus colswap.
+The answer is (rowswap plus colswap) divided by 2.
+If valid is 0, set answer to -1.
+
+Show answer.

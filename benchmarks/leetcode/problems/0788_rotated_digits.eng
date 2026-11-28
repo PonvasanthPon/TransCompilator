@@ -1,0 +1,14 @@
+The limit is 10.
+The count is 0.
+For every number from 1 to limit.
+The value is number.
+The good is 0, while the turned is 0.
+Set good to 1.
+Repeat while value is more than 0.
+The digit is value modulo 10.
+If digit is 3 or digit is 4 or digit is 7, set good to 0.
+If digit is 2 or digit is 5 or digit is 6 or digit is 9, set turned to 1.
+Set value to value divided by 10.
+If value is 0 and good is 1 and turned is 1, add 1 to count.
+
+Show count.

@@ -1,0 +1,13 @@
+The answers is a list of 1, 1, and 2, while the limit is 1000.
+The counts is a list of 1001 zeros.
+For each answer in answers.
+Set item answer of counts to item answer of counts plus 1.
+
+The total is 0.
+For every spoken from 0 to limit.
+If item spoken of counts is more than 0.
+The group is spoken plus 1.
+The groups is (item spoken of counts plus spoken) divided by group.
+Add groups times group to total.
+
+Show total.

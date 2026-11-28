@@ -1,0 +1,19 @@
+Keep a shared trail as 0.
+
+To tally from value (a whole number).
+If value is less than 5, return.
+Set value to value divided by 5.
+Add value to trail.
+Tally from value.
+
+The low is 0, while the high is 20.
+The aim is 3.
+Repeat while low is less than high.
+The middle is (low plus high) divided by 2.
+Set trail to 0.
+Tally from middle.
+If trail is at least aim, set high to middle, otherwise set low to middle plus 1.
+
+Set trail to 0.
+Tally from low.
+If trail is aim, show 5, otherwise show 0.

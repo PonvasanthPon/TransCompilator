@@ -1,0 +1,37 @@
+The board is a list of "X", "O", "X", "O", " ", "O", "X", "O", and "X".
+The squares is a list of 9 zeros.
+For every spot from 0 to 8.
+The here is item spot of board.
+If here is "X", set item spot of squares to 1.
+If here is "O", set item spot of squares to 2.
+
+The crosses is 0, while the knots is 0.
+For every spot from 0 to 8.
+If item spot of squares is 1, add 1 to crosses.
+If item spot of squares is 2, add 1 to knots.
+
+The countok is 0, while the winx is 0.
+Set countok to 1.
+The wino is 0.
+If crosses is not knots and crosses is not knots plus 1, set countok to 0.
+If item 0 of squares is item 1 of squares and item 1 of squares is item 2 of squares and item 0 of squares is 1, set winx to 1.
+If item 3 of squares is item 4 of squares and item 4 of squares is item 5 of squares and item 3 of squares is 1, set winx to 1.
+If item 6 of squares is item 7 of squares and item 7 of squares is item 8 of squares and item 6 of squares is 1, set winx to 1.
+If item 0 of squares is item 3 of squares and item 3 of squares is item 6 of squares and item 0 of squares is 1, set winx to 1.
+If item 1 of squares is item 4 of squares and item 4 of squares is item 7 of squares and item 1 of squares is 1, set winx to 1.
+If item 2 of squares is item 5 of squares and item 5 of squares is item 8 of squares and item 2 of squares is 1, set winx to 1.
+If item 0 of squares is item 4 of squares and item 4 of squares is item 8 of squares and item 0 of squares is 1, set winx to 1.
+If item 2 of squares is item 4 of squares and item 4 of squares is item 6 of squares and item 2 of squares is 1, set winx to 1.
+If item 0 of squares is item 1 of squares and item 1 of squares is item 2 of squares and item 0 of squares is 2, set wino to 1.
+If item 3 of squares is item 4 of squares and item 4 of squares is item 5 of squares and item 3 of squares is 2, set wino to 1.
+If item 6 of squares is item 7 of squares and item 7 of squares is item 8 of squares and item 6 of squares is 2, set wino to 1.
+If item 0 of squares is item 3 of squares and item 3 of squares is item 6 of squares and item 0 of squares is 2, set wino to 1.
+If item 1 of squares is item 4 of squares and item 4 of squares is item 7 of squares and item 1 of squares is 2, set wino to 1.
+If item 2 of squares is item 5 of squares and item 5 of squares is item 8 of squares and item 2 of squares is 2, set wino to 1.
+If item 0 of squares is item 4 of squares and item 4 of squares is item 8 of squares and item 0 of squares is 2, set wino to 1.
+If item 2 of squares is item 4 of squares and item 4 of squares is item 6 of squares and item 2 of squares is 2, set wino to 1.
+
+If winx is 1 and wino is 1, set countok to 0.
+If winx is 1 and crosses is not knots plus 1, set countok to 0.
+If wino is 1 and crosses is not knots, set countok to 0.
+If countok is 1, show true, otherwise show false.

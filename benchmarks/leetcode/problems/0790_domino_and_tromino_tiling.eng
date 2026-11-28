@@ -1,0 +1,9 @@
+The ways is a list of 4 zeros, while the steps is 3.
+Set item 0 of ways to 1.
+Set item 1 of ways to 1.
+Set item 2 of ways to 2.
+For every step from 3 to steps.
+The value is 2 times item (step minus 1) of ways plus item (step minus 3) of ways.
+Set item step of ways to value modulo 1000000007.
+
+Show item steps of ways.

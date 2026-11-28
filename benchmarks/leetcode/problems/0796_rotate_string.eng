@@ -1,0 +1,12 @@
+The word is "abcde", while the goal is "cdeab".
+The size is 5, while the found is 0.
+For every turn from 0 to 4.
+The built is empty text.
+The done is 0.
+For every spot from 0 to 4.
+The index is (spot plus turn) modulo size.
+Place character index of word into built.
+If built matches goal, set done to 1.
+If spot is 4 and done is 1, set found to 1.
+
+If found is 1, show true, otherwise show false.

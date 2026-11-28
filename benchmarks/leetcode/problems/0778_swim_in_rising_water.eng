@@ -1,0 +1,19 @@
+The heights is a list of 0, 2, 1, and 3, while the side is 2.
+The seen is a list of 4 zeros, while the spare is an empty list of whole numbers.
+The queue is an empty list of whole numbers.
+The answer is -1, while the found is 0.
+For every level from 0 to 3.
+Set queue to spare.
+The head is 0, while the count is 0.
+If item 0 of heights is at most level, set item 0 of seen to level plus 1, Place 0 into queue, add 1 to count.
+Repeat while head is less than count and found is 0.
+The node is item head of queue.
+Add 1 to head.
+The row is node divided by side, while the column is node modulo side.
+If row is more than 0 and item (node minus side) of heights is at most level and item (node minus side) of seen is not level plus 1, set item (node minus side) of seen to level plus 1, Place (node minus side) into queue, add 1 to count.
+If row is less than 1 and item (node plus side) of heights is at most level and item (node plus side) of seen is not level plus 1, set item (node plus side) of seen to level plus 1, Place (node plus side) into queue, add 1 to count.
+If column is more than 0 and item (node minus 1) of heights is at most level and item (node minus 1) of seen is not level plus 1, set item (node minus 1) of seen to level plus 1, Place (node minus 1) into queue, add 1 to count.
+If column is less than 1 and item (node plus 1) of heights is at most level and item (node plus 1) of seen is not level plus 1, set item (node plus 1) of seen to level plus 1, Place (node plus 1) into queue, add 1 to count.
+If item 3 of seen is level plus 1, set answer to level, set found to 1.
+
+Show answer.

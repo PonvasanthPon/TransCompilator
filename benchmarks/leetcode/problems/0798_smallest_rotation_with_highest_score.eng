@@ -1,0 +1,12 @@
+The numbers is a list of 2, 3, 1, 4, and 0.
+The size is 5.
+The best is 0, while the chosen is 0.
+Set best to -1.
+For every turn from 0 to 4.
+The score is 0.
+For every spot from 0 to 4.
+The index is (spot plus turn) modulo size.
+If item index of numbers is at most spot, add 1 to score.
+If spot is 4 and score is more than best, set best to score, set chosen to turn.
+
+Show chosen.

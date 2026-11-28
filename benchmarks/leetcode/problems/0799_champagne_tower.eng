@@ -1,0 +1,39 @@
+The cups is a list of 6 zeros, while the poured is 2.
+Set item 0 of cups to 20000.
+For every row from 0 to 0.
+The base is (row times (row plus 1)) divided by 2.
+The below is ((row plus 1) times (row plus 2)) divided by 2.
+For every glass from 0 to row.
+The cell is base plus glass.
+The extra is item cell of cups minus 10000.
+If extra is more than 0.
+The half is extra divided by 2.
+The leftchild is below plus glass.
+The rightchild is leftchild plus 1.
+Set item leftchild of cups to item leftchild of cups plus half.
+Set item rightchild of cups to item rightchild of cups plus half.
+
+The target is 2.
+The value is item target of cups.
+The whole is value divided by 10000, while the part is value modulo 10000.
+The rendered is format whole number whole as text.
+The digits is empty text.
+The thousand is part divided by 1000.
+Place format whole number thousand as text into digits.
+The hundred is (part divided by 100) modulo 10.
+Place format whole number hundred as text into digits.
+The ten is (part divided by 10) modulo 10.
+Place format whole number ten as text into digits.
+The one is part modulo 10.
+Place format whole number one as text into digits.
+The cut is 4.
+Repeat while cut is more than 1.
+The look is cut minus 1.
+If character look of digits is not "0", stop.
+Subtract 1 from cut.
+
+The shown is the slice of digits from 0 to cut.
+Place "." into rendered.
+Place shown into rendered.
+If part is 0, show format whole number whole as text.
+If part is more than 0, show rendered.

@@ -1,0 +1,47 @@
+Keep a shared start as empty text.
+Place "RXXLRXRXL" into start.
+Keep a shared finish as empty text.
+Place "XRLXXRRLX" into finish.
+Keep a shared first as 0.
+Keep a shared second as 0.
+Keep a shared startlast as 0.
+Keep a shared finishlast as 0.
+Keep a shared verdict as 0.
+Keep a shared leftmove as 0.
+Set startlast to 8.
+Set finishlast to 8.
+Set verdict to 1.
+
+To skipstart from spot (a whole number).
+If spot is more than startlast, set first to spot, return.
+The piece is the slice of start from spot to spot plus 1.
+If piece matches "X", skipstart from spot plus 1, return.
+Set first to spot.
+
+To skipfinish from spot (a whole number).
+If spot is more than finishlast, set second to spot, return.
+The piece is the slice of finish from spot to spot plus 1.
+If piece matches "X", skipfinish from spot plus 1, return.
+Set second to spot.
+
+To compare from left (a whole number) with right (a whole number).
+Set first to left.
+Skipstart from left.
+Set second to right.
+Skipfinish from right.
+If first is more than startlast and second is more than finishlast, return.
+If first is more than startlast or second is more than finishlast, set verdict to 0, return.
+The leftspot is first, while the rightspot is second.
+The one is the slice of start from leftspot to leftspot plus 1.
+The two is the slice of finish from rightspot to rightspot plus 1.
+If one does not match two, set verdict to 0, return.
+Set leftmove to 0.
+The rightmove is 0.
+If one matches "L", set leftmove to 1.
+If one matches "R", set rightmove to 1.
+If leftmove is 1 and second is more than first, set verdict to 0, return.
+If rightmove is 1 and second is less than first, set verdict to 0, return.
+Compare from first plus 1 with second plus 1.
+
+Compare from 0 with 0.
+If verdict is 1, show true, otherwise show false.

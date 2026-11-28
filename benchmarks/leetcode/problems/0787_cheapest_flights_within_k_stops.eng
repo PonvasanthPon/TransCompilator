@@ -1,0 +1,29 @@
+Keep a shared distance as an empty list of whole numbers.
+Place 0 into distance.
+Place 1000000 into distance.
+Place 1000000 into distance.
+Place 1000000 into distance.
+Keep a shared next as an empty list of whole numbers.
+Keep a shared spare as an empty list of whole numbers.
+The origins is a list of 0, 1, 2, 1, and 2, while the targets is a list of 1, 2, 0, 3, and 3.
+The fares is a list of 100, 100, 100, 600, and 200.
+The stops is 1, while the answer is 1000000.
+
+To carry from node (a whole number).
+If node is more than 3, return.
+Place item node of distance into next.
+Carry from node plus 1.
+
+For every round from 1 to stops plus 1.
+Set next to spare.
+Carry from 0.
+For every flight from 0 to 4.
+The origin is item flight of origins, while the target is item flight of targets.
+The fare is item flight of fares.
+The candidate is item origin of distance plus fare.
+If candidate is less than item target of next, set item target of next to candidate.
+If flight is 4, set distance to next.
+
+Set answer to item 3 of distance.
+If answer is at least 1000000, set answer to -1.
+Show answer.
