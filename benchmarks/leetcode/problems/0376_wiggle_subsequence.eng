@@ -1,0 +1,11 @@
+The nums is a list of 1, 7, 4, 9, 2, and 5.
+The last is 5.
+The count is 1.
+The direction is 0.
+For every spot from 1 to last.
+The change is item spot of nums minus item (spot minus 1) of nums.
+If change is more than 0 and direction is at most 0, add 1 to count.
+If change is less than 0 and direction is at least 0, add 1 to count.
+If change is not 0, set direction to change.
+
+Show count.

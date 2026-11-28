@@ -1,0 +1,22 @@
+Keep a shared memo as an empty list of whole numbers.
+For every spot from 0 to 120.
+Place 0 into memo.
+
+To score from low (a whole number) with high (a whole number).
+If low is at least high, return.
+The slot is low times 11 plus high.
+If item slot of memo is more than 0, return.
+The best is 1000000.
+For every pick from low to high.
+The left is 0.
+The right is 0.
+If pick is more than low, score from low with pick minus 1, set left to item (low times 11 plus pick minus 1) of memo.
+If pick is less than high, score from pick plus 1 with high, set right to item ((pick plus 1) times 11 plus high) of memo.
+The worst is left.
+If right is more than worst, set worst to right.
+The cost is pick plus worst.
+If cost is less than best, set best to cost.
+Set item slot of memo to best.
+
+Score from 1 with 10.
+Show item 21 of memo.

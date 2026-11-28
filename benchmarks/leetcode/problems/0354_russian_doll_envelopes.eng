@@ -1,0 +1,33 @@
+Keep a shared widths as an empty list of whole numbers.
+Place 5 into widths.
+Place 6 into widths.
+Place 6 into widths.
+Place 7 into widths.
+Keep a shared heights as an empty list of whole numbers.
+Place 4 into heights.
+Place 4 into heights.
+Place 7 into heights.
+Place 8 into heights.
+Keep a shared memo as an empty list of whole numbers.
+For every spot from 0 to 3.
+Place 0 into memo.
+
+To chain from index (a whole number).
+If index is 0, set item 0 of memo to 1, return.
+If item index of memo is more than 0, return.
+The best is 1.
+For every prior from 0 to index minus 1.
+The narrow is item prior of widths.
+The short is item prior of heights.
+If narrow is less than item index of widths and short is less than item index of heights.
+Chain from prior.
+The candidate is item prior of memo plus 1.
+If candidate is more than best, set best to candidate.
+Set item index of memo to best.
+
+The answer is 1.
+For every spot from 0 to 3.
+Chain from spot.
+If item spot of memo is more than answer, set answer to item spot of memo.
+
+Show answer.

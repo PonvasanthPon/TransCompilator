@@ -1,0 +1,43 @@
+Keep a shared firsts as an empty list of whole numbers.
+Place 1 into firsts.
+Place 7 into firsts.
+Place 11 into firsts.
+Keep a shared seconds as an empty list of whole numbers.
+Place 2 into seconds.
+Place 4 into seconds.
+Place 6 into seconds.
+Keep a shared used as an empty list of whole numbers.
+For every spot from 0 to 8.
+Place 0 into used.
+
+Keep a shared pickrow as 0.
+Keep a shared pickcolumn as 0.
+Keep a shared smallest as 0.
+
+To scan from spot (a whole number).
+If spot is at least 9, return.
+The row is spot divided by 3.
+The column is spot modulo 3.
+The total is item row of firsts plus item column of seconds.
+If item spot of used is 0 and total is less than smallest, set smallest to total, set pickrow to row, set pickcolumn to column.
+Scan from spot plus 1.
+
+The answers is an empty list of text.
+The round is 0.
+Repeat while round is less than 3.
+Set smallest to 1000000.
+Scan from 0.
+The slot is pickrow times 3 plus pickcolumn.
+Set item slot of used to 1.
+The chosenrow is pickrow.
+The chosencolumn is pickcolumn.
+The left is format whole number item chosenrow of firsts as text.
+The right is format whole number item chosencolumn of seconds as text.
+The line is empty text.
+Place left into line.
+Place "," into line.
+Place right into line.
+Place line into answers.
+Add 1 to round.
+
+For each answer in answers, show answer.

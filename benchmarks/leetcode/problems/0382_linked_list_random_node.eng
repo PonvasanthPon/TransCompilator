@@ -1,0 +1,15 @@
+The values is a list of 1, 2, and 3.
+The nexts is a list of 1, 2, and -1.
+The node is 0.
+The rank is 0.
+The chosen is 0.
+The state is 12345.
+Repeat while node is at least 0.
+Add 1 to rank.
+Set state to state times 1103515245 plus 12345.
+Set state to state modulo 2147483648.
+The draw is state modulo rank.
+If draw is 0, set chosen to node.
+Set node to item node of nexts.
+
+Show item chosen of values.

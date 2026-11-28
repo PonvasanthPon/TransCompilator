@@ -1,0 +1,10 @@
+The first is 1.
+The second is 2.
+The left is first.
+The right is second.
+Repeat while right is not 0.
+The carry is bitwise and of left and right.
+Set left to exclusive or of left and right.
+Set right to shift carry left by 1.
+
+Show left.

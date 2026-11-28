@@ -1,0 +1,21 @@
+Keep a shared numbers as an empty list of whole numbers.
+Place 1 into numbers.
+Place 5 into numbers.
+Place 9 into numbers.
+Place 10 into numbers.
+Place 11 into numbers.
+Place 13 into numbers.
+Place 12 into numbers.
+Place 13 into numbers.
+Place 15 into numbers.
+Keep a shared chosen as 0.
+To seek from spot (a whole number) with best (a whole number).
+If spot is more than 8, set chosen to best, return.
+If item spot of numbers is less than item best of numbers, set best to spot.
+Seek from spot plus 1 with best.
+
+For every position from 0 to 8.
+Seek from position with position.
+swap item position of numbers and item chosen of numbers.
+
+Show item 7 of numbers.

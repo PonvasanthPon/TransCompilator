@@ -1,0 +1,13 @@
+The base is 2.
+The digits is a list of 1 and 0.
+The exponent is 0.
+For each digit in digits.
+Set exponent to exponent times 10 plus digit.
+
+The result is 1.
+The reduced is base modulo 1337.
+Repeat while exponent is more than 0.
+Set result to result times reduced modulo 1337.
+Subtract 1 from exponent.
+
+Show result.

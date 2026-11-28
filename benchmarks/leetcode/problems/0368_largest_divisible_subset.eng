@@ -1,0 +1,51 @@
+Keep a shared nums as an empty list of whole numbers.
+Place 1 into nums.
+Place 2 into nums.
+Place 4 into nums.
+Place 8 into nums.
+Sort nums.
+Keep a shared memo as an empty list of whole numbers.
+For every spot from 0 to 3.
+Place 0 into memo.
+
+To chain from index (a whole number).
+If index is 0, set item 0 of memo to 1, return.
+If item index of memo is more than 0, return.
+The best is 1.
+For every prior from 0 to index minus 1.
+The rest is item index of nums modulo item prior of nums.
+If rest is 0.
+Chain from prior.
+The candidate is item prior of memo plus 1.
+If candidate is more than best, set best to candidate.
+Set item index of memo to best.
+
+The bestend is 0.
+The bestlen is 0.
+For every spot from 0 to 3.
+Chain from spot.
+If item spot of memo is more than bestlen, set bestlen to item spot of memo, set bestend to spot.
+
+Keep a shared prior as 0.
+To seek from spot (a whole number) with target (a whole number).
+If spot is less than 0, set prior to -1, return.
+The rest is item target of nums modulo item spot of nums.
+If rest is 0 and item spot of memo plus 1 is item target of memo, set prior to spot, return.
+Seek from spot minus 1 with target.
+
+The current is bestend.
+The reversed is an empty list of whole numbers.
+Repeat while current is at least 0.
+Place item current of nums into reversed.
+Seek from current minus 1 with current.
+Set current to prior.
+
+The parts is an empty list of text.
+The lastrev is the last position of reversed.
+For every spot from 0 to lastrev.
+The source is lastrev minus spot.
+The piece is format whole number item source of reversed as text.
+Place piece into parts.
+
+The line is join parts with ",".
+Show line.

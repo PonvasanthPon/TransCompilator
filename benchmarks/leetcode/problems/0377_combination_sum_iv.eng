@@ -1,0 +1,12 @@
+The nums is a list of 1, 2, and 3.
+The target is 4.
+The ways is a list of 5 zeros.
+Set item 0 of ways to 1.
+For every total from 1 to 4.
+For each value in nums.
+If total is at least value.
+The prior is total minus value.
+The add is item prior of ways.
+Set item total of ways to item total of ways plus add.
+
+Show item 4 of ways.

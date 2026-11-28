@@ -1,0 +1,8 @@
+The digits is 2.
+The total is 1.
+The product is 9.
+For every length from 1 to digits.
+If length is 1, add 9 to total.
+If length is more than 1, set product to product times (11 minus length), Add product to total.
+
+Show total.

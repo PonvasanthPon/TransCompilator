@@ -1,0 +1,28 @@
+Keep a shared magazine as empty text.
+Keep a shared note as empty text.
+Keep a shared seeds as an empty list of text.
+Keep a shared taken as an empty list of whole numbers.
+Keep a shared limit as 0.
+Keep a shared found as 0.
+Place "b" into seeds.
+Place "a" into seeds.
+Set magazine to item 0 of seeds.
+Set note to item 1 of seeds.
+The lastmag is the last position of magazine.
+Set limit to lastmag.
+For every spot from 0 to lastmag.
+Place 0 into taken.
+
+To find from spot (a whole number) with target (a whole number).
+If spot is more than limit, set found to -1, return.
+If item spot of taken is 0 and character spot of magazine is character target of note, set found to spot, return.
+Find from spot plus 1 with target.
+
+The valid is 1.
+The last is the last position of note.
+For every spot from 0 to last.
+Find from 0 with spot.
+If found is less than 0, set valid to 0.
+If found is at least 0, The slot is found, Set item slot of taken to 1.
+
+If valid is 1, show true, otherwise show false.

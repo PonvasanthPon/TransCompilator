@@ -1,0 +1,11 @@
+The first is 3.
+The second is 5.
+The target is 4.
+Keep a shared common as 0.
+To reduce from left (a whole number) with right (a whole number).
+If right is 0, set common to left, return.
+The rest is left modulo right.
+Reduce from right with rest.
+
+Reduce from first with second.
+If target is at most first plus second and target modulo common is 0, show true, otherwise show false.

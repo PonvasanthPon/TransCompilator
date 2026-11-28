@@ -1,0 +1,8 @@
+The number is 16.
+The root is 0.
+The spot is 1.
+Repeat while spot times spot is at most number.
+If spot times spot is number, set root to spot.
+Add 1 to spot.
+
+If root is 0, show false, otherwise show true.

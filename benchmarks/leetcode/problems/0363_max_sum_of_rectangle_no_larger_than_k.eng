@@ -1,0 +1,35 @@
+Keep a shared prefix as an empty list of whole numbers.
+For every spot from 0 to 15.
+Place 0 into prefix.
+
+Keep a shared best as 0.
+Set best to -1000000.
+The chart is a list of 1, 0, 1, 0, -1, 0, 1, 0, and 1.
+For every spot from 0 to 8.
+The row is spot divided by 3.
+The column is spot modulo 3.
+The target is (row plus 1) times 4 plus column plus 1.
+The above is target minus 4.
+The aside is target minus 1.
+The corner is target minus 5.
+Set item target of prefix to item spot of chart plus item above of prefix plus item aside of prefix minus item corner of prefix.
+
+To sweep from left (a whole number) at top (a whole number) with bottom (a whole number).
+If left is at least 3, return.
+Sweep from left plus 1 at top with bottom.
+For every right from left to 2.
+The zone is (bottom plus 1) times 4 plus right plus 1.
+The upper is top times 4 plus right plus 1.
+The leftwan is top times 4 plus left.
+The leftsouth is (bottom plus 1) times 4 plus left.
+The total is item zone of prefix minus item upper of prefix minus item leftsouth of prefix plus item leftwan of prefix.
+If total is at most 2 and total is more than best, set best to total.
+
+To bands from top (a whole number) with bottom (a whole number).
+If top is at least 3, return.
+If bottom is at least 3, Bands from top plus 1 with top plus 1, return.
+Sweep from 0 at top with bottom.
+Bands from top with bottom plus 1.
+
+Bands from 0 with 0.
+Show best.
