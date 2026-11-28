@@ -1,0 +1,35 @@
+Keep a shared current as empty text.
+Keep a shared alphabet as empty text.
+Keep a shared required as an empty list of whole numbers.
+Keep a shared seen as 0.
+Keep a shared enough as 0.
+For every spot from 0 to 25.
+Place 0 into required.
+
+To require.
+Set seen to 0.
+For every spot from 0 to 25.
+Set seen to 0.
+The symbol is character spot of alphabet.
+For every place from 0 to the last position of current, if character place of current is symbol, add 1 to seen.
+If seen is more than item spot of required, set item spot of required to seen.
+
+To check.
+Set enough to 1.
+For every spot from 0 to 25.
+Set seen to 0.
+The symbol is character spot of alphabet.
+For every place from 0 to the last position of current, if character place of current is symbol, add 1 to seen.
+If seen is less than item spot of required, set enough to 0.
+
+The words is a list of "amazon", "apple", "facebook", "google", and "leetcode".
+The demands is a list of "e" and "o".
+Place "abcdefghijklmnopqrstuvwxyz" into alphabet.
+For each demand in demands.
+Set current to demand.
+Require.
+
+For each word in words.
+Set current to word.
+Check.
+If enough is 1, report word.

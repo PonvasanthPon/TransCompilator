@@ -1,0 +1,11 @@
+The numbers is a list of 1, 1, 2, 2, 2, and 2.
+The target is 5.
+The last is the last position of numbers.
+The count is 0.
+For every first from 0 to last.
+For every second from first plus 1 to last.
+For every third from second plus 1 to last.
+The total is item first of numbers plus item second of numbers plus item third of numbers.
+If total is target, add 1 to count.
+
+Report count.

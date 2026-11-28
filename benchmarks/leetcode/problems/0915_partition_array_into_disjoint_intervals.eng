@@ -1,0 +1,23 @@
+The values is a list of 5, 0, 3, 8, and 6.
+The size is the number of items in values.
+The last is the last position of values.
+The ceilings is a list of size zeros.
+Set item 0 of ceilings to item 0 of values.
+For every spot from 1 to last.
+The prior is item (spot minus 1) of ceilings.
+If prior is more than item spot of values, set item spot of ceilings to prior, otherwise set item spot of ceilings to item spot of values.
+
+The floors is a list of size zeros.
+Set item last of floors to item last of values.
+For every step from 1 to last.
+The spot is last minus step.
+The after is item (spot plus 1) of floors.
+If after is less than item spot of values, set item spot of floors to after, otherwise set item spot of floors to item spot of values.
+
+The boundary is 0.
+For every spot from 0 to last minus 1.
+The upper is item spot of ceilings.
+The lower is item (spot plus 1) of floors.
+If upper is at most lower, set boundary to spot plus 1, then stop.
+
+Report boundary.

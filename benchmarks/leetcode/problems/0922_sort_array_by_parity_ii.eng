@@ -1,0 +1,10 @@
+The numbers is a list of 4, 2, 5, and 7.
+The size is the number of items in numbers.
+The answer is a list of size zeros.
+The even is 0.
+The odd is 1.
+For each value in numbers.
+If value modulo 2 is 0, set item even of answer to value, add 2 to even.
+If value modulo 2 is 1, set item odd of answer to value, add 2 to odd.
+
+For each value in answer, show value.

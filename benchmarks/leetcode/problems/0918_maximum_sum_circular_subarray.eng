@@ -1,0 +1,18 @@
+The numbers is a list of 1, -2, 3, and -2.
+The best is item 0 of numbers.
+The worst is item 0 of numbers.
+The ceiling is 0, while the floor is 0.
+The total is 0.
+For every spot from 0 to the last position of numbers.
+The value is item spot of numbers.
+Set ceiling to the larger of ceiling plus value and value.
+Set floor to the smaller of floor plus value and value.
+Set best to the larger of best and ceiling.
+Set worst to the smaller of worst and floor.
+Add value to total.
+
+If best is less than 0, show best.
+If best is at least 0.
+The wrapped is total minus worst.
+The answer is the larger of best and wrapped.
+Show answer.

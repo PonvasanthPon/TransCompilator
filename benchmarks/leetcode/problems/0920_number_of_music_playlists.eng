@@ -1,0 +1,23 @@
+The songs is 3, while the goal is 3.
+The gap is 1.
+The modulo is 1000000007.
+The width is songs plus 1.
+The size is (goal plus 1) times width.
+The ways is a list of size zeros.
+Set item 0 of ways to 1.
+For every length from 1 to goal.
+For every unique from 1 to songs.
+If length is at least unique.
+The at is length times width plus unique.
+The before is (length minus 1) times width plus (unique minus 1).
+The fresh is item before of ways times (songs minus unique plus 1).
+The prior is (length minus 1) times width plus unique.
+The old is item prior of ways.
+The factor is the larger of unique minus gap and 0.
+The reuse is old times factor.
+The total is fresh plus reuse.
+The reduced is total modulo modulo.
+Set item at of ways to reduced.
+
+The target is goal times width plus songs.
+Report item target of ways.

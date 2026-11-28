@@ -1,0 +1,10 @@
+The source is "())".
+The opened is 0.
+The added is 0.
+For every spot from 0 to the last position of source.
+The symbol is the slice of source from spot to spot plus 1.
+If symbol is "(", add 1 to opened.
+If symbol is ")", subtract 1 from opened.
+If opened is less than 0, add 1 to added, set opened to 0.
+
+Report added.

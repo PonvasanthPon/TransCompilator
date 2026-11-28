@@ -1,0 +1,39 @@
+The bits is a list of 1, 0, 1, 0, and 1.
+The last is the last position of bits.
+The size is last plus 1.
+The ones is an empty list of whole numbers.
+For every spot from 0 to last.
+If item spot of bits is 1, Place spot into ones.
+
+The count is the number of items in ones.
+The valid is 1.
+If count is 0.
+Show 0.
+Show last.
+Set valid to 0.
+
+If count is more than 0 and count modulo 3 is not 0.
+Show -1.
+Show -1.
+Set valid to 0.
+
+The good is 1.
+The left is -1.
+The right is -1.
+If valid is 1.
+The group is count divided by 3.
+The firststart is item 0 of ones.
+The secondstart is item group of ones.
+The thirdstart is item (group plus group) of ones.
+The span is size minus thirdstart.
+Set left to firststart plus span minus 1.
+Set right to secondstart plus span.
+For every offset from 0 to span minus 1.
+The first is item (firststart plus offset) of bits.
+The second is item (secondstart plus offset) of bits.
+The third is item (thirdstart plus offset) of bits.
+If first is not second, set good to 0.
+If first is not third, set good to 0.
+
+If valid is 1 and good is 0, show -1, show -1.
+If valid is 1 and good is 1, Show left, Show right.

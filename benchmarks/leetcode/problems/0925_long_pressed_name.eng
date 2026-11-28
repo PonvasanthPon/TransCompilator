@@ -1,0 +1,30 @@
+The name is "alex", while the typed is "aaleex".
+The namechars is an empty list of text.
+The namecounts is an empty list of whole numbers.
+For every spot from 0 to the last position of name.
+The symbol is the slice of name from spot to spot plus 1.
+If spot is 0, Place symbol into namechars, Place 1 into namecounts.
+If spot is more than 0.
+The prior is the slice of name from spot minus 1 to spot.
+If symbol matches prior, The local is the last position of namecounts, set item local of namecounts to item local of namecounts plus 1.
+If symbol does not match prior, Place symbol into namechars, Place 1 into namecounts.
+
+The typedchars is an empty list of text.
+The typedcounts is an empty list of whole numbers.
+For every spot from 0 to the last position of typed.
+The symbol is the slice of typed from spot to spot plus 1.
+If spot is 0, Place symbol into typedchars, Place 1 into typedcounts.
+If spot is more than 0.
+The prior is the slice of typed from spot minus 1 to spot.
+If symbol matches prior, The local is the last position of typedcounts, set item local of typedcounts to item local of typedcounts plus 1.
+If symbol does not match prior, Place symbol into typedchars, Place 1 into typedcounts.
+
+The good is 1.
+The namegroups is the number of items in namechars.
+The typedgroups is the number of items in typedchars.
+If namegroups is not typedgroups, set good to 0.
+For every spot from 0 to the last position of namechars.
+If item spot of namechars does not match item spot of typedchars, set good to 0.
+If item spot of typedcounts is less than item spot of namecounts, set good to 0.
+
+If good is 1, show true, otherwise show false.
