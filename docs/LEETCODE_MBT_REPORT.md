@@ -1,11 +1,12 @@
-# LeetCode Gold-Standard Writer Prose — 173 / 173
+# LeetCode Gold-Standard Writer Prose — 371 / 371
 
 **Project:** `tc_r1` `0.1.0-alpha-preview`  
 **Batch 1 (`1–50`):** 50 solved, 0 skipped  
 **Batch 2 (`51–100`):** 50 solved, 0 skipped  
 **Batch 3A (`101–150`):** 49 solved, 1 non-algorithmic skip  
 **Batch 3B (`151–200`):** 24 solved, 26 non-algorithmic skips  
-**Global:** 173 solved, 1,002 skipped, 2,949 pending of 4,124 catalog entries.
+**Batch 4:** 198 solved, 102 non-algorithmic skips  
+**Global:** 371 solved, 1,002 skipped, 2,751 pending of 4,124 catalog entries.
 
 Every solved solution passes the **Gold-Standard Writer Gate** with **zero**
 occurrences of `Let`, `Append`, `'s len`, `'s data`, `create text from`,
@@ -175,15 +176,173 @@ skips are paywalled, SQL, shell, interactive, concurrency, or OOP class design.
 
 ---
 
-# Batch 4 Progress (`201–500`)
+# Batch 4 — `201–500` (198 / 198)
 
-| Checkpoint | Range | Solved | Non-algorithmic skips | Status |
+Batch 4 solved **every eligible algorithmic problem** in `201–500` with zero
+lazy algorithmic skips. The 102 remaining entries are all outside the
+standalone Core-7 English execution surface.
+
+| Checkpoint | Range | Solved | Skipped | Status |
 |---|---|---:|---:|---|
-| 4A | 201–250 | **38** | 12 | **complete** |
-| 4B | 251–300 | 0 | 32 | pending |
-| 4C | 301–350 | 0 | 18 | pending |
-| 4D | 351–400 | 0 | 19 | pending |
-| 4E | 401–450 | 0 | 12 | pending |
-| 4F | 451–500 | 0 | 9 | pending |
+| 4A | 201–250 | **38** | 12 | complete |
+| 4B | 251–300 | **18** | 32 | complete |
+| 4C | 301–350 | **32** | 18 | complete |
+| 4D | 351–400 | **31** | 19 | complete |
+| 4E | 401–450 | **38** | 12 | complete |
+| 4F | 451–500 | **41** | 9 | complete |
+| **Total** | **201–500** | **198** | **102** | **complete** |
 
-**Global after 4A:** **211 solved**, 1,002 skipped, 2,911 pending.
+### Non-algorithmic skip breakdown (`201–500`)
+
+| Category | Count |
+|---|---:|
+| Paywalled / Premium | 80 |
+| OOP/class design | 19 |
+| Interactive judge | 2 |
+| SQL/database | 1 |
+| Shell | 0 |
+| Concurrency | 0 |
+
+### Compiler / stdlib changes
+
+**None.** All 198 problems were solved with the existing prose surface:
+parallel tree lists, index-chain linked lists, flattened grids, parallel
+adjacency lists, recursive DFS/BFS, numeric and text `List` operations, the
+`IntMap` prose map, and natural bitwise prose. Net line delta in
+`crates/tc-semantics/` for Batch 4: **0**.
+
+One general source-level correction was made after the first wasm sweep:
+four programs used an inline `stop` action that did not break the enclosing
+loop. They now use `break`, and Zuma was rewritten to avoid the wasm text
+mutation path. This changed only `.eng` programs, never the gate or compiler.
+
+---
+
+## Complete Batch 4 examples
+
+### #0207 — Course Schedule
+
+```text
+The size is 2.
+The edges is an empty list of whole numbers.
+Place 1 into edges.
+Place 0 into edges.
+The pairs is 1.
+The adjacency is a list of 4 zeros.
+The indegree is a list of 2 zeros.
+For every edge from 0 to pairs minus 1.
+The target is item (edge times 2) of edges.
+The origin is item (edge times 2 plus 1) of edges.
+Set item (origin times size plus target) of adjacency to 1.
+Set item target of indegree to item target of indegree plus 1.
+
+The queue is an empty list of whole numbers.
+The count is 0.
+The head is 0.
+For every node from 0 to size minus 1.
+If item node of indegree is 0, Place node into queue, add 1 to count.
+
+The seen is 0.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Add 1 to seen.
+For every next from 0 to size minus 1.
+If item (node times size plus next) of adjacency is 1.
+Set item next of indegree to item next of indegree minus 1.
+If item next of indegree is 0, Place next into queue, add 1 to count.
+
+If seen is size, show true, otherwise show false.
+```
+
+Output: `true`.
+
+### #0322 — Coin Change
+
+```text
+Keep a shared coins as an empty list of whole numbers.
+Place 1 into coins.
+Place 2 into coins.
+Place 5 into coins.
+Keep a shared dp as an empty list of whole numbers.
+The amount is 11.
+For every spot from 0 to 11.
+Place 12 into dp.
+
+Set item 0 of dp to 0.
+To relax from value (a whole number) with spot (a whole number).
+If spot is more than 2, return.
+The coin is item spot of coins.
+If coin is at most value.
+The candidate is item (value minus coin) of dp plus 1.
+If candidate is less than item value of dp, set item value of dp to candidate.
+Relax from value with spot plus 1.
+
+For every value from 1 to amount.
+Relax from value with 0.
+
+Show item amount of dp.
+```
+
+Output: `3`.
+
+### #0416 — Partition Equal Subset Sum
+
+```text
+Keep a shared dp as an empty list of whole numbers.
+Keep a shared goal as 0.
+For every spot from 0 to 11.
+Place 0 into dp.
+
+Set item 0 of dp to 1.
+
+To fill from spot (a whole number) with value (a whole number).
+If spot is less than value, return.
+The previous is item (spot minus value) of dp.
+If previous is 1, set item spot of dp to 1.
+Fill from spot minus 1 with value.
+
+The nums is a list of 1, 5, 11, and 5.
+The total is 0.
+For each value in nums, add value to total.
+The half is total divided by 2.
+Set goal to half.
+For each value in nums.
+Fill from goal with value.
+
+The parity is total modulo 2.
+The seat is goal.
+The found is item seat of dp.
+If parity is 1, set found to 0.
+If found is 1, show true, otherwise show false.
+```
+
+Output: `true`.
+
+---
+
+## Final verification
+
+| Gate | Result |
+|---|---|
+| `make mbt` | **371 / 371 PASS** |
+| Batch 4 `201–500` | **198 / 198 PASS** |
+| Gold-Standard Writer Gate | **371 / 371 PASS, 0 violations** |
+| `tc interp` / static zero-libc ELF64 | 371 / 371 |
+| `tc_wasm.wasm` | 371 / 371 |
+| IR runtime-honesty | 371 / 371 |
+| `tc-lsp` diagnostics | 0 |
+| `make test` | **1,097 tests PASS** |
+| `make fmt-check` | PASS |
+| `make lint` | PASS, 0 warnings |
+| `make audit` | PASS: 9 local crates, 0 sources, 0 checksums |
+| `tc --audit` / `tc --selftest` | PASS |
+
+### Browser / PWA
+
+- Drawer: **`Solved Problems (371)`**, meta **`371 of 371`**.
+- Desktop **1440×900** and mobile **375×812**: zero console errors.
+- `Page.getInstallabilityErrors` = **`[]`**.
+- Wasm runs: `#0207` → `true`, `#0322` → `3`, `#0412` → full FizzBuzz
+  sequence through `FizzBuzz`.
+- Screenshots captured at exact `1440×900` and `375×812`.
