@@ -7,7 +7,7 @@
 **Batch 3B (`151–200`):** 24 solved, 26 non-algorithmic skips  
 **Batch 4:** 198 solved, 102 non-algorithmic skips  
 **Batch 5:** 393 solved, 107 non-algorithmic skips  
-**Global:** 764 solved, 1,109 skipped, 2,251 pending of 4,124 catalog entries.
+**Global:** 764 solved, 1,002 skipped, 2,358 pending of 4,124 catalog entries.
 
 Every solved solution passes the **Gold-Standard Writer Gate** with **zero**
 occurrences of `Let`, `Append`, `'s len`, `'s data`, `create text from`,
