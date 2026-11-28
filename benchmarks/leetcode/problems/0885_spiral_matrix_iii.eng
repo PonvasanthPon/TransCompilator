@@ -1,0 +1,34 @@
+The rows is 5.
+The columns is 6.
+The total is rows times columns.
+Keep a shared answers as an empty list of text.
+Keep a shared found as 0.
+Keep a shared label as empty text.
+Keep a shared line as 0.
+Keep a shared column as 0.
+Set line to 1.
+Set column to 4.
+To record.
+The linetext is format whole number line as text.
+Set label to linetext.
+Place "," into label.
+The columntext is format whole number column as text.
+Place columntext into label.
+The copy is a copy of label.
+Place copy into answers.
+Add 1 to found.
+
+Record.
+The runleft is 0.
+The legs is 0.
+The heading is 0.
+Repeat while found is less than total.
+If runleft is 0, add 1 to legs, set runleft to (legs plus 1) divided by 2, set heading to (legs minus 1) modulo 4.
+If heading is 0, add 1 to column.
+If heading is 1, add 1 to line.
+If heading is 2, subtract 1 from column.
+If heading is 3, subtract 1 from line.
+If line is at least 0 and line is less than rows and column is at least 0 and column is less than columns, record.
+Subtract 1 from runleft.
+
+For each entry in answers, show entry.

@@ -1,0 +1,23 @@
+The grid is a list of 1, 2, 3, and 4.
+The height is 2.
+The width is 2.
+The top is 0.
+The front is 0.
+The side is 0.
+For every line from 0 to height minus 1.
+The rowbest is 0.
+For every column from 0 to width minus 1.
+The amount is item (line times width plus column) of grid.
+If amount is more than 0, add 1 to top.
+If amount is more than rowbest, set rowbest to amount.
+If column is width minus 1, add rowbest to front.
+
+For every column from 0 to width minus 1.
+The columnbest is 0.
+For every line from 0 to height minus 1.
+The amount is item (line times width plus column) of grid.
+If amount is more than columnbest, set columnbest to amount.
+If line is height minus 1, add columnbest to side.
+
+The area is top plus front plus side.
+Show area.

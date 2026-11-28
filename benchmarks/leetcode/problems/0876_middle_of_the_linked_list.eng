@@ -1,0 +1,10 @@
+The values is a list of 1, 2, 3, 4, and 5.
+The last is the last position of values.
+The middle is 0.
+The fast is 0.
+Repeat while fast is less than last.
+Set fast to fast plus 2.
+Add 1 to middle.
+
+For every spot from middle to last.
+Show item spot of values.

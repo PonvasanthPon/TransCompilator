@@ -1,0 +1,32 @@
+The first is "this apple is sweet".
+The second is "this apple is sour".
+The firstwords is split first by " ".
+The secondwords is split second by " ".
+Keep a shared vocabulary as an empty list of text.
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared sought as empty text.
+Keep a shared foundat as 0.
+To find from spot (a whole number).
+If spot is more than the last position of vocabulary, set foundat to -1, return.
+If item spot of vocabulary matches sought, set foundat to spot, return.
+Find from spot plus 1.
+
+To record.
+Set foundat to -1.
+Find from 0.
+The local is foundat.
+If local is at least 0, set item local of counts to item local of counts plus 1, return.
+The fresh is a copy of sought.
+Place fresh into vocabulary.
+Place 1 into counts.
+
+For each piece in firstwords.
+Set sought to piece.
+Record.
+
+For each piece in secondwords.
+Set sought to piece.
+Record.
+
+For every spot from 0 to the last position of vocabulary.
+If item spot of counts is 1, show item spot of vocabulary.

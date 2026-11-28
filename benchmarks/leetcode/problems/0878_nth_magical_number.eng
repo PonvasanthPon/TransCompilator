@@ -1,0 +1,35 @@
+Keep a shared first as 0.
+Keep a shared second as 0.
+Keep a shared rank as 0.
+Keep a shared leftvalue as 0.
+Keep a shared rightvalue as 0.
+Keep a shared divisor as 0.
+Keep a shared multiple as 0.
+Keep a shared counted as 0.
+Keep a shared answer as 0.
+Set first to 2.
+Set second to 3.
+Set rank to 4.
+To reduce.
+If rightvalue is 0, set divisor to leftvalue, return.
+The remainder is leftvalue modulo rightvalue.
+Set leftvalue to rightvalue.
+Set rightvalue to remainder.
+Reduce.
+
+To tally with spot (a whole number).
+Set counted to spot divided by first plus spot divided by second minus spot divided by multiple.
+
+To seek from low (a whole number) with high (a whole number).
+If low is at least high, set answer to low, return.
+The middle is (low plus high) divided by 2.
+Tally with middle.
+If counted is at least rank, seek from low with middle, return.
+If counted is less than rank, seek from middle plus 1 with high.
+
+Set leftvalue to first.
+Set rightvalue to second.
+Reduce.
+Set multiple to first divided by divisor times second.
+Seek from 1 with first times rank.
+Show answer.

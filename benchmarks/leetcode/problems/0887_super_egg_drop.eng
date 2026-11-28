@@ -1,0 +1,18 @@
+The eggs is 2.
+The floors is 6.
+The width is floors plus 1.
+The ways is a list of 21 zeros.
+For every count from 1 to eggs.
+For every move from 1 to floors.
+The above is item ((count minus 1) times width plus move minus 1) of ways.
+The below is item (count times width plus move minus 1) of ways.
+The total is above plus below plus 1.
+Set item (count times width plus move) of ways to total.
+
+The moves is 0.
+The reached is 0.
+Repeat while reached is less than floors.
+Add 1 to moves.
+Set reached to item (eggs times width plus moves) of ways.
+
+Show moves.

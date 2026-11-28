@@ -1,0 +1,15 @@
+The people is a list of 3, 2, 2, and 1.
+The limit is 3.
+Sort people.
+The low is 0.
+The high is the last position of people.
+The boats is 0.
+Repeat while low is at most high.
+If low is high, add 1 to boats, set low to low plus 1, set high to high minus 1.
+If low is less than high.
+The pair is item low of people plus item high of people.
+If pair is at most limit, add 1 to low.
+Set high to high minus 1.
+Add 1 to boats.
+
+Show boats.

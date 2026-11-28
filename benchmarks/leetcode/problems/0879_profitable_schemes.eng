@@ -1,0 +1,27 @@
+The members is a list of 2, 3, and 5.
+The gains is a list of 6, 7, and 8.
+The people is 10.
+The target is 5.
+The width is target plus 1.
+The rows is (people plus 1) times width.
+The table is a list of 264 zeros.
+Set item 0 of table to 1.
+For every crime from 0 to 2.
+The cost is item crime of members.
+The gain is item crime of gains.
+For every used from 0 to people.
+For every earned from 0 to target.
+The here is crime times rows plus used times width plus earned.
+The next is here plus rows.
+Set item next of table to item next of table plus item here of table.
+If used plus cost is at most people.
+The reached is earned plus gain.
+If reached is more than target, set reached to target.
+The moved is next plus cost times width plus reached minus earned.
+Set item moved of table to item moved of table plus item here of table.
+
+The total is 0.
+For every used from 0 to people.
+Set total to total plus item (3 times rows plus used times width plus target) of table.
+
+Show total.

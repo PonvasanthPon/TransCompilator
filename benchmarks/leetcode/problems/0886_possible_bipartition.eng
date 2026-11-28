@@ -1,0 +1,40 @@
+Keep a shared people as 0.
+Keep a shared width as 0.
+Keep a shared edges as an empty list of whole numbers.
+Keep a shared colors as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+Keep a shared head as 0.
+Keep a shared sound as 0.
+Set sound to 1.
+Set people to 4.
+Set width to people plus 1.
+For every cell from 0 to 24.
+Place 0 into edges.
+
+The pairs is a list of 1, 2, 1, 3, 2, and 4.
+For every pair from 0 to 2.
+The left is item (pair times 2) of pairs.
+The right is item (pair times 2 plus 1) of pairs.
+Set item (left times width plus right) of edges to 1.
+Set item (right times width plus left) of edges to 1.
+
+For every tone from 0 to 4.
+Place 0 into colors.
+
+To paint from start (a whole number).
+Set head to 0.
+Place start into queue.
+Repeat while head is at most the last position of queue.
+The atspot is head.
+The person is item atspot of queue.
+Add 1 to head.
+For every other from 1 to people.
+If item (person times width plus other) of edges is 1 and item other of colors is 0, set item other of colors to 3 minus item person of colors, Place other into queue.
+If item (person times width plus other) of edges is 1 and item other of colors is item person of colors, set sound to 0.
+
+Set item 1 of colors to 1.
+Paint from 1.
+If item 2 of colors is 0, set item 2 of colors to 1, paint from 2.
+If item 3 of colors is 0, set item 3 of colors to 1, paint from 3.
+If item 4 of colors is 0, set item 4 of colors to 1, paint from 4.
+If sound is 1, show true, otherwise show false.

@@ -1,0 +1,26 @@
+The source is "leet2code3".
+The rank is 10.
+The last is the last position of source.
+The size is 0.
+The amount is 0.
+For every spot from 0 to last.
+The symbol is character spot of source.
+Set amount to the digit value of symbol.
+If symbol is between "0" and "9", set size to size times amount.
+If symbol is not between "0" and "9", add 1 to size.
+If size is more than rank, set size to rank.
+
+The answer is empty text.
+The place is last.
+Repeat while place is at least 0.
+Set symbol to character place of source.
+Set amount to the digit value of symbol.
+If symbol is between "0" and "9", set size to size divided by amount.
+If symbol is between "0" and "9", set rank to rank minus 1.
+If symbol is between "0" and "9", set rank to rank modulo size.
+If symbol is between "0" and "9", add 1 to rank.
+If symbol is not between "0" and "9" and rank is size, set answer to the slice of source from place to place plus 1, stop.
+If symbol is not between "0" and "9", subtract 1 from size.
+Subtract 1 from place.
+
+Show answer.

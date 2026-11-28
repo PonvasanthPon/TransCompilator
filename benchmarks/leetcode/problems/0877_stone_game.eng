@@ -1,0 +1,16 @@
+The piles is a list of 5, 3, 4, and 5.
+The size is 4.
+The table is a list of 16 zeros.
+For every span from 1 to size.
+For every start from 0 to size minus span.
+The finish is start plus span minus 1.
+If start is finish, set item (start times size plus start) of table to item start of piles.
+If start is not finish.
+The leftindex is (start plus 1) times size plus finish.
+The rightindex is start times size plus finish minus 1.
+The left is item start of piles minus item leftindex of table.
+The right is item finish of piles minus item rightindex of table.
+If left is more than right, set item (start times size plus finish) of table to left, otherwise set item (start times size plus finish) of table to right.
+
+The outcome is item (size minus 1) of table.
+If outcome is at least 0, show true, otherwise show false.
