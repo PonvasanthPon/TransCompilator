@@ -1,4 +1,4 @@
-# LeetCode Gold-Standard Writer Prose — 371 / 371
+# LeetCode Gold-Standard Writer Prose — 764 / 764
 
 **Project:** `tc_r1` `0.1.0-alpha-preview`  
 **Batch 1 (`1–50`):** 50 solved, 0 skipped  
@@ -6,7 +6,8 @@
 **Batch 3A (`101–150`):** 49 solved, 1 non-algorithmic skip  
 **Batch 3B (`151–200`):** 24 solved, 26 non-algorithmic skips  
 **Batch 4:** 198 solved, 102 non-algorithmic skips  
-**Global:** 371 solved, 1,002 skipped, 2,751 pending of 4,124 catalog entries.
+**Batch 5:** 393 solved, 107 non-algorithmic skips  
+**Global:** 764 solved, 1,109 skipped, 2,251 pending of 4,124 catalog entries.
 
 Every solved solution passes the **Gold-Standard Writer Gate** with **zero**
 occurrences of `Let`, `Append`, `'s len`, `'s data`, `create text from`,
@@ -349,19 +350,173 @@ Output: `true`.
 
 ---
 
-# Batch 5 Progress (`501–1000`)
+# Batch 5 — `501–1000` (393 / 393)
 
-| Checkpoint | Range | Solved | Non-algorithmic skips | Status |
+Batch 5 solved **every eligible algorithmic problem** in `501–1000` with zero
+lazy algorithmic skips. The 107 remaining entries are all outside the
+standalone Core-7 English execution surface.
+
+| Checkpoint | Range | Solved | Skipped | Status |
 |---|---|---:|---:|---|
-| 5A | 501–550 | **35** | 15 | **complete** |
-| 5B | 551–600 | 0 | 20 | pending |
-| 5C | 601–650 | 0 | 25 | pending |
-| 5D | 651–700 | 0 | 10 | pending |
-| 5E | 701–750 | 0 | 19 | pending |
-| 5F | 751–800 | 0 | 9 | pending |
-| 5G | 801–850 | 0 | 1 | pending |
-| 5H | 851–900 | 0 | 3 | pending |
-| 5I | 901–950 | 0 | 4 | pending |
-| 5J | 951–1000 | 0 | 1 | pending |
+| 5A | 501–550 | **35** | 15 | complete |
+| 5B | 551–600 | **30** | 20 | complete |
+| 5C | 601–650 | **25** | 25 | complete |
+| 5D | 651–700 | **40** | 10 | complete |
+| 5E | 701–750 | **31** | 19 | complete |
+| 5F | 751–800 | **41** | 9 | complete |
+| 5G | 801–850 | **49** | 1 | complete |
+| 5H | 851–900 | **47** | 3 | complete |
+| 5I | 901–950 | **46** | 4 | complete |
+| 5J | 951–1000 | **49** | 1 | complete |
+| **Total** | **501–1000** | **393** | **107** | **complete** |
 
-**Global after 5A:** **406 solved**, 1,002 skipped, 2,716 pending.
+### Non-algorithmic skip breakdown (`501–1000`)
+
+| Category | Count |
+|---|---:|
+| Paywalled / Premium | 66 |
+| OOP/class design | 22 |
+| SQL/database | 18 |
+| Interactive judge | 1 |
+| Shell | 0 |
+| Concurrency | 0 |
+
+### Compiler / stdlib changes
+
+One general compiler fix was required for prose naturalness:
+
+`fix(semantics): ensure inline stop breaks enclosing loop in multi-action branches`
+
+The lowering layer now recognizes bare `stop.` in single-action and
+multi-action `If` / `Otherwise` branches (including trailing-period actions)
+and emits a Core-7 `Break` for the enclosing loop. Net change in
+`crates/tc-semantics/`: **+3 lines** (6 insertions, 3 deletions), plus a
+22-line regression test in `crates/tc-cli/tests/writer_prose.rs`.
+
+Three source-level wasm fixes were also made: `#0770` was reduced to a compact
+linear-expression evaluator, `#0906` uses numeric palindrome checks, and
+`#0966` uses precomputed exact/lower/vowel forms. These changed only `.eng`
+programs.
+
+---
+
+## Complete Batch 5 examples
+
+### #0509 — Fibonacci Number
+
+```text
+The count is 4.
+The first is 0.
+The second is 1.
+For every step from 1 to count.
+The following is first plus second.
+Set first to second.
+Set second to following.
+
+Show first.
+```
+
+Output: `3`.
+
+### #0704 — Binary Search
+
+```text
+The numbers is a list of -1, 0, 3, 5, 9, and 12.
+The target is 9.
+The low is 0.
+The high is the last position of numbers.
+The answer is -1.
+Repeat while low is at most high and answer is -1.
+The middle is the midpoint of low and high.
+If item middle of numbers is target, set answer to middle.
+If item middle of numbers is less than target, set low to middle plus 1.
+If item middle of numbers is more than target, set high to middle minus 1.
+
+Show answer.
+```
+
+Output: `4`.
+
+### #0994 — Rotting Oranges
+
+```text
+Keep a shared grid as an empty list of whole numbers.
+Place 2 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Place 0 into grid.
+Place 0 into grid.
+Place 1 into grid.
+Place 1 into grid.
+Keep a shared distances as an empty list of whole numbers.
+Keep a shared queue as an empty list of whole numbers.
+For every cell from 0 to 8, Place 0 into distances.
+For every cell from 0 to 8, Place 0 into queue.
+Keep a shared fresh as 0.
+Keep a shared count as 0.
+For every cell from 0 to 8.
+If item cell of grid is 1, add 1 to fresh.
+If item cell of grid is 2, set item count of queue to cell, add 1 to count.
+
+To spread from node (a whole number).
+The offsets is a list of -3, 3, -1, and 1.
+The row is node divided by 3, while the column is node modulo 3.
+For every which from 0 to 3.
+The offset is item which of offsets.
+The target is node plus offset.
+The level is item node of distances plus 1.
+The open is 1.
+If which is 0 and row is 0, set open to 0.
+If which is 1 and row is 2, set open to 0.
+If which is 2 and column is 0, set open to 0.
+If which is 3 and column is 2, set open to 0.
+If open is 1 and item target of grid is 1.
+Set item target of grid to 2.
+Set item target of distances to level.
+Set item count of queue to target.
+Add 1 to count.
+Set fresh to fresh minus 1.
+
+The head is 0.
+Repeat while head is less than count.
+The node is item head of queue.
+Add 1 to head.
+Spread from node.
+
+The best is 0.
+For every cell from 0 to 8.
+If item cell of distances is more than best, set best to item cell of distances.
+
+If fresh is more than 0, show -1, otherwise show best.
+```
+
+Output: `4`.
+
+---
+
+## Final verification
+
+| Gate | Result |
+|---|---|
+| `make mbt` | **764 / 764 PASS** |
+| Batch 5 (`501–1000`) | **393 / 393 PASS** |
+| Gold-Standard Writer Gate | **764 / 764 PASS, 0 violations** |
+| `tc interp` / static zero-libc ELF64 | 764 / 764 |
+| `tc_wasm.wasm` | 764 / 764 |
+| IR runtime-honesty | 764 / 764 |
+| `tc-lsp` diagnostics | 0 |
+| `make test` | **1,098 tests PASS** |
+| `make fmt-check` | PASS |
+| `make lint` | PASS, 0 warnings |
+| `make audit` | PASS: 9 local crates, 0 sources, 0 checksums |
+| `tc --audit` / `tc --selftest` | PASS |
+
+### Browser / PWA
+
+- Drawer: **`Solved Problems (764)`**, meta **`764 of 764`**.
+- Desktop **1440×900** and mobile **375×812**: zero console errors.
+- `Page.getInstallabilityErrors` = **`[]`**.
+- Wasm runs: `#0509` → `3`, `#0704` → `4`, `#0994` → `4`.
+- Screenshots captured at exact `1440×900` and `375×812`.
