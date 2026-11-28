@@ -1,0 +1,46 @@
+Keep a shared source as empty text.
+Place "-1/2+1/2+1/3" into source.
+Keep a shared spot as 0.
+Keep a shared sign as 0.
+Keep a shared top as 0.
+Keep a shared bottom as 0.
+Keep a shared number as 0.
+Keep a shared numerator as 0.
+Keep a shared denominator as 0.
+Set denominator to 1.
+
+To readnumber from cursor (a whole number).
+If cursor is more than the last position of source, set spot to cursor, return.
+If character cursor of source is not between "0" and "9", set spot to cursor, return.
+The digit is the digit value of character cursor of source.
+Set number to number times 10 plus digit.
+Add 1 to cursor.
+Readnumber from cursor.
+
+To reduce from left (a whole number) with right (a whole number).
+If left is less than 0, set left to 0 minus left.
+If right is less than 0, set right to 0 minus right.
+If right is 0, set numerator to numerator divided by left, set denominator to denominator divided by left, return.
+The rest is left modulo right.
+Reduce from right with rest.
+
+Repeat while spot is at most the last position of source.
+The here is spot.
+Set sign to 1.
+If character here of source is "-", set sign to 0 minus 1, add 1 to spot.
+If character here of source is "+", add 1 to spot.
+Set number to 0.
+Readnumber from spot.
+Set top to number.
+Add 1 to spot.
+Set number to 0.
+Readnumber from spot.
+Set bottom to number.
+Set numerator to numerator times bottom plus sign times top times denominator.
+Set denominator to denominator times bottom.
+Reduce from numerator with denominator.
+
+The line is format whole number numerator as text.
+Place "/" into line.
+Place format whole number denominator as text into line.
+Show line.

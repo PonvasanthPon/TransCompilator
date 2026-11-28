@@ -1,0 +1,15 @@
+The points is a list of 0, 0, 1, 1, 1, 0, 0, 1.
+The gaps is an empty list of whole numbers.
+For every first from 0 to 3.
+For every second from first plus 1 to 3.
+The firstspot is first times 2.
+The secondspot is second times 2.
+The gapx is item firstspot of points minus item secondspot of points.
+The gapy is item (firstspot plus 1) of points minus item (secondspot plus 1) of points.
+The distance is gapx times gapx plus gapy times gapy.
+Place distance into gaps.
+
+Sort gaps.
+The side is item 0 of gaps.
+The diagonal is item 4 of gaps.
+If side is more than 0 and item 1 of gaps is side and item 2 of gaps is side and item 3 of gaps is side and item 5 of gaps is diagonal and diagonal is side times 2, show true, otherwise show false.

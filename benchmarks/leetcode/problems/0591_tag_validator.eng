@@ -1,0 +1,98 @@
+Keep a shared code as empty text.
+Place "<DIV>This is the first line <![CDATA[<div>]]></DIV>" into code.
+Keep a shared spot as 0.
+Keep a shared ok as 0.
+Keep a shared name as empty text.
+Keep a shared found as 0.
+Keep a shared tags as an empty list of text.
+Set ok to 1.
+
+To findmark from cursor (a whole number).
+Set found to 0 minus 1.
+Repeat while cursor plus 2 is at most the last position of code.
+The piece is the slice of code from cursor to cursor plus 3.
+If piece matches "]]>", set found to cursor, stop.
+Add 1 to cursor.
+
+To takecdata.
+If found is less than 0, set ok to 0, return.
+Set spot to found plus 3.
+
+To scan from cursor (a whole number).
+If cursor is more than the last position of code, set spot to cursor, return.
+The here is cursor.
+If character here of code is ">", set spot to cursor, return.
+Place character here of code into name.
+Scan from cursor plus 1.
+
+To approve.
+The size is the number of characters in name.
+If size is less than 1, set ok to 0.
+If size is more than 9, set ok to 0.
+For every index from 0 to size minus 1.
+The letter is the slice of name from index to index plus 1.
+If letter comes before "A", set ok to 0.
+If "Z" comes before letter, set ok to 0.
+
+To closetag.
+Add 2 to spot.
+Set name to empty text.
+Scan from spot.
+If spot is more than the last position of code, set ok to 0, return.
+Add 1 to spot.
+Approve.
+If ok is 0, return.
+The depth is the number of items in tags.
+If depth is 0, set ok to 0, return.
+The top is item (depth minus 1) of tags.
+If name does not match top, set ok to 0, return.
+Remove the last item from tags.
+
+To opentag.
+The start is the slice of code from spot to spot plus 1.
+The angle is 0.
+If start matches "<", set angle to 1.
+If angle is 0, set ok to 0, return.
+Add 1 to spot.
+Set name to empty text.
+Scan from spot.
+If spot is more than the last position of code, set ok to 0, return.
+Approve.
+If ok is 0, return.
+Add 1 to spot.
+The copy is a copy of name.
+Place copy into tags.
+Content.
+
+To content.
+Repeat while spot is at most the last position of code and ok is 1.
+The here is spot.
+The finish is the last position of code.
+The marker is the slice of code from here to here plus 1.
+The next is here plus 1.
+If next is more than finish, set next to finish.
+The near is next plus 1.
+If near is more than finish plus 1, set near to finish plus 1.
+The follower is the slice of code from next to near.
+The wide is here plus 9.
+If wide is more than finish, set wide to finish plus 1.
+The head is the slice of code from here to wide.
+The cdata is 0.
+If head matches "<![CDATA[", set cdata to 1.
+If cdata is 1, findmark from here plus 9.
+If cdata is 1, takecdata.
+The isangle is 0.
+If marker matches "<", set isangle to 1.
+The isclose is 0.
+If follower matches "/", set isclose to 1.
+If cdata is 0 and isangle is 0, add 1 to spot.
+If cdata is 0 and isangle is 1 and isclose is 1, closetag.
+If cdata is 0 and isangle is 1 and isclose is 1, stop.
+If cdata is 0 and isangle is 1 and isclose is 0, opentag.
+
+The size is the number of characters in code.
+If size is less than 1, set ok to 0.
+If size is more than 0 and ok is 1, opentag.
+If spot is not size, set ok to 0.
+The depth is the number of items in tags.
+If ok is 1 and depth is 0, show true, otherwise show false.

@@ -1,0 +1,14 @@
+The height is 3.
+The width is 3.
+The operations is a list of 2, 2, 3, 3.
+The pairs is the number of items in operations divided by 2.
+The rowlimit is height.
+The columnlimit is width.
+For every pair from 0 to pairs minus 1.
+The row is item (pair times 2) of operations.
+The column is item (pair times 2 plus 1) of operations.
+If row is less than rowlimit, set rowlimit to row.
+If column is less than columnlimit, set columnlimit to column.
+
+The cells is rowlimit times columnlimit.
+Show cells.

@@ -1,0 +1,160 @@
+Keep a shared xvalues as an empty list of whole numbers.
+Keep a shared yvalues as an empty list of whole numbers.
+The posts is a list of 1, 1, 2, 2, 2, 0, 2, 4, 3, 3, 4, and 2.
+For every spot from 0 to the last position of posts.
+If spot modulo 2 is 0, Place item spot of posts into xvalues.
+If spot modulo 2 is 1, Place item spot of posts into yvalues.
+
+Keep a shared chosen as 0.
+Keep a shared lowerx as an empty list of whole numbers.
+Keep a shared lowery as an empty list of whole numbers.
+Keep a shared upperx as an empty list of whole numbers.
+Keep a shared uppery as an empty list of whole numbers.
+Keep a shared resultx as an empty list of whole numbers.
+Keep a shared resulty as an empty list of whole numbers.
+Keep a shared startx as 0.
+Keep a shared starty as 0.
+Keep a shared endx as 0.
+Keep a shared endy as 0.
+Keep a shared repeated as 0.
+Keep a shared checkx as 0.
+Keep a shared checky as 0.
+
+To pick from cursor (a whole number) with best (a whole number).
+If cursor is more than the last position of xvalues, set chosen to best, return.
+The herex is item cursor of xvalues.
+The herey is item cursor of yvalues.
+The bestx is item best of xvalues.
+The besty is item best of yvalues.
+If herex is less than bestx, set best to cursor.
+If herex is bestx and herey is less than besty, set best to cursor.
+Pick from cursor plus 1 with best.
+
+To trimleft.
+The size is the number of items in lowerx.
+If size is less than 3, return.
+The last is size minus 1.
+The middle is size minus 2.
+The first is size minus 3.
+The run is item middle of lowerx minus item first of lowerx.
+The rise is item last of lowery minus item first of lowery.
+The drop is item middle of lowery minus item first of lowery.
+The span is item last of lowerx minus item first of lowerx.
+The turn is run times rise minus drop times span.
+If turn is at most 0.
+Remove item middle of lowerx.
+Remove item middle of lowery.
+Trimleft.
+Return.
+
+To leftscan from cursor (a whole number).
+If cursor is more than the last position of xvalues, return.
+Place item cursor of xvalues into lowerx.
+Place item cursor of yvalues into lowery.
+Trimleft.
+Leftscan from cursor plus 1.
+
+To trimright.
+The size is the number of items in upperx.
+If size is less than 3, return.
+The last is size minus 1.
+The middle is size minus 2.
+The first is size minus 3.
+The run is item middle of upperx minus item first of upperx.
+The rise is item last of uppery minus item first of uppery.
+The drop is item middle of uppery minus item first of uppery.
+The span is item last of upperx minus item first of upperx.
+The turn is run times rise minus drop times span.
+If turn is at most 0.
+Remove item middle of upperx.
+Remove item middle of uppery.
+Trimright.
+Return.
+
+To rightscan from cursor (a whole number).
+If cursor is less than 0, return.
+Place item cursor of xvalues into upperx.
+Place item cursor of yvalues into uppery.
+Trimright.
+Rightscan from cursor minus 1.
+
+To verify from spot (a whole number).
+If spot is more than the last position of resultx, return.
+If item spot of resultx is checkx and item spot of resulty is checky, set repeated to 1, return.
+Verify from spot plus 1.
+
+To collect from cursor (a whole number).
+If cursor is more than the last position of xvalues, return.
+The pointx is item cursor of xvalues.
+The pointy is item cursor of yvalues.
+The along is (pointx minus startx) times (endy minus starty) minus (pointy minus starty) times (endx minus startx).
+The lowx is startx.
+If endx is less than lowx, set lowx to endx.
+The highx is startx.
+If endx is more than highx, set highx to endx.
+The lowy is starty.
+If endy is less than lowy, set lowy to endy.
+The highy is starty.
+If endy is more than highy, set highy to endy.
+The outset is 0.
+If pointx is startx and pointy is starty, set outset to 1.
+If pointx is endx and pointy is endy, set outset to 1.
+Set repeated to 0.
+Set checkx to pointx.
+Set checky to pointy.
+Verify from 0.
+If along is 0 and outset is 0 and repeated is 0 and pointx is at least lowx and pointx is at most highx and pointy is at least lowy and pointy is at most highy, Place pointx into resultx, Place pointy into resulty.
+Collect from cursor plus 1.
+
+The lastpost is the last position of xvalues.
+For every outer from 0 to lastpost minus 1.
+Set chosen to outer.
+Pick from outer plus 1 with outer.
+The pickindex is chosen.
+The swapx is item outer of xvalues.
+The swapy is item outer of yvalues.
+Set item outer of xvalues to item pickindex of xvalues.
+Set item outer of yvalues to item pickindex of yvalues.
+Set item pickindex of xvalues to swapx.
+Set item pickindex of yvalues to swapy.
+
+Leftscan from 0.
+Rightscan from the last position of xvalues.
+The fencex is an empty list of whole numbers.
+The fencey is an empty list of whole numbers.
+The lowersize is the number of items in lowerx.
+For every spot from 0 to lowersize minus 2.
+Place item spot of lowerx into fencex.
+Place item spot of lowery into fencey.
+
+The uppersize is the number of items in upperx.
+For every spot from 0 to uppersize minus 2.
+Place item spot of upperx into fencex.
+Place item spot of uppery into fencey.
+
+The hullsize is the number of items in fencex.
+For every edge from 0 to hullsize minus 1.
+The nextedge is edge plus 1.
+If nextedge is hullsize, set nextedge to 0.
+Set startx to item edge of fencex.
+Set starty to item edge of fencey.
+Set endx to item nextedge of fencex.
+Set endy to item nextedge of fencey.
+Place startx into resultx.
+Place starty into resulty.
+Collect from 0.
+
+The line is empty text.
+Place "[" into line.
+For every spot from 0 to the last position of resultx.
+If spot is more than 0, Place "," into line.
+Place "[" into line.
+The pointx is format whole number item spot of resultx as text.
+Place pointx into line.
+Place "," into line.
+The pointy is format whole number item spot of resulty as text.
+Place pointy into line.
+Place "]" into line.
+
+Place "]" into line.
+Show line.

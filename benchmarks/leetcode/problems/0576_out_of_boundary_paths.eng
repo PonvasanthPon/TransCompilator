@@ -1,0 +1,65 @@
+Keep a shared height as 0.
+Keep a shared width as 0.
+Keep a shared budget as 0.
+Keep a shared startrow as 0.
+Keep a shared startcolumn as 0.
+Keep a shared modulus as 0.
+Keep a shared cells as 0.
+Keep a shared counts as an empty list of whole numbers.
+Keep a shared next as an empty list of whole numbers.
+Keep a shared escapes as 0.
+Set height to 2.
+Set width to 2.
+Set budget to 2.
+Set startrow to 0.
+Set startcolumn to 0.
+Set modulus to 1000000007.
+Set cells to height times width.
+For every cell from 0 to cells minus 1.
+Place 0 into counts.
+Place 0 into next.
+
+The start is startrow times width plus startcolumn.
+Set item start of counts to 1.
+
+To wipe from spot (a whole number).
+If spot is at least cells, return.
+Set item spot of next to 0.
+Wipe from spot plus 1.
+
+To spill from spot (a whole number).
+The row is spot divided by width.
+The column is spot modulo width.
+The weight is item spot of counts.
+If row is 0, set escapes to escapes plus weight.
+If row is 0, set escapes to escapes modulo modulus.
+If row is more than 0, set item (spot minus width) of next to item (spot minus width) of next plus weight.
+If row is height minus 1, set escapes to escapes plus weight.
+If row is height minus 1, set escapes to escapes modulo modulus.
+If row is less than height minus 1, set item (spot plus width) of next to item (spot plus width) of next plus weight.
+If column is 0, set escapes to escapes plus weight.
+If column is 0, set escapes to escapes modulo modulus.
+If column is more than 0, set item (spot minus 1) of next to item (spot minus 1) of next plus weight.
+If column is width minus 1, set escapes to escapes plus weight.
+If column is width minus 1, set escapes to escapes modulo modulus.
+If column is less than width minus 1, set item (spot plus 1) of next to item (spot plus 1) of next plus weight.
+
+To sweep from spot (a whole number).
+If spot is at least cells, return.
+If item spot of counts is more than 0, spill from spot.
+Sweep from spot plus 1.
+
+To save from spot (a whole number).
+If spot is at least cells, return.
+Set item spot of counts to item spot of next.
+Save from spot plus 1.
+
+To travel from move (a whole number).
+If move is more than budget, return.
+Wipe from 0.
+Sweep from 0.
+Save from 0.
+Travel from move plus 1.
+
+Travel from 1.
+Show escapes.

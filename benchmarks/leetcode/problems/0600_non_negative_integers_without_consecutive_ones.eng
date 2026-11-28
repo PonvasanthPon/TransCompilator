@@ -1,0 +1,30 @@
+The limit is 5.
+The ways is a list of 33 zeros.
+Set item 0 of ways to 1.
+Set item 1 of ways to 2.
+For every spot from 2 to 32.
+The prior is item (spot minus 1) of ways.
+The earlier is item (spot minus 2) of ways.
+Set item spot of ways to prior plus earlier.
+
+The top is 0.
+The probe is limit.
+Repeat while probe is more than 0.
+Set probe to probe divided by 2.
+Add 1 to top.
+
+The answer is 0.
+The before is 0.
+The blocked is 0.
+For every step from 1 to top.
+The position is top minus step.
+The raised is shift 1 left by position.
+The bit is bitwise and of limit and raised.
+If bit is more than 0, set answer to answer plus item position of ways.
+If bit is more than 0 and before is 1, set blocked to 1.
+If bit is more than 0, set before to 1.
+If bit is 0, set before to 0.
+If blocked is 1, stop.
+
+If blocked is 0, add 1 to answer.
+Show answer.

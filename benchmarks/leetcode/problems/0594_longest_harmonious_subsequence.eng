@@ -1,0 +1,21 @@
+The values is a list of 1, 3, 2, 2, 5, 2, 3, and 7.
+Sort values.
+The distinct is an empty list of whole numbers.
+The counts is an empty list of whole numbers.
+For each value in values.
+The size is the number of items in distinct.
+If size is 0, Place value into distinct, Place 1 into counts.
+If size is more than 0.
+The lastspot is size minus 1.
+If item lastspot of distinct is value, set item lastspot of counts to item lastspot of counts plus 1.
+If item lastspot of distinct is not value, Place value into distinct, Place 1 into counts.
+
+The best is 0.
+The final is the last position of distinct.
+For every spot from 0 to final minus 1.
+The nextspot is spot plus 1.
+If item nextspot of distinct is item spot of distinct plus 1.
+The total is item spot of counts plus item nextspot of counts.
+If total is more than best, set best to total.
+
+Show best.

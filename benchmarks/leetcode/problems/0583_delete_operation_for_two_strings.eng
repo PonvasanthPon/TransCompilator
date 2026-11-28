@@ -1,0 +1,28 @@
+The first is "sea".
+The second is "eat".
+The firstlength is the number of characters in first.
+The secondlength is the number of characters in second.
+The width is secondlength plus 1.
+The height is firstlength plus 1.
+The cells is height times width.
+The chart is a list of 16 zeros.
+For every row from 1 to firstlength.
+For every column from 1 to secondlength.
+The above is row minus 1.
+The before is column minus 1.
+The letter is the slice of first from above to above plus 1.
+The other is the slice of second from before to before plus 1.
+The spot is row times width plus column.
+The corner is above times width plus before.
+If letter matches other, set item spot of chart to item corner of chart plus 1.
+If letter does not match other.
+The up is above times width plus column.
+The left is row times width plus before.
+The best is item up of chart.
+If item left of chart is more than best, set best to item left of chart.
+Set item spot of chart to best.
+
+The common is firstlength times width plus secondlength.
+The shared is item common of chart.
+The answer is firstlength plus secondlength minus 2 times shared.
+Show answer.

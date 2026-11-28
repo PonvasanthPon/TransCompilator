@@ -1,0 +1,14 @@
+The numbers is a list of 2, 6, 4, 8, 10, 9, and 15.
+The ordered is an empty list of whole numbers.
+For each value in numbers.
+Place value into ordered.
+
+Sort ordered.
+The first is -1.
+The farthest is -1.
+For every spot from 0 to the last position of numbers.
+If item spot of numbers is not item spot of ordered.
+If first is less than 0, set first to spot.
+Set farthest to spot.
+
+If first is less than 0, show 0, otherwise show farthest minus first plus 1.

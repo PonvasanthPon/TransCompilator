@@ -1,0 +1,17 @@
+The names is a list of "Shogun", "Tapioca Express", "Burger King", and "KFC".
+The favorites is a list of "Piatti", "The Grill at Torrey Pines", "Hungry Hunter Steakhouse", and "Shogun".
+The best is 1000000.
+For every first from 0 to the last position of names.
+For every second from 0 to the last position of favorites.
+If item first of names matches item second of favorites.
+The total is first plus second.
+If total is less than best, set best to total.
+
+The answers is an empty list of text.
+For every first from 0 to the last position of names.
+For every second from 0 to the last position of favorites.
+If item first of names matches item second of favorites.
+The total is first plus second.
+If total is best, Place item first of names into answers.
+
+For each answer in answers, show answer.

@@ -1,0 +1,33 @@
+Keep a shared values as an empty list of whole numbers.
+Place 1 into values.
+Place 3 into values.
+Place 2 into values.
+Place 4 into values.
+Place 5 into values.
+Place 6 into values.
+Keep a shared firstchild as an empty list of whole numbers.
+Place 1 into firstchild.
+Place 4 into firstchild.
+Place -1 into firstchild.
+Place -1 into firstchild.
+Place -1 into firstchild.
+Place -1 into firstchild.
+Keep a shared nextsibling as an empty list of whole numbers.
+Place -1 into nextsibling.
+Place 2 into nextsibling.
+Place 3 into nextsibling.
+Place -1 into nextsibling.
+Place 5 into nextsibling.
+Place -1 into nextsibling.
+Keep a shared order as an empty list of whole numbers.
+
+To gather from node (a whole number).
+If node is less than 0, return.
+Place item node of values into order.
+The child is item node of firstchild.
+Repeat while child is at least 0.
+Gather from child.
+Set child to item child of nextsibling.
+
+Gather from 0.
+For each value in order, show value.
